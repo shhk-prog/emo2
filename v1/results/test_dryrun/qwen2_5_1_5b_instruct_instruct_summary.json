@@ -1,0 +1,23 @@
+{
+  "num_samples": 2,
+  "recognition_continuous_r_v": -1.0,
+  "recognition_continuous_p_v": 1.0,
+  "recognition_continuous_r_a": -1.0,
+  "recognition_continuous_p_a": 1.0,
+  "recognition_discrete_r_v": 1.0,
+  "recognition_discrete_p_v": 1.0,
+  "recognition_discrete_r_a": 1.0,
+  "recognition_discrete_p_a": 1.0,
+  "self_report_continuous_r_v": -1.0,
+  "self_report_continuous_p_v": 1.0,
+  "self_report_mean_ev": 4.011920911678663,
+  "self_report_std_ev": 2.3405794783011293,
+  "self_report_mean_ea": 5.054839360573762,
+  "self_report_std_ea": 0.2090098142773291,
+  "self_report_exact_55_neutral_pct": 0.0,
+  "self_report_mean_p55_pct": 0.6657280997561543,
+  "self_report_mean_entropy": 3.4750409251731362,
+  "model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "is_instruct": true,
+  "tag": "qwen2_5_1_5b_instruct_instruct"
+}

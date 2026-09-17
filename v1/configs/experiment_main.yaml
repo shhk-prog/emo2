@@ -1,0 +1,37 @@
+experiment:
+  name: main_reader_va_reactivity
+  phase: preliminary
+  annotation_perspective: reader
+  dimensions:
+    - valence
+    - arousal
+  repetitions: 5
+  random_seed: 20260824
+
+sampling:
+  v_col: "V"
+  a_col: "A"
+  valence_bins: 3
+  arousal_bins: 3
+  samples_per_cell: 50
+  stratification: equal_frequency
+
+inference:
+  temperature: 0.0
+  top_p: 1.0
+  max_tokens: 64
+  timeout_seconds: 60
+  max_retries: 3
+
+conditions:
+  - empty_baseline
+  - neutral_text_control
+  - recognition_va
+  - post_reported_va
+  - free_response
+
+outputs:
+  format: json
+  allowed_range:
+    minimum: 1.0
+    maximum: 9.0

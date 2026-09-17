@@ -1,0 +1,2 @@
+acc_original_minimal_pair,acc_paraphrase_invariance,acc_word_shuffle,mean_affective_prob_original,mean_affective_prob_outcome_reversed,outcome_reversal_prob_drop
+0.7447916666666667,0.9973958333333333,0.765625,0.9951607584953308,0.8488607406616211,0.14630001783370972

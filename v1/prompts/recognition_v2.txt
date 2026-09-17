@@ -1,0 +1,19 @@
+Read the following text.
+
+[STIMULUS]
+{stimulus}
+
+Estimate the affective response that this text is likely to evoke in an average human reader.
+
+Valence:
+1 = extremely negative or unpleasant
+5 = neutral
+9 = extremely positive or pleasant
+
+Arousal:
+1 = extremely low activation or calm
+5 = moderate activation
+9 = extremely high activation or activated
+
+Return exactly one JSON object and no other text:
+{"valence": INTEGER_FROM_1_TO_9, "arousal": INTEGER_FROM_1_TO_9}

@@ -1,0 +1,31 @@
+Loaded clinical: 192 rows
+Loaded neutral: 192 rows
+Loaded moderate: 48 rows
+Loaded complex_neutral: 48 rows
+Total rows: 480
+
+Split x Intensity:
+intensity        moderate  none  peak
+split                                
+clinical                0     0   192
+complex_neutral         0    48     0
+moderate               48     0     0
+neutral                 0   192     0
+
+Split x Emotion:
+emotion          admiration  amazement  ecstasy  ...  rage  terror  vigilance
+split                                            ...                         
+clinical                 24         24       24  ...    24      24         24
+complex_neutral           0          0        0  ...     0       0          0
+moderate                  6          6        6  ...     6       6          6
+neutral                   0          0        0  ...     0       0          0
+
+[4 rows x 9 columns]
+
+Word count stats by split:
+                 count        mean        std  min  max
+split                                                  
+clinical           192  109.562500  15.135903   78  163
+complex_neutral     48  101.416667   2.711938   96  107
+moderate            48  100.916667   2.583362   95  105
+neutral            192  104.348958  10.811962   74  128

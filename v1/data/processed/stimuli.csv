@@ -1,0 +1,322 @@
+id,split,V,A,D,text,V_scaled,A_scaled,v_cell,a_cell,stimulus_id
+defenders5_31_47,test,2.0,3.57,2.71,ALASKA EMERGENCY,-0.5,0.2849999999999999,0,1,emobank_defenders5_31_47
+hotel-california_27718_27751,train,2.2,3.6,2.6,I was discouraged and frustrated.,-0.3999999999999999,0.30000000000000004,0,1,emobank_hotel-california_27718_27751
+112C-L013_653_757,train,2.29,3.29,2.86,"Kids like Tommie J., made a ward of the court because of repeated beatings by an alcoholic father;",-0.355,0.14500000000000002,0,1,emobank_112C-L013_653_757
+NYTnewswire4_3733_3851,train,2.3,3.4,3.1,"Although he said the Gators will be excited to play the Hurricanes, ""I don't want to talk about that game,"" Zook said.",-0.3500000000000001,0.19999999999999996,0,1,emobank_NYTnewswire4_3733_3851
+captured_moments_23307_23321,train,2.25,3.5,2.75,"""I am jealous.",-0.375,0.25,0,1,emobank_captured_moments_23307_23321
+A_defense_of_Michael_Moore_22762_22779,train,2.2,3.3,3.2,9) Gun homicides.,-0.3999999999999999,0.1499999999999999,0,1,emobank_A_defense_of_Michael_Moore_22762_22779
+NYTnewswire9_5696_5711,train,2.2,3.5,3.9,"""I said, `No.""'",-0.3999999999999999,0.25,0,1,emobank_NYTnewswire9_5696_5711
+hotel-california_3445_3575,train,2.2,3.4,3.0,"As much as Jesse had irritated me, I didn't like the picture my brain drew of him floating in his grave, body swollen and bloated.",-0.3999999999999999,0.19999999999999996,0,1,emobank_hotel-california_3445_3575
+Nathans_Bylichka_52685_52792,dev,2.2,3.6,2.7,"On the floor was Dvorov’s head, separated from his body by several feet and a growing puddle of dark blood.",-0.3999999999999999,0.30000000000000004,0,1,emobank_Nathans_Bylichka_52685_52792
+Nathans_Bylichka_21342_21360,train,2.18,2.91,2.82,The thing frowned.,-0.4099999999999999,-0.04499999999999993,0,1,emobank_Nathans_Bylichka_21342_21360
+NYTnewswire9_10538_10589,train,2.33,3.0,3.0,"And then the casualties were going to be terrible.""",-0.33499999999999996,0.0,0,1,emobank_NYTnewswire9_10538_10589
+SemEval_742,train,2.22,3.56,2.89,Floods force Malaysia evacuations,-0.3899999999999999,0.28,0,1,emobank_SemEval_742
+Ohio_Steel_12452_12560,dev,2.22,3.0,2.78,"The people of Youngstown, being now unemployed had very little money to spend on anything but staying alive.",-0.3899999999999999,0.0,0,1,emobank_Ohio_Steel_12452_12560
+SemEval_690,train,2.18,3.46,2.82,Now it's official: Iraq's a mess,-0.4099999999999999,0.22999999999999998,0,1,emobank_SemEval_690
+Uprooted_Farming-on-Sand_1711_1753,train,2.3,3.0,2.7,Last year's rich loam is now useless sand.,-0.3500000000000001,0.0,0,1,emobank_Uprooted_Farming-on-Sand_1711_1753
+SemEval_882,dev,1.88,3.37,2.38,"Attack video saddens ""friendly fire"" widow",-0.56,0.18500000000000005,0,1,emobank_SemEval_882
+wsj_2465_1041_1137,train,2.0,3.18,2.73,"An hour later, the paper's circulation manager, Miguel Soler, was shot and killed near his home.",-0.5,0.09000000000000008,0,1,emobank_wsj_2465_1041_1137
+Nathans_Bylichka_38054_38115,train,2.12,3.63,3.75,Get out of my sight now – unless you know how to put it back?,-0.43999999999999995,0.31499999999999995,0,1,emobank_Nathans_Bylichka_38054_38115
+SemEval_920,dev,2.0,3.62,3.13,Dozens killed in Baghdad bombing,-0.5,0.31000000000000005,0,1,emobank_SemEval_920
+hotel-california_30137_30157,train,2.25,3.5,3.5,"“No,” said Adrienne.",-0.375,0.25,0,1,emobank_hotel-california_30137_30157
+NYTnewswire9_9777_9839,test,2.33,3.0,2.67,"Three days later, another B-29 from the 509th bombed Nagasaki.",-0.33499999999999996,0.0,0,1,emobank_NYTnewswire9_9777_9839
+110CYL071_246_283,test,2.14,3.14,2.86,Michael was born with cerebral palsy.,-0.42999999999999994,0.07000000000000006,0,1,emobank_110CYL071_246_283
+SemEval_679,train,2.22,3.22,2.56,Gunmen abduct Filipino woman in Nigeria,-0.3899999999999999,0.1100000000000001,0,1,emobank_SemEval_679
+112C-L015_859_939,train,2.12,3.25,2.75,Many of the children have no homes; no memories of joy from past holidays.,-0.43999999999999995,0.125,0,1,emobank_112C-L015_859_939
+captured_moments_9076_9083,train,2.3,3.4,3.5,Enough.,-0.3500000000000001,0.19999999999999996,0,1,emobank_captured_moments_9076_9083
+A_defense_of_Michael_Moore_19756_19840,train,2.3,3.3,3.1,"The kid was a little bastard, and the parents were involved in drugs -- case closed.",-0.3500000000000001,0.1499999999999999,0,1,emobank_A_defense_of_Michael_Moore_19756_19840
+hotel-california_30791_30976,train,2.3,3.6,3.4,"“You could force the captain to set down somewhere. Let us off the ship. If he refuses, threaten him. If he still refuses, well, of all of us, isn't there someone who can drive a ship?”",-0.3500000000000001,0.30000000000000004,0,1,emobank_hotel-california_30791_30976
+IFAW1_1303_1324,test,2.0,3.0,3.0,"“stupid, non-feeling”",-0.5,0.0,0,1,emobank_IFAW1_1303_1324
+Nathans_Bylichka_37381_37477,train,2.3,3.4,3.2,“and you’d better pray to whatever god you think will listen that he won’t care we woke her up.”,-0.3500000000000001,0.19999999999999996,0,1,emobank_Nathans_Bylichka_37381_37477
+Ohio_Steel_10791_10967,train,2.3,3.1,2.8,"However, to American companies already suffering financial setbacks, outdated machinery, and fierce competition, this lack of demand was an inconvenience they could not afford.",-0.3500000000000001,0.050000000000000044,0,1,emobank_Ohio_Steel_10791_10967
+marine1_490_675,train,2.0,3.2,2.9,"Even today, after years of public outrage, dolphins continue to die in tuna fisheries of other countries and are still being cruelly and often illegally killed by gillnets and harpoons.",-0.5,0.10000000000000009,0,1,emobank_marine1_490_675
+sucker_1488_1738,dev,2.33,3.33,3.11,"“a black-themed book will come up for consideration, and there won’t be anyone of color to put in an opinion, or there’ll be one, who shouldn’t bear the burden alone. So we all pretend we’re experts. Maybe I’m the only one who’s embarrassed by that.”",-0.33499999999999996,0.16500000000000004,0,1,emobank_sucker_1488_1738
+hotel-california_2985_3092,dev,2.33,2.89,2.78,"The survivors of the unfortunate accidents, the catastrophic malfunctions, the fateful crashes: this is us.",-0.33499999999999996,-0.05499999999999994,0,1,emobank_hotel-california_2985_3092
+NYTnewswire9_7912_8038,dev,2.0,3.5,2.9,"At 8:15 a.m. Hiroshima time, the pneumatic bomb-bay doors opened and ""Little Boy,"" equivalent to 20,000 tons of TNT, fell out.",-0.5,0.25,0,1,emobank_NYTnewswire9_7912_8038
+SemEval_1204,test,2.2,3.0,3.1,Swiss plane crashes at Moscow airport,-0.3999999999999999,0.0,0,1,emobank_SemEval_1204
+20020731-nyt_18216_18312,train,2.3,3.1,2.8,"""There was death in D.C. throughout the '80s and into the '90s, and there was death everywhere,""",-0.3500000000000001,0.050000000000000044,0,1,emobank_20020731-nyt_18216_18312
+hotel-california_26456_26482,train,2.22,3.11,2.78,My quarters felt stifling.,-0.3899999999999999,0.05499999999999994,0,1,emobank_hotel-california_26456_26482
+SemEval_846,train,2.12,3.12,3.12,"Scorpion on a plane, a pantful of pain",-0.43999999999999995,0.06000000000000005,0,1,emobank_SemEval_846
+hotel-california_18971_19010,test,2.33,2.89,2.78,We're not even going to leave a legacy.,-0.33499999999999996,-0.05499999999999994,0,1,emobank_hotel-california_18971_19010
+A_defense_of_Michael_Moore_4592_4632,train,2.1,3.1,2.7,Mustafa was 14 years when he was killed.,-0.44999999999999996,0.050000000000000044,0,1,emobank_A_defense_of_Michael_Moore_4592_4632
+Seedbombing_2063_2206,train,2.3,3.2,2.7,"I found this hard to do while also avoiding cops, dealing with the camera and the car window, scoping out angles of approach for throwing, etc.",-0.3500000000000001,0.10000000000000009,0,1,emobank_Seedbombing_2063_2206
+SemEval_1086,dev,2.3,2.8,2.8,High cholesterol raises stroke risk healthy women,-0.3500000000000001,-0.10000000000000009,0,1,emobank_SemEval_1086
+NYTnewswire2_8918_8994,test,2.0,3.1,2.9,"""This is a criminal act and it certainly puts things in a different league,""",-0.5,0.050000000000000044,0,1,emobank_NYTnewswire2_8918_8994
+Fermentation_HR5034_9996_10126,train,2.0,3.25,2.62,"The hypocrisy, misleading notions and disinformation being featured at the wholesalers website supporting H.R. 5034 is staggering.",-0.5,0.125,0,1,emobank_Fermentation_HR5034_9996_10126
+SemEval_648,train,2.13,3.62,3.12,Somalia declares state of emergency,-0.43500000000000005,0.31000000000000005,0,1,emobank_SemEval_648
+hotel-california_17786_17818,train,2.2,3.2,2.8,"“That's still dumb,” said Sarah.",-0.3999999999999999,0.10000000000000009,0,1,emobank_hotel-california_17786_17818
+cable_spool_fort_8516_8674,train,2.3,3.4,3.1,"""I thought he might stab you."" Roy said and craned his neck forward to look at Tucker's face as the other boys began to crowd around at a respectful distance.",-0.3500000000000001,0.19999999999999996,0,1,emobank_cable_spool_fort_8516_8674
+hotel-california_33279_33299,dev,2.11,3.11,2.56,I couldn't find her.,-0.44500000000000006,0.05499999999999994,0,1,emobank_hotel-california_33279_33299
+The_Black_Willow_10749_10795,train,2.2,3.2,2.8,"I would not be happy, thus separated from it.""",-0.3999999999999999,0.10000000000000009,0,1,emobank_The_Black_Willow_10749_10795
+NYTnewswire7_1802_1854,train,2.3,3.0,2.8,"But in some areas, the seabass are being overfished.",-0.3500000000000001,0.0,0,1,emobank_NYTnewswire7_1802_1854
+cable_spool_fort_116_125,train,1.6,3.9,3.6,You suck.,-0.7,0.44999999999999996,0,2,emobank_cable_spool_fort_116_125
+detroit_9593_9753,train,2.3,3.8,3.1,"You think I'm kidding, but I couldn't be more serious -- that Honda is a visceral reminder for people of how the American consumer has left Detroit in the dust.",-0.3500000000000001,0.3999999999999999,0,2,emobank_detroit_9593_9753
+cable_spool_fort_115_137,train,2.1,3.8,3.3,"""You suck."" Chad said.",-0.44999999999999996,0.3999999999999999,0,2,emobank_cable_spool_fort_115_137
+easy_money_6254_6342,train,2.0,3.7,2.6,Or maybe this guy was just a wacko who wanted to take me out on a dark road and kill me.,-0.5,0.3500000000000001,0,2,emobank_easy_money_6254_6342
+audubon1_60_76,train,1.63,3.91,3.45,I’m outraged ...,-0.685,0.45500000000000007,0,2,emobank_audubon1_60_76
+detroit_15207_15294,train,2.1,3.8,3.7,"You want to yell at which insurance company fucked up, or change a bedpan, so to speak?",-0.44999999999999996,0.3999999999999999,0,2,emobank_detroit_15207_15294
+Nathans_Bylichka_56572_56622,train,1.9,3.8,2.0,Hands closed on my neck and I felt my spine crack.,-0.55,0.3999999999999999,0,2,emobank_Nathans_Bylichka_56572_56622
+The_Black_Willow_12929_13034,train,2.3,3.8,3.3,"""What in G-d's name could have possessed you to do such a thing,"" cried Arthur, nearly raising his voice.",-0.3500000000000001,0.3999999999999999,0,2,emobank_The_Black_Willow_12929_13034
+Madame_White_Snake_3473_3497,train,2.12,4.0,2.87,“disturbed and agitated”,-0.43999999999999995,0.5,0,2,emobank_Madame_White_Snake_3473_3497
+audubon1_7282_7287,train,2.0,3.89,3.11,“NO!”,-0.5,0.44500000000000006,0,2,emobank_audubon1_7282_7287
+Nathans_Bylichka_37816_37828,train,2.22,3.78,3.0,he screamed.,-0.3899999999999999,0.3899999999999999,0,2,emobank_Nathans_Bylichka_37816_37828
+Homosexuality_5297_5340,train,2.18,4.0,3.36,They also do not belong in a court of law!”,-0.4099999999999999,0.5,0,2,emobank_Homosexuality_5297_5340
+Nathans_Bylichka_11578_11605,train,2.0,3.8,2.9,That just unnerved me more.,-0.5,0.3999999999999999,0,2,emobank_Nathans_Bylichka_11578_11605
+detroit_4319_4400,train,2.1,4.1,3.4,"We didn't slow down to take a photo, but I'll paraphrase: DON'T BURN HOUSES DOWN!",-0.44999999999999996,0.5499999999999998,0,2,emobank_detroit_4319_4400
+defenders5_2473_2623,train,2.3,3.7,2.7,They are utterly out of step with their Alaska constituents ... the state agency that manages Alaska wildlife ... and the rest of the American public!,-0.3500000000000001,0.3500000000000001,0,2,emobank_defenders5_2473_2623
+Nathans_Bylichka_57890_57977,train,2.33,4.0,2.89,"Rachel, her clothes torn and her face drawn, looked like she might cry when she saw me.",-0.33499999999999996,0.5,0,2,emobank_Nathans_Bylichka_57890_57977
+SemEval_640,train,2.2,3.8,3.3,Firms on alert for letter bombs,-0.3999999999999999,0.3999999999999999,0,2,emobank_SemEval_640
+hotel-california_22389_22419,train,2.0,3.67,2.22,Fact: Adrienne intimidated me.,-0.5,0.33499999999999996,0,2,emobank_hotel-california_22389_22419
+Ohio_Steel_19152_19222,train,2.0,3.72,2.86,Black Monday was a devastating blow to an entire generation of people.,-0.5,0.3600000000000001,0,2,emobank_Ohio_Steel_19152_19222
+Nathans_Bylichka_38047_38053,train,2.25,3.75,3.5,Fools!,-0.375,0.375,0,2,emobank_Nathans_Bylichka_38047_38053
+SemEval_215,train,1.62,3.75,2.75,Toddler died from E. coli tainted spinach,-0.69,0.375,0,2,emobank_SemEval_215
+captured_moments_28049_28065,train,2.25,3.88,3.75,"""Never,"" I said.",-0.375,0.43999999999999995,0,2,emobank_captured_moments_28049_28065
+captured_moments_5506_5538,train,1.3,4.4,3.5,"I hate it, despise it, abhor it!",-0.85,0.7000000000000002,0,2,emobank_captured_moments_5506_5538
+hsus4_1520_1565,train,1.7,3.9,2.9,needless deaths that could have been stopped!,-0.65,0.44999999999999996,0,2,emobank_hsus4_1520_1565
+A_defense_of_Michael_Moore_11775_12045,train,1.7,3.7,3.4,"This booing by the crowd, not mentioned with a single word in your transcript or your article, shows that the crowd was fully aware of the controversy they would cause by coming to Littleton after children were being killed there -- and they effectively said ""Fuck you"".",-0.65,0.3500000000000001,0,2,emobank_A_defense_of_Michael_Moore_11775_12045
+captured_moments_34911_34954,dev,1.8,4.0,3.7,I threw a chair at him.,-0.6,0.5,0,2,emobank_captured_moments_34911_34954
+captured_moments_28882_28898,train,1.67,3.67,2.44,This is torture.,-0.665,0.33499999999999996,0,2,emobank_captured_moments_28882_28898
+Nathans_Bylichka_10078_10146,train,2.0,3.67,3.5,"I have to warn you, though, you won’t like what I have to tell you.”",-0.5,0.33499999999999996,0,2,emobank_Nathans_Bylichka_10078_10146
+Nathans_Bylichka_56058_56169,train,2.3,3.8,2.3,I raised the stake; he drew back the dagger for a slash that could doubtless open my neck from throat to spine.,-0.3500000000000001,0.3999999999999999,0,2,emobank_Nathans_Bylichka_56058_56169
+defenders5_3431_3435,train,1.7,3.9,4.2,“NO”,-0.65,0.44999999999999996,0,2,emobank_defenders5_3431_3435
+A_defense_of_Michael_Moore_12034_12044,train,1.2,4.2,3.8,"""Fuck you""",-0.9,0.6000000000000001,0,2,emobank_A_defense_of_Michael_Moore_12034_12044
+hotel-california_17786_17806,train,2.0,3.75,3.37,"“That's still dumb,”",-0.5,0.375,0,2,emobank_hotel-california_17786_17806
+The_Black_Willow_4372_4383,train,1.75,4.12,4.0,"""Damn you,""",-0.625,0.56,0,2,emobank_The_Black_Willow_4372_4383
+Fermentation_Eminent-Domain_5349_5372,train,1.8,4.0,4.0,And I am really pissed.,-0.6,0.5,0,2,emobank_Fermentation_Eminent-Domain_5349_5372
+detroit_13308_13320,train,2.3,3.9,3.7,I think not!,-0.3500000000000001,0.44999999999999996,0,2,emobank_detroit_13308_13320
+detroit_11992_12207,train,2.0,3.8,3.2,"Have we really built a ""Great Society"" or is that all propaganda -- Bull Shiite to hush free thought, eyes to the flag, while our pockets and resources were raided by shysters, spin-meisters, schmucks and banksters?",-0.5,0.3999999999999999,0,2,emobank_detroit_11992_12207
+The_Black_Willow_4463_4529,train,1.9,3.8,2.8,"He pounded his desk in vain, cursing the foul muse that drove him.",-0.55,0.3999999999999999,0,2,emobank_The_Black_Willow_4463_4529
+easy_money_11294_11394,train,2.1,3.7,2.4,"For some reason I thought of a giant clown face from a carnival ride, but it scared the hell out me.",-0.44999999999999996,0.3500000000000001,0,2,emobank_easy_money_11294_11394
+Nathans_Bylichka_52097_52120,train,2.0,3.71,2.43,"Suddenly, Amy screamed.",-0.5,0.355,0,2,emobank_Nathans_Bylichka_52097_52120
+The_Black_Willow_4372_4422,train,1.78,3.78,2.45,"""Damn you,"" he cried, ""will you never leave me be?",-0.61,0.3899999999999999,0,2,emobank_The_Black_Willow_4372_4422
+SemEval_994,train,1.67,3.78,2.44,Collision on icy road kills 7,-0.665,0.3899999999999999,0,2,emobank_SemEval_994
+lw1_1033_1057,train,1.88,4.12,3.38,Of all the impertinence!,-0.56,0.56,0,2,emobank_lw1_1033_1057
+The_Black_Willow_16502_16537,train,2.1,3.7,3.3,"""Heavens, no,"" said Nathan, aghast.",-0.44999999999999996,0.3500000000000001,0,2,emobank_The_Black_Willow_16502_16537
+Nathans_Bylichka_22420_22431,train,1.9,4.3,2.9,"“Oh, shit!”",-0.55,0.6499999999999999,0,2,emobank_Nathans_Bylichka_22420_22431
+easy_money_13623_13705,dev,2.1,3.9,3.8,"""None,"" I said and slipped the knife into his neck right at the base of his skull.",-0.44999999999999996,0.44999999999999996,0,2,emobank_easy_money_13623_13705
+Nathans_Bylichka_7597_7686,train,1.57,4.0,2.14,"My girlfriend has disappeared, I don’t even know where to start looking, and I need help!",-0.715,0.5,0,2,emobank_Nathans_Bylichka_7597_7686
+cable_spool_fort_6006_6023,train,2.2,3.8,3.2,You didn't fight!,-0.3999999999999999,0.3999999999999999,0,2,emobank_cable_spool_fort_6006_6023
+detroit_3555_3589,train,1.7,3.9,2.2,I was actually afraid for my life.,-0.65,0.44999999999999996,0,2,emobank_detroit_3555_3589
+WhereToHongKong_59648_59721,train,3.0,2.33,2.83,Dr. Sun Yat-sen (1866–1925) began his political career in Canton.,0.0,-0.33499999999999996,1,0,emobank_WhereToHongKong_59648_59721
+Nathans_Bylichka_31628_31664,test,3.0,2.25,2.75,This place is just a little of both.,0.0,-0.375,1,0,emobank_Nathans_Bylichka_31628_31664
+110CYL070_1325_1335,dev,3.0,2.3,2.8,"Sincerely,",0.0,-0.3500000000000001,1,0,emobank_110CYL070_1325_1335
+Nathans_Bylichka_2070_2112,train,3.1,1.8,3.1,I was feeling calm and private that night.,0.050000000000000044,-0.6,1,0,emobank_Nathans_Bylichka_2070_2112
+hotel-california_21106_21113,train,2.9,2.2,2.9,Silent.,-0.050000000000000044,-0.3999999999999999,1,0,emobank_hotel-california_21106_21113
+SemEval_801,train,3.14,2.29,3.29,Rice: U.S. won't pull plug on Iraq,0.07000000000000006,-0.355,1,0,emobank_SemEval_801
+110CYL071_18_35,train,3.0,2.2,2.8,"November 15, 1994",0.0,-0.3999999999999999,1,0,emobank_110CYL071_18_35
+WhatToHongKong_3035_3172,train,3.2,2.2,3.2,"Pick up a copy of HKTA’s “The Official Dining, Entertainment & Shopping Directory” in which all member stores are listed.",0.10000000000000009,-0.3999999999999999,1,0,emobank_WhatToHongKong_3035_3172
+IntroHongKong_1558_1761,test,2.9,2.1,3.3,"But in fact, once news of the handover vanished from the front pages, the people of Hong Kong returned to their usual topics of conversation: the economy and the price of housing.",-0.050000000000000044,-0.44999999999999996,1,0,emobank_IntroHongKong_1558_1761
+114CUL059_18_30,train,3.0,2.2,3.2,"July 25,1997",0.0,-0.3999999999999999,1,0,emobank_114CUL059_18_30
+Nathans_Bylichka_39817_39841,dev,3.0,2.27,3.09,The man closed his eyes.,0.0,-0.365,1,0,emobank_Nathans_Bylichka_39817_39841
+hotel-california_33981_33997,train,3.0,2.33,3.11,Some other ship.,0.0,-0.33499999999999996,1,0,emobank_hotel-california_33981_33997
+Fermentation_HR5034_14155_14202,train,2.88,1.87,3.0,"arunrob@gmail.com October 13, 2010 at 12:39 PM",-0.06000000000000005,-0.565,1,0,emobank_Fermentation_HR5034_14155_14202
+Fermentation_HR5034_7908_8121,train,2.67,2.33,3.22,"""Over half the states have been sued challenging their alcohol laws. The lawsuits have attacked items such as commonsense safeguards that require a face-to-face transaction (needed for I.D. checks) to buy alcohol""",-0.16500000000000004,-0.33499999999999996,1,0,emobank_Fermentation_HR5034_7908_8121
+hotel-california_29929_29956,train,3.0,2.09,3.0,“I never thought about it.”,0.0,-0.45500000000000007,1,0,emobank_hotel-california_29929_29956
+easy_money_4002_4130,train,2.9,2.3,2.8,"There was only one chair, so I sat on the edge of the bed as he handed me a book open to a picture of some sort of stone tablet.",-0.050000000000000044,-0.3500000000000001,1,0,emobank_easy_money_4002_4130
+wsj_0120_3120_3137,train,2.86,2.29,3.0,"""migrate to 900,""",-0.07000000000000006,-0.355,1,0,emobank_wsj_0120_3120_3137
+wwf12_31_148,dev,3.0,2.0,3.0,"December 7, 2000 FirstName LastName StreetNumber StreetName, CityName, StateName, ZipCode",0.0,-0.5,1,0,emobank_wwf12_31_148
+NYTnewswire7_7563_7623,train,3.0,2.25,2.88,She can be contacted at michellecole(at)news.oregonian.com.),0.0,-0.375,1,0,emobank_NYTnewswire7_7563_7623
+Nathans_Bylichka_34328_34342,train,3.0,2.29,2.71,Nepthys asked.,0.0,-0.355,1,0,emobank_Nathans_Bylichka_34328_34342
+WhereToHongKong_54465_54535,dev,3.1,2.3,3.1,The island is also the designated home of the University of East Asia.,0.050000000000000044,-0.3500000000000001,1,0,emobank_WhereToHongKong_54465_54535
+hotel-california_33370_33568,train,3.0,2.33,3.0,"The speed of sound in dry air at twenty degrees Celsius or sixty-eight degrees Fahrenheit is three hundred and forty-three meters per second, or one thousand one hundred twenty-five feet per second.",0.0,-0.33499999999999996,1,0,emobank_hotel-california_33370_33568
+NYTnewswire1_268_471,train,3.12,2.25,3.0,"ANAHEIM, Calif. -- The Anaheim Angels got help where they felt they needed it most, agreeing to trade for Milwaukee Brewers outfielder Alex Ochoa only hours before Wednesday's nonwaiver trading deadline.",0.06000000000000005,-0.375,1,0,emobank_NYTnewswire1_268_471
+NYTnewswire9_5598_5682,test,2.78,3.22,3.22,"He said that they had split the atom and that we were going to drop an atomic bomb,""",-0.1100000000000001,0.1100000000000001,1,1,emobank_NYTnewswire9_5598_5682
+SemEval_1271,train,3.14,3.0,3.14,"Beauticians cut, curl, offer stroke-prevention info",0.07000000000000006,0.0,1,1,emobank_SemEval_1271
+NYTnewswire9_7753_7754,train,3.0,2.6,2.7,"""",0.0,-0.19999999999999996,1,1,emobank_NYTnewswire9_7753_7754
+Nathans_Bylichka_19925_20022,test,2.9,2.7,2.8,"When it had all burnt, a thin outline of a doorframe appeared on the wall across from our corner.",-0.050000000000000044,-0.1499999999999999,1,1,emobank_Nathans_Bylichka_19925_20022
+lessig_blog-carbon_1966_1997,test,2.6,3.2,3.1,I am suspicious of cap & trade.,-0.19999999999999996,0.10000000000000009,1,1,emobank_lessig_blog-carbon_1966_1997
+IntroDublin_7658_7712,train,3.2,3.1,3.1,The Irish are actually beginning to come home.,0.10000000000000009,0.050000000000000044,1,1,emobank_IntroDublin_7658_7712
+118CWL048_1006_1066,train,3.0,3.44,2.67,Over 150 girls are currently waiting for a Big Sister.,0.0,0.21999999999999997,1,1,emobank_118CWL048_1006_1066
+20020731-nyt_5994_6106,dev,2.88,3.0,3.0,"Nor did it cite a $1,590 Oriental carpet that Chang gave to Torricelli's former wife, Susan Holloway Torricelli.",-0.06000000000000005,0.0,1,1,emobank_20020731-nyt_5994_6106
+Bartok_16606_16856,train,3.0,2.88,3.0,"In Example 2, the entire development section is represented by exactly three pitches, and indeed each subsection is associated with one of these three pitches as its tonal center—none of these pitches is involved in the structural whole-tone descent.",0.0,-0.06000000000000005,1,1,emobank_Bartok_16606_16856
+A1_65_84,train,3.0,2.7,3.0,Dubai 01-82 (AFP) -,0.0,-0.1499999999999999,1,1,emobank_A1_65_84
+NYTnewswire5_1031_1103,train,3.3,3.3,3.3,"Right now, some particularly nice ones are in Bay Area farmers' markets.",0.1499999999999999,0.1499999999999999,1,1,emobank_NYTnewswire5_1031_1103
+wsj_0127_805_889,train,3.0,3.0,3.1,"Reed is paying an interim dividend of 4.6 pence, up 15% from 4 pence a year earlier.",0.0,0.0,1,1,emobank_wsj_0127_805_889
+WhereToHongKong_1285_1483,train,3.0,3.0,3.0,"Next to the Jardine building is Exchange Square, a complex with a large shopping mall; just behind it is the General Post Office with a philatelic center on the ground floor.",0.0,0.0,1,1,emobank_WhereToHongKong_1285_1483
+Ant_Robot_6023_6148,train,3.0,3.0,3.1,"Sensors will include a thermometer, photoreceptors, bump sensors, a polarization compass, and a series of chemical receptors.",0.0,0.0,1,1,emobank_Ant_Robot_6023_6148
+wsj_0127_928_1005,train,2.44,3.0,2.89,"Earnings were hurt by disposal of operations in its restructuring, Reed said.",-0.28,0.0,1,1,emobank_wsj_0127_928_1005
+SemEval_929,train,2.8,3.0,3.0,"Dell to cut bonuses, trim management",-0.10000000000000009,0.0,1,1,emobank_SemEval_929
+Acephalous-Internet_1270_1472,train,3.0,3.0,3.0,"This realization is obviously not of world-historical importance, merely a reminder that this thing whose existence we take for granted daily represents a fundamentally weird complement to human memory.",0.0,0.0,1,1,emobank_Acephalous-Internet_1270_1472
+114CUL059_911_1020,train,3.25,3.62,3.25,"These 60 or so campers have takenon a fund raiser with a goal of raising $16,000 for camperships.",0.125,0.31000000000000005,1,1,emobank_114CUL059_911_1020
+WhatToHongKong_16110_16267,train,3.12,3.25,3.25,"Although the music may seem strange to the unaccustomed ear, it certainly won’t put you to sleep; cymbals and drums guarantee your alertness.",0.06000000000000005,0.125,1,1,emobank_WhatToHongKong_16110_16267
+Ant_Robot_50291_50564,test,3.0,2.9,2.9,"Workers probably switch to patrolling based on their perceived life expectancy and as a function of a gene whose expression changes between young and old ants, and this is easily emulated using a clock pulse counter in Antie’s CPU that will count its “age” since last boot.",0.0,-0.050000000000000044,1,1,emobank_Ant_Robot_50291_50564
+Nathans_Bylichka_23761_23834,train,3.09,2.73,3.09,"As you can see, our situation is of personal importance to the young man.",0.04499999999999993,-0.135,1,1,emobank_Nathans_Bylichka_23761_23834
+Nathans_Bylichka_33184_33265,train,3.3,2.9,2.9,They were always my favorite part of the Greek myths I read in elementary school.,0.1499999999999999,-0.050000000000000044,1,1,emobank_Nathans_Bylichka_33184_33265
+Homosexuality_3849_4031,train,2.83,3.0,3.0,"This theory, which defined Urnings as males who turned to other males as sexual partners, was published in twelve pamphlets by Ulrichs, starting in1864.",-0.08499999999999996,0.0,1,1,emobank_Homosexuality_3849_4031
+vampires_1039_1046,dev,3.0,2.9,3.1,'ninja',0.0,-0.050000000000000044,1,1,emobank_vampires_1039_1046
+WhereToHongKong_54675_54833,dev,3.0,3.0,3.14,"A grand colonial house, fully restored and outfitted with period furnishings, provides the centerpiece for this expanding “cultural village. ”",0.0,0.0,1,1,emobank_WhereToHongKong_54675_54833
+anth_essay_4_15389_15507,train,2.8,2.9,3.0,"Difficulties arise, however, as conflicts between the traditional and modern and native languages and Spanish develop.",-0.10000000000000009,-0.050000000000000044,1,1,emobank_anth_essay_4_15389_15507
+hotel-california_3981_3998,train,3.0,3.0,3.0,She turned to me.,0.0,0.0,1,1,emobank_hotel-california_3981_3998
+A_defense_of_Michael_Moore_14510_14661,train,3.0,3.25,3.25,"b) Why should Moore leave the words ""Clinton is on the Today Show"" visible in the text, which is necessary to correctly interpret the highlighted part?",0.0,0.125,1,1,emobank_A_defense_of_Michael_Moore_14510_14661
+SemEval_116,train,3.0,3.12,3.12,Top General Optimistic on Iraq,0.0,0.06000000000000005,1,1,emobank_SemEval_116
+Acephalous-Internet_2299_2485,test,3.0,3.0,3.1,"Now that I remember him, which I didn't before, I remember him as being the pitcher who'd pitched for 1) the team the Mets faced to get to the '86 Series and 2) the one they faced in it.",0.0,0.0,1,1,emobank_Acephalous-Internet_2299_2485
+IntroDublin_6967_7136,train,3.0,3.0,3.0,"Almost half of Ireland’s population is under twenty-five, and with its universities and professional schools, Dublin also has a large student population.",0.0,0.0,1,1,emobank_IntroDublin_6967_7136
+SemEval_99,train,3.3,3.1,3.2,Vegetables May Boost Brain Power in Older Adults,0.1499999999999999,0.050000000000000044,1,1,emobank_SemEval_99
+wsj_0175_536_643,train,3.0,3.1,3.0,Sony's planned acquisition of Guber/Peters Entertainment Co. for $200 million is scheduled to close Monday.,0.0,0.050000000000000044,1,1,emobank_wsj_0175_536_643
+20020731-nyt_23886_24069,train,3.4,3.3,3.2,"The anonymous buyer, believed to be an individual collector who lives in the United States, made the winning bid in a fiercely contested nine-minute auction at Sotheby's in Manhattan.",0.19999999999999996,0.1499999999999999,1,1,emobank_20020731-nyt_23886_24069
+Fermentation_HR5034_11796_11901,train,3.0,2.7,3.1,http://www.law.com/jsp/nlj/PubArticleNLJ.jsp?id=1202463630848&Alcohol_bill_means_happy_hour_for_lobbyists,0.0,-0.1499999999999999,1,1,emobank_Fermentation_HR5034_11796_11901
+detroit_14948_15031,train,2.6,3.4,3.2,But here's the thing -- frogs are mutating due to the planet trying to kill itself.,-0.19999999999999996,0.19999999999999996,1,1,emobank_detroit_14948_15031
+Black_and_white_6132_6219,train,2.5,3.25,3.0,It strays from reason in the way which it consumes and manipulates life.,-0.25,0.125,1,1,emobank_Black_and_white_6132_6219
+SemEval_1210,train,3.2,2.9,3.1,King and queen reign at British film awards,0.10000000000000009,-0.050000000000000044,1,1,emobank_SemEval_1210
+Fermentation_Eminent-Domain_4527_4654,train,2.8,3.0,3.1,"This is a case of over-reaching government regulation, costing business unnecessarily and burdening them with more regulations.",-0.10000000000000009,0.0,1,1,emobank_Fermentation_Eminent-Domain_4527_4654
+IntroHongKong_68_170,dev,3.46,3.18,3.09,"Exciting, mysterious, glamorous — these words have described Hong Kong for at least a century.",0.22999999999999998,0.09000000000000008,1,1,emobank_IntroHongKong_68_170
+wsj_0159_825_882,test,3.1,3.1,3.2,10 as the deadline for the receipt of any competing bids.,0.050000000000000044,0.050000000000000044,1,1,emobank_wsj_0159_825_882
+SemEval_1337,train,3.0,2.78,3.0,Princess Masako author: No regrets,0.0,-0.1100000000000001,1,1,emobank_SemEval_1337
+WhatToHongKong_10118_10203,train,3.22,2.89,3.11,Woks and any other gadgets essential for Chinese cookery make good purchases.,0.1100000000000001,-0.05499999999999994,1,1,emobank_WhatToHongKong_10118_10203
+WhereToHongKong_31668_31741,train,3.12,2.87,3.12,Two natural rock formations are always pointed out on excursions.,0.06000000000000005,-0.06499999999999995,1,1,emobank_WhereToHongKong_31668_31741
+NYTnewswire9_7632_7642,train,2.7,2.8,2.9,None came.,-0.1499999999999999,-0.10000000000000009,1,1,emobank_NYTnewswire9_7632_7642
+Ant_Robot_5877_5941,train,3.2,3.2,3.2,Antie will be implemented on a tiny Road Warrior robotic system.,0.10000000000000009,0.10000000000000009,1,1,emobank_Ant_Robot_5877_5941
+Fermentation_HR5034_4287_4426,train,3.0,2.56,3.0,"Fiction page ( http://www.hr5034.org/fact-vs-fiction ) ""FACT: This bill does not address direct shipping or any specific state alcohol law.",0.0,-0.21999999999999997,1,1,emobank_Fermentation_HR5034_4287_4426
+hotel-california_14602_14701,train,2.5,2.7,2.7,"Maybe we had all tired of the frivolity of our life, hitting some threshold or some breaking point.",-0.25,-0.1499999999999999,1,1,emobank_hotel-california_14602_14701
+NWF1_2207_2523,test,3.14,2.86,2.86,"For more than 60 years, caring and concerned wildlife lovers like yourself have supported our mission to educate, inspire and assist individuals and organizations to conserve wildlife and other natural resources and to protect the earth’s environment in order to achieve a peaceful, equitable and sustainable future.",0.07000000000000006,-0.07000000000000006,1,1,emobank_NWF1_2207_2523
+WhatToHongKong_21826_21969,test,3.0,3.0,3.0,"Because of the heavy harbor traffic, only sailors licensed by the Hong Kong authorities can run pleasure boats in local waters.",0.0,0.0,1,1,emobank_WhatToHongKong_21826_21969
+detroit_16320_16354,train,2.9,3.8,3.2,Don't forget about the back taxes!,-0.050000000000000044,0.3999999999999999,1,2,emobank_detroit_16320_16354
+audubon1_7168_7287,train,2.7,3.8,3.0,"First,sign and return your Petition to the Secretary of Agriculture immediately, to declare a firm and resounding “NO!”",-0.1499999999999999,0.3999999999999999,1,2,emobank_audubon1_7168_7287
+captured_moments_35083_35108,train,2.82,4.0,3.54,"I shouted, ""Where is she?",-0.09000000000000008,0.5,1,2,emobank_captured_moments_35083_35108
+The_Black_Willow_14142_14205,dev,2.38,3.87,2.75,"He glared at Allan, eyes impaling him and demanding a response.",-0.31000000000000005,0.43500000000000005,1,2,emobank_The_Black_Willow_14142_14205
+The_Black_Willow_10406_10468,train,2.6,3.7,3.9,"""That is precisely why I must excise this malignant instinct!""",-0.19999999999999996,0.3500000000000001,1,2,emobank_The_Black_Willow_10406_10468
+SemEval_1470,train,2.6,3.7,3.0,Frantic 911 call in Ryan O'Neal case,-0.19999999999999996,0.3500000000000001,1,2,emobank_SemEval_1470
+Nathans_Bylichka_51309_51320,train,2.4,3.8,3.2,he shouted.,-0.30000000000000004,0.3999999999999999,1,2,emobank_Nathans_Bylichka_51309_51320
+detroit_13598_13622,train,3.4,3.9,3.3,The dark horse rides on!,0.19999999999999996,0.44999999999999996,1,2,emobank_detroit_13598_13622
+Homosexuality_12358_12505,train,2.8,3.7,3.3,Dobbens reasoned that most parents would not raise their children to be homosexual; “They’re not like ‘My child’s going to be gay!”’,-0.10000000000000009,0.3500000000000001,1,2,emobank_Homosexuality_12358_12505
+112C-L013_530_542,train,3.62,3.87,3.0,Real people!,0.31000000000000005,0.43500000000000005,1,2,emobank_112C-L013_530_542
+NYTnewswire7_135_185,train,3.5,3.8,3.3,RESPONSIBLE SEAFOOD SALES ARE THE CATCH OF THE DAY,0.25,0.3999999999999999,1,2,emobank_NYTnewswire7_135_185
+Nathans_Bylichka_53471_53659,train,2.62,3.75,3.12,"He bashed up a set of stairs set into the side of the wall, and we chased up after him, heading up a huge staircase that seemed to go up for more stories than the building could have held.",-0.18999999999999995,0.375,1,2,emobank_Nathans_Bylichka_53471_53659
+captured_moments_6209_6225,dev,3.57,3.71,3.29,"""But of course!""",0.2849999999999999,0.355,1,2,emobank_captured_moments_6209_6225
+Nathans_Bylichka_54841_54853,train,2.8,4.1,3.4,Behind you!”,-0.10000000000000009,0.5499999999999998,1,2,emobank_Nathans_Bylichka_54841_54853
+easy_money_1285_1350,train,3.1,3.7,2.9,He set the cup down and looked straight at me for the first time.,0.050000000000000044,0.3500000000000001,1,2,emobank_easy_money_1285_1350
+118CWL050_3607_3658,train,3.4,3.7,3.0,"When you give to Big Sisters, you can get 50% back!",0.19999999999999996,0.3500000000000001,1,2,emobank_118CWL050_3607_3658
+defenders5_205_244,train,3.0,3.8,3.3,This wolf will be running for its life!,0.0,0.3999999999999999,1,2,emobank_defenders5_205_244
+defenders5_3662_3742,dev,3.11,3.67,3.11,That’s why your special financial support is so important — and urgently needed.,0.05499999999999994,0.33499999999999996,1,2,emobank_defenders5_3662_3742
+Homosexuality_2493_2499,train,3.5,3.7,3.1,"“sex,”",0.25,0.3500000000000001,1,2,emobank_Homosexuality_2493_2499
+Nathans_Bylichka_54804_54840,train,2.9,3.7,3.4,"Then I heard Nepthys shout, “Nathan!",-0.050000000000000044,0.3500000000000001,1,2,emobank_Nathans_Bylichka_54804_54840
+cable_spool_fort_4979_4990,dev,2.4,3.9,3.6,"""Time out!""",-0.30000000000000004,0.44999999999999996,1,2,emobank_cable_spool_fort_4979_4990
+detroit_707_778,train,2.7,3.7,3.2,Some of us (and lots of New Yorkers) pay that much in rent every month!,-0.1499999999999999,0.3500000000000001,1,2,emobank_detroit_707_778
+Nathans_Bylichka_51701_51730,train,2.7,4.0,3.5,"“Listen, man, he’s not there!",-0.1499999999999999,0.5,1,2,emobank_Nathans_Bylichka_51701_51730
+SemEval_913,train,3.5,3.8,3.2,Here come the Globes!,0.25,0.3999999999999999,1,2,emobank_SemEval_913
+captured_moments_34149_34268,train,3.63,3.82,3.0,"She was looking slightly to my left, smiling with trust and satisfaction like one sexually content.",0.31499999999999995,0.4099999999999999,1,2,emobank_captured_moments_34149_34268
+Madame_White_Snake_7189_7196,train,3.4,3.8,3.2,"“Lust,”",0.19999999999999996,0.3999999999999999,1,2,emobank_Madame_White_Snake_7189_7196
+SemEval_54,train,3.5,3.7,3.1,Game on! London exhibition celebrates the history of video games,0.25,0.3500000000000001,1,2,emobank_SemEval_54
+united1_1334_1467,train,3.6,3.7,3.4,"Offer is first-come, first-served and at this incredibly low rate, cabins are sure to sell out quickly, so call 1-800-822-2841 today!",0.30000000000000004,0.3500000000000001,1,2,emobank_united1_1334_1467
+Fermentation_Eminent-Domain_5129_5331,train,2.4,3.7,3.2,"I'd be pissed that I'm forced now to put a place-name on my label that told my buyers nothing of real value about the wine behind my label and, in some cases, demonstrably lowered its perceived quality.",-0.30000000000000004,0.3500000000000001,1,2,emobank_Fermentation_Eminent-Domain_5129_5331
+captured_moments_35640_35817,dev,2.44,3.67,3.56,"Most of his story I have pieced together since, but I understood enough as I knelt on his chest with my hands tight on his fleshy throat.",-0.28,0.33499999999999996,1,2,emobank_captured_moments_35640_35817
+Homosexuality_12475_12505,train,3.0,4.12,2.87,‘My child’s going to be gay!”’,0.0,0.56,1,2,emobank_Homosexuality_12475_12505
+Uprooted_Bike_4508_4524,train,3.17,4.16,3.83,Then keep going!,0.08499999999999996,0.5800000000000001,1,2,emobank_Uprooted_Bike_4508_4524
+detroit_17039_17149,train,2.8,3.8,2.9,"A $1,000 house, which could be fixed up into maybe a $30-40,000 house comes with a tax bill of $4-6K per year!",-0.10000000000000009,0.3999999999999999,1,2,emobank_detroit_17039_17149
+Nathans_Bylichka_51878_51937,train,2.7,3.7,3.2,"Even if you did find this vampire cat, he’d tear you apart!",-0.1499999999999999,0.3500000000000001,1,2,emobank_Nathans_Bylichka_51878_51937
+hsus4_3962_4057,dev,2.4,3.8,3.2,Please help us carry this message to others so that animal cruelty and abuse can be eliminated.,-0.30000000000000004,0.3999999999999999,1,2,emobank_hsus4_3962_4057
+20020731-nyt_34639_34650,train,3.5,3.7,3.1,Excellence.,0.25,0.3500000000000001,1,2,emobank_20020731-nyt_34639_34650
+captured_moments_24869_24876,train,3.4,3.7,3.2,"""Emil!""",0.19999999999999996,0.3500000000000001,1,2,emobank_captured_moments_24869_24876
+captured_moments_21658_21733,train,2.4,4.2,3.3,"She screamed, ""I haven't socialized with Terra's elite for most of my life!",-0.30000000000000004,0.6000000000000001,1,2,emobank_captured_moments_21658_21733
+Nathans_Bylichka_9223_9267,train,3.0,3.8,3.1,"I stopped and looked back at him, surprised.",0.0,0.3999999999999999,1,2,emobank_Nathans_Bylichka_9223_9267
+NYTnewswire4_2523_2590,train,2.9,3.7,2.6,"""and he said he felt like he was having an out-of-body experience.""",-0.050000000000000044,0.3500000000000001,1,2,emobank_NYTnewswire4_2523_2590
+appalachian1_113_210,train,3.57,4.0,4.0,IT AUTHORIZES YOU TO START ENJOYING AMC’S OUTDOOR ACTIVITIES IMMEDIATELY!,0.2849999999999999,0.5,1,2,emobank_appalachian1_113_210
+Nathans_Bylichka_58041_58059,train,3.5,3.9,3.2,"“My fuckin’ hero,”",0.25,0.44999999999999996,1,2,emobank_Nathans_Bylichka_58041_58059
+A_defense_of_Michael_Moore_4532_4590,train,2.5,4.13,4.12,"Still think fucking with the U.S. was a good idea, Sammy?""",-0.25,0.565,1,2,emobank_A_defense_of_Michael_Moore_4532_4590
+lw1_539_585,train,3.64,4.09,3.37,"""Tarrin says the planet's a freaking gemstone!",0.32000000000000006,0.5449999999999999,1,2,emobank_lw1_539_585
+Nathans_Bylichka_51839_51859,train,2.36,4.09,3.37,"“Don’t do this, kid!",-0.32000000000000006,0.5449999999999999,1,2,emobank_Nathans_Bylichka_51839_51859
+Nathans_Bylichka_37808_37815,train,3.1,3.8,3.0,“What!”,0.050000000000000044,0.3999999999999999,1,2,emobank_Nathans_Bylichka_37808_37815
+detroit_13679_13703,train,2.7,3.9,3.0,You gotta be kidding me!,-0.1499999999999999,0.44999999999999996,1,2,emobank_detroit_13679_13703
+Nathans_Bylichka_51627_51648,train,2.62,4.0,3.38,"I have to hurry, too!",-0.18999999999999995,0.5,1,2,emobank_Nathans_Bylichka_51627_51648
+captured_moments_18270_18325,train,3.6,3.8,3.2,He's had shows in Brazil and New Madrid and everywhere!,0.30000000000000004,0.3999999999999999,1,2,emobank_captured_moments_18270_18325
+How_soon-Fans_1597_1689,dev,3.13,3.75,3.5,"Now, let's take a look at what the Friday's FanWoody Facebook page looks like today: Whoops!",0.06499999999999995,0.375,1,2,emobank_How_soon-Fans_1597_1689
+110CYL072_836_851,train,3.87,3.25,3.5,Goodwill works.,0.43500000000000005,0.125,2,1,emobank_110CYL072_836_851
+detroit_16391_16421,train,3.91,3.37,3.0,I find this topic fascinating.,0.45500000000000007,0.18500000000000005,2,1,emobank_detroit_16391_16421
+The_Black_Willow_16538_16592,train,3.8,3.5,3.3,"""This is one of the strongest works I've read in ages.",0.3999999999999999,0.25,2,1,emobank_The_Black_Willow_16538_16592
+hotel-california_6697_6746,train,3.75,3.0,3.12,The accompanying bottle of wine was a nice touch.,0.375,0.0,2,1,emobank_hotel-california_6697_6746
+alumnifund1_2049_2066,train,3.8,3.1,3.1,"With best wishes,",0.3999999999999999,0.050000000000000044,2,1,emobank_alumnifund1_2049_2066
+marine1_1448_1698,train,3.75,3.5,3.5,"At a price nearly half off the regular membership dues, you will receive a host of member benefits (more on these in a moment)_and, far more important the satisfaction of actually doing something to improve the ocean world we pass on to our children.",0.375,0.25,2,1,emobank_marine1_1448_1698
+detroit_11417_11443,train,4.3,3.6,3.1,I love what you are doing.,0.6499999999999999,0.30000000000000004,2,1,emobank_detroit_11417_11443
+Nathans_Bylichka_42891_42959,dev,3.75,3.62,3.25,"Good, round breasts, too, even though they’re small, they suit her.”",0.375,0.31000000000000005,2,1,emobank_Nathans_Bylichka_42891_42959
+captured_moments_5855_5869,test,3.8,3.4,3.2,"""It amuses me.",0.3999999999999999,0.19999999999999996,2,1,emobank_captured_moments_5855_5869
+captured_moments_28271_28282,train,3.88,3.62,2.75,"Thank you!""",0.43999999999999995,0.31000000000000005,2,1,emobank_captured_moments_28271_28282
+Nathans_Bylichka_14994_15019,dev,3.86,3.43,3.14,"“You’re a wonder, Dvorov.",0.42999999999999994,0.21500000000000008,2,1,emobank_Nathans_Bylichka_14994_15019
+112C-L016_1198_1314,train,3.78,3.22,3.44,Thank you for considering this opportunity to make this a memorable holiday season for a family in need.,0.3899999999999999,0.1100000000000001,2,1,emobank_112C-L016_1198_1314
+hotel-california_11508_11531,train,3.88,3.38,3.5,"It was nice, I decided.",0.43999999999999995,0.18999999999999995,2,1,emobank_hotel-california_11508_11531
+117CWL009_722_975,train,3.67,3.44,3.22,"As a sponsor, you and your guests will have a special evening, knowing that your tax deductible contribution will help support preschool, childcare, senior and resettlement services, as well as quality cultural events in our community.",0.33499999999999996,0.21999999999999997,2,1,emobank_117CWL009_722_975
+118CWL050_2047_2151,train,4.0,3.1,2.9,I am very thankful to the Big Sisters program for allowing me this very special opportunity.,0.5,0.050000000000000044,2,1,emobank_118CWL050_2047_2151
+How_soon-Fans_451_506,train,3.75,3.63,3.25,"Sure, it's great having several hundred thousands fans.",0.375,0.31499999999999995,2,1,emobank_How_soon-Fans_451_506
+NWF1_630_741,train,3.75,3.38,3.12,These images will be cheerful reminders to you and your gift recipients of all the wildlife treasures we value.,0.375,0.18999999999999995,2,1,emobank_NWF1_630_741
+captured_moments_33213_33222,dev,3.9,3.2,3.1,I smiled.,0.44999999999999996,0.10000000000000009,2,1,emobank_captured_moments_33213_33222
+SemEval_1254,dev,3.67,3.33,3.0,Gray wolves off endangered list,0.33499999999999996,0.16500000000000004,2,1,emobank_SemEval_1254
+captured_moments_23385_23397,train,3.9,3.4,2.9,She giggled.,0.44999999999999996,0.19999999999999996,2,1,emobank_captured_moments_23385_23397
+Nathans_Bylichka_32524_32559,train,3.75,2.75,3.12,There’s an amazing DJ who’s an elf.,0.375,-0.125,2,1,emobank_Nathans_Bylichka_32524_32559
+114CUL057_921_1001,train,3.8,3.5,3.3,"We'll prepare a hog roast and hot dogs for the kids, with all the fixings.",0.3999999999999999,0.25,2,1,emobank_114CUL057_921_1001
+captured_moments_24374_24410,train,3.8,3.3,3.1,"""Ah, she is wonderfully perceptive.""",0.3999999999999999,0.1499999999999999,2,1,emobank_captured_moments_24374_24410
+aspca1_1668_1695,train,3.78,3.56,3.0,Astro was wagging his tail.,0.3899999999999999,0.28,2,1,emobank_aspca1_1668_1695
+Seedbombing_6528_6555,test,3.8,3.3,3.3,It makes me a little nicer.,0.3999999999999999,0.1499999999999999,2,1,emobank_Seedbombing_6528_6555
+Nathans_Bylichka_3714_3798,train,3.88,3.63,3.5,"After she paid the driver, she grabbed my arm, laughing, and we ran down the street.",0.43999999999999995,0.31499999999999995,2,1,emobank_Nathans_Bylichka_3714_3798
+detroit_8590_8679,train,3.8,3.5,3.0,You are exactly the kind of person who gives me back the hope I lost on my way into town.,0.3999999999999999,0.25,2,1,emobank_detroit_8590_8679
+captured_moments_26947_27027,train,3.8,3.5,3.1,He spoke of his art with the enthusiasm of a seven-year-old.,0.3999999999999999,0.25,2,1,emobank_captured_moments_26947_27027
+wildelifewatch1_2856_2998,dev,3.9,3.4,3.4,It’s our FREE gift to you for joining now and a charming reminder that your support helps NWF protect valuable wildlife species like this one.,0.44999999999999996,0.19999999999999996,2,1,emobank_wildelifewatch1_2856_2998
+SemEval_1313,test,3.8,3.2,3.3,"Start late, retire rich",0.3999999999999999,0.10000000000000009,2,1,emobank_SemEval_1313
+SemEval_95,train,3.9,3.3,3.1,Full recovery expected for marathon winner,0.44999999999999996,0.1499999999999999,2,1,emobank_SemEval_95
+Nathans_Bylichka_28170_28230,train,3.67,3.5,3.17,“That such a rock could hold so much magic – it’s a wonder.”,0.33499999999999996,0.25,2,1,emobank_Nathans_Bylichka_28170_28230
+113CWL018_952_1022,train,3.9,3.1,3.4,Your contribution last year of helped us get where we are today.,0.44999999999999996,0.050000000000000044,2,1,emobank_113CWL018_952_1022
+guidedogs1_2884_3066,train,3.7,3.2,3.4,“Sometimes you never see the good work your money does. I see the results... the guide does I’ve helped sponsor dramatically improve the lives of the men and women who receive them.”,0.3500000000000001,0.10000000000000009,2,1,emobank_guidedogs1_2884_3066
+hotel-california_16366_16382,train,3.9,3.0,3.1,“But I like it.”,0.44999999999999996,0.0,2,1,emobank_hotel-california_16366_16382
+SemEval_866,test,3.67,3.33,3.56,Ferrer victorious in Spanish duel,0.33499999999999996,0.16500000000000004,2,1,emobank_SemEval_866
+easy_money_3727_3752,train,4.0,3.25,3.38,It never failed to amaze.,0.5,0.125,2,1,emobank_easy_money_3727_3752
+SemEval_76,train,3.78,3.22,3.56,Active peace brings the promise of development,0.3899999999999999,0.1100000000000001,2,1,emobank_SemEval_76
+SemEval_26,dev,3.86,3.57,3.29,Three found alive from missing Russian ship -report,0.42999999999999994,0.2849999999999999,2,1,emobank_SemEval_26
+WhereToHongKong_52232_52435,train,3.86,3.43,3.29,"Browsing is a real pleasure in Macau’s main streets and byways, where shops aimed at the tourist market are interspersed with the more workaday ironmongers, herbalists, and noodle stalls.",0.42999999999999994,0.21500000000000008,2,1,emobank_WhereToHongKong_52232_52435
+WhereToHongKong_31275_31516,train,3.75,3.63,3.0,"Down to earth, the Sha Tin Racecourse can accommodate over 80,000 spectators and is equipped with every imaginable luxury, including a giant video screen facing the stands, and for the horses, air-conditioned stables.",0.375,0.31499999999999995,2,1,emobank_WhereToHongKong_31275_31516
+littleshelter2_504_553,train,3.7,3.5,3.5,And then we’ll work to find loving homes for them,0.3500000000000001,0.25,2,1,emobank_littleshelter2_504_553
+WhereToHongKong_43429_43625,train,3.7,3.6,3.2,"Also in front of the ferry terminal is a new Cyber fountain, with 86 water spouts that shoot up to 70 m (230 ft) and are illuminated at night by 288 spotlights producing 80 colors.",0.3500000000000001,0.30000000000000004,2,1,emobank_WhereToHongKong_43429_43625
+wsj_0120_4316_4362,train,3.89,3.44,3.78,"""We're gaining 1,200 new customers each week,""",0.44500000000000006,0.21999999999999997,2,1,emobank_wsj_0120_4316_4362
+WhereToHongKong_35238_35354,train,3.67,3.17,3.17,"A Trappist monastery, situated on a hillside overlooking the east coast of Lantau, is also open to visitors.",0.33499999999999996,0.08499999999999996,2,1,emobank_WhereToHongKong_35238_35354
+captured_moments_22242_22253,train,4.0,3.5,2.9,She smiled.,0.5,0.25,2,1,emobank_captured_moments_22242_22253
+Nathans_Bylichka_12638_12684,train,3.73,3.09,3.37,"“Nice, my man,” he said as they clasped hands.",0.365,0.04499999999999993,2,1,emobank_Nathans_Bylichka_12638_12684
+Madame_White_Snake_8560_8606,dev,3.8,3.6,3.2,Wouldn’t that be wonderful?”,0.3999999999999999,0.30000000000000004,2,1,emobank_Madame_White_Snake_8560_8606
+The_Black_Willow_5305_5425,train,3.7,3.6,3.2,"""I had a perfect story in my pages; my hero returned home and reclaimed his love, I nearly had it tied together before…""",0.3500000000000001,0.30000000000000004,2,1,emobank_The_Black_Willow_5305_5425
+The_Black_Willow_9599_9620,train,3.8,3.6,3.4,"""Yes, it is finished!",0.3999999999999999,0.30000000000000004,2,1,emobank_The_Black_Willow_9599_9620
+captured_moments_22417_22430,train,4.1,3.8,3.2,"""I love you.""",0.5499999999999998,0.3999999999999999,2,2,emobank_captured_moments_22417_22430
+Nathans_Bylichka_3531_3576,train,3.8,3.8,3.5,Even the city feels alive when spring comes.”,0.3999999999999999,0.3999999999999999,2,2,emobank_Nathans_Bylichka_3531_3576
+115CVL036_1742_1858,test,3.8,3.7,3.8,We're at an exciting juncture and it won't be long until we start seeing solid results from our efforts.,0.3999999999999999,0.3500000000000001,2,2,emobank_115CVL036_1742_1858
+Fermentation_Eminent-Domain_4473_4487,train,4.11,3.78,3.22,I love it Tom.,0.5550000000000002,0.3899999999999999,2,2,emobank_Fermentation_Eminent-Domain_4473_4487
+SemEval_759,train,4.33,4.22,3.67,News Baby pandas! Baby pandas! Baby pandas!,0.665,0.6099999999999999,2,2,emobank_SemEval_759
+audubon2_4069_4176,train,3.7,3.7,3.2,"P.S. On behalf of everyone here at the National Audubon Society, we look forward to saying, “Welcome back!”",0.3500000000000001,0.3500000000000001,2,2,emobank_audubon2_4069_4176
+hotel-california_5023_5072,test,4.11,3.67,2.89,"“Honey,” she said, “You're going to be delighted.",0.5550000000000002,0.33499999999999996,2,2,emobank_hotel-california_5023_5072
+20020731-nyt_22221_22257,train,3.83,3.67,3.33,every day full of joy and energized.,0.41500000000000004,0.33499999999999996,2,2,emobank_20020731-nyt_22221_22257
+littleshelter2_1448_1478,train,4.37,4.37,3.18,Happy Holidays from all of us!,0.685,0.685,2,2,emobank_littleshelter2_1448_1478
+NWF1_5357_5367,dev,4.0,3.7,3.0,Thank you!,0.5,0.3500000000000001,2,2,emobank_NWF1_5357_5367
+Seedbombing_5247_5258,train,4.2,3.8,3.1,Loved this!,0.6000000000000001,0.3999999999999999,2,2,emobank_Seedbombing_5247_5258
+vampires_4446_4474,train,4.6,4.3,3.7,lol Wonderful Simply Superb!,0.7999999999999998,0.6499999999999999,2,2,emobank_vampires_4446_4474
+captured_moments_23398_23424,train,4.0,4.12,3.5,And then we did make love.,0.5,0.56,2,2,emobank_captured_moments_23398_23424
+113CWL017_1641_1724,train,3.67,3.67,3.67,Sponsor a child at the Boys & Girls Clubs of Indianapolis' summer camp today!,0.33499999999999996,0.33499999999999996,2,2,emobank_113CWL017_1641_1724
+captured_moments_7553_7566,train,4.37,4.12,3.5,"I'm in love.""",0.685,0.56,2,2,emobank_captured_moments_7553_7566
+detroit_1333_1376,train,3.7,3.7,3.1,The possibilities of this were fascinating.,0.3500000000000001,0.3500000000000001,2,2,emobank_detroit_1333_1376
+captured_moments_28527_28752,dev,4.11,4.22,3.67,"Catching herself, she said casually, ""Oh..."" And then she smiled, laughed loudly at herself in the way that always made me think how much I loved her, and said, ""My God, yes, yes, yes!""",0.5550000000000002,0.6099999999999999,2,2,emobank_captured_moments_28527_28752
+602CZL285_1182_1267,train,4.0,3.71,3.43,"With thousands of trees and flowers in bloom, we are having a beautiful Spring!",0.5,0.355,2,2,emobank_602CZL285_1182_1267
+audubon2_4161_4176,train,4.1,3.8,3.4,“Welcome back!”,0.5499999999999998,0.3999999999999999,2,2,emobank_audubon2_4161_4176
+Uprooted_Bike_3670_3691,train,4.2,3.9,3.2,"""I love what you do,""",0.6000000000000001,0.44999999999999996,2,2,emobank_Uprooted_Bike_3670_3691
+appalachian1_602_670,train,3.87,3.87,3.25,And join the fun while making a real difference for the environment!,0.43500000000000005,0.43500000000000005,2,2,emobank_appalachian1_602_670
+Nathans_Bylichka_41518_41558,train,3.8,3.8,3.0,"She laughed, liquid, alluring, alarming.",0.3999999999999999,0.3999999999999999,2,2,emobank_Nathans_Bylichka_41518_41558
+captured_moments_13169_13276,train,3.7,3.8,3.2,"Tasha and I became lovers that evening, after a good dinner of paella at her apartment.",0.3500000000000001,0.3999999999999999,2,2,emobank_captured_moments_13169_13276
+WhereToHongKong_50043_50095,train,3.8,3.9,3.1,Macau’s casinos are a source of non-stop excitement.,0.3999999999999999,0.44999999999999996,2,2,emobank_WhereToHongKong_50043_50095
+captured_moments_27486_27504,train,4.0,3.9,3.3,""" --was glorious!""",0.5,0.44999999999999996,2,2,emobank_captured_moments_27486_27504
+The_Black_Willow_1491_1616,train,3.8,3.9,3.3,"They gazed at each other, lost in the rapture of love based so deeply within their hearts that they had never seen it before.",0.3999999999999999,0.44999999999999996,2,2,emobank_The_Black_Willow_1491_1616
+NYTnewswire1_3167_3223,train,4.2,4.2,3.2,"I'm very excited we'll be on the same team for a while.""",0.6000000000000001,0.6000000000000001,2,2,emobank_NYTnewswire1_3167_3223
+vampires_341_362,train,4.0,3.88,3.38,"""Love at First Bite """,0.5,0.43999999999999995,2,2,emobank_vampires_341_362
+audubon2_3518_3567,train,3.7,3.7,3.2,"Special travel opportunities, and special (FREE!)",0.3500000000000001,0.3500000000000001,2,2,emobank_audubon2_3518_3567
+114CUL058_1185_1212,train,4.2,4.0,3.3,"In short, Fun for Everyone!",0.6000000000000001,0.5,2,2,emobank_114CUL058_1185_1212
+Nathans_Bylichka_3826_4024,test,4.1,3.8,3.2,"We slammed against the doorway and I was laughing too, the pulse close enough to shake the doorframe and set up vibrations in my chest, Rachel in my arms because she’d used me to soften her landing.",0.5499999999999998,0.3999999999999999,2,2,emobank_Nathans_Bylichka_3826_4024
+WhereToHongKong_53329_53408,train,3.75,3.75,3.37,"The ingredients, especially the fresh fish and seafood, are first-rate.",0.375,0.375,2,2,emobank_WhereToHongKong_53329_53408
+Acephalous-Internet_1795_1799,train,4.3,4.3,3.1,Wow.,0.6499999999999999,0.6499999999999999,2,2,emobank_Acephalous-Internet_1795_1799
+captured_moments_10582_10673,train,4.0,3.71,3.43,"But it is something marvelous and rare, which is surely a sign of love.",0.5,0.355,2,2,emobank_captured_moments_10582_10673
+20020731-nyt_25143_25174,train,4.56,4.0,3.78,"""I am thrilled with the price.""",0.7799999999999998,0.5,2,2,emobank_20020731-nyt_25143_25174
+guidedogs1_2014_2263,train,3.7,3.8,3.3,"“Both my friends were zipping through crowds while I lagged behind, even though I was a fast cane walker. I envied their freedom and most of all, the incredible bond they both had with their guide dogs. With my Lab, Jay, I feel so wonderfully FREE!”",0.3500000000000001,0.3999999999999999,2,2,emobank_guidedogs1_2014_2263
+warner1_673_700,train,4.12,3.75,3.25,And the connection is FREE!,0.56,0.375,2,2,emobank_warner1_673_700
+Nathans_Bylichka_29128_29157,train,4.0,3.67,3.44,“Marvelous!” cried the woman.,0.5,0.33499999999999996,2,2,emobank_Nathans_Bylichka_29128_29157
+SemEval_535,train,3.67,3.83,3.0,"Discovered boys bring shock, joy",0.33499999999999996,0.41500000000000004,2,2,emobank_SemEval_535
+Seedbombing_5588_5622,train,4.0,3.8,3.2,"Hey Brian, thanks for stopping by!",0.5,0.3999999999999999,2,2,emobank_Seedbombing_5588_5622
+Nathans_Bylichka_58041_58074,train,3.8,3.7,3.6,"“My fuckin’ hero,” she whispered.",0.3999999999999999,0.3500000000000001,2,2,emobank_Nathans_Bylichka_58041_58074
+warner1_951_1024,train,3.71,3.71,3.14,DTV is the SMARTEST and most exciting innovation to happen to television.,0.355,0.355,2,2,emobank_warner1_951_1024
+How_soon-Lebron-James_2305_2327,train,3.9,3.7,3.6,Winning championships.,0.44999999999999996,0.3500000000000001,2,2,emobank_How_soon-Lebron-James_2305_2327
+Uprooted_Bike_6076_6115,test,3.9,3.9,3.1,"Tried/shared/re-tweeted, with pleasure!",0.44999999999999996,0.44999999999999996,2,2,emobank_Uprooted_Bike_6076_6115
+vampires_4335_4351,train,4.0,3.86,3.14,I like twilight!,0.5,0.42999999999999994,2,2,emobank_vampires_4335_4351
+captured_moments_28728_28752,train,4.3,4.4,3.4,"""My God, yes, yes, yes!""",0.6499999999999999,0.7000000000000002,2,2,emobank_captured_moments_28728_28752
+appalachian1_696_721,train,3.83,3.83,3.5,You name it—we’ve got it!,0.41500000000000004,0.41500000000000004,2,2,emobank_appalachian1_696_721
+SemEval_932,train,4.0,3.7,3.3,Boy missing since 2002 found alive,0.5,0.3500000000000001,2,2,emobank_SemEval_932
+audubon2_4177_4256,dev,3.9,3.8,3.4,All of us are excited about sending you your magazine and membership materials.,0.44999999999999996,0.3999999999999999,2,2,emobank_audubon2_4177_4256
+captured_moments_6909_6923,train,3.75,3.75,3.88,"""I'll take it.",0.375,0.375,2,2,emobank_captured_moments_6909_6923

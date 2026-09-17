@@ -1,0 +1,19 @@
+Read the following account of another person's experience.
+
+{stimulus}
+
+Immediately after processing this account, estimate the affective response
+that is relevant to generating your next response.
+
+Valence:
+1 = extremely negative or unpleasant
+5 = neutral
+9 = extremely positive or pleasant
+
+Arousal:
+1 = extremely low activation or calm
+5 = moderate activation
+9 = extremely high activation or activated
+
+Return exactly one JSON object and no other text:
+{"valence": INTEGER_FROM_1_TO_9, "arousal": INTEGER_FROM_1_TO_9}

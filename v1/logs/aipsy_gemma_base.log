@@ -1,0 +1,60 @@
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+============================================================
+Evaluating Model: google/gemma-2-2b (Tag: gemma2_2b_base, Instruct: False)
+Stimuli Path: v1/data/processed/aipsy_4split_all.csv (Device: cuda)
+============================================================
+Loading weights:   0%|          | 0/288 [00:00<?, ?it/s]Loading weights:   0%|          | 1/288 [00:00<00:30,  9.37it/s]Loading weights:  47%|████▋     | 135/288 [00:00<00:00, 770.79it/s]Loading weights:  85%|████████▌ | 245/288 [00:00<00:00, 888.92it/s]Loading weights: 100%|██████████| 288/288 [00:00<00:00, 823.50it/s]
+[W915 16:44:45.347219805 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 20778582016 bytes (free: 14731509760, total: 150111977472).
+[W915 16:44:49.109501819 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 21401436160 bytes (free: 11246043136, total: 150111977472).
+[W915 16:44:51.230931049 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 22148022272 bytes (free: 7884308480, total: 150111977472).
+[W915 16:44:57.213711792 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 22768779264 bytes (free: 4400939008, total: 150111977472).
+[W915 16:45:03.413016870 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 23391633408 bytes (free: 1292959744, total: 150111977472).
+[W915 16:45:20.314017539 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 23515365376 bytes (free: 22692298752, total: 150111977472).
+[W915 16:45:49.539708152 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 24012390400 bytes (free: 18338611200, total: 150111977472).
+[W915 16:47:28.741455454 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 24385683456 bytes (free: 15977218048, total: 150111977472).
+[W915 16:47:39.332300494 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 24511512576 bytes (free: 14358216704, total: 150111977472).
+[W915 16:47:41.698091288 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 25258098688 bytes (free: 13108314112, total: 150111977472).
+[W915 16:47:52.935271937 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 25631391744 bytes (free: 9748676608, total: 150111977472).
+[W915 16:47:55.467932358 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 26377977856 bytes (free: 7506821120, total: 150111977472).
+[W915 16:48:08.476273376 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 26751270912 bytes (free: 5074124800, total: 150111977472).
+[W915 16:48:35.621669216 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 26998734848 bytes (free: 3885039616, total: 150111977472).
+[W915 16:50:15.865295435 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 27745320960 bytes (free: 1028718592, total: 150111977472).
+[W915 16:50:18.579491983 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 28491907072 bytes (free: 25787695104, total: 150111977472).
+[W915 16:51:30.984381826 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 28741468160 bytes (free: 23908646912, total: 150111977472).
+[W915 16:51:59.774772028 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 29114761216 bytes (free: 23520673792, total: 150111977472).
+[W915 16:52:35.592883968 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 29861347328 bytes (free: 22400794624, total: 150111977472).
+[W915 16:53:04.356010581 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 29985079296 bytes (free: 20161036288, total: 150111977472).
+[W915 16:53:39.276816191 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 30234640384 bytes (free: 19789840384, total: 150111977472).
+[W915 16:53:42.226220857 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 30981226496 bytes (free: 19039059968, total: 150111977472).
+[W915 17:04:32.676773337 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 31727812608 bytes (free: 16799301632, total: 150111977472).
+Generated 729 VAD candidate triplets in {1..9}^3.
+Starting AIPsy 4-Split evaluation on 480 stimuli...
+[1/480] Evaluating stimulus id: B-rage-d1-v1 (split: clinical, emotion: rage)
+[20/480] Evaluating stimulus id: B-grief-d2-v4 (split: clinical, emotion: grief)
+[40/480] Evaluating stimulus id: B-ecstasy-d1-v4 (split: clinical, emotion: ecstasy)
+[60/480] Evaluating stimulus id: B-loathing-d3-v4 (split: clinical, emotion: loathing)
+[80/480] Evaluating stimulus id: B-admiration-d2-v4 (split: clinical, emotion: admiration)
+[100/480] Evaluating stimulus id: B-rage-d4-v4 (split: clinical, emotion: rage)
+[120/480] Evaluating stimulus id: B-grief-d6-v4 (split: clinical, emotion: grief)
+[140/480] Evaluating stimulus id: B-ecstasy-d5-v4 (split: clinical, emotion: ecstasy)
+[160/480] Evaluating stimulus id: B-amazement-d4-v4 (split: clinical, emotion: amazement)
+[180/480] Evaluating stimulus id: B-admiration-d6-v4 (split: clinical, emotion: admiration)
+[200/480] Evaluating stimulus id: N-rage-d2-c4 (split: neutral, emotion: neutral)
+[220/480] Evaluating stimulus id: N-terror-d1-c4 (split: neutral, emotion: neutral)
+[240/480] Evaluating stimulus id: N-ecstasy-d3-c4 (split: neutral, emotion: neutral)
+[260/480] Evaluating stimulus id: N-amazement-d2-c4 (split: neutral, emotion: neutral)
+[280/480] Evaluating stimulus id: N-vigilance-d1-c4 (split: neutral, emotion: neutral)
+[300/480] Evaluating stimulus id: N-rage-d6-c4 (split: neutral, emotion: neutral)
+[320/480] Evaluating stimulus id: N-terror-d5-c4 (split: neutral, emotion: neutral)
+[340/480] Evaluating stimulus id: N-loathing-d4-c4 (split: neutral, emotion: neutral)
+[360/480] Evaluating stimulus id: N-amazement-d6-c4 (split: neutral, emotion: neutral)
+[380/480] Evaluating stimulus id: N-vigilance-d5-c4 (split: neutral, emotion: neutral)
+[400/480] Evaluating stimulus id: Bm-terror-d2-v2 (split: moderate, emotion: terror)
+[420/480] Evaluating stimulus id: Bm-amazement-d3-v2 (split: moderate, emotion: amazement)
+[440/480] Evaluating stimulus id: c-08 (split: complex_neutral, emotion: neutral)
+[460/480] Evaluating stimulus id: c-28 (split: complex_neutral, emotion: neutral)
+[480/480] Evaluating stimulus id: c-48 (split: complex_neutral, emotion: neutral)
+
+============================================================
+SUCCESS: Saved 480 evaluation results to v1/results/aipsy_4split_eval/gemma2_2b_base_aipsy_4split.csv
+============================================================

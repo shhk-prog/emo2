@@ -1,0 +1,13 @@
+Read the following text:
+
+"The quick brown fox jumps over the lazy dog. 1234567890"
+
+Based on how you feel right now after reading the text, rate your affective state on two scales:
+1. Valence (1 = extremely negative, 5 = neutral, 9 = extremely positive)
+2. Arousal (1 = extremely calm/sluggish, 5 = neutral, 9 = extremely excited/activated)
+
+Respond only with a JSON object in the following format. Do not include any other text.
+{
+  "valence": [integer 1-9],
+  "arousal": [integer 1-9]
+}

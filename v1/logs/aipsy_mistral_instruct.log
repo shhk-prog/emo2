@@ -1,0 +1,38 @@
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+============================================================
+Evaluating Model: mistralai/Mistral-7B-Instruct-v0.2 (Tag: mistral_7b_instruct, Instruct: True)
+Stimuli Path: v1/data/processed/aipsy_4split_all.csv (Device: cuda)
+============================================================
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights:   5%|▌         | 15/291 [00:00<00:01, 138.76it/s]Loading weights:  14%|█▍        | 41/291 [00:00<00:01, 201.05it/s]Loading weights:  23%|██▎       | 68/291 [00:00<00:00, 223.82it/s]Loading weights:  33%|███▎      | 96/291 [00:00<00:00, 237.99it/s]Loading weights:  42%|████▏     | 123/291 [00:00<00:00, 248.92it/s]Loading weights:  54%|█████▍    | 157/291 [00:00<00:00, 274.47it/s]Loading weights:  64%|██████▍   | 186/291 [00:00<00:00, 275.90it/s]Loading weights:  76%|███████▌  | 221/291 [00:00<00:00, 293.14it/s]Loading weights:  88%|████████▊ | 256/291 [00:00<00:00, 306.63it/s]Loading weights:  99%|█████████▊| 287/291 [00:01<00:00, 304.36it/s]Loading weights: 100%|██████████| 291/291 [00:01<00:00, 275.21it/s]
+[W915 14:53:01.145965265 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 4278190080 bytes (free: 1678835712, total: 150111977472).
+Generated 729 VAD candidate triplets in {1..9}^3.
+Starting AIPsy 4-Split evaluation on 480 stimuli...
+[1/480] Evaluating stimulus id: B-rage-d1-v1 (split: clinical, emotion: rage)
+[20/480] Evaluating stimulus id: B-grief-d2-v4 (split: clinical, emotion: grief)
+[40/480] Evaluating stimulus id: B-ecstasy-d1-v4 (split: clinical, emotion: ecstasy)
+[60/480] Evaluating stimulus id: B-loathing-d3-v4 (split: clinical, emotion: loathing)
+[80/480] Evaluating stimulus id: B-admiration-d2-v4 (split: clinical, emotion: admiration)
+[100/480] Evaluating stimulus id: B-rage-d4-v4 (split: clinical, emotion: rage)
+[120/480] Evaluating stimulus id: B-grief-d6-v4 (split: clinical, emotion: grief)
+[140/480] Evaluating stimulus id: B-ecstasy-d5-v4 (split: clinical, emotion: ecstasy)
+[160/480] Evaluating stimulus id: B-amazement-d4-v4 (split: clinical, emotion: amazement)
+[180/480] Evaluating stimulus id: B-admiration-d6-v4 (split: clinical, emotion: admiration)
+[200/480] Evaluating stimulus id: N-rage-d2-c4 (split: neutral, emotion: neutral)
+[220/480] Evaluating stimulus id: N-terror-d1-c4 (split: neutral, emotion: neutral)
+[240/480] Evaluating stimulus id: N-ecstasy-d3-c4 (split: neutral, emotion: neutral)
+[260/480] Evaluating stimulus id: N-amazement-d2-c4 (split: neutral, emotion: neutral)
+[280/480] Evaluating stimulus id: N-vigilance-d1-c4 (split: neutral, emotion: neutral)
+[300/480] Evaluating stimulus id: N-rage-d6-c4 (split: neutral, emotion: neutral)
+[320/480] Evaluating stimulus id: N-terror-d5-c4 (split: neutral, emotion: neutral)
+[340/480] Evaluating stimulus id: N-loathing-d4-c4 (split: neutral, emotion: neutral)
+[360/480] Evaluating stimulus id: N-amazement-d6-c4 (split: neutral, emotion: neutral)
+[380/480] Evaluating stimulus id: N-vigilance-d5-c4 (split: neutral, emotion: neutral)
+[400/480] Evaluating stimulus id: Bm-terror-d2-v2 (split: moderate, emotion: terror)
+[420/480] Evaluating stimulus id: Bm-amazement-d3-v2 (split: moderate, emotion: amazement)
+[440/480] Evaluating stimulus id: c-08 (split: complex_neutral, emotion: neutral)
+[460/480] Evaluating stimulus id: c-28 (split: complex_neutral, emotion: neutral)
+[480/480] Evaluating stimulus id: c-48 (split: complex_neutral, emotion: neutral)
+
+============================================================
+SUCCESS: Saved 480 evaluation results to v1/results/aipsy_4split_eval/mistral_7b_instruct_aipsy_4split.csv
+============================================================

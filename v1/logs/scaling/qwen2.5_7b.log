@@ -1,0 +1,31 @@
+[2026-08-26 04:00:23] INFO: =======================================================
+[2026-08-26 04:00:23] INFO:   Scaling Experiment: qwen2.5_7b
+[2026-08-26 04:00:23] INFO:   Base Model    : Qwen/Qwen2.5-7B
+[2026-08-26 04:00:23] INFO:   Instruct Model: Qwen/Qwen2.5-7B-Instruct
+[2026-08-26 04:00:23] INFO:   Output Dir    : results/derived/scaling/qwen2.5_7b
+[2026-08-26 04:00:23] INFO:   Log File      : logs/scaling/qwen2.5_7b.log
+[2026-08-26 04:00:23] INFO: =======================================================
+[2026-08-26 04:00:23] INFO: --- Starting Pipeline for Base (Qwen/Qwen2.5-7B) ---
+[2026-08-26 04:00:41] INFO: Model loaded. Total layers: 28
+[2026-08-26 04:00:41] INFO: Extracting layer activations into results/derived/scaling/qwen2.5_7b/base_tensors...
+[2026-08-26 04:02:16] INFO: Running Linear Probing (Ridge) across all layers...
+[2026-08-26 04:02:32] INFO: Probing complete. Peak ROC-AUC: nan
+[2026-08-26 04:02:32] INFO: Running Clean (no intervention) evaluations...
+[2026-08-26 04:04:12] INFO: Clean Affective Shift: Delta E[V] = -0.5567, Delta E[A] = 1.4300
+[2026-08-26 04:04:12] INFO: Running Causal Interventions (Patching, Ablation, Steering)...
+[2026-08-26 04:51:09] INFO: Interventions complete for Base.
+[2026-08-26 04:51:09] INFO: --- Starting Pipeline for Instruct (Qwen/Qwen2.5-7B-Instruct) ---
+[2026-08-26 04:51:27] INFO: Model loaded. Total layers: 28
+[2026-08-26 04:51:27] INFO: Extracting layer activations into results/derived/scaling/qwen2.5_7b/instruct_tensors...
+[2026-08-26 04:51:51] INFO: Running Linear Probing (Ridge) across all layers...
+[2026-08-26 04:52:07] INFO: Probing complete. Peak ROC-AUC: nan
+[2026-08-26 04:52:07] INFO: Running Clean (no intervention) evaluations...
+[2026-08-26 04:53:47] INFO: Clean Affective Shift: Delta E[V] = -1.1537, Delta E[A] = 2.9551
+[2026-08-26 04:53:47] INFO: Running Causal Interventions (Patching, Ablation, Steering)...
+[2026-08-26 05:41:05] INFO: Interventions complete for Instruct.
+[2026-08-26 05:41:06] INFO: Calculating Suppression Gap (Base - Instruct)...
+[2026-08-26 05:41:06] INFO: --- Final Summary for qwen2.5_7b ---
+[2026-08-26 05:41:06] INFO: Base Clean Shift (Delta E[V]): -0.5567
+[2026-08-26 05:41:06] INFO: Instruct Clean Shift (Delta E[V]): -1.1537
+[2026-08-26 05:41:06] INFO: Behavioral Suppression Ratio: -107.24%
+[2026-08-26 05:41:06] INFO: Results successfully saved to results/derived/scaling/qwen2.5_7b

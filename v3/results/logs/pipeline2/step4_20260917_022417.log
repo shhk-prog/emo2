@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/mnt/nas/home/hiromi/src/emo/v2/scripts/run_v2_recovery_patching.py", line 19, in <module>
+    from affective_empathy_eval.geometry import compute_relative_depth
+ModuleNotFoundError: No module named 'affective_empathy_eval.geometry'

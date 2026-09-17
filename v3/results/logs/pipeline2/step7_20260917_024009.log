@@ -1,0 +1,8 @@
+2026-09-17 02:46:39,917 [INFO] Starting Step 7 Confirmatory Replication across families (dry_run=True)
+Traceback (most recent call last):
+  File "/mnt/nas/home/hiromi/src/emo/v3/scripts/run_v3_confirmatory_replication.py", line 187, in <module>
+    main()
+  File "/mnt/nas/home/hiromi/src/emo/v3/scripts/run_v3_confirmatory_replication.py", line 141, in main
+    model_meta = models_cfg["models"][fam]
+                 ~~~~~~~~~~^^^^^^^^^^
+KeyError: 'models'

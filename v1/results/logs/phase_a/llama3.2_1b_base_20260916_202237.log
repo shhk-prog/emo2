@@ -1,0 +1,29 @@
+=== Starting V1 Phase A Probing for Model: meta-llama/Llama-3.2-1B (Instruct=False) ===
+Device: cuda | Limit: 0 | Output: v1/results/derived/v1_phase_a/llama3.2_1b_base
+
+[1/4] Loading Tokenizer and Model...
+Loading weights:   0%|          | 0/146 [00:00<?, ?it/s]Loading weights:  39%|███▉      | 57/146 [00:00<00:00, 551.26it/s]Loading weights: 100%|██████████| 146/146 [00:00<00:00, 773.63it/s]
+
+[2/4] Processing EmoBank Dataset (1,000 items)...
+Loading behavioral predictions from v1/results/emobank_3way_vad_test1k/llama3.2_1b_base_3way_vad.csv...
+Extracting hidden states for 1000 EmoBank stimuli...
+  Extracting Reader representations...
+Forward Pass Batches:   0%|          | 0/63 [00:00<?, ?it/s]Forward Pass Batches:   2%|▏         | 1/63 [00:00<00:33,  1.86it/s]Forward Pass Batches:   5%|▍         | 3/63 [00:00<00:10,  5.59it/s]Forward Pass Batches:   8%|▊         | 5/63 [00:00<00:06,  8.77it/s]Forward Pass Batches:  11%|█         | 7/63 [00:00<00:05, 11.17it/s]Forward Pass Batches:  14%|█▍        | 9/63 [00:00<00:04, 12.93it/s]Forward Pass Batches:  17%|█▋        | 11/63 [00:01<00:03, 14.59it/s]Forward Pass Batches:  21%|██        | 13/63 [00:01<00:03, 15.92it/s]Forward Pass Batches:  24%|██▍       | 15/63 [00:01<00:02, 16.78it/s]Forward Pass Batches:  27%|██▋       | 17/63 [00:01<00:02, 17.13it/s]Forward Pass Batches:  32%|███▏      | 20/63 [00:01<00:02, 19.69it/s]Forward Pass Batches:  38%|███▊      | 24/63 [00:01<00:01, 25.00it/s]Forward Pass Batches:  43%|████▎     | 27/63 [00:01<00:01, 25.19it/s]Forward Pass Batches:  48%|████▊     | 30/63 [00:01<00:01, 23.40it/s]Forward Pass Batches:  54%|█████▍    | 34/63 [00:02<00:01, 26.18it/s]Forward Pass Batches:  59%|█████▊    | 37/63 [00:02<00:00, 26.02it/s]Forward Pass Batches:  65%|██████▌   | 41/63 [00:02<00:00, 27.14it/s]Forward Pass Batches:  71%|███████▏  | 45/63 [00:02<00:00, 27.53it/s]Forward Pass Batches:  78%|███████▊  | 49/63 [00:02<00:00, 28.01it/s]Forward Pass Batches:  83%|████████▎ | 52/63 [00:02<00:00, 27.37it/s]Forward Pass Batches:  87%|████████▋ | 55/63 [00:02<00:00, 24.87it/s]Forward Pass Batches:  94%|█████████▎| 59/63 [00:02<00:00, 27.86it/s]Forward Pass Batches:  98%|█████████▊| 62/63 [00:03<00:00, 27.02it/s]Forward Pass Batches: 100%|██████████| 63/63 [00:03<00:00, 20.43it/s]
+  Extracting Self representations...
+Forward Pass Batches:   0%|          | 0/63 [00:00<?, ?it/s]Forward Pass Batches:   6%|▋         | 4/63 [00:00<00:01, 31.54it/s]Forward Pass Batches:  13%|█▎        | 8/63 [00:00<00:01, 28.73it/s]Forward Pass Batches:  19%|█▉        | 12/63 [00:00<00:01, 32.03it/s]Forward Pass Batches:  25%|██▌       | 16/63 [00:00<00:01, 30.27it/s]Forward Pass Batches:  32%|███▏      | 20/63 [00:00<00:01, 30.51it/s]Forward Pass Batches:  41%|████▏     | 26/63 [00:00<00:00, 38.28it/s]Forward Pass Batches:  48%|████▊     | 30/63 [00:00<00:01, 31.61it/s]Forward Pass Batches:  54%|█████▍    | 34/63 [00:01<00:00, 32.16it/s]Forward Pass Batches:  60%|██████    | 38/63 [00:01<00:00, 31.91it/s]Forward Pass Batches:  70%|██████▉   | 44/63 [00:01<00:00, 37.86it/s]Forward Pass Batches:  79%|███████▉  | 50/63 [00:01<00:00, 42.47it/s]Forward Pass Batches:  87%|████████▋ | 55/63 [00:01<00:00, 38.65it/s]Forward Pass Batches:  95%|█████████▌| 60/63 [00:01<00:00, 39.29it/s]Forward Pass Batches: 100%|██████████| 63/63 [00:01<00:00, 35.03it/s]
+Successfully extracted representations across 17 layers.
+
+Evaluating E1 (Decodability) and E2 (Geometry) across layers for EmoBank...
+Saved EmoBank probing results to v1/results/derived/v1_phase_a/llama3.2_1b_base/
+
+[3/4] Processing AIPsy-Affect Dataset...
+Extracting hidden states for 480 AIPsy stimuli...
+Forward Pass Batches:   0%|          | 0/30 [00:00<?, ?it/s]Forward Pass Batches:   7%|▋         | 2/30 [00:00<00:01, 18.38it/s]Forward Pass Batches:  13%|█▎        | 4/30 [00:00<00:01, 17.64it/s]Forward Pass Batches:  20%|██        | 6/30 [00:00<00:01, 16.92it/s]Forward Pass Batches:  30%|███       | 9/30 [00:00<00:01, 20.00it/s]Forward Pass Batches:  37%|███▋      | 11/30 [00:00<00:01, 18.91it/s]Forward Pass Batches:  47%|████▋     | 14/30 [00:00<00:00, 19.69it/s]Forward Pass Batches:  53%|█████▎    | 16/30 [00:00<00:00, 19.09it/s]Forward Pass Batches:  60%|██████    | 18/30 [00:00<00:00, 18.53it/s]Forward Pass Batches:  70%|███████   | 21/30 [00:01<00:00, 20.46it/s]Forward Pass Batches:  80%|████████  | 24/30 [00:01<00:00, 18.98it/s]Forward Pass Batches:  87%|████████▋ | 26/30 [00:01<00:00, 18.67it/s]Forward Pass Batches:  97%|█████████▋| 29/30 [00:01<00:00, 19.33it/s]Forward Pass Batches: 100%|██████████| 30/30 [00:01<00:00, 19.01it/s]
+Forward Pass Batches:   0%|          | 0/30 [00:00<?, ?it/s]Forward Pass Batches:   7%|▋         | 2/30 [00:00<00:01, 18.22it/s]Forward Pass Batches:  17%|█▋        | 5/30 [00:00<00:01, 22.62it/s]Forward Pass Batches:  30%|███       | 9/30 [00:00<00:00, 25.00it/s]Forward Pass Batches:  40%|████      | 12/30 [00:00<00:00, 25.07it/s]Forward Pass Batches:  50%|█████     | 15/30 [00:00<00:00, 23.85it/s]Forward Pass Batches:  60%|██████    | 18/30 [00:00<00:00, 23.04it/s]Forward Pass Batches:  70%|███████   | 21/30 [00:00<00:00, 23.73it/s]Forward Pass Batches:  80%|████████  | 24/30 [00:01<00:00, 23.98it/s]Forward Pass Batches:  90%|█████████ | 27/30 [00:01<00:00, 22.90it/s]Forward Pass Batches: 100%|██████████| 30/30 [00:01<00:00, 23.74it/s]Forward Pass Batches: 100%|██████████| 30/30 [00:01<00:00, 23.61it/s]
+
+Evaluating E1 (Decodability) and E2 (Geometry) across layers for AIPsy...
+Saved AIPsy probing results to v1/results/derived/v1_phase_a/llama3.2_1b_base/
+
+[4/4] Generating Phase A Summary Report...
+Summary report written to v1/results/derived/v1_phase_a/llama3.2_1b_base/phase_a_summary.md
+=== Phase A Probing Completed Successfully! ===

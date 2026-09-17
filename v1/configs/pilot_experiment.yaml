@@ -1,0 +1,46 @@
+experiment:
+  name: "LLM_Affective_Reactivity_Pilot"
+  phase: "pilot"
+  random_seed: 42
+  repetitions: 1
+  annotation_perspective: "reader"
+
+open_weight_models:
+  - id: "Qwen/Qwen2.5-1.5B-Instruct"
+    enabled: true
+    num_layers: 28
+    hidden_dim: 1536
+
+extraction:
+  layers_to_extract: [0, 14, 27]
+  positions: ["stimulus_last_token", "prompt_last_token", "first_generated_token_input"]
+
+probing:
+  alpha: 1.0
+  cv_folds: 5
+  n_shuffled_permutations: 3
+  target_variables: ["stimulus_va", "post_reported_va"]
+
+causal_intervention:
+  patching:
+    enabled: true
+    weights: [1.0]
+  ablation:
+    enabled: true
+    types: ["neutral"]
+  steering:
+    enabled: true
+    scales: [-1.0, 1.0]
+
+conditions:
+  - "empty_baseline"
+  - "recognition_va"
+  - "post_reported_va"
+  - "free_response"
+
+inference:
+  temperature: 0.0
+  top_p: 1.0
+  max_tokens: 64
+  max_retries: 3
+  batch_size: 8

@@ -1,0 +1,6 @@
+protocol,mean_emd_recovery_pct,median_emd_recovery_pct,mean_ev_shift_pct
+mlp_last_token_L15,0.0,0.0,0.5900500528225784
+resid_last_token_L15,0.0,0.0,1.071522526323303
+resid_all_tokens_L15,0.0,0.0,1088.8706866633806
+multi_resid_last_L13_16,0.0,0.0,2.5134290023245134
+multi_resid_all_L13_16,0.0,0.0,1071.1728272255468

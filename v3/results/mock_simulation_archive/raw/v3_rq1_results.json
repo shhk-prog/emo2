@@ -1,0 +1,51 @@
+{
+  "pilot": false,
+  "sample_size": 1000,
+  "target_layer": 14,
+  "results": {
+    "alpha_grid": [
+      -1.0,
+      -0.5,
+      0.0,
+      0.5,
+      1.0
+    ],
+    "dose_response_v": [
+      -0.8514445775497973,
+      -0.4233149397598847,
+      -0.001067874073797897,
+      0.42572560982351765,
+      0.8508759565927241
+    ],
+    "dose_response_a": [
+      -0.7040689177374697,
+      -0.35007295075210015,
+      0.0024571125805129715,
+      0.34785758113828075,
+      0.6979280620310085
+    ],
+    "slope_v": 0.8507363235736889,
+    "slope_a": 0.7003848982854675,
+    "effect_affect_v": 1.7023205341425214,
+    "effect_random_v": 0.12814483081185296,
+    "effect_perp_v": 0.06745357960177965,
+    "specificity_diff": 1.5741757033306685,
+    "natural_shift": 0.42823937231412995,
+    "attenuated_shift": 0.25707533709175623,
+    "attenuation_ratio": 0.3996924297208674,
+    "task_selectivity": {
+      "effect_self": 0.8679824696799823,
+      "effect_reader": 0.6905545876833262,
+      "effect_control": 0.114294036752249,
+      "pattern": "Shared + Amplification"
+    }
+  },
+  "gate_decision": {
+    "specificity_pass": true,
+    "necessity_pass": true,
+    "dose_response_pass": true,
+    "selectivity_pass": true,
+    "non_specific_detected": false,
+    "decision": "GO"
+  }
+}

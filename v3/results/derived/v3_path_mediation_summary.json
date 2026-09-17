@@ -1,0 +1,13 @@
+{
+  "mediator_layer": 18,
+  "valence_mediation_ratio": 0.7377005063380627,
+  "valence_mediation_ci": [
+    0.7287195205452175,
+    0.7464656768609512
+  ],
+  "arousal_mediation_ratio": 0.7240766476803814,
+  "arousal_mediation_ci": [
+    0.7136621660462452,
+    0.7350097480507976
+  ]
+}

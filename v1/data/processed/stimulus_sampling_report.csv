@@ -1,0 +1,8 @@
+v_cell,a_cell,candidate_n,sampled_n,target_n,shortfall_n,sampling_seed,filter_version,dataset_hash
+0,1,475,50,50,0,42,v1,1ade4a4a
+0,2,48,48,50,2,42,v1,1ade4a4a
+1,0,23,23,50,27,42,v1,1ade4a4a
+1,1,9123,50,50,0,42,v1,1ade4a4a
+1,2,100,50,50,0,42,v1,1ade4a4a
+2,1,225,50,50,0,42,v1,1ade4a4a
+2,2,68,50,50,0,42,v1,1ade4a4a

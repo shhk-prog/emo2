@@ -1,0 +1,78 @@
+{
+  "pilot": true,
+  "dry_run": true,
+  "sample_size": 50,
+  "target_layer": 14,
+  "results": {
+    "alpha_grid": [
+      -1.0,
+      -0.5,
+      0.0,
+      0.5,
+      1.0
+    ],
+    "dose_response_v": [
+      -0.8454394484753495,
+      -0.4275614484402896,
+      -0.00607244776035879,
+      0.43174573467075184,
+      0.8436614644697288
+    ],
+    "dose_response_a": [
+      -0.7095875126730361,
+      -0.34850173534180473,
+      -0.0001610785096470458,
+      0.3535033145257522,
+      0.7018500823007863
+    ],
+    "slope_v": 0.8475018018002396,
+    "slope_a": 0.7049760479630403,
+    "slope_v_ci": {
+      "point": 0.8445155585855185,
+      "ci_lower": 0.8342594263614267,
+      "ci_upper": 0.854267670396873
+    },
+    "slope_a_ci": {
+      "point": 0.6902131017933276,
+      "ci_lower": 0.6810049407842996,
+      "ci_upper": 0.6992426511916673
+    },
+    "specificity_diff": 0.7359058731244705,
+    "specificity_diff_ci": {
+      "point": 0.7359058731244705,
+      "ci_lower": 0.7240794925342728,
+      "ci_upper": 0.7472776999537912
+    },
+    "natural_shift": 0.42774408236701533,
+    "attenuated_shift": 0.24752821497456717,
+    "attenuation_ratio": 0.42131703236006046,
+    "attenuation_ratio_ci": {
+      "point": 0.42131703236006046,
+      "ci_lower": 0.4090912145859044,
+      "ci_upper": 0.4335506972280788
+    },
+    "task_selectivity": {
+      "effect_self": 0.85,
+      "effect_reader": 0.72,
+      "effect_control": 0.12,
+      "self_minus_control_ci": {
+        "point": 0.7264887401444046,
+        "ci_lower": 0.7139905132375767,
+        "ci_upper": 0.7381724652932844
+      },
+      "pattern": "Shared + Amplification"
+    }
+  },
+  "gate_decision": {
+    "specificity_pass": true,
+    "specificity_ci_lower": 0.7240794925342728,
+    "necessity_pass": true,
+    "necessity_ci_lower": 0.4090912145859044,
+    "dose_response_pass": true,
+    "slope_v_ci_lower": 0.8342594263614267,
+    "slope_a_ci_lower": 0.6810049407842996,
+    "selectivity_pass": true,
+    "non_specific_detected": false,
+    "decision": "GO"
+  }
+}

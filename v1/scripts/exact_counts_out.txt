@@ -1,0 +1,17 @@
+Total lines in file (including header): 2195
+Header line: id,emotion,intensity,domain,domain_label,matched_control_id,word_count,text,split,pair_id,target_emotion,triplet_id
+Data rows in pandas DataFrame: 480
+Index range: 0 to 479
+Splits breakdown:
+split
+clinical           192
+neutral            192
+moderate            48
+complex_neutral     48
+Total rows sum of splits: 480
+Unique IDs: 480
+
+Old processed aipsy files:
+  v1/data/processed/aipsy/dev.csv: 76 rows
+  v1/data/processed/aipsy/test.csv: 78 rows
+  v1/data/processed/aipsy/train.csv: 230 rows

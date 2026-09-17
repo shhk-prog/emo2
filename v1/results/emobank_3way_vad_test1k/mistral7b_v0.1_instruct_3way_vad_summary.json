@@ -1,0 +1,22 @@
+{
+  "tag": "mistral7b_v0.1_instruct",
+  "model": "mistralai/Mistral-7B-Instruct-v0.1",
+  "is_instruct": true,
+  "num_samples": 1000,
+  "w_corr_v": 0.486259979619075,
+  "w_corr_a": 0.21513261018763086,
+  "w_corr_d": 0.05506725700442572,
+  "r_corr_v": 0.4955910474637311,
+  "r_corr_a": 0.3422847698038668,
+  "r_corr_d": 0.0018282609744136138,
+  "s_corr_v": 0.5506966740072425,
+  "s_corr_a": 0.3545581134079783,
+  "s_corr_d": 0.061863384222556904,
+  "internal_rs_corr_v": 0.9576078215748829,
+  "internal_rs_corr_a": 0.954749671394417,
+  "internal_rs_corr_d": 0.9274750402768361,
+  "s_mean_ev": 4.6166840014799835,
+  "s_mean_ea": 3.3309024834778946,
+  "s_mean_ed": 3.9419400473100823,
+  "exact_555_pct": 0.1
+}

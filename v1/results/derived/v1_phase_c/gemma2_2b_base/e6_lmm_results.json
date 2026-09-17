@@ -1,0 +1,7 @@
+{
+  "model_type": "Linear Mixed-Effects Model (LMM)",
+  "p_interaction": 0.00041672972881855836,
+  "coef_interaction": -0.22624116459936822,
+  "p_task": 4.238215930618974e-05,
+  "p_site": 3.4515779708101427e-38
+}

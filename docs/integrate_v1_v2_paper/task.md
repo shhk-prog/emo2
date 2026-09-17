@@ -1,0 +1,12 @@
+- [x] v1・v2草稿の内容読み込みと要点抽出
+- [x] 統合論文 `v3/docs/paper.md` の執筆
+  - [x] 1. Introduction
+  - [x] 2. Related Work
+  - [x] 3. Experimental Framework
+  - [x] 4. Behavioral Observation (from v1)
+  - [x] 5. Is Affect-Relevant Information Erased? (from v2 H1/H2)
+  - [x] 6. Does the Representation Causally Affect Self-Report? (from v1/v2)
+  - [x] 7. Where Does Post-Training Change the Mapping? (from v2 H4)
+  - [x] 8. Discussion & Conclusion
+  - [x] Appendix (v1コード構造、batch size最適化、scaling ratio発散結果、開発Phase番号、プロンプト全文を含む)
+- [ ] walkthrough.md の作成とプロジェクトdocsへの保存

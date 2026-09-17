@@ -1,0 +1,43 @@
+# V2 実験設定ファイル
+experiment_name: "v2_2x2_cross_decoding"
+seed: 42
+
+# データセット設定
+dataset:
+  path: "v1/data/processed/stimuli_vad_3way_test1k.csv"
+  train_ratio: 0.7  # 70% train (プローブ学習・幾何変換), 30% held-out test
+  text_column: "text"
+  id_column: "id"
+  external_labels:
+    valence: "reader_V"
+    arousal: "reader_A"
+
+# 4モデルファミリー設定
+families:
+  - "Qwen"
+  - "Llama"
+  - "Gemma"
+  - "Mistral"
+
+# プロンプト形式交絡統制
+formats:
+  - "native"         # Base: plain, Instruct: chat template
+  - "matched_plain"  # Base: plain, Instruct: plain text
+
+# 幾何・デコーディングパラメータ
+decoding:
+  ridge_alpha: 1.0
+  metrics:
+    - "r2"
+    - "procrustes"
+    - "rsa"
+
+# 統計ブートストラップ設定
+bootstrap:
+  n_boot: 1000
+  ci_level: 0.95
+
+# 出力設定
+output:
+  raw_dir: "v2/results/raw"
+  derived_dir: "v2/results/derived"

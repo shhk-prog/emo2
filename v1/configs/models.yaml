@@ -1,0 +1,34 @@
+models:
+  - id: gpt-4o
+    provider: openai
+    api_model: gpt-4o
+    family: gpt
+    access: openai_api
+    phase: preliminary
+    role: primary
+    enabled: true
+  
+  - id: gpt-4o-mini
+    provider: openai
+    api_model: gpt-4o-mini
+    family: gpt
+    access: openai_api
+    phase: preliminary
+    role: cost_matched
+    enabled: true
+
+  - id: claude-3-5-sonnet
+    provider: anthropic
+    access: anthropic_api
+    phase: external_validation
+    role: external_comparator
+    enabled: false
+    exclusion_reason: "Excluded by preregistered OpenAI-only API policy"
+
+  - id: llama-3.1-8b-instruct
+    provider: meta
+    access: local
+    phase: main
+    role: mechanistic_analysis
+    enabled: false
+    exclusion_reason: "Reserved for local open-weight internal-state experiments"

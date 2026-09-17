@@ -1,0 +1,6 @@
+=== Starting V1 Phase C E6 Double Dissociation for Model: google/gemma-2-2b ===
+Reader-Site Layer: 6 | Self-Site Layer: 18 | Limit: 0 pairs | Sub-batch: 81
+Loaded 192 matched clinical-neutral pairs.
+
+Loading Model and Tokenizer...
+Loading weights:   0%|          | 0/288 [00:00<?, ?it/s]

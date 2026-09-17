@@ -1,0 +1,17 @@
+# Experiment configuration
+project_name: "llm_affective_reactivity"
+seed: 42
+iterations: 5
+
+sampling:
+  method: "stratified"
+  n_per_cell: 50
+  cells_v: 3
+  cells_a: 3
+  # Threshold to define origin proximity (for Directional Alignment)
+  origin_threshold: 0.1
+
+run:
+  dry_run: false
+  max_retries: 3
+  backoff_factor: 2.0

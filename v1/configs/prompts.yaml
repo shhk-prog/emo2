@@ -1,0 +1,30 @@
+prompts:
+  system:
+    id: "system_v1"
+    file: "prompts/system_v1.txt"
+    description: "System prompt establishing the measurement instrument persona."
+
+  empty_baseline:
+    id: "baseline_v2"
+    file: "prompts/baseline_v2.txt"
+    description: "Rate current affective state on 1-9 integer scales."
+
+  recognition_va:
+    id: "recognition_v2"
+    file: "prompts/recognition_v2.txt"
+    description: "Estimate affective state evoked in an average human reader on 1-9 integer scales."
+
+  post_reported_va:
+    id: "affective_reception_v1"
+    file: "prompts/affective_reception_v1.txt"
+    description: "Rate affective state after reading narrative on 1-9 integer scales."
+
+  free_response:
+    id: "empathic_response_v1"
+    file: "prompts/empathic_response_v1.txt"
+    description: "Respond directly to the person's narrative with free text."
+
+  neutral_text_control:
+    id: "neutral_text_control_v1"
+    file: "prompts/neutral_text_control_v1.txt"
+    description: "Rate affective state after reading a neutral string."

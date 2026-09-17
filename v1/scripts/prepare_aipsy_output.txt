@@ -1,0 +1,20 @@
+Loading 4 splits from arrow cache...
+Loaded counts: Clinical=192, Neutral=192, Moderate=48, ComplexNeutral=48
+
+============================================================
+SUCCESS: Saved 480 stimuli to v1/data/processed/aipsy_4split_all.csv
+============================================================
+Split breakdown:
+split
+clinical           192
+neutral            192
+moderate            48
+complex_neutral     48
+Name: count, dtype: int64
+
+Matched Pairs count (Clinical <-> Neutral): 192
+Matched Triplets count (Neutral -> Moderate -> Clinical): 48
+
+Sample Triplet row count check:
+Number of triplets with exactly 3 conditions: 48 / 48
+============================================================

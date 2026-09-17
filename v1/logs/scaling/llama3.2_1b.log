@@ -1,0 +1,31 @@
+[2026-08-26 05:41:17] INFO: =======================================================
+[2026-08-26 05:41:17] INFO:   Scaling Experiment: llama3.2_1b
+[2026-08-26 05:41:17] INFO:   Base Model    : meta-llama/Llama-3.2-1B
+[2026-08-26 05:41:17] INFO:   Instruct Model: meta-llama/Llama-3.2-1B-Instruct
+[2026-08-26 05:41:17] INFO:   Output Dir    : results/derived/scaling/llama3.2_1b
+[2026-08-26 05:41:17] INFO:   Log File      : logs/scaling/llama3.2_1b.log
+[2026-08-26 05:41:17] INFO: =======================================================
+[2026-08-26 05:41:17] INFO: --- Starting Pipeline for Base (meta-llama/Llama-3.2-1B) ---
+[2026-08-26 05:44:36] INFO: Model loaded. Total layers: 16
+[2026-08-26 05:44:36] INFO: Extracting layer activations into results/derived/scaling/llama3.2_1b/base_tensors...
+[2026-08-26 05:45:05] INFO: Running Linear Probing (Ridge) across all layers...
+[2026-08-26 05:45:11] INFO: Probing complete. Peak ROC-AUC: nan
+[2026-08-26 05:45:11] INFO: Running Clean (no intervention) evaluations...
+[2026-08-26 05:45:33] INFO: Clean Affective Shift: Delta E[V] = -0.0164, Delta E[A] = -0.0206
+[2026-08-26 05:45:33] INFO: Running Causal Interventions (Patching, Ablation, Steering)...
+[2026-08-26 05:51:32] INFO: Interventions complete for Base.
+[2026-08-26 05:51:32] INFO: --- Starting Pipeline for Instruct (meta-llama/Llama-3.2-1B-Instruct) ---
+[2026-08-26 05:51:34] INFO: Model loaded. Total layers: 16
+[2026-08-26 05:51:34] INFO: Extracting layer activations into results/derived/scaling/llama3.2_1b/instruct_tensors...
+[2026-08-26 05:52:07] INFO: Running Linear Probing (Ridge) across all layers...
+[2026-08-26 05:52:14] INFO: Probing complete. Peak ROC-AUC: nan
+[2026-08-26 05:52:14] INFO: Running Clean (no intervention) evaluations...
+[2026-08-26 05:52:36] INFO: Clean Affective Shift: Delta E[V] = -0.0988, Delta E[A] = 0.0420
+[2026-08-26 05:52:36] INFO: Running Causal Interventions (Patching, Ablation, Steering)...
+[2026-08-26 05:58:35] INFO: Interventions complete for Instruct.
+[2026-08-26 05:58:35] INFO: Calculating Suppression Gap (Base - Instruct)...
+[2026-08-26 05:58:35] INFO: --- Final Summary for llama3.2_1b ---
+[2026-08-26 05:58:35] INFO: Base Clean Shift (Delta E[V]): -0.0164
+[2026-08-26 05:58:35] INFO: Instruct Clean Shift (Delta E[V]): -0.0988
+[2026-08-26 05:58:35] INFO: Behavioral Suppression Ratio: -501.17%
+[2026-08-26 05:58:35] INFO: Results successfully saved to results/derived/scaling/llama3.2_1b

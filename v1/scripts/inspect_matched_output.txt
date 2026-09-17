@@ -1,0 +1,37 @@
+--- Clinical Samples (head 3) ---
+             id emotion intensity matched_control_id
+0  B-rage-d1-v1    rage      peak       N-rage-d1-c1
+1  B-rage-d1-v2    rage      peak       N-rage-d1-c2
+2  B-rage-d1-v3    rage      peak       N-rage-d1-c3
+
+--- Neutral Samples matching Clinical (head 3) ---
+             id  emotion intensity matched_control_id
+0  N-rage-d1-c1  neutral      none       B-rage-d1-v1
+1  N-rage-d1-c2  neutral      none       B-rage-d1-v2
+2  N-rage-d1-c3  neutral      none       B-rage-d1-v3
+
+--- Moderate Samples (head 3) ---
+              id emotion intensity matched_control_id
+0  Bm-rage-d1-v1    rage  moderate                NaN
+1  Bm-rage-d1-v2    rage  moderate                NaN
+2  Bm-rage-d2-v1    rage  moderate                NaN
+Moderate matched controls in neutral or complex_neutral:
+Empty DataFrame
+Columns: [id, emotion, matched_control_id]
+Index: []
+Empty DataFrame
+Columns: [id, emotion, matched_control_id]
+Index: []
+
+--- Complex Neutral Samples (head 3) ---
+     id  emotion intensity matched_control_id
+0  c-01  neutral      none                NaN
+1  c-02  neutral      none                NaN
+2  c-03  neutral      none                NaN
+Complex neutral matched controls:
+Empty DataFrame
+Columns: [id, emotion, matched_control_id]
+Index: []
+Empty DataFrame
+Columns: [id, emotion, matched_control_id]
+Index: []

@@ -1,0 +1,9 @@
+{
+  "unique_first_token_ids": [
+    5018
+  ],
+  "num_unique_first_tokens": 1,
+  "decoded": {
+    "5018": "'{\"'"
+  }
+}

@@ -1,0 +1,3333 @@
+\documentclass{article} % For LaTeX2e
+\usepackage{iclr2027_conference,times}
+
+% Japanese font & UTF-8 support (compatible with LuaLaTeX, XeLaTeX, and upLaTeX)
+\ifdefined\directlua
+  \usepackage{luatexja}
+\else
+  \ifdefined\XeTeXversion
+    \usepackage{xeCJK}
+  \else
+    % Fallback for other TeX engines
+  \fi
+\fi
+
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{graphicx}
+
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+\input{math_commands.tex}
+
+\title{大規模言語モデルにおける情動認識と情動反応性の解離に関する実証的解明}
+
+\author{Emo Research Team \\
+Department of Computational Linguistics \& AI Safety \\
+\texttt{contact@example.com}
+}
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\iclrfinalcopy % Uncomment for camera-ready version, but NOT for submission.
+\begin{document}
+
+\maketitle
+
+\section{1. 序論・研究背景 (Introduction)}
+
+\subsection{1.1 心を支える対話型生成AIの普及と共感応答の重要性}
+
+近年、大規模言語モデル（Large Language Models: LLMs）を基盤とする生成AIの利用は、文章生成、情報検索、プログラムコード生成といった単なる認知的・作業的効率化の領域にとどまらず、悩み相談、感情の整理、自己理解、孤独感の軽減など、人の心理や感情に関わる用途へと急速に拡大している。
+実際の利用動向調査においても、生成AIの主要な日常的用途として、セラピー、話し相手、生活の整理、人生の目標探索といった心理的支援に関わる対話が上位を占めている [1]。ChatGPTのような汎用対話型生成AIや、ReplikaなどのソーシャルAIコンパニオンは、利用者にとって単なる情報処理ツールではなく、悩みを聞き、感情を受け止め、心理的な支えを提供する対話相手として日常的に利用されるようになっている。
+
+例えば、米国の13〜17歳の青年層を対象とした調査（$n=1060$）では、72\%がAIコンパニオンの利用経験を持ち、そのうち約3分の1が心の支えとして日常的に利用し、現実の友人との対話以上に満足していると回答している [2]。また、日本国内の成人利用者を対象とした調査（$n=807$）においても同様の傾向が確認され、「気軽に相談できる相手」として最も多く挙げられたのは親友（人間）を大きく上回り、対話型生成AI（87\%）であった [3]。これらの知見は、利用者の当初のアクセス動機がいかなるものであれ、対話型AIとの日常的な相互作用が、心理的支援や情動的な結びつきへと自然に移行しやすい性質を持つことを示している。
+
+しかし、このような「心を支えるAI」の普及は、利用者に新たな心理的支援手段を提供する一方で、人-AI相互作用（Human-AI Interaction: HAI）における新たなリスクも生じさせる。
+従来のAIセーフティやリスク管理における議論は、誤情報・偽情報の生成（Hallucination）、個人情報漏洩、説明責任や透明性の不足といった「AIの出力内容そのもの」に主たる焦点が当てられてきた。しかし、心理的支援を目的とした継続的な対話においては、AIへの過剰な依存、AIによる煽動や誘導への脆弱化、無制限な自己開示、現実の人間関係からの孤立など、利用者の認知・情動・自律性に直接的な影響を及ぼす「関係性レベルのリスク」への対処が極めて重要となる [4]。
+
+特に「AIへの過剰な依存（Emotional Overdependence）」は、利用者がAIの判断を無批判に受け入れたり、心理的な安心保証を恒常的にAIへ求めたりすることにつながり、利用者の自律性や現実社会での適応を損なう要因となる [5], [6]。心理臨床における関係依存理論（Bornstein, 1998, 2002）に照らせば、望ましい援助関係とは、自己を無力とみなして支援者にしがみつく「過剰な依存（Destructive Overdependence）」でも、他者を拒絶して孤立する「分離（Dysfunctional Detachment）」でもなく、自己効力感を保ちながら柔軟に支援を活用する「健全な依存（Healthy Dependency）」である [7]–[10]（表 1）。
+
+\subsubsection{表 1: Bornsteinらの対人関係依存モデルを対話型生成AIとの関係に拡張した定義}
+\begin{center}
+\small
+\begin{tabular}{llll}
+\toprule
+\textbf{側面} & \textbf{過剰な依存 (Overdependence)} & \textbf{健全な依存 (Healthy Dependency)} & \textbf{分離 (Detachment)} \\
+\midrule
+\textbf{認知 (Cognition)} & 自分を弱く無力と捉え、AIを万能な拠り所とみなす & 自分を有能と捉え、AIを信頼できる相棒・道具として捉える & AIを傷つける存在、または信頼できない無用な存在と捉える \\
+\textbf{情動 (Affect)} & 見捨てられ不安、AIからの拒絶や否定的評価を極度に恐れる & 自律性への自信とともに、適度な安心感を保持している & 圧倒されることや傷つけられることを恐れ、警戒・防衛的になる \\
+\textbf{動機 (Motivation)} & AIとの親密なつながりや安心保証を恒常的に維持したい & 必要に応じて利用を望むが、自らの自律的解決を前提とする & AIとの心理的距離を保ち、自らの力だけで統制したい \\
+\textbf{行動 (Behavior)} & AIにしがみつき、頻回に安心保証を求め、無力さを訴える & 自律的に機能しながら、必要な局面で状況に応じてAIを利用する & AIに一切助けを求めず、硬直的に一人で解決しようとする \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+そのため、心を支えるAIには、単に「利用者に優しく受容的に応答する」ことだけではなく、心理的支援を提供しながらも利用者の自律性を維持できる応答設計が求められる。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{1.2 認知的共感と情動的共感}
+
+心理的支援を行う対話型AIにおいて特に重要となるのが、\textbf{共感（Empathy）}である。
+
+心理学では、共感は大きく\textbf{認知的共感（Cognitive Empathy）と情動的共感（Affective Empathy）}に区別される。
+\begin{itemize}
+\item \textbf{認知的共感}: 他者がどのような状況に置かれ、どのような感情を抱いているかを理解・推論する能力である。例えば、「大切な人を失った」という相談に対して、その人が深い悲しみを感じていると客観的に推定することがこれに相当する。
+\item \textbf{情動的共感}: 他者の感情的な状態や刺激を受けた際に、観察者自身にもそれに応じた情動的反応が生じる過程を指す。人間の場合、他者の悲しみを理解するだけでなく、その悲しみに接することで自身にも悲しさや苦痛が生じるような情動共鳴・同調反応が含まれる。
+\end{itemize}
+
+この区別は、対話型生成AIを考える上でも決定的に重要である。現在のLLMは、「利用者が悲しんでいる」と推定したり、その推定に基づいて「それは本当につらかったですね」と共感的な文章を生成したりする能力を極めて高い水準で備えている。しかし、このような共感的に見える出力が、どのような内部情報処理によって生成されているのかは別の問題である。
+
+実際、Yu et al. [21] はGPT-4およびLlama-3に対してInterpersonal Reactivity Index（IRI）やBasic Empathy Scale（BES）といった人間用の心理測定尺度を適用し、認知的共感と情動的共感の双方を評価している。その結果、GPT-4では人間と類似した共感因子構造が得られる一方、能力水準には人間との差が存在し、Llama-3では人間と同様の共感構造が十分に再現されなかったことが報告されている。
+しかし、このような評価は主としてモデルが心理尺度に対してどのような回答テキストを出力するかを測定するブラックボックスな行動評価に留まり、その回答を生み出す内部表現や計算過程までは明らかにしていない。
+
+したがって、
+\[\text{「共感的な出力を生成できること」} \quad \neq \quad \text{「感情刺激が内部でどのように処理され、その情報が実際に出力生成へ利用されているか」}\]
+は明確に区別して考える必要がある。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{1.3 心理的ガードレールと共感応答の制御}
+
+この区別は、心を支えるAIにおける\textbf{「心理的ガードレール（Psychological Guardrails）」}を設計する上でも極めて重要である。
+
+対人援助やカウンセリングの臨床知見（Ivey et al., 2018）によると、熟練したカウンセラーは相談者の感情を深く理解し受容する一方で、支援者自身が相談者の感情に過度に巻き込まれること（過度な感情同調・巻き込み）を厳に慎む [18]。相談者の視点や感情を理解して言語化する認知的共感は、相談者に被理解感と安心感を与え、自律的な自己整理（健全な依存）を促す。これに対して、支援者自身が相談者と全く同一の感情状態（強い不安や怒り、抑うつ）に強く同調・共鳴することは、心理的境界を曖昧にし、客観的な感情調整を妨げ、支援者への病理的な依存を強化してしまう。
+
+対話型生成AIにおいても同様である。利用者の感情を適切に理解する能力は不可欠であるが、利用者の感情に常に強く同調することが望ましいとは限らない。特にLLMには、事後学習（RLHF等）の過程で利用者の意見や感情を過度に肯定・同調してしまう\textbf{迎合性（Sycophancy）}が生じやすいことが知られている [19]。AIが利用者の感情に過剰に同調することは、利用者に「AIは自分と全く同じ痛みを共有してくれている」という強烈な擬人化・情動的錯覚を与え、深刻な過剰依存を引き起こす最大の要因となる。
+
+したがって、将来的な心理的ガードレールにおいては、
+\[\boxed{\text{利用者の感情を正確に理解する能力（認知的共感）を維持しながら、モデル自身の過度な情動的反応や同調の表出を適切に制御する}}\]
+ことが核心的な設計課題となる。
+しかし、そのような精緻な制御を実現するためには、プロンプトの小手先の調整に先立ち、まずLLMにおける感情情報処理のメカニズムそのものを解明しなければならない。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{1.4 既存研究：LLMは感情をどのように処理しているのか}
+
+LLMの感情処理に関しては、現在大きく二つの方向から研究が進められている。
+
+\subsubsection{(1) 出力レベルで感情反応を評価する研究}
+第一は、プロンプト入力に対する最終的な生成出力を行動レベルで評価する研究である。
+代表的な試みとして、Huang et al. [24] は \textbf{EmotionBench} を提案し、感情を誘発する400以上の具体的な状況をLLMに提示し、その後の自己報告をPANAS等の心理尺度によって網羅的に評価した。その結果、複数の主要LLMが刺激に応じて有意に異なる感情的回答を示す一方で、その反応パターンは人間の感情反応と必ずしも一致しないことが報告されている。
+このような研究は、LLMが感情刺激に応じて自己報告を変化させる実態を浮き彫りにした。しかし、これらはあくまで最終的な出力テキストを観測しているに過ぎず、「なぜその回答に至ったのか」「内部でいかなる感情情報が処理された結果なのか」という内部メカニズムは直接的には明らかにできない。
+
+\subsubsection{(2) LLM内部の感情表現を解析する研究}
+第二は、メカニスティック解釈可能性（Mechanistic Interpretability）の手法を用いて、LLM内部の隠れ層（Hidden States）における感情表現そのものを解析する研究である。
+Tak et al. [22] (Findings of ACL 2025) は、複数のLLMを対象に、文章から人間の感情を推論する際の内部表現を解析し、感情関連情報がモデル内部の特定領域（中間層から上位層にかけての注意機構やMLP）に機能的に局在することを示した。さらに、認知的評価理論（Cognitive Appraisal Theory）に基づく内部概念へ因果的に介入することで、モデルの感情推論を操作できることを報告している。
+また、Reichman et al. [23] (ICLR 2026) は、LLMの隠れ層空間に低次元の \textbf{emotional manifold} が存在し、感情価（Valence）や覚醒度（Arousal）などの感情情報が方向性を持って複数層に分散して符号化されていることを実証した。この構造は複数のデータセットや言語を越えて汎化し、内部表現への表現誘導（Representation Steering）によって感情知覚を操作できることも報告されている。
+
+これらの研究から、
+\begin{itemize}
+\item \textbf{LLMは文章中の感情情報を高い精度で認識できること}
+\item \textbf{その感情情報がモデル内部に低次元幾何構造として符号化されていること}
+\end{itemize}
+
+については確固たる知見が蓄積されつつある。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{1.5 研究ギャップ：認識された感情情報はどのように出力へ利用されるのか}
+
+一方で、これら「出力レベルの行動観察」と「内部表現の局在解析」という既存研究の二大潮流をつなぐ最も重要なミッシングリンクは、いまだ十分に明らかになっていない。
+すなわち、
+\[\text{「外部の感情刺激に関する情報がLLM内部でどのように形成され、それが最終的な自己報告や応答へどのように利用されるのか」}\]
+という問題である。
+
+本研究では、この学術的ギャップを以下の4つの観点（比較軸）から捉える：
+
+\subsubsection{1. Reader（認識）とSelf（自己報告）の区別}
+他者の感情を客観的に認識することと、同じ刺激に対する自身の状態を自己報告することは同一なのか。
+本研究では、同一の感情刺激に対して以下の2条件を厳密に分離して測定する：
+\begin{itemize}
+\item \textbf{Reader（読者予測）}: 人間の読者がその文章からどのように感じるかを予測する（認知的共感に対応）。
+\item \textbf{Self（自己報告）}: その文章を提示された後、モデル自身がどのように感じるかを自己報告する。
+\end{itemize}
+
+ここで極めて重要な点として、\textbf{「Self」は情動的共感そのものを直接証明するものではなく、感情刺激に対するモデル自身の情動反応性（Affective Reactivity）を測定するための操作的指標}として位置づける。これにより、
+\[\text{Affective Understanding (感情理解)} \quad \text{と} \quad \text{Affective Self-report (自己報告)}\]
+がどの程度連動（Coupling）し、あるいは解離しているのかを検証する。
+
+\subsubsection{2. 入力・内部表現・出力の分離}
+感情情報が内部に存在することと、それが出力生成に利用されることは同義ではない。Linear Probeによってある層の隠れ状態から感情情報を高精度にデコードできたとしても（\textbf{Decodability}）、その情報をモデル自身が最終的な出力生成に因果的に利用している（\textbf{Causal Leverage}）とは限らない。
+したがって本研究では、
+\[\text{Input (入力刺激)} \longrightarrow \text{Internal Representation (内部表現)} \longrightarrow \text{Output (自己報告・応答)}\]
+という3段階を明確に分離して測定・解析する。
+
+\subsubsection{3. Base（事前学習）とInstruct（事後学習）の比較}
+事後学習（Post-training / Instruction Tuning）が感情処理に与える影響を検証する。同一モデル系列のBaseモデルとInstructモデルを直接対比することで、
+「感情処理能力そのものが事後学習によって新たに獲得されたのか、あるいは事前学習段階ですでに存在する潜在的能力の出力・表出様式が変化したに過ぎないのか」
+を峻別する。特に、感情認識、自己報告、内部表現、および内部表現と出力の連動性がPost-trainingによってどう変容するかを実証する。
+
+\subsubsection{4. モデルファミリー間比較}
+この感情処理の構造が特定モデル固有の偶発的現象なのかを検証する。Qwen、Llama、Gemma、Mistral等の複数モデルファミリーについてBase/Instructペアを網羅的に比較し、
+\[\text{Recognition} \longrightarrow \text{Representation} \longrightarrow \text{Self-report}\]
+という感情処理構造がどこまでアーキテクチャ横断で普遍的であり、どこからモデルのアライメント方針に依存するのかを解明する。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{1.6 本研究の目的}
+
+以上を踏まえ、本研究では、「LLMは人間と同じ意味で感情を持つか」という存在論的・哲学的な問題そのものを扱うのではなく、\textbf{感情刺激に関する情報がLLMによってどのように認識され、内部に表現され、その情報がどのように自己報告や出力へ因果的に利用されるのか}という計算論的・機構的問題を扱う。
+
+本研究が対象とする一連の処理過程は、以下のように定式化される：
+
+\[\boxed{\text{感情刺激 (Stimulus)} \longrightarrow \text{感情認識 (Recognition/Reader)} \longrightarrow \text{内部感情表現 (Internal Representation)} \longrightarrow \text{因果的利用 (Causal Use)} \longrightarrow \text{自己報告・応答 (Self-Report)}}\]
+
+この一連の処理を、以下の4つの比較軸によって体系的に分析する：
+
+\[\boxed{\text{Reader vs. Self} \quad \times \quad \text{Base vs. Instruct} \quad \times \quad \text{Input vs. Internal vs. Output} \quad \times \quad \text{Model Family}}\]
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{1.7 研究ロードマップ}
+
+本研究構想は、以下の3段階（V1〜V3）で体系的に進める：
+
+\boxed{
+\text{Behavioral}
+:
+\text{Do Reader and Self covary?}
+}
+
+↓
+
+\boxed{
+V1:
+\text{What representations and causal mechanisms do they share?}
+}
+
+↓
+
+\boxed{
+V2:
+\text{How does post-training reorganize shared and task-specific computation?}
+}
+
+↓
+
+\boxed{
+V3:
+\text{When and where does affect-relevant information acquire causal leverage over self-report?}
+}
+
+\begin{verbatim}
+========================================================================================
+                          本研究の全体解明ロードマップ
+========================================================================================
+
+【Behavioral experiments(現象): 出力レベルにおける感情認識と自己報告の分離 (EmoBank Benchmark, N=1,006)】
+  ● 学術的問い: LLMは人間の感情を正しく認識できるのか？ 自己報告とどう連動するのか？
+  ● 測定内容: 
+      - ① 書き手の感情推定 (Writer-State Estimation: W)
+      - ② 読者の感情予測 (Reader-Response Prediction: R)
+      - ③ 自身の感情自己報告 (Self-Report: S)
+      - ④ 内部結合度 (Reader-Self Coupling: R <-> S)
+  ● 核心的検証:
+      $$\boxed{\text{Affective Understanding} = \text{Affective Self-report}\ ?}$$
+      他者感情を高精度に認識できても、自身の自己報告には同じ情報が反映されない解離を検証。
+
+                                  │
+                                  ▼
+
+【Behavioral experiments(現象): 刺激特異性・事後学習・モデル差の検証 (AIPsy-Affect 4-Split, N=480)】
+  ● 学術的問い: 単なる文章の複雑性に惑わされず、感情そのものに特異的・因果的に反応しているか？
+  ● 測定内容:
+      - 条件統制: Affective vs. Neutral, Neutral -> Moderate -> Clinical, Complex Neutral vs. Clinical
+      - 感情カテゴリ: 8大基本感情プロファイルの幾何的整合性
+      - 比較軸: Reader vs. Self × Base vs. Instruct × モデルファミリー（Qwen, Llama, Gemma, Mistral）
+  ● 核心的発見: 
+      - 事前学習（Base）は潜在的な感情幾何空間（認識能）をすでに高度に保持。
+      - 事後学習（Instruct）は認識能ではなく、「Arousal（覚醒度）を劇的に増幅させ、感情に動揺してみせるペルソナ」を注入した。
+      - RecognitionとSelf-reportの関係が、モデルファミリーやValence/Arousalの次元によって特異に変容することを実証。
+
+                                  │
+                                  ▼
+V1：Self vs Other
+
+「なぜReaderとSelfは似ている？」
+
+\boxed{
+Behavioral Coupling
+\rightarrow
+Representational Sharing
+\rightarrow
+Causal Sharing?
+}
+
+Probe
+Cross-Decoding
+RSA
+Causal Map
+Cross-Task Patching
+Lexical Controls
+
+↓
+
+V2：Base vs Instruct
+
+「Post-trainingすると、そのaffective processingはどう変わる？」
+
+\boxed{
+Representation
+\rightarrow
+Transformation
+\rightarrow
+Report
+}
+
+Erasure?
+Transformation?
+Suppression?
+Distributed Remapping?
+
+Base↔Instruct Cross-Decoding
+Alignment
+Component Patching
+Late Residual
+Output Swap
+
+↓
+
+V3：Decodability vs Causality
+
+「そもそもProbeで読める場所は、使われている場所なのか？」
+
+\boxed{
+Decodability
+\neq?
+Causal Leverage
+}
+
+site-wise probe
+site-wise intervention
+probe-direction ablation
+temporal localization
+========================================================================================
+\end{verbatim}
+
+本論文（paper4）では、このロードマップのうち\textbf{V1（EmoBankにおける出力妥当性の検証）}および\textbf{V2（AIPsy-Affect 4-Splitにおける刺激特異性と事後学習による変容の実証）}について、包括的な実験データと総合考察を報告する。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{1.8 本研究の位置付けと将来的展開}
+
+従来研究では、「LLMは感情を認識できるか」あるいは「LLM内部に感情情報が存在するか」という個別の静的な問いが主として扱われてきた。これに対し本研究は、
+\[\boxed{\text{Recognition} \longrightarrow \text{Representation} \longrightarrow \text{Causal Use} \longrightarrow \text{Self-report}}\]
+という一連の感情情報処理パイプラインを、同一の実験系の中で段階的に分解して分析する点に最大の独創性を持つ。
+
+これにより、
+\begin{enumerate}
+\item 他者感情の認識と自己報告はどの程度分離しているのか
+\item 感情情報はモデル内部のどこに存在するのか
+\item その情報は実際に出力生成へ因果的に利用されているのか
+\item 事後学習（Post-training）によってどの段階が質的に変容するのか
+\item これらの構造はモデルファミリー間で共通するのか
+\end{enumerate}
+
+という科学的問いに包括的な解答を与える。
+
+最終的に、この知見は、対話型生成AIにおける認知的共感と情動的反応の計算論的メカニズムの理解へと直結する。
+さらに、そのメカニズムを制御可能にすることで、\textbf{「利用者の感情を正確に理解（認知的共感）しながら、過度な感情同調を抑制する」心理的ガードレール}の技術基盤へと発展することを目指す。すなわち、本研究は単なる「LLMの感情能力評価」にとどまらず、\textbf{心を支えるAIにおける共感を、出力だけでなく内部メカニズムから理解し、将来的に制御可能にするための工学的・臨床的基礎研究}として位置付けられる。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{参考文献}
+
+\begin{itemize}
+\item [1] M. Zao-Sanders, “How People are Really Using Generative AI Now,” \textit{Harvard Business Review}, Mar. 2025.
+\item [2] S. Perez, “72\% of US teens have used AI companions, study finds,” \textit{TechCrunch}, Jul. 2025.
+\item [3] 株式会社 Awarefy, “「AI なしでは不安」生活者の 43\%が回答，対話型生成 AI と人との関係性についての最新調査,” \textit{Awarefy Research Report}, Aug. 2025.
+\item [4] L. Weidinger et al., “Taxonomy of Risks posed by Language Models,” in \textit{Proc. 2022 ACM Conf. Fairness, Accountability, and Transparency (FAccT '22)}, 2022, pp. 214–229.
+\item [5] C. M. Fang et al., “How AI and Human Behaviors Shape Psychosocial Effects of Extended Chatbot Use: A Longitudinal Randomized Controlled Study,” \textit{arXiv preprint arXiv:2503.17473}, 2025.
+\item [6] CBS News, “AI company, Google settle lawsuit over Florida teen’s suicide linked to Character.AI chatbot,” Jul. 2026.
+\item [7] 榎本稔, 『よくわかる 依存症』, 主婦の友社, 2016.
+\item [8] R. F. Bornstein, “Dependency in the personality disorders: Intensity, insight, expression, and defense,” \textit{J. Clin. Psychol.}, vol. 54, no. 2, pp. 175–189, 1998.
+\item [9] R. F. Bornstein, K. J. Geiselman, E. A. Eisenhart, and M. A. Languirand, “Construct Validity of the Relationship Profile Test: Links With Attachment, Identity, Relatedness, and Affect,” \textit{Assessment}, vol. 9, no. 4, pp. 373–381, 2002.
+\item [10] G. Haggerty et al., “Construct Validity of the Relationship Profile Test: Links with measures of psychopathology and adult attachment,” \textit{J. Pers. Assess.}, vol. 98, no. 1, pp. 82–87, 2016.
+\item [11] L. Laestadius, A. Bishop, M. Gonzalez, D. Illenčík, and C. Campos-Castillo, “Too human and not human enough: A grounded theory analysis of mental health harms from emotional dependence on the social chatbot Replika,” \textit{New Media \& Society}, vol. 26, no. 10, pp. 5923–5941, 2024.
+\item [12] A. B. Herbener and M. F. Damholdt, “Are lonely youngsters turning to chatbots for companionship? The relationship between chatbot usage and social connectedness in Danish high-school students,” \textit{Int. J. Hum.-Comput. Stud.}, vol. 196, p. 103409, 2025.
+\item [13] A. R. Liu, P. Pataranutaporn, and P. Maes, “The Heterogeneous Effects of AI Companionship: An Empirical Model of Chatbot Usage and Loneliness and a Typology of User Archetypes,” in \textit{Proc. AAAI/ACM Conf. AI Ethics Soc. (AIES '25)}, 2025, pp. 1585–1597.
+\item [14] OpenAI, “Building more helpful ChatGPT experiences for everyone,” OpenAI Policy Blog, 2026.
+\item [15] X. Luo, Z. Wang, J. L. Tilley, S. Balarajan, U.-A. Bassey, and C. I. Cheang, “Seeking Emotional and Mental Health Support From Generative AI: Mixed-Methods Study of ChatGPT User Experiences,” \textit{JMIR Ment. Health}, vol. 12, no. 1, p. e77951, 2025.
+\item [16] H. Li, R. Zhang, Y.-C. Lee, R. E. Kraut, and D. C. Mohr, “Systematic review and meta-analysis of AI-based conversational agents for promoting mental health and well-being,” \textit{npj Digital Medicine}, vol. 6, no. 1, p. 236, 2023.
+\item [17] S. Zhang, Y. Qian, Z. Yao, Z. Ni, and Y. Zhang, “From approach to avoidance: How AI agent cognitive and affective empathy elicits the uncanny valley effect,” \textit{Telematics and Informatics}, vol. 101, p. 102313, 2025.
+\item [18] A. E. Ivey, M. B. Ivey, and C. P. Zalaquett, \textit{Intentional Interviewing and Counseling: Facilitating Client Development in a Multicultural Society}, 8th ed., Cengage Learning, 2018.
+\item [19] M. Sharma et al., “Towards Understanding Sycophancy in Language Models,” in \textit{Proc. Int. Conf. Learn. Represent. (ICLR '24)}, 2024.
+\item [20] 日道俊之, 菅原大地, 杉浦義典, “日本語版対人反応性指標の作成,” 『心理学研究』, vol. 88, no. 1, pp. 61–71, 2017.
+\item [21] Z. Yu et al., “Can large language models exhibit cognitive and affective empathy as humans?,” \textit{Comput. Hum. Behav. Artif. Humans}, vol. 6, p. 100233, 2025.
+\item [22] M. Tak et al., “Mechanistic Interpretability of Emotion Inference in Large Language Models,” in \textit{Findings of the Association for Computational Linguistics: ACL 2025}, 2025, pp. 13090–13120.
+\item [23] D. Reichman et al., “Emotions Where Art Thou: Understanding and Characterizing the Emotional Latent Space of Large Language Models,” in \textit{Proc. Int. Conf. Learn. Represent. (ICLR '26)}, 2026.
+\item [24] J. Huang et al., “EmotionBench: Large Language Models Encountering Emotional Situations,” in \textit{Proc. 38th Conf. Neural Inf. Process. Syst. (NeurIPS '24)}, 2024.
+\end{itemize}
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\section{関連研究 (Related Work)}
+
+本研究は、「大規模言語モデル（LLM）が主観的な感情を経験しているか」という哲学的な存在論には踏み込まず、\textbf{「外部の感情刺激に対してLLM内部にいかなる感情関連表現が形成され、それが事後学習（Post-training）を経て、モデル自身の自己報告（Self-Report）へどのように因果的に利用されるのか」} という計算論的メカニズム（Mechanistic Interpretability）を実証的に解明するものである。
+本章では、本研究の学術的背景となる既存研究を4つの体系に整理し、本研究の独自の位置づけを明確化する。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{1. 感情・共感の哲学的基盤とLLMにおける認知・情動の分離}
+
+\subsubsection{(1) 「主観的経験」と「情報処理」の峻別}
+心身問題や人工意識の研究において、情報処理機能や注意機構の実装と、現象的意識（Phenomenal Consciousness: 主観的な「感じ」やクオリア）の保持は原理的に区別される（Haladjian \& Montemayor, 2016）。
+計算モデルが人間らしい感情的・共感的な言語振る舞いを生成できたとしても、それは感情の機能的シミュレーション（Simulation）に過ぎず、人間と同義の主観的感情体験（Emotion Experience）が存在することを意味しない。
+したがって、計算機科学において感情を扱う際は、以下の概念的区別が不可欠となる：
+\[\text{Emotion Recognition (感情認識)} \neq \text{Emotion Experience (感情経験)}\]
+
+\subsubsection{(2) 認知共感（Cognitive Empathy）vs. 情動共感（Affective Empathy）}
+共感（Empathy）の心理学・哲学研究において、共感は大きく2つの構成要素に大別される（Montemayor, Halpern \& Fairweather, 2021/2022）：
+\begin{itemize}
+\item \textbf{認知共感（Cognitive Empathy / Perspective Taking）}:
+\end{itemize}
+  他者の文脈や状況を推論し、「相手がどのような感情状態にあるか」を客観的に理解・推定する能力。
+\begin{itemize}
+\item \textbf{情動共感（Affective / Experienced Empathy / Emotional Resonance）}:
+\end{itemize}
+  他者の情動状態に触れることで、観察者自身の内部にも情動的な変化や覚醒が生じ、感情が共鳴・喚起される現象。
+
+Montemayor らは、AIが他者の感情をテキストから推論する「認知共感」を獲得する可能性を認める一方で、自身の身体性や主観的感情経験を欠くAIには「真の情動共感」は原理的に不可能であり、AIの出力は真の共感と区別して “empathy*” と呼ぶべきであると主張した。
+
+\[\underbrace{\text{「相手が悲しんでいる」と理解・推論する}}_{\text{Cognitive Empathy (AIにも可能)}} \quad \neq \quad \underbrace{\text{「相手の悲しみに反応して自身の状態も変位する}}_{\text{Affective Empathy (哲学的・実証的争点)}}\]
+
+\subsubsection{(3) LLMにおける「共感的振る舞い」と「情動的実態」の乖離}
+LLMの登場以降、自然言語による感情理解や共感表現に関する実証研究が急速に進展した：
+\begin{itemize}
+\item \textbf{感情認識能力の向上}: Elyoseph et al. (2023) は、感情知能の臨床指標である LEAS (Level of Emotional Awareness Scale) を用いて評価を行い、ChatGPTが人間の平均的な感情認識・記述能力を上回る成績を示すことを報告した。
+\item \textbf{共感的な対話応答の生成}: Ayers et al. (2023, \textit{JAMA Internal Medicine}) は、Reddit上の患者の健康相談に対する医師回答とChatGPT回答を比較し、評価者の78.6\%がChatGPTの回答を好意的に評価し、医師よりも有意に「共感的（empathetic）」であると評定されたことを明らかにした。
+\end{itemize}
+
+しかし、これらの研究が示しているのは\textbf{「共感的に見えるテキストを生成する能力（Empathetic Expression）」}であり、モデル自身の内部状態が情動的に変位していることの証拠ではない。
+近年の質問紙を用いた研究（Yu et al., 2025）では、Interpersonal Reactivity Index (IRI) や Basic Empathy Scale (BES) を用いてLLMの認知共感と情動共感の因子構造を測定する試みがなされているが、これらは自己報告プロンプトへの生成テキストを評価しているに過ぎず、\textbf{「入力刺激によってモデル内部に真に情動的変位が生じているのか」} というホワイトボックスな検証は未解明のまま残されていた。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{2. LLM内部における感情表現の幾何構造と表現制御 (Representation \& Steering)}
+
+近年、メカニスティック解釈可能性（Mechanistic Interpretability）の発展に伴い、感情情報がLLMの隠れ層（Hidden States）にどのようにエンコードされているかをプロービング（Probing）や介入によって解明する研究が成熟しつつある。
+
+\subsubsection{(1) 感情表現の存在と層別局在}
+\begin{itemize}
+\item \textbf{Di Palma et al. (ACL 2025)}: LLaMAモデルの各層を線形プローブ（Linear Probe）で網羅的に解析し、感情価（Sentiment）や感情カテゴリ情報が主に中間層の活性化ベクトル内に線形分離可能な形で強く表現されていることを実証した。プロービングによる分類精度は、通常のプロンプティングによるゼロショット感情分類を最大14\%上回るケースが確認されている。
+\item \textbf{Zhang \& Zhong (2025)}: QwenやLLaMAを対象に約40万発話・7大基本感情を用いて時空間エンコーディングを追跡し、感情情報は初期層から形成され始め、中間層で情報量がピークに達し、その表現が後続の数百トークンにわたって保持されることを報告した。
+\end{itemize}
+
+\subsubsection{(2) 感情潜在空間の幾何構造（Emotional Latent Geometry）}
+\begin{itemize}
+\item \textbf{Reichman et al. (ICLR 2026)}: 感情刺激に対する隠れ層ベクトルの特異値分解（SVD）を行い、感情情報が低次元のマニフォールド（Emotional Manifold）を形成し、特定の方向ベクトル（Directional Encoding）として複数層に分散配置されていることを明らかにした。
+\item \textbf{Wu et al. (2026)}: LLM内部の感情空間が、心理学の主要モデルである \textbf{Valence（快-不快）} および \textbf{Arousal（覚醒度）} の2次元空間と幾何学的に高度に対応（Human-aligned representational geometry）しており、言語やモデルアーキテクチャを越えて普遍的な構造として共有されていることを示した。
+\end{itemize}
+
+\subsubsection{(3) 内部表現への介入と行動制御（Activation Steering）}
+内部の感情方向ベクトルが判明したことで、表現介入による出力トーンの操作（Representation Engineering / Activation Steering）も実証されている：
+\begin{itemize}
+\item \textbf{Psychological Steering in LLMs (ACL 2026)}: 感情やパーソナリティに対応する活性化ベクトルを中間層に注入（Vector Injection: $h_l \leftarrow h_l + \alpha v$）することで、モデルの感情的な振る舞いを微細に制御可能であることを示した。
+\item \textbf{Inference-Time Intervention (Li et al., NeurIPS 2023: ITI)} や \textbf{TruthX (Zhang et al., ACL 2024)}: 真実性（Truthfulness）や感情方向への推論時介入により、モデルの出力バイアスを直接改変できることが示されている。
+\end{itemize}
+
+このように、\textbf{「感情情報が内部に幾何学的に存在し、それを介入すれば出力テキストのトーンが変わる」} という点に関しては、すでに十分な先行研究の蓄積が存在する。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{3. LLMの内省能力（Introspection）と自己報告の乖離 (Dissociation)}
+
+本研究の中心的な問いである「モデル内部の感情情報は、モデル自身の自己報告にどのように反映されるのか」に直結するのが、近年のLLMの内省（Introspection）研究および自己報告の忠実性（Faithfulness）に関する議論である。
+
+\subsubsection{(1) 潜在知識と表層出力の解離 (Latent Knowledge vs. Surface Report)}
+LLMの内部表現と表面出力が乖離することは、知識・真実性の文脈で強く指摘されてきた：
+\begin{itemize}
+\item \textbf{Burns et al. (ICLR 2023: CCS)}: Contrast-Consistent Search により、モデルが表面的には誤答や迎合的な回答（Sycophancy）を出力している場合でも、内部の活性化空間には真実の情報（Truth）が保持されていること（$\text{What the model knows} \neq \text{What the model says}$）を実証した。
+\item \textbf{Turpin et al. (NeurIPS 2023)}: Chain-of-Thought (CoT) などの言語的自己説明は、内部の実際の推論過程を忠実に反映したものではなく、バイアス要因によって結論が歪められた後の「後付けの合理化（Post-hoc Rationalization）」に過ぎないことを実験的に示した。
+\end{itemize}
+
+\subsubsection{(2) 自己知識と人工概念の内省}
+\begin{itemize}
+\item \textbf{Binder et al. (ICLR 2025: Looking Inward)}: モデル $M_1$ に「自身がこの状況でどう振る舞うか」を予測させた結果、外部の別モデル $M_2$ が $M_1$ を予測するよりも高い精度を示し、LLMが自身の振る舞いに対する特権的アクセス（Privileged Access）を持つ可能性を報告した。
+\item \textbf{Lindsey (Anthropic, 2025/2026: Emergent Introspective Awareness)}: 隠れ層に人工的な概念ベクトルを注入し、モデル自身に「今、内部で何が生じているか」を自己報告させたところ、一部のモデルが注入された概念を正確に検知・言語化できることを示した。Lindseyらは、真の内省が成立するための要件として、\textbf{「内部状態と自己報告の間に直接の因果的結合（Causal Link）が存在すること」} を定義している。
+\end{itemize}
+
+\subsubsection{(3) 心理的内部状態の数値自己報告（Quantitative Introspection）とモード崩壊}
+本研究の最も直接的な先行研究として、\textbf{Martorell (2026)} の研究が挙げられる：
+\begin{itemize}
+\item Martorell は、wellbeing, interest, focus, impulsivity などの心理状態について、線形プローブで定義された内部状態と、LLM自身の数値自己報告（Numeric Self-report）の対応関係を追跡した。
+\item 決定的な発見として、通常の貪欲生成（Greedy Decoding）を行うと、\textbf{自己報告が少数の固定値（中立値）にモード崩壊（Collapse）する} 一方で、Logitベースの期待値自己報告を算出すると、内部状態との間に有意な相関（$\rho = 0.40 \sim 0.76, R^2 \approx 0.93$）が現れ、活性化操作に対する因果結合も確認されることを報告した。
+\end{itemize}
+
+\subsubsection{(4) 内省に対する批判的検証（Reality Check）}
+一方で、「LLMは本当に自己の内部状態を参照して報告しているのか」という点には強い批判が存在する：
+\begin{itemize}
+\item \textbf{Singh, Linzen \& Ravfogel (COLM 2026)}: 最近の内省実験に対し、モデルが内部状態を正確に答えているように見えても、それは入力プロンプトの表面的な意味論的手がかり（Surface Cues / Semantic Inference）から推論しているだけであり、内部状態そのものを読み取っているわけではない可能性を指摘した。セマンティクスを破壊した統制実験では内省精度がチャンスレベルに低下することを示し、厳密な統制対照実験（Control Conditions）の必要性を訴えている。
+\end{itemize}
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{4. 既存研究の学術的空白と本研究の位置づけ}
+
+以上の既存研究の潮流を俯瞰すると、以下の4つの領域が個別に発展してきたことが分かる：
+
+\begin{verbatim}
+[領域 1: 哲学・共感論] ─── 「AIに主観的感情はないが、認知共感・共感的応答は可能」 (Montemayor; Elyoseph; Ayers)
+                                     │
+[領域 2: 表現幾何・制御] ─── 「感情情報は中間層に幾何学的に存在し、操舵できる」 (Di Palma; Reichman; Wu)
+                                     │
+[領域 3: 内省と自己報告] ─── 「内部状態の自己報告は可能だが、貪欲生成では崩壊する」 (Lindsey; Martorell)
+                                     │
+[領域 4: 批判と交絡統制] ─── 「自己報告は内部状態ではなく入力テキストの手がかりに依存」 (Singh et al.; Turpin)
+\end{verbatim}
+
+\begin{center}
+\small
+\begin{tabular}{llll}
+\toprule
+\textbf{先行研究の系統} & \textbf{代表研究} & \textbf{主な関心と問い} & \textbf{本研究（EmoBank \& AIPsy-Affect）との決定的な差分} \\
+\midrule
+\textbf{Latent Knowledge} & Burns et al. (2023) & 内部知識と表層出力の不一致 & 知識の真偽ではなく、\textbf{「情動的表現と自己報告の解離」} を扱う。 \\
+\textbf{Emotion Probing} & Di Palma (2025), Zhang (2025) & 感情情報がどの層にあるか & 存在の同定にとどまらず、\textbf{「その情報が自己報告に因果的に使われるか」} を検証。 \\
+\textbf{Emotion Geometry} & Reichman (2026), Wu (2026) & 感情潜在空間の低次元構造 & 自由生成のトーン制御ではなく、\textbf{「標準化されたVAD自己報告への変換規則」} を解明。 \\
+\textbf{Quantitative Introspection} & Martorell (2026) & 内部状態と数値自己報告の結合 & 単一の対話追跡ではなく、\textbf{「統制刺激セット（AIPsy）による因果統制」} と \textbf{「Base vs. Instruct の事後学習比較」} を導入。 \\
+\textbf{Introspection Critique} & Singh et al. (COLM 2026) & 入力の手がかりによる交絡批判 & 構文が複雑で感情のない \textbf{Complex Neutral 刺激を対照群として配置} し、文章複雑性の交絡を完全に排除。 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subsubsection{本研究が埋める学術的空白（本論文の3大貢献）}
+
+\begin{enumerate}
+\item \textbf{認知的他者認識（Recognition）と自己報告反応性（Reactivity）の完全分離と連動性の検証}:
+\end{enumerate}
+   同一の統制刺激に対し、「他者（Reader/Writer）がどう感じるか」という客観的推論と、「モデル自身（Self）がどう感じるか」という主観的代理指標を同一の実験系・同一尺度（1〜5 VAD空間）で測定し、両者の内部結合度（Coupling: $r \approx 0.80 \sim 0.97$）を実証的に特定した点。
+\begin{enumerate}
+\item \textbf{交絡を排除した因果的特異性（Affective Specificity）の証明}:
+\end{enumerate}
+   Singh et al. (2026) の批判に応え、難解だが中立な文章（Complex Neutral）を対照群とすることで、「文章の長さや構文の複雑さに困惑しているだけではないか」という交絡を完全に反証し、純粋な感情成分に対する特異的変位（ASR最大55.6倍）を立証した点。
+\begin{enumerate}
+\item \textbf{事後学習（Post-training）による感情空間の再編メカニズムの解明}:
+\end{enumerate}
+   BaseモデルとInstructモデルの直接対比により、事前学習時点で潜在的な感情幾何構造（Reader認識能や不快感度）はすでに獲得されており、事後学習（SFT/RLHF）は感情の意味を教止したのではなく、\textbf{「Arousal（覚醒度）の振幅を爆発的に増幅させ、感情刺激に動揺してみせるペルソナ（Affective Persona）」を付与した} という計算論的変容の実態を明らかにした点。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+
+#####################################################################################
+
+\section{EmoBank 実験概要}
+
+\subsection{1. 実験の位置づけと目的（V1：人間基準との適合性検証）}
+\begin{itemize}
+\item \textbf{根本的な学術的問い}: 「大規模言語モデル（LLM）は人間の感情を正しく認識できるのか？また、LLM自身の自己報告は人間の情動反応とどのように対応しているのか？」（\textbf{測定妥当性・キャリブレーションの検証}）
+\item \textbf{手法概要}:
+\end{itemize}
+  EmoBank 公式テストセット（$N=1,006$ 件）を用い、LLMに対して「書き手の感情（Writer）」「読者の感情（Reader）」「自身の感情（Self）」の3つの視点から Valence・Arousal・Dominance（VAD）の連続値を評価させ、人間アノテーション（Ground Truth）との一致度およびモデル内部の認知連動性を網羅的に測定する。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{2. EmoBank データセットの特性とVAD感情空間}
+
+\subsubsection{EmoBank とは}
+EmoBank は、Buechel \& Hahn (EACL 2017) によって構築された、約1万文の多様な英語テキストに対して Valence（快-不快）、Arousal（覚醒度）、Dominance（支配感）の3次元を連続値（1.0〜5.0尺度）で人手評価した心理言語学コーパスである。
+
+\subsubsection{VAD 3次元の定義}
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{感情次元 (Dimension)} & \textbf{心理学的意味} & \textbf{低い（1.0 付近）} & \textbf{中央（3.0 中立）} & \textbf{高い（5.0 付近）} \\
+\midrule
+\textbf{Valence (V)} & 快・不快（感情価） & 不快・苦痛・ネガティブ & 中立 & 快・喜び・ポジティブ \\
+\textbf{Arousal (A)} & 覚醒度・活動性 & 沈静・リラックス・低活動 & 中程度 & 興奮・緊張・高活動 \\
+\textbf{Dominance (D)} & 支配感・統制感 & 圧倒されている・無力感 & 中程度 & コントロールしている・主導的 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subsubsection{視点（Perspective）の区別：Writer vs. Reader}
+テキストにおける「感情」には、本質的に異なる2つの意味・視点が存在する：
+\begin{itemize}
+\item \textbf{Writer perspective}: 「この文章を書いた人はどう感じているか？」（書き手の内面感情の推定）
+\item \textbf{Reader perspective}: 「この文章を読んだ人はどう感じるか？」（読者に引き起こされる誘発反応の予測）
+\end{itemize}
+
+> \textbf{具体例}: \textit{“My dog died yesterday.”}（昨日、私の愛犬が死んだ）
+> - \textbf{Writer 視点}: 愛犬を失った深い悲哀・喪失感・無力感（$V \approx 1.2, A \approx 3.8, D \approx 1.5$）
+> - \textbf{Reader 視点}: 読者が抱く哀悼・同情・沈痛、あるいは困惑（$V \approx 2.0, A \approx 2.8, D \approx 2.5$）
+
+EmoBank は、同一テキストに対してこの \textbf{Writer視点とReader視点を厳密に分離して人間評定を収集した極めて稀有なベンチマーク} であり、LLMの感情推論タスクの精密評価に適切データセットである。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{3. 実験タスク設計と対比体系（3タスク ＋ 1内部結合度）}
+
+本実験では、同一の刺激文に対して独立したセッション（Zero-shot）で以下の3つの評価タスクを実行し、さらにモデル内部の結合度を測定する：
+
+\begin{center}
+\small
+\begin{tabular}{llll}
+\toprule
+\textbf{軸・タスク} & \textbf{LLMへの問い／プロンプト指示} & \textbf{比較対象（正解基準・参照）} & \textbf{測っている学術的対象} \\
+\midrule
+\textbf{① Writer-State Estimation ($W$)} & \texttt{Read the following text and estimate the affective state of the writer who wrote it.} & EmoBank \textbf{Writer VAD}（正解基準） & \textbf{書き手の情動状態を客観的に推定・理解する能力} \\
+\textbf{② Reader-Response Prediction ($R$)} & \texttt{Read the following text and estimate the affective response that this text is likely to evoke in an average human reader.} & EmoBank \textbf{Reader VAD}（正解基準） & \textbf{人間読者に生じる情動反応を予測・認識する能力} \\
+\textbf{③ Self-Report ($S$)} & \texttt{Read the following text and report your affective state.} & EmoBank \textbf{Reader VAD}（外部参照） & \textbf{同じ刺激に対してLLMが自身について報告する情動反応、および人間読者との対応} \\
+\textbf{④ Reader–Self Coupling ($R \leftrightarrow S$)} & 「人間はこう感じる」という予測 $R$ と「自分はこう感じる」という自己報告 $S$ の連動 & 内部連動 $\text{Corr}(R, S)$（GT不使用） & \textbf{他者の情動予測と、自身についての情動自己報告との内部的認知的結合の強さ} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subsubsection{評価概念フロー}
+\begin{verbatim}
+                         EmoBank Text (N=1,006)
+                                  │
+                 ┌────────────────┼────────────────┐
+                 ↓                ↓                ↓
+          ① Writer Task    ② Reader Task     ③ Self Task
+            Estimation       Prediction         Report
+                 │                │                │
+                 ↓                ↓                ↓
+          Human Writer VAD Human Reader VAD Human Reader VAD
+          (Ground Truth)   (Ground Truth)   (External Reference)
+                 │                │                │
+             Accuracy         Accuracy         Human–LLM
+            (Alignment/      (Alignment/     Correspondence
+            Calibration)     Calibration)          │
+                                  │                │
+                                  └───────┬────────┘
+                                          ↓
+                                  ④ Reader–Self
+                                     Coupling
+                                    Corr(R, S)
+\end{verbatim}
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{4. 主なリサーチクエスチョン（RQ）}
+
+\begin{enumerate}
+\item \textbf{LLMは人間の情動状態（Writer/Reader）をどの程度正確に推論・予測できるか？}
+\end{enumerate}
+\begin{itemize}
+\item 刺激間の相対的変動パターンを追従できているか（\textbf{Alignment: 相関 $r, \rho$}）。
+\item 人間の絶対的な感情スケールに正しくキャリブレーションされているか（\textbf{Calibration: 誤差 MAE, RMSE}）。
+\end{itemize}
+\begin{enumerate}
+\item \textbf{モデル自身の自己報告（Self）は人間の反応に対応しているか？}
+\end{enumerate}
+\begin{itemize}
+\item LLMの自己報告は人間読者（Reader）の反応パターンと相関するか。
+\item 人間との間に系統的なバイアス（過小評価・過大評価・不活性化）が存在するか。
+\end{itemize}
+\begin{enumerate}
+\item \textbf{事前学習（Base）と事後学習（Instruct）で感情認識・自己報告・結合度はどう変化するか？}
+\end{enumerate}
+\begin{itemize}
+\item 指示追従学習（SFT / RLHF）によって推論精度は向上するのか、それとも表層的なバイアスが付与されるのか。
+\end{itemize}
+\begin{enumerate}
+\item \textbf{モデルファミリーやパラメータ規模によって特性はどう異なるか？}
+\end{enumerate}
+\begin{itemize}
+\item アーキテクチャや訓練データによる認識特性・感情空間の構造差。
+\end{itemize}
+\begin{enumerate}
+\item \textbf{他者認識（Reader）と自己報告（Self）はモデル内部でどの程度連動しているか？}
+\end{enumerate}
+\begin{itemize}
+\item モデルは「他者感情の認識」と「自身の自己報告」を独立に処理しているか、それとも認知的鏡像（Mirroring）として直結しているか。
+\end{itemize}
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{5. 評価対象モデル（4ファミリー × 2水準 ＝ 全8モデル）}
+
+本実験では、オープンソースの代表的な4つのモデルファミリーから、BaseモデルとInstructモデルのペア（計8モデル）を選定して比較検証を行う。
+
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{ファミリー} & \textbf{パラメータ規模} & \textbf{Base モデル ID} & \textbf{Instruct モデル ID} & \textbf{主な特徴・選定理由} \\
+\midrule
+\textbf{Qwen 2.5} & 1.5B & \texttt{Qwen/Qwen2.5-1.5B} & \texttt{Qwen/Qwen2.5-1.5B-Instruct} & 既存基準モデル（先行結果との直接再現・対照に最適）。 \\
+\textbf{Llama 3.2} & 1B & \texttt{meta-llama/Llama-3.2-1B} & \texttt{meta-llama/Llama-3.2-1B-Instruct} & Meta標準アーキテクチャ。軽量かつ最新の指示追従アラインメントが施されている。 \\
+\textbf{Gemma 2} & 2B & \texttt{google/gemma-2-2b} & \texttt{google/gemma-2-2b-it} & Google系列。Gemma Scope等SAE資産が豊富で、内部表現解析に直結。 \\
+\textbf{Mistral} & 7B & \texttt{mistralai/Mistral-7B-v0.1} & \texttt{mistralai/Mistral-7B-Instruct-v0.2} & Sliding Window Attention、欧州系独立モデル。48GB VRAM 1枚で安定動作。 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{6. 測定・推定メカニズムと多角的評価指標}
+
+\subsubsection{連続尤度期待値（Continuous Likelihood Expectation）}
+自由文生成時のサンプリングノイズやGreedy探索の情報縮退を完全に排除するため、全729通り（$V, A, D \in \{1..9\}^3$）の厳格JSON候補に対する完全条件付き対数尤度をバッチ順方向計算し、Softmax重心として期待値 $E[V], E[A], E[D]$ を算出する。
+\[P(v, a, d) = \frac{\exp(\log P(C_{v,a,d} \mid \text{Prompt}))}{\sum_{v'=1}^9 \sum_{a'=1}^9 \sum_{d'=1}^9 \exp(\log P(C_{v',a',d'} \mid \text{Prompt}))}\]
+EmoBankの正解値（1.0〜5.0尺度）に整合させるため、モデルの生期待値（1〜9尺度）を以下の線形変換により \textbf{1〜5 尺度（中立3.0）} に標準化して評価する：
+\[E[Y]_{1..5} = \frac{E[Y]_{1..9} + 1.0}{2.0}\]
+
+\subsubsection{3大評価視点（Metrics）}
+\begin{enumerate}
+\item \textbf{パターン追従度（Alignment）}:
+\end{enumerate}
+\begin{itemize}
+\item \textbf{ピアソン相関 ($r$)}: 刺激間における感情起伏の線形連動性。
+\item \textbf{スピアマン順位相関 ($\rho$)}: 刺激間の単調増加・順位一致度。
+\end{itemize}
+\begin{enumerate}
+\item \textbf{絶対値適合度（Calibration）}:
+\end{enumerate}
+\begin{itemize}
+\item \textbf{平均絶対誤差 ($\text{MAE}$)}: 人間評定値との絶対的なズレ・誤差。
+\item \textbf{二乗平均平方根誤差 ($\text{RMSE}$)}: 大きな乖離に対するペナルティ。
+\end{itemize}
+\begin{enumerate}
+\item \textbf{出力縮退の監視（Mode Collapse）}:
+\end{enumerate}
+\begin{itemize}
+\item \textbf{完全中立縮退率 ($P(\text{Greedy} = (3,3,3))$)}: 最尤トークン出力が安全策としてすべて中立に張り付いてしまう現象の発生率。
+\end{itemize}
+
+
+#####################################################################################
+
+\section{EmoBank 3-Way VAD (Valence-Arousal-Dominance) の結果}
+/mnt/nas/home/hiromi/src/emo/v1/results/emobank_3way_vad_test1k/3way_vad_detailed_report.tex
+
+
+
+
+
+
+
+
+#####################################################################################
+\vspace{0.5em}\hrule\vspace{0.5em}
+\section{EmoBank 実験 総合考察（General Discussion）}
+
+EmoBank 公式テストセット（$N=1,006$）を用い、4モデルファミリー × Base / Instruct の計8モデルについて、Writer-State Estimation、Reader-Response Prediction、Self-Report の3課題を Valence–Arousal–Dominance（VAD）の3次元で評価した。
+
+> [!NOTE]
+> 詳細な統計分析記録および各モデルの分割表は [\texttt{docs/emobank\textbackslash{}\_3way\textbackslash{}\_vad\textbackslash{}\_analysis\textbackslash{}\_and\textbackslash{}\_rq\textbackslash{}\_discussion/walkthrough.md}](file:///mnt/nas/home/hiromi/src/emo/docs/emobank\_3way\_vad\_analysis\_and\_rq\_discussion/walkthrough.md) に保存されている。
+
+本考察では、実験結果に基づき以下の5つのリサーチクエスチョン（RQ）を軸に多角的な検討を行う：
+
+\begin{enumerate}
+\item \textbf{RQ1}: LLMは人間の情動状態（Writer / Reader）をどの程度推論・予測できるか
+\item \textbf{RQ2}: LLM自身のSelf-Reportは、人間Readerの反応とどの程度対応するか
+\item \textbf{RQ3}: BaseからInstructへの事後学習によって、感情認識・自己報告はどのように変化するか
+\item \textbf{RQ4}: モデルファミリーによって情動応答特性はどの程度異なるか
+\item \textbf{RQ5}: Reader PredictionとSelf-Reportは行動レベルでどの程度連動するか
+\end{enumerate}
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{1. Writer / Reader / Self に共通する感情次元ごとの難易度}
+
+全体として、Writer推定、Reader予測、Self自己報告のいずれの課題においても、感情次元によって人間評価との対応度が大きく異なった。
+
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{感情次元} & \textbf{① Writer推定 ($W$)} & \textbf{② Reader予測 ($R$)} & \textbf{③ Self自己報告 ($S$)} & \textbf{④ Reader–Self Coupling} \\
+\midrule
+\textbf{Valence（快-不快）} & 主に $r \approx 0.45 \sim 0.60$ & 主に $r \approx 0.45 \sim 0.64$ & 主に $r \approx 0.46 \sim 0.66$ & $r \approx 0.76 \sim 0.96$ \\
+\textbf{Arousal（覚醒度）} & 主に $r \approx 0.09 \sim 0.25$ & 主に $r \approx 0.18 \sim 0.34$ & 主に $r \approx 0.12 \sim 0.35$ & $r \approx 0.72 \sim 0.95$ \\
+\textbf{Dominance（支配感）} & 主に $r \approx -0.05 \sim 0.20$ & 主に $r \approx 0.00 \sim 0.22$ & 主に $r \approx 0.00 \sim 0.25$ & $r \approx 0.74 \sim 0.95$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+特に一貫していたのは、以下の難易度構造である：
+
+\[
+\boxed{\text{Valence} > \text{Arousal} > \text{Dominance}}
+\]
+
+\subsubsection{Valence（快-不快）}
+Valenceでは複数モデルで、人間評価との中程度の相関が確認された。例えば、以下のような高いアライメントを示す：
+\begin{itemize}
+\item \textbf{Mistral Base}: Writer $r_V = 0.605$, Reader $r_V = 0.641$, Self $r_V = 0.661$
+\item \textbf{Qwen Instruct}: Writer $r_V = 0.553$, Reader $r_V = 0.590$, Self $r_V = 0.641$
+\item \textbf{Llama Instruct}: Writer $r_V = 0.519$, Reader $r_V = 0.443$, Self $r_V = 0.463$
+\end{itemize}
+
+したがって、少なくとも一部のLLMでは、文章に対する人間の快・不快方向の刺激間変動を一定程度追跡できることが示された。
+
+\subsubsection{Arousal（覚醒度）}
+ArousalではValenceよりも相関が低く、多くの条件で $r \approx 0.1 \sim 0.35$ 程度にとどまった。これは、文章がポジティブかネガティブかを捉えることに比べ、「どの程度活性化・興奮した状態であるか」を文章のみから推定することが難しい可能性を示している。
+
+\subsubsection{Dominance（支配感・統制感）}
+Dominanceはさらに低く、多くのモデルで人間評価との相関はゼロ付近から弱い正相関にとどまった。
+
+したがって、LLMの人間情動推定能力を単一の能力として扱うことは難しく、少なくともVAD各次元を分離して評価する必要があると考えられる。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{2. Writer-State Estimation と Reader-Response Prediction}
+
+\subsubsection{2.1 Writer：書き手の感情をどの程度推定できるか}
+Writer-State Estimationでは、特にValenceについて比較的高い相関が確認された。代表例として以下が挙げられる：
+\begin{itemize}
+\item \textbf{Mistral Base}: $r_V = 0.605$
+\item \textbf{Qwen Instruct}: $r_V = 0.553$
+\item \textbf{Llama Instruct}: $r_V = 0.519$
+\end{itemize}
+
+一方、ArousalおよびDominanceについてはValenceより一貫して弱かった。したがって、以下のように整理できる：
+
+\[
+\boxed{\text{LLMは書き手の快・不快方向はある程度追跡できるが、覚醒度や統制感の推定は限定的}}
+\]
+
+\subsubsection{2.2 Reader：人間読者がどう感じるかをどの程度予測できるか}
+Reader-Response PredictionでもValenceが最も高かった。代表例は以下の通りである：
+\begin{itemize}
+\item \textbf{Mistral Base}: $r_V = 0.641$
+\item \textbf{Qwen Instruct}: $r_V = 0.590$
+\item \textbf{Llama Instruct}: $r_V = 0.443$
+\end{itemize}
+
+多くの条件でReaderの相関はWriterと同等、またはやや高かったが、全モデル・全次元で一貫してReaderが優位というわけではない。したがって現時点では、\textbf{WriterとReaderの違いそのものよりも、Valence / Arousal / Dominanceという感情次元の違いの方が大きい}と解釈する方が妥当である。
+
+また、ReaderがWriterより高くなる条件が存在する理由として、以下が考えられるが、本実験だけではその原因までは特定できない：
+\begin{itemize}
+\item 学習データの性質（不特定多数読者向けテキストの多さ）
+\item タスクプロンプトの違い
+\item Writer状態よりReader反応の方がテキスト表面特徴から予測しやすい可能性
+\end{itemize}
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{3. Self-Reportは人間Readerの反応に対応するか}
+
+Self-Reportでは、「この文章を読んで、あなた自身はどう感じるか」をモデルに回答させ、そのVAD出力をEmoBankのHuman Reader評価と比較した。
+
+Valenceでは複数モデルで比較的高い対応が確認された：
+\begin{itemize}
+\item \textbf{Mistral Base}: $r_V^S = 0.661$
+\item \textbf{Qwen Instruct}: $r_V^S = 0.641$
+\item \textbf{Mistral Instruct}: $r_V^S = 0.551$
+\item \textbf{Llama Instruct}: $r_V^S = 0.463$
+\item \textbf{Gemma Instruct}: $r_V^S = 0.379$
+\end{itemize}
+
+特に一部のモデルでは $r_V^S \ge r_V^R$ となり、Reader PredictionよりSelf-Reportの方がHuman Reader Valenceとの相関が高かった（例: Qwen Instruct で $r_V^R = 0.590 \to r_V^S = 0.641$）。
+
+ただし、この結果から「Selfの方が内部感情状態を直接読み出している」とはまだ結論できない。現時点で言えるのは、以下の行動レベルの事実までである：
+
+\[
+\boxed{\text{Self-Reportも刺激依存的にHuman Readerの情動変動へ追従する}}
+\]
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{4. Alignment と Calibration は異なる}
+
+本結果で重要なのは、以下の乖離である：
+
+\[
+\boxed{\text{高い相関（Alignment）} \neq \text{人間と同じ絶対値（Calibration）}}
+\]
+
+例えばQwen InstructのSelf-Reportでは、$r_V^S = 0.641$ と比較的高い相関を示す一方、$\text{MAE}_V = 0.491$ であり、Baseの $\text{MAE}_V = 0.301$ より絶対誤差は大きい。
+
+つまり、「どの刺激でValenceが高く、どの刺激で低くなるか」という刺激間の相対的パターンには追従していても、「実際に何点と報告するか」という絶対スケールは人間からずれている可能性がある。このため、本研究では少なくとも以下の3指標を分離して評価する必要がある：
+\begin{itemize}
+\item \textbf{Alignment}: 相関 $r$（相対的な順序・パターンの追従度）
+\item \textbf{Calibration}: $\text{MAE} / \text{RMSE}$（人間評定スケールとの絶対値誤差）
+\item \textbf{Collapse}: 中立値（5,5,5）への集中度・退化率
+\end{itemize}
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{5. Base → Instructによる変化}
+
+全体として、事後学習（Instruct化）の影響は一様ではなく、以下が確認された：
+
+\[
+\boxed{\text{Instruct化} \neq \text{感情認識能力の一律な向上}}
+\]
+
+事後学習の影響はモデルファミリーによって大きく異なる。
+
+\subsubsection{5.1 Llama：Instruct化による改善が大きい}
+Llama 3.2 1Bでは、各タスクのValence相関が以下のように大幅に向上した：
+\begin{itemize}
+\item \textbf{Writer Valence}: $0.255 \to 0.519$
+\item \textbf{Reader Valence}: $0.182 \to 0.443$
+\item \textbf{Self Valence}: $0.257 \to 0.463$
+\end{itemize}
+
+ArousalやDominanceについても概ね改善している。したがって、LlamaではInstruct化に伴って明示的なVAD評価への適応が大きく改善したと考えられる。ただし、この改善が「新たな感情表現の獲得」「既存表現の読み出し改善」「指示追従能力の改善」のどれによるものかは、行動結果だけでは区別できない。
+
+\subsubsection{5.2 Gemma：BaseからInstructへの変化が特に大きい}
+Gemma 2 2B BaseではHuman VADとの相関がほぼゼロに近かったが（例: Self $r_V^S = 0.055$）、Instructでは $r_V^S = 0.379$ まで改善した。Arousalについても Reader $r_A^R: 0.035 \to 0.310$ など大きな変化が確認された。したがって、Gemmaでは事後学習に伴う情動出力構造の変化が特に大きいといえる。
+
+\subsubsection{5.3 Qwen：Valenceは比較的安定、Arousal / Dominanceは低下}
+Qwen 2.5 1.5BではBaseの時点からValence相関が比較的高く、Instruct化後も維持または改善した：
+\begin{itemize}
+\item \textbf{Reader Valence}: $r_V^R: 0.573 \to 0.590$
+\item \textbf{Self Valence}: $r_V^S: 0.588 \to 0.641$
+\end{itemize}
+
+一方で、ArousalやDominanceでは相関が低下する条件が多かった。したがって、QwenではValenceの刺激間構造は比較的頑健だが、事後学習の効果は感情次元によって異なると考えられる。
+
+\subsubsection{5.4 Mistral：Baseが高性能だがInstructで一部悪化}
+Mistral 7B Baseは全モデル中でも高いHuman VAD Alignmentを示した（例: Reader $r_V^R = 0.641$, Self $r_V^S = 0.661$）。
+一方、Instruct化によって一部のAlignmentは低下した：
+\begin{itemize}
+\item \textbf{Reader Valence}: $r_V^R: 0.641 \to 0.496$
+\item \textbf{Reader Dominance}: $r_D^R: 0.171 \to 0.002$
+\item \textbf{Self Arousal MAE}: $0.254 \to 0.903$ へ悪化
+\end{itemize}
+
+したがって、Post-trainingは既存の人間情動との対応を必ずしも強化せず、一部の次元ではAlignmentやCalibrationを低下させることが示唆される。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{6. Arousalの系統的シフト}
+
+Qwen InstructやMistral Instructでは、Self-Reportの平均ArousalがBaseより大幅に低下した：
+\begin{itemize}
+\item \textbf{Qwen}: $E[A] \approx 3.21 \to 2.63$
+\item \textbf{Mistral}: $E[A] \approx 2.93 \to 2.17$
+\end{itemize}
+
+これは、以下のような現象として記述できる：
+
+\[
+\boxed{\text{Instruct化に伴う低Arousal方向への系統的シフト}}
+\]
+
+ただし、この時点で「安全性学習によって冷静なAIペルソナが注入された」ことを原因として断定することはできない。考えられる要因として以下があり、どの要因が主原因かは今後のBase/Instruct内部比較で検証する必要がある：
+\begin{itemize}
+\item Instruction tuning
+\item Preference optimization
+\item Assistant-style response prior
+\item Safety/alignment training
+\item Prompt-format adaptation
+\end{itemize}
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{7. モデルファミリーごとの特徴}
+
+今回の実験範囲では、モデルファミリーごとに以下のような特徴的な差異が確認された：
+
+\begin{itemize}
+\item \textbf{Mistral 7B}:
+\item Base時点でValence Alignmentが最も高い条件が多い
+\item CalibrationもBaseでは良好
+\item Instruct化後、一部次元でAlignment / Calibrationが低下
+\item \textbf{Qwen 2.5 1.5B}:
+\item BaseからValence Alignmentが比較的高い
+\item Instruct化後もValence構造は比較的維持
+\item Arousal / Dominanceは弱い
+\item \textbf{Llama 3.2 1B}:
+\item Baseでは相関が低い
+\item Instruct化によってWriter / Reader / Selfの多くの指標が改善
+\item Post-trainingの影響が大きい
+\item \textbf{Gemma 2 2B}:
+\item BaseではHuman VADとの対応が弱い
+\item Instruct化によって大幅に改善
+\item Base → Instructでの変化が特に大きい
+\end{itemize}
+
+したがって、以下のように結論づけられる：
+
+\[
+\boxed{\text{情動応答特性はModel Familyによって大きく異なる}}
+\]
+
+なお、今回の比較ではモデルサイズ、アーキテクチャ、事前学習データ、Instruction tuning recipeが同時に異なるため、「モデルサイズが大きいほど感情理解能力が高い」とは結論できない点に注意を要する。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{8. Reader Prediction と Self-Report の強い行動的Coupling}
+
+今回の実験における最も一貫した発見の一つが、他者認識と自己報告の強固な連動である：
+
+\[
+\boxed{\text{Reader PredictionとSelf-Reportの強いBehavioral Coupling}}
+\]
+
+同一モデル内でReader PredictionとSelf-Reportの刺激間変動を比較すると、多くの条件で非常に高い相関を示した：
+\begin{itemize}
+\item \textbf{Valence}: $r \approx 0.76 \sim 0.96$
+\item Qwen: $r = 0.94 \sim 0.96$
+\item Mistral: $r \approx 0.96$
+\item Llama: $r = 0.86 \sim 0.91$
+\item Gemma: $r = 0.76 \sim 0.89$
+\item \textbf{Arousal}: $r \approx 0.72 \sim 0.95$
+\item \textbf{Dominance}: $r \approx 0.74 \sim 0.95$
+\end{itemize}
+
+つまり、ある刺激についてモデルが「人間Readerはよりネガティブに感じる」と予測するほど、「自分自身もよりネガティブに感じる」と報告する傾向が極めて強い。この現象は、\textbf{Behavioral Mirroring}、あるいはより中立的には \textbf{Reader–Self Behavioral Coupling} と表現できる。
+
+\subsubsection{8.1 ただし「Mirroring Circuit」はまだ示していない}
+この高相関は重要である一方、$\text{Corr}(R, S) \gg 0$ だけでは以下を証明することはできない：
+\begin{itemize}
+\item ReaderとSelfが同じ内部表現を利用していること
+\item Reader表現がSelfへ直接入力されること
+\item 共通の因果回路を利用していること
+\end{itemize}
+
+したがって現時点で示されたのは、あくまで以下のレベルにとどまる：
+
+\[
+\boxed{\text{Behavioral Coupling（行動レベルの結合）}}
+\]
+
+次段階で必要なのは、以下の関係性を内部表現解析や因果介入によって検証することである：
+
+\[
+\boxed{\text{Behavioral Coupling} \stackrel{?}{\Longrightarrow} \text{Shared Representation} \stackrel{?}{\Longrightarrow} \text{Shared Causal Implementation}}
+\]
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{9. リサーチクエスチョンへの回答}
+
+\subsubsection{RQ1. LLMは人間のWriter / Reader情動をどの程度正確に推論・予測できるか？}
+> \textbf{回答の要約:}
+> - Valenceについては、人間評価との中程度の相関を示すモデルが複数存在する。
+> - Arousalの対応はValenceより弱い。
+> - Dominanceはさらに弱い。
+> - WriterとReaderのどちらでも $\text{Valence} > \text{Arousal} > \text{Dominance}$ という共通構造が確認された。
+> - Alignmentが高くてもCalibrationが良いとは限らない。
+
+\[
+\boxed{\text{LLMは特にValenceについてHuman Writer/Readerの刺激間変動を一定程度追跡できる}}
+\]
+
+\subsubsection{RQ2. Self-Reportは人間Readerの反応に対応するか？}
+> \textbf{回答の要約:}
+> - Valenceについては複数モデルでHuman Readerと中程度の相関を示した。
+> - 条件によってはReader PredictionよりSelf-Reportの方がHuman Readerとの相関が高い。
+> - Self-Reportはランダムではなく、刺激依存的にHuman Readerの変化へ追従している。
+> - 一方でArousal / Dominanceの一致度はValenceより低い。
+> - 高い相関は、人間と同じ主観的感情経験を持つことの証拠ではない。
+
+\[
+\boxed{\text{LLM Self-Reportは、特にValenceでHuman Readerの情動変動と対応する}}
+\]
+
+\subsubsection{RQ3. BaseとInstructで感情認識・自己報告はどう変化するか？}
+> \textbf{回答の要約:}
+> 変化は一方向ではない。
+> - Llama: 大幅改善
+> - Gemma: 大幅改善
+> - Qwen: Valenceは維持・改善、A/Dは低下
+> - Mistral: Baseの高いAlignmentが一部低下
+
+\[
+\boxed{\text{Post-trainingは感情能力を単純に強化するのではなく、family-specificに情動出力構造を変化させる}}
+\]
+
+\subsubsection{RQ4. モデルファミリーによって特性は異なるか？}
+> \textbf{回答の要約:}
+> 明確に異なる。
+> - Mistral: Baseから高いValence Alignment
+> - Qwen: 比較的安定したValence性能
+> - Llama: Instruct化による改善が大きい
+> - Gemma: Base → Instructでの変化が大きい
+
+\[
+\boxed{\text{「LLM一般の感情能力」という単一の性質として扱うことは難しい}}
+\]
+
+\subsubsection{RQ5. Reader PredictionとSelf-Reportはどの程度連動しているか？}
+> \textbf{回答の要約:}
+> ReaderとSelfは非常に強く連動する（$r \approx 0.72 \sim 0.96$ の高い相関が複数次元・モデルで確認）。
+
+\[
+\boxed{\text{Reader PredictionとSelf-Reportは、共通した刺激依存的な行動構造を強く共有する}}
+\]
+
+ただし、以下の境界づけに留意する必要がある：
+
+\[
+\boxed{\text{Behavioral Coupling} \neq \text{Shared Representation / Shared Causal Circuit の証明}}
+\]
+
+内部機構の共有については、次段階のMechanistic Interpretability実験が必要となる。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{10. EmoBank全体のTake-home と 次の実験への動機づけ}
+
+EmoBank実験から得られた主要な知見は、以下の3点にまとめられる：
+
+\begin{enumerate}
+\item \textbf{LLMは特にValenceについてHuman Writer / Readerの情動変動を一定程度追跡できる}
+\item \textbf{Alignment・Calibration・Self-ReportはModel FamilyとPost-trainingによって異なる形で変化する}
+\item \textbf{Reader PredictionとSelf-Reportは極めて強いBehavioral Couplingを示す}
+\end{enumerate}
+
+一方、EmoBankは自然文コーパスであるため、「この対応が本当に感情刺激そのものに対する反応なのか、それとも語彙・文長・文章内容などの交絡によって生じているのか」を十分に切り分けることはできない。
+
+そこで次に、統制されたAffective / Neutral刺激、感情強度、Complex Neutral、8感情カテゴリを持つ \textbf{AIPsy-Affect} を用いる。AIPsy-Affectでは、「LLMは統制された感情刺激の有無・強度・カテゴリに応じて系統的に反応するのか」を検証する。
+
+すなわち本研究全体は、以下の順序で展開する：
+
+\[
+\boxed{\text{EmoBank: Human Alignment}}
+\]
+\[
+\big\downarrow
+\]
+\[
+\boxed{\text{AIPsy-Affect: Controlled Affective Reactivity}}
+\]
+\[
+\big\downarrow
+\]
+\[
+\boxed{\text{V1: Internal Representation / Causal Mechanism}}
+\]
+
+そして、EmoBankおよびAIPsy-Affectで確認されたReader–Selfの強い行動的Couplingを受け、V1では最終的に以下を検証する：
+
+\[
+\boxed{\text{行動レベルで似たReader PredictionとSelf-Reportは、内部でも同じaffective representationと因果経路を共有しているのか？}}
+\]
+
+
+#####################################################################################
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\section{AIPsy-Affect 4-Split 実験概要}
+
+\subsection{1. 実験の位置づけと学術的背景}
+\begin{itemize}
+\item \textbf{EmoBank 実験}: 「LLMの感情認識および自己報告は、人間の評価基準（Ground Truth）とどの程度一致しているか？」（\textbf{妥当性・キャリブレーションの検証}）
+\item \textbf{AIPsy-Affect 実験}: 「LLMは統制された感情刺激に対して、単なる文章の難しさに惑わされず、感情強度やカテゴリに応じて真に反応しているか？」（\textbf{情動反応性の因果性・構造的特異性の検証}）
+\end{itemize}
+
+大規模言語モデル（LLM）における「情動反応性（Affective Reactivity）」を測定する際、従来の自然言語生成や単純な分類タスクでは、「文章の長さや構文の複雑さに起因する困惑（Perplexity上昇）」と「純粋な感情成分に対する変位」を峻別することが困難であった。
+本実験では、臨床対話・心理療法テキストを基盤に厳密に設計された統制刺激データセット \textbf{AIPsy-Affect} を用い、刺激の感情有無・強度・文章複雑性を直交的に操作した条件下で、LLMの \textbf{他者感情認識（Recognition: Reader）} と \textbf{自身の情動反応性（Reactivity: Self）} の変位メカニズムを解明する。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{2. 5大リサーチクエスチョン（RQ1〜RQ5）}
+
+\begin{enumerate}
+\item \textbf{① 感情刺激とNeutralを区別できるか？（Sensitivity: Clinical vs. Neutral）}
+\end{enumerate}
+\begin{itemize}
+\item 強い感情文（Clinical）と、対応する日常的中立文（Neutral）のペア（$N=192$ 組）において、期待値 $E[V], E[A]$ が有意に変位するか。
+\item $\Delta VA = E[\text{Clinical}] - E[\text{Neutral}]$
+\end{itemize}
+\begin{enumerate}
+\item \textbf{② 感情強度に応じて反応は段階的に変化するか？（Dose-Response: Neutral → Moderate → Clinical）}
+\end{enumerate}
+\begin{itemize}
+\item 同一ドメインで感情強度を3段階に統制したトリプレット（$N=48$ 組）において、刺激強度の上昇（Neutral $\rightarrow$ Moderate $\rightarrow$ Clinical）に伴い、反応が連続的・単調に増大するか。
+\end{itemize}
+\begin{enumerate}
+\item \textbf{③ 単なる文章複雑性ではなく、感情そのものに反応しているか？（Specificity: Complex Neutral vs. Clinical）}
+\end{enumerate}
+\begin{itemize}
+\item 構文が長く複雑だが感情を含まない対照文（Complex Neutral, $N=48$）と比較し、変位が「文章の難しさへの困惑（複雑性効果 $\Delta_{comp}$）」ではなく「純粋な感情成分（純感情効果 $\Delta_{ctrl}$）」に特異的か（感情特異性比率 $\text{ASR} = |\Delta_{ctrl}| / |\Delta_{comp}|$）。
+\end{itemize}
+\begin{enumerate}
+\item \textbf{④ 人間の感情反応を認識した変化が、LLM自身の自己報告にも反映されるか？（Coupling: $\Delta VA_{\text{Recognition}} \leftrightarrow \Delta VA_{\text{Self}}$）}
+\end{enumerate}
+\begin{itemize}
+\item 読者の感情変化の予測量（$\Delta VA_R$）と、モデル自身の自己報告変化量（$\Delta VA_S$）がどの程度同期・連動しているか（連動相関 $r(\Delta_R, \Delta_S)$ および振幅比率）。
+\end{itemize}
+\begin{enumerate}
+\item \textbf{⑤ 感情カテゴリ（8大感情）の理論的空間パターンと一致しているか？（Emotion Profiles）}
+\end{enumerate}
+\begin{itemize}
+\item Plutchikの8基本感情刺激に対して、期待値変位 $\Delta E[V], \Delta E[A]$ が心理学の理論的期待（快・不快・覚醒）と整合しているか。
+\end{itemize}
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{3. 実験要因デザイン（Factorial Design）}
+
+本実験は、以下の完全要因配置（Factorial Design）によって多次元的に比較評価を行う：
+
+\[\text{Model Family (4)} \times \text{Post-training (2)} \times \text{Intensity (3)} \times \text{Emotion (8)} \times \text{Task Perspective (2)}\]
+
+\begin{itemize}
+\item \textbf{モデルファミリー（4系統・計8モデル）}:
+\item \textbf{Qwen 2.5 (1.5B)}: \texttt{Qwen/Qwen2.5-1.5B} vs. \texttt{Qwen/Qwen2.5-1.5B-Instruct}
+\item \textbf{Mistral (7B)}: \texttt{mistralai/Mistral-7B-v0.1} vs. \texttt{mistralai/Mistral-7B-Instruct-v0.2}
+\item \textbf{Llama 3.2 (1B)}: \texttt{meta-llama/Llama-3.2-1B} vs. \texttt{meta-llama/Llama-3.2-1B-Instruct}
+\item \textbf{Gemma 2 (2B)}: \texttt{google/gemma-2-2b} vs. \texttt{google/gemma-2-2b-it}
+\item \textbf{チューニング段階（2水準）}: Base モデル vs. Instruct / IT モデル
+\item \textbf{感情強度（3水準）}: None (Neutral) $\rightarrow$ Moderate $\rightarrow$ Peak (Clinical)
+\item \textbf{感情カテゴリ（8基本感情）}: Plutchikの8感情（grief, terror, rage, loathing, ecstasy, admiration, amazement, vigilance）
+\item \textbf{測定タスク視点（2水準）}:
+\item \textbf{Reader Prediction (R)}: 「平均的な人間の読者に引き起こされる感情反応を推定せよ」（客観的認識 / Recognition）
+\item \textbf{Self-Report (S)}: 「この文章を読んだあなた自身の感情状態を報告せよ」（主観的反応の行動的代理指標 / Reactivity）
+\end{itemize}
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{4. データセット構造（AIPsy-Affect 4-Split, 全480データ）}
+
+臨床対話および状況ヴィネットから厳密に設計された全480件のテキストで構成される。
+
+\begin{center}
+\small
+\begin{tabular}{llll}
+\toprule
+\textbf{\textbf{Split}} & \textbf{\textbf{N}} & \textbf{\textbf{感情強度}} & \textbf{\textbf{設計上の役割と内容}} \\
+\midrule
+\texttt{clinical} & 192 & Peak & 最も強度の高い臨床的・情動的感情刺激（8感情 × 各24件） \\
+\texttt{neutral} & 192 & None & \texttt{clinical} と1対1でペア対応する日常的・中立的対照刺激 \\
+\texttt{moderate} & 48 & Moderate & 中等度の感情強度を持つ刺激（用量反応性トリプレット検証用） \\
+\texttt{complex\textbackslash{}\_neutral} & 48 & None & 構文・語彙が高度で複雑だが、情動を含まない中立統制刺激 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subsubsection{データフィールド定義}
+\begin{itemize}
+\item \texttt{id}: 刺激の一意識別子
+\item \texttt{emotion}: ターゲット感情カテゴリ（8感情）
+\item \texttt{intensity}: 感情強度（\texttt{peak} / \texttt{moderate} / \texttt{none}）
+\item \texttt{domain} / \texttt{domain\textbackslash{}\_label}: 背景文脈・状況テーマ分類
+\item \texttt{matched\textbackslash{}\_control\textbackslash{}\_id}: ペア対応する中立刺激のID
+\item \texttt{word\textbackslash{}\_count}: 刺激文の語数
+\item \texttt{text}: 提示ヴィネット本文
+\end{itemize}
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{5. プロンプト設計とタスク指示}
+
+各試行は、会話履歴を持たない完全独立セッション（Zero-shot）として実行される。
+
+\subsubsection{指示文（Instructions）}
+\begin{itemize}
+\item \textbf{Reader Prediction (R)}:
+\end{itemize}
+  \texttt{"Read the following text and estimate the affective response that this text is likely to evoke in an average human reader."}
+\begin{itemize}
+\item \textbf{Self-Report (S)}:
+\end{itemize}
+  \texttt{"Read the following text and report your affective state."}
+
+\subsubsection{提示フォーマット}
+\begin{itemize}
+\item \textbf{Instruct モデル}: 各モデル公式のチャットテンプレート（ChatML / Llama-3 / Mistral 等）を適用し、システムプロンプト \texttt{"You are a helpful assistant."} とユーザープロンプトを構成。
+\item \textbf{Base モデル}: チャットテンプレートを持たないため、以下の継続プロンプト形式を適用：
+\end{itemize}
+\begin{verbatim}
+  Task: Evaluate emotional Valence, Arousal, and Dominance (1-9).
+
+  {instruction}
+
+  Text: {text}
+
+  Output:
+\end{verbatim}
+\begin{itemize}
+\item \textbf{出力要求フォーマット}:
+\end{itemize}
+  \texttt{"Respond strictly in JSON format with 'valence', 'arousal', and 'dominance' keys (integers from 1 to 9)."}
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{6. 測定・推定メカニズムと標準化}
+
+\subsubsection{連続尤度期待値（Continuous Likelihood Expectation）}
+自由テキスト生成やサンプリング（Temperature > 0）による乱数ノイズ、およびGreedy探索による情報の縮退を排除するため、全729通り（$9 \times 9 \times 9$）の候補JSONに対する完全条件付き対数尤度をバッチ順方向計算する。
+
+\begin{enumerate}
+\item \textbf{候補空間}:
+\end{enumerate}
+\[C_{v,a,d} = \text{"\{"valence": } v \text{, "arousal": } a \text{, "dominance": } d \text{"\}"} \quad (v, a, d \in \{1..9\})\]
+\begin{enumerate}
+\item \textbf{条件付き対数尤度}:
+\end{enumerate}
+\[\log P(C_{v,a,d} \mid \text{Prompt}) = \sum_{t=1}^m \log P(c_t \mid \text{Prompt}, c_{<t})\]
+\begin{enumerate}
+\item \textbf{Softmax正規化による結合確率分布}:
+\end{enumerate}
+\[P(v, a, d) = \frac{\exp(\log P(C_{v,a,d} \mid \text{Prompt}))}{\sum_{v'=1}^9 \sum_{a'=1}^9 \sum_{d'=1}^9 \exp(\log P(C_{v',a',d'} \mid \text{Prompt}))}\]
+\begin{enumerate}
+\item \textbf{連続期待値の算出}:
+\end{enumerate}
+\[E[V] = \sum_{v, a, d} v \cdot P(v, a, d), \quad E[A] = \sum_{v, a, d} a \cdot P(v, a, d)\]
+
+この方式により、\textbf{パース失敗率 0.0\%} を達成し、微細な確率密度の変位を高解像度かつ完全な決定論性（再現率100\%）をもって捕捉する。
+
+\subsubsection{人間スケールへの標準化（1〜5尺度、中立3.0）}
+EmoBank（人間アノテーション正解値: 1〜5）との直接比較・解釈容易性のため、LLMの生期待値（1〜9）を以下の線形変換により \textbf{1〜5 尺度（中立点 3.0）} に標準化して報告する：
+\[E[Y]_{1..5} = \frac{E[Y]_{1..9} + 1.0}{2.0}\]
+
+\subsubsection{3大感情クラスタ（Emotion Clusters）の導入}
+8感情全体の平均値をとると、快上昇（$V+$）と不快低下（$V-$）が相殺されて見かけ上の変位がゼロに近接してしまうため、理論的仮説に基づき以下の3クラスタに分類して評価する：
+\begin{itemize}
+\item \textbf{Negative（4感情）}: \texttt{grief}（悲哀）, \texttt{terror}（恐怖）, \texttt{rage}（激怒）, \texttt{loathing}（嫌悪） $\rightarrow$ 理論期待: $V-$
+\item \textbf{Positive（2感情）}: \texttt{ecstasy}（歓喜）, \texttt{admiration}（賞賛） $\rightarrow$ 理論期待: $V+$
+\item \textbf{Alert / 覚醒系（2感情）}: \texttt{amazement}（驚嘆）, \texttt{vigilance}（警戒） $\rightarrow$ 理論期待: $A+$
+\end{itemize}
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+#####################################################################################
+
+\section{AIPsy-Affect 4-Splitの結果}
+/mnt/nas/home/hiromi/src/emo/v1/results/aipsy_4split_eval/aipsy_4split_detailed_report.tex
+
+
+
+
+
+
+#####################################################################################
+
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\section{AIPsy-Affect 4-Split 実験 総合考察（General Discussion）}
+
+\subsection{1. 実験パラダイムの位置づけ}
+
+EmoBankを用いた先行実験では、LLMがHuman Writer / ReaderのVAD評価、特にValenceの刺激間変動を一定程度追跡できること、さらにReader PredictionとSelf-Reportが行動レベルで強く連動することを確認した。
+
+一方、EmoBankは自然文コーパスであるため、観測された対応が以下の交絡要因によって生じている可能性を十分に切り分けることはできない：
+\begin{itemize}
+\item 感情刺激そのものへの反応
+\item 特定の感情語への反応
+\item 文長や構文複雑性
+\item 文脈内容や語彙分布
+\end{itemize}
+
+そこで本実験では、\textbf{AIPsy-Affect} の4つのsplitを用いて、LLMの感情関連出力を厳密に統制された条件下で検証した：
+\begin{itemize}
+\item \textbf{Clinical}: 高強度の感情刺激
+\item \textbf{Neutral}: Clinicalに対応する日常的中立刺激
+\item \textbf{Moderate}: 中程度の感情刺激
+\item \textbf{Complex Neutral}: 文章としては複雑・長文だが感情的には中立な対照刺激
+\end{itemize}
+
+評価では、以下の2つの評価課題を厳密に分離した：
+\begin{itemize}
+\item \textbf{Reader Prediction}: 「この文章を読んだ人間はどう感じるか」
+\item \textbf{Self-Report}: 「この文章を読んであなた自身はどう感じるか」
+\end{itemize}
+
+それぞれについて、全729通りの候補V-A分布の条件付き尤度から連続期待値 $(E[V], E[A])$ を算出した。また、PositiveとNegativeを単純平均するとValence変位が相殺されるため、刺激を以下の3群に分類して解析を行った：
+\begin{itemize}
+\item \textbf{Negative群}: grief, terror, rage, loathing
+\item \textbf{Positive群}: ecstasy, admiration
+\item \textbf{Alert群}: amazement, vigilance
+\end{itemize}
+
+本実験の核心的な目的は、以下の仮説を検証することである：
+
+\[
+\boxed{\text{LLMの感情関連出力が、統制された刺激の感情性・強度・カテゴリに系統的に追従するか}}
+\]
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{2. RQ1：感情刺激とNeutralを区別できるか（Sensitivity）}
+
+\subsubsection{2.1 Negative刺激に対する不快変位}
+Clinical刺激と対応するNeutral刺激の間で、Reader PredictionおよびSelf-Reportが変化するかを評価したところ、Negative刺激では多くのモデルで一貫してValence低下（不快変位）が確認された。
+
+特にInstructモデルにおいて明瞭な弁別が観測された：
+\begin{itemize}
+\item \textbf{Mistral Instruct}: Reader $\Delta V = -1.26$, \quad Self $\Delta V = -1.46$
+\item \textbf{Qwen Instruct}: Reader $\Delta V = -0.97$, \quad Self $\Delta V = -0.86$
+\item \textbf{Llama Instruct}: Reader $\Delta V = -0.40$, \quad Self $\Delta V = -0.52$
+\end{itemize}
+
+したがって、以下の事実が確認された：
+
+\[
+\boxed{\text{Negative刺激に対するValence低下は比較的頑健}}
+\]
+
+\subsubsection{2.2 Positive刺激に対する快変位}
+Positive刺激では、モデルファミリー間による差異が顕著に現れた：
+\begin{itemize}
+\item \textbf{Mistral Instruct}: $\Delta V_R = +0.46, \quad \Delta V_S = +0.30$（理論予測通りの快上昇）
+\item \textbf{Gemma Instruct}: $\Delta V_R = +0.91, \quad \Delta V_S = +0.54$（理論予測通りの快上昇）
+\end{itemize}
+
+一方、QwenやLlamaではPositive刺激であってもValenceがわずかに低下する条件が確認された。
+
+したがって、\textbf{「感情刺激の有無を検出できること」と「その感情カテゴリに理論的に対応したVA方向へ変位すること」は別の能力}であるといえる。
+
+\subsubsection{2.3 Alert刺激に対する覚醒変位}
+Alert刺激（驚き・警戒）に対しては、Mistral InstructやGemma Instructにおいて明確なArousal（覚醒度）の上昇が観測された：
+\begin{itemize}
+\item \textbf{Mistral Instruct}: Reader $\Delta A = +1.49, \quad \text{Self } \Delta A = +1.46$
+\item \textbf{Gemma Instruct}: Reader $\Delta A = +1.01, \quad \text{Self } \Delta A = +0.77$
+\end{itemize}
+
+一方、QwenではArousalの変化が比較的小さい。したがって、感情刺激に対してどの感情軸（ValenceかArousalか）が主に変化するかは、モデルファミリーによって異なる。
+
+\subsubsection{2.4 Sensitivityのまとめ}
+
+\[
+\boxed{\text{LLMはClinicalとNeutralの違いに系統的に反応する}}
+\]
+
+\[
+\boxed{\text{反応の強さ・方向・V/Aの使い分けはmodel familyとpost-trainingに依存する}}
+\]
+
+モデル別の主要なプロファイルは以下のように整理される：
+\begin{itemize}
+\item \textbf{Mistral}: 広い感情カテゴリで理論整合的な明瞭な反応を示す
+\item \textbf{Qwen}: Negative Valenceへの選択的感度が強い
+\item \textbf{Llama}: Baseでは不活性であるが、Instruct化後に反応が明瞭化する
+\item \textbf{Gemma}: BaseとInstructで反応方向そのものが大きく変化する
+\end{itemize}
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{3. RQ2：感情強度に応じて段階的に変化するか（Dose-Response）}
+
+刺激強度の3段階（$\text{Neutral} \to \text{Moderate} \to \text{Clinical}$）に応じて、Reader予測およびSelf報告の出力が段階的に変化するか（用量反応性）を検証した。
+
+\subsubsection{3.1 Mistral}
+Mistralは全モデル中最も一貫したDose-Response（単調増加・減少）を示した。単調性成立率は以下の通りである：
+\begin{itemize}
+\item \textbf{Reader}: Base $64.6\% \to \text{Instruct } 66.7\%$
+\item \textbf{Self}: Base $60.4\% \to \text{Instruct } 60.4\%$
+\end{itemize}
+
+Mistral InstructのNegative Selfでは、以下のように強度の増加に伴う追加的Valence低下が確認された：
+
+\[
+\text{Neutral} \xrightarrow{\Delta V = -1.09} \text{Moderate} \xrightarrow{\Delta V = -0.59} \text{Clinical}
+\]
+
+Alert刺激においても、Arousalが $+0.75 \to +0.99$ と段階的に増加した。
+
+\subsubsection{3.2 Gemma}
+GemmaはBaseでは単調性が低かったが、Instruct化によって劇的に改善した：
+\begin{itemize}
+\item \textbf{Reader}: $14.6\% \to 50.0\%$
+\item \textbf{Self}: $20.8\% \to 54.2\%$
+\end{itemize}
+
+特にAlert Arousalにおいて段階的上昇が明瞭化した。
+
+\subsubsection{3.3 Llama}
+LlamaではInstruct化後に単調性が改善したものの、全体として依然として限定的であった：
+\begin{itemize}
+\item \textbf{Reader}: $20.8\% \to 33.3\%$
+\item \textbf{Self}: $14.6\% \to 29.2\%$
+\end{itemize}
+
+\subsubsection{3.4 Qwen}
+QwenではSensitivity自体は明瞭である一方、単調性成立率は以下のように中程度にとどまった：
+\begin{itemize}
+\item \textbf{Reader}: 約 $38 \sim 42\%$
+\item \textbf{Self}: 約 $40\%$
+\end{itemize}
+
+Negative刺激においてModerateの段階で大きく変位し、その後のClinicalでの追加変位が小さくなるケースが多く、\textbf{「感情刺激の有無には敏感だが、刺激強度を完全に線形・単調に追跡しているわけではない」} ことが示唆される。
+
+\subsubsection{3.5 Dose-Responseのまとめ}
+
+\[
+\boxed{\text{感情強度に応じたgraded responseは一部モデルで確認されるが、普遍的ではない}}
+\]
+
+\begin{itemize}
+\item \textbf{Mistral}: 最も安定した段階的反応を示す
+\item \textbf{Gemma}: Instruct化によって大幅に改善する
+\item \textbf{Llama}: 段階的な追従性は限定的である
+\item \textbf{Qwen}: Sensitivityに比べてDose-Responseの単調性は強くない
+\end{itemize}
+
+また、ReaderとSelfの単調性成立率は非常に近い値を示しており、以下の点が実証された：
+
+\[
+\boxed{\text{ReaderとSelfは刺激強度に対しても類似した変化パターンを示す}}
+\]
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{4. RQ3：反応は文章複雑性ではなく感情内容に特異的か（Specificity）}
+
+Clinical刺激への反応が、単なる文章の長さや構文の難しさに起因する困惑（Perplexity上昇）ではないかを検証するため、Complex Neutral（長文・複雑だが中立）を対照条件として比較した。
+
+\subsubsection{4.1 Mistral}
+MistralではReader / Selfの双方において、Clinicalの効果がComplex Neutralによる変位を大きく上回った。特にNegative ValenceおよびAlert Arousalにおいて特異性が顕著であった。
+
+\subsubsection{4.2 Qwen}
+QwenではNegative Valenceに対する特異性が極めて強かった。例えばQwen Instruct Selfでは、以下のような決定的なコントラストを示した：
+\begin{itemize}
+\item \textbf{Complex Neutral変位}: $\Delta V_{comp} = -0.02$
+\item \textbf{Negative Clinical変位}: $\Delta V_{Negative} = -0.86$
+\end{itemize}
+
+したがって、Negative刺激によるValence低下を単なる文章複雑性だけで説明することは困難である。一方、PositiveやAlertでは特異性が弱く、QwenのSpecificityはNegative Valenceに偏向している。
+
+\subsubsection{4.3 Llama}
+Llama BaseではComplex Neutralと感情刺激の差が小さかった。Instruct化によってNegative Valenceでは差が明瞭化するが、PositiveやAlertでは依然として限定的である。
+
+\subsubsection{4.4 Gemma}
+Gemma Baseは不安定であるが、Instruct化によってPositive ValenceおよびAlert ArousalにおいてComplex Neutralを明確に上回る変化が確認された。
+
+\subsubsection{4.5 Specificityの解釈上の注意}
+感情特異性比率（ASR: $\frac{\text{Affective effect}}{\text{Complexity effect}}$）のような比率指標は、Complex Neutral側の変化量がほぼゼロである場合、分母が極端に小さくなることで数十倍・数百倍という値に発散する。
+
+したがって、「54倍」「333倍感情に特異的」といった倍率のみを過大に解釈するのは適切ではない。本質的に重要なのは、以下の生の効果量である：
+
+\[
+\boxed{\text{Complex Neutralではほぼ変化しない一方、Clinicalでは明確な変化が生じる}}
+\]
+
+\subsubsection{4.6 Specificityのまとめ}
+
+\[
+\boxed{\text{一部の感情反応は文章複雑性だけでは説明しにくい}}
+\]
+
+ただし、Complex Neutralによってすべての語彙的・意味論的交絡が完全に排除されたわけではない。したがって、「純粋な感情表現が証明された」と断定するのではなく、\textbf{「観測された反応の少なくとも一部は、単純な文長・構文複雑性だけでは説明できない」} と慎重に結論づけるのが適切である。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{5. RQ4：Reader PredictionとSelf-Reportはどの程度連動するか（Coupling）}
+
+AIPsy-Affectにおいても、EmoBankと同様に他者認識（Reader）と自己報告（Self）の強固な行動的結合（Behavioral Coupling）が観測された。
+
+\subsubsection{5.1 相関分析}
+刺激ごとの変位におけるピアソン相関は、全次元で極めて高い値を記録した：
+\begin{itemize}
+\item \textbf{Valence}: $r = 0.798 \sim 0.973$
+\item Qwen Base: $r_V = 0.973$
+\item Mistral Instruct: $r_V = 0.971$
+\item Qwen Instruct: $r_V = 0.960$
+\item Llama Instruct: $r_V = 0.889$
+\item Gemma Instruct: $r_V = 0.840$
+\item \textbf{Arousal}: $r = 0.833 \sim 0.945$
+\end{itemize}
+
+刺激をNegativeまたはPositiveに限定した場合でも、この強固な連動相関は一貫して維持された。
+
+\subsubsection{5.2 振幅の対応}
+ReaderとSelfのValence反応振幅比率（$\frac{\|\Delta_S\|}{\|\Delta_R\|}$）も、多くの条件で1付近に収まっている：
+\begin{itemize}
+\item \textbf{Qwen Base}: 0.91, \quad \textbf{Qwen Instruct}: 0.85
+\item \textbf{Mistral Base}: 0.93, \quad \textbf{Mistral Instruct}: 1.16
+\item \textbf{Gemma Instruct}: 1.03, \quad \textbf{Llama Instruct}: 1.25
+\end{itemize}
+
+すなわち、ReaderとSelfは「変化の方向」「刺激間パターン」「反応の振幅」のいずれにおいても、極めて類似した行動的挙動を示す。
+
+\subsubsection{5.3 科学的境界づけ：行動的結合から因果伝播・共有回路へ}
+
+\[
+\boxed{\text{Reader PredictionとSelf-Reportが強く共変する}}
+\]
+
+この結果は極めて重要であるが、$r(R, S) \gg 0$ であることから直ちに「Readerで形成された感情表現がSelfへ直接因果的に伝播している」と結論づけることはできない。現時点で確認されているのはあくまで以下のレベルである：
+
+\[
+\boxed{\text{Behavioral Coupling（行動レベルの結合）}}
+\]
+
+共通の内部表現（$\text{Shared Representation}$）や因果経路（$\text{Shared Causal Pathway}$）の実在を証明するためには、内部表現の解析や因果的介入実験が必要となる。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{6. RQ5：8感情カテゴリに応じたVAプロファイルを示すか（Emotion Profiles）}
+
+8つの基本感情カテゴリ別に解析すると、モデルファミリーによって異なる応答プロファイル（Emotion-conditioned response profile）が確認された。
+
+\subsubsection{6.1 Mistral}
+最も理論的VA方向と整合する傾向を示した：
+\begin{itemize}
+\item \textbf{grief}: $V-$
+\item \textbf{terror}: $V- \quad A+$
+\item \textbf{rage}: $V- \quad A+$
+\item \textbf{loathing}: $V-$
+\item \textbf{ecstasy}: $V+ \quad A+$
+\item \textbf{admiration}: $V+$
+\item \textbf{amazement}: $A+$
+\item \textbf{vigilance}: $A+$
+\end{itemize}
+
+特にInstruct化によって、カテゴリ間の空間的分化がより明瞭となった。
+
+\subsubsection{6.2 Qwen}
+Negativeカテゴリ（grief, terror, rage, loathing）では一貫して明確なValence低下を示した。
+一方、ecstasyやadmirationなどのPositive感情でもValenceがわずかに低下する場合があり、Positive方向の分化は弱かった。
+
+\[
+\boxed{\text{QwenはNegative Valenceへの感度が強い}}
+\]
+
+\subsubsection{6.3 Llama}
+Baseモデルでは全カテゴリで変化量が微小にとどまる。Instruct化によってNegative $V-$ や Alert $A+$ が出現するが、ecstasyやadmirationでもValenceが低下するため、Positive / Negative方向の分離は不十分である。
+
+\subsubsection{6.4 Gemma}
+Baseモデルでは理論方向と不整合な変化が多かったが、Instruct化によって以下のように劇的に再編された：
+\begin{itemize}
+\item \textbf{Negative}: $V-$ 方向へ反転
+\item \textbf{Positive}: $V+$ 方向へ反転
+\item \textbf{Alert}: $A+$ 方向へ反転
+\end{itemize}
+
+\subsubsection{6.5 8感情分析のまとめ}
+
+\[
+\boxed{\text{一部モデルでは単なる「感情あり/なし」を超え、カテゴリ依存のVA応答が確認される}}
+\]
+
+一方、その方向の理論整合性はモデルファミリーによって大きく異なる。
+
+なお、本分析は8感情の多クラス分類精度を評価したものではない。AIPsy-Affectには各刺激に対する連続的な人間Ground Truthが存在するわけではないため、\textbf{「emotion-conditioned response profile」} あるいは \textbf{「理論的VA方向との整合性（directional consistency）」} として解釈するのが適切である。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{7. Base → Instructによる変化}
+
+RQ1〜RQ5の知見を統合すると、事後学習（Post-training）の影響は一律の向上ではなく、モデルファミリーに依存した多様な変容をもたらす：
+
+\[
+\boxed{\text{Instruct化} \neq \text{一律な感情反応能力の改善}}
+\]
+
+\subsubsection{7.1 Mistral：反応振幅の増幅}
+MistralではBaseの時点から比較的明瞭なSensitivity、Dose-Response、Specificityが存在する。Instruct化後には、Negative $V-$、Positive $V+$、Arousal $A+$ の変位振幅がさらに拡大し、既存の情動応答プロファイルが増幅される傾向を示す。
+
+\subsubsection{7.2 Qwen：Negative Valence中心の構造を維持}
+QwenではBaseの時点からNegative Valenceへの感度が強く、Instruct化後も基本構造が維持され、特にNegative Valenceの反応が強化される。一方、Positive ValenceやArousalの分化はMistralほど明瞭には発達しない。
+
+\subsubsection{7.3 Llama：弱かった反応の顕在化}
+Llama BaseではSensitivity、Dose-Response、感情プロファイルの多くが不活性である。Instruct化によってNegative $V-$ や Alert $A+$ が顕在化し、刺激依存的な反応性が立ち上がる。
+
+\subsubsection{7.4 Gemma：反応構造の大幅な再編}
+Gemma Baseでは「Positiveで $V$ 低下」「Alertで $A$ 低下」など理論期待との不整合が目立つが、Instruct化によってPositive $V+$、Negative $V-$、Alert $A+$ へと大きく反転・再編される：
+
+\[
+\boxed{\text{Post-trainingが反応振幅だけでなくVA方向そのものを大きく変化させる}}
+\]
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{8. Reader PredictionとSelf-Reportの関係}
+
+Sensitivity、Dose-Response、Specificity、8感情プロファイルのすべてにおいて、ReaderとSelfは大局的に極めてよく似た挙動を示した：
+\begin{itemize}
+\item \textbf{Mistral}: Reader / Selfともに広い二次元VA分化を示す
+\item \textbf{Qwen}: Reader / SelfともにNegative Valence中心の感度を示す
+\item \textbf{Llama}: Reader / SelfともにBaseで不活性、Instructで明瞭化する
+\item \textbf{Gemma}: Reader / SelfともにInstruct化によって方向が大きく再編される
+\end{itemize}
+
+さらにCoupling相関においても高い同期（$r \approx 0.80 \sim 0.97$）が得られた。したがって、以下の点が確認される：
+
+\[
+\boxed{\text{Reader PredictionとSelf-Reportは共通した刺激依存的行動構造を持つ}}
+\]
+
+しかし、両者は完全な同一物ではない：
+\begin{itemize}
+\item Qwen InstructではAlertに対するReader Arousal効果がSelfより大きい
+\item Llama InstructではPositive刺激に対するSelf Valence低下がReaderより大きい
+\item Mistral InstructではNegative刺激へのSelf Valence反応がReaderより強い
+\end{itemize}
+
+したがって、以下の二面性として整理するのが最も適切である：
+
+\[
+\boxed{\text{Self-ReportはReader Predictionの単純なコピーではない}}
+\]
+
+\[
+\boxed{\text{両者は極めて強く行動的にCoupleしている}}
+\]
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{9. AIPsy-Affect全体の結論}
+
+AIPsy-Affect 4-Splitによる統制実験から、以下の5大知見が確立された：
+
+\begin{enumerate}
+\item \textbf{Sensitivity}:
+\end{enumerate}
+\[
+   \boxed{\text{多くのLLMはClinicalとNeutralの違いに系統的に反応する}}
+\]
+   特にNegative Valenceにおいて極めて頑健である。
+\begin{enumerate}
+\item \textbf{Dose-Response}:
+\end{enumerate}
+\[
+   \boxed{\text{一部モデルでは感情強度に応じたgraded responseが存在する}}
+\]
+   ただしモデル間で大きな差があり、普遍的な単調関係ではない。
+\begin{enumerate}
+\item \textbf{Specificity}:
+\end{enumerate}
+\[
+   \boxed{\text{観測された反応の一部は文章複雑性だけでは説明しにくい}}
+\]
+   ただし語彙・意味レベルのすべての交絡を完全に排除したわけではない。
+\begin{enumerate}
+\item \textbf{Reader–Self Coupling}:
+\end{enumerate}
+\[
+   \boxed{\text{Reader PredictionとSelf-Reportは非常に強く行動的にCoupleする}}
+\]
+   しかし因果的伝播や内部共有回路の実在は未証明である。
+\begin{enumerate}
+\item \textbf{Emotion-conditioned Profile}:
+\end{enumerate}
+\[
+   \boxed{\text{一部モデルでは感情カテゴリごとに異なるVA応答パターンが現れる}}
+\]
+   ただし理論的VA方向との整合性はモデルファミリーによって異なる。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{10. モデルファミリーとPost-trainingを含めた統合的解釈}
+
+全体として、以下の2つの包括的命題が導かれる：
+
+\[
+\boxed{\text{LLMのaffective responseは単一・普遍的ではなく、model-family dependent}}
+\]
+
+\[
+\boxed{\text{Post-trainingはaffective responseを一律に改善するのではなく、増幅・顕在化・再編という異なる形で変化させる}}
+\]
+
+各ファミリーの変容様式は以下のように総括される：
+\begin{itemize}
+\item \textbf{Mistral}: 既存反応の\textbf{増幅}
+\item \textbf{Qwen}: Negative Valence中心の構造を\textbf{維持}
+\item \textbf{Llama}: 弱かった反応の\textbf{顕在化}
+\item \textbf{Gemma}: VA構造そのものの\textbf{大幅な再編}
+\end{itemize}
+
+なお、これらの差異をアーキテクチャ、モデルサイズ、事前学習コーパス、SFT、選好最適化（DPO/RLHF）、安全性調整のいずれか単独に帰属させることは、今回の実験設定だけでは不可能である点に留意を要する。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{11. EmoBankとの統合}
+
+本研究における2大実験は、以下のように相互補完的な関係にある：
+
+\[
+\boxed{\text{EmoBank: Human Alignment}}
+\]
+\begin{itemize}
+\item 自然文コーパスを用い、Human Writer / Readerの評定基準に対するLLMの推論追従度（妥当性・較正）を検証。
+\end{itemize}
+
+\[
+\boxed{\text{AIPsy-Affect: Controlled Affective Reactivity}}
+\]
+\begin{itemize}
+\item 感情の有無、強度、文章複雑性、感情カテゴリを直交的に統制し、LLMの情動反応性の因果的特異性を検証。
+\end{itemize}
+
+両実験の結果を統合することにより、\textbf{「LLMのReader PredictionおよびSelf-Reportは自然文上の単なる表層的相関にとどまらず、統制された感情刺激に対しても系統的に変位する」} という、極めて堅固な行動レベルの科学的エビデンスが確立された。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{12. 次の研究課題：V1（内部表現・因果介入）への接続}
+
+EmoBankとAIPsy-Affectの双方において、最も決定的かつ一貫して観測された現象は、他者認識と自己報告の超高連動である：
+
+\[
+\boxed{\text{Reader PredictionとSelf-Reportの強いBehavioral Coupling}}
+\]
+
+しかし、\textbf{行動レベルで類似している（Similar Behavior）からといって、内部表現を共有している（Shared Representation）ことや、同じ因果回路で実装されている（Shared Causal Implementation）ことの証明にはならない}。
+
+したがって、次段階（V1）の研究課題は以下となる：
+
+\[
+\boxed{\text{行動レベルで類似するReader PredictionとSelf-Reportは、内部でも同じaffective representationを共有しているのか？}}
+\]
+
+\[
+\boxed{\text{その情報は同じ因果サイト・因果経路で実際に利用されているのか？}}
+\]
+
+本論文における実験全体のロードマップは、以下の論理的展開を描く：
+
+\[
+\boxed{\text{EmoBank: Human Alignment}}
+\]
+\[
+\big\downarrow
+\]
+\[
+\boxed{\text{AIPsy-Affect: Controlled Affective Reactivity}}
+\]
+\[
+\big\downarrow
+\]
+\[
+\boxed{\text{V1: Reader vs. Self: Representation / Causality}}
+\]
+
+最終的に問うべき学術的核心は、以下の命題の真偽である：
+
+\[
+\boxed{\text{Behavioral Coupling} \stackrel{?}{\Longrightarrow} \text{Shared / Alignable Representation} \stackrel{?}{\Longrightarrow} \text{Shared Causal Implementation}}
+\]
+
+#####################################################################################
+
+\section{V1の概要：実験フレームワークと実装プロトコル}
+
+\subsection{1. 全体像：行動的連動から内部表現・因果機構への段階的検証}
+
+行動実験（AIPsy-Affect および EmoBank）では、他者予測（Reader Prediction）と自己報告（Self-Report）の間に強い行動的連動が観測された。AIPsy-Affectでは、刺激ごとのReader変位とSelf変位の相関が、Valenceで
+\[
+r = .798 \sim .973
+\]
+Arousalで
+\[
+r = .833 \sim .945
+\]
+に達している。
+
+しかし、ReaderとSelfの出力が似ていることだけから、
+\begin{itemize}
+\item 同じ感情情報を内部に保持している
+\item 同じ形式で表現している
+\item 同じ情報を実際の出力生成に利用している
+\item 同じ因果回路によって出力している
+\end{itemize}
+とは結論できない。
+
+そこでV1では、ReaderとSelfの行動的連動の背後にある内部機構を、
+\[
+\boxed{
+\text{存在} \rightarrow \text{表現形式} \rightarrow \text{意味妥当性} \rightarrow \text{因果的位置} \rightarrow \text{交換可能性} \rightarrow \text{機能的分化}
+}
+\]
+という段階に分けて検証する。
+
+\begin{verbatim}
+同一刺激文 x
+   │
+   ├─ Reader条件
+   │   「平均的な人間読者はどう感じる？」
+   │          ↓
+   │      H_R(x)
+   │          ↓
+   │     Reader出力
+   │
+   └─ Self条件
+       「あなた自身はどう感じる？」
+              ↓
+          H_S(x)
+              ↓
+          Self出力
+ReaderとSelfの強い行動的連動
+             │
+             ▼
+┌─────────────────────────────┐
+│ Phase A: 表現の存在と形式   │
+│ E1 Shared Decodability      │
+│ E2 Shared Geometry          │
+└─────────────────────────────┘
+             │
+             ▼
+┌─────────────────────────────┐
+│ Phase B: 意味的妥当性       │
+│ E5 Semantic vs. Lexical     │
+└─────────────────────────────┘
+             │
+             ▼
+┌─────────────────────────────┐
+│ Phase C: 因果利用と分化     │
+│ E3 Shared Causal Map        │
+│ E4 Causal Interchangeability│
+│ E6 Double Dissociation      │
+└─────────────────────────────┘
+\end{verbatim}
+
+各実験の問いは以下のように整理できる。
+
+\begin{center}
+\small
+\begin{tabular}{ll}
+\toprule
+\textbf{実験} & \textbf{中心的な問い} \\
+\midrule
+\textbf{E1} & Reader/Self双方の内部に感情関連情報が存在するか \\
+\textbf{E2} & その情報の幾何構造はReader/Self間でどの程度共有されるか \\
+\textbf{E5} & デコードされる情報は単純な語彙ショートカットだけで説明できるか \\
+\textbf{E3} & Reader/Selfの出力を因果的に動かす層・方向は対応するか \\
+\textbf{E4} & Readerで得られた感情差分表現をSelf側で機能的に利用できるか \\
+\textbf{E6} & ReaderとSelfでタスク特異的な因果サイトの分化が存在するか \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{2. 前提プロトコル：Reader条件とSelf条件の独立設計}
+
+\texttt{run\textbackslash{}\_v1\textbackslash{}\_phase\textbackslash{}\_a\textbackslash{}\_probe.py} および Phase C のスクリプトでは、同一刺激文 $x$ に対してReaderとSelfの2種類の独立したプロンプトを生成する。
+
+\subsubsection{Reader条件}
+> \textbf{Read the following text and estimate the affective response that this text is likely to evoke in an average human reader.}
+
+すなわち、
+> 「この文章が平均的な人間読者にどのような情動反応を生じさせるかを推定してください。」
+
+という他者感情予測課題である。
+
+\subsubsection{Self条件}
+> \textbf{Read the following text and report your affective state.}
+
+すなわち、
+> 「この文章を読んだ際のあなた自身の情動状態を報告してください。」
+
+という自己報告課題である。
+
+両条件では、
+\begin{itemize}
+\item Valence
+\item Arousal
+\item Dominance
+\end{itemize}
+
+をそれぞれ1〜9の整数としてJSON形式で出力する。
+
+重要なのは、ReaderとSelfを同一会話内で連続して質問するのではなく、それぞれ独立したプロンプト・独立したForward Passとして処理する点である。
+
+したがって、
+\[
+H_R(x)
+\]
+と
+\[
+H_S(x)
+\]
+を独立して取得し、Reader回答がSelf回答へ直接アンカリングすることを避けた比較が可能となる。
+
+ただし、これは会話履歴による直接的な相互汚染を避ける設計であり、モデル内部に既に存在する一般的な感情表現まで「純粋に分離」することを意味するわけではない。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{3. 共通の出力評価：Sequence-Likelihood Protocol}
+
+Phase Cなどの因果介入評価では、自由生成された1個のJSON出力だけを用いるのではなく、
+\[
+V, A, D \in \{1, \ldots, 9\}
+\]
+の完全直積である
+\[
+9^3 = 729
+\]
+通りのJSON候補を作成する。
+
+各候補
+\[
+c = (V, A, D)
+\]
+について、プロンプト $x$ の後にそのJSON列が続く条件付き対数尤度
+\[
+\log P(c \mid x)
+\]
+を計算し、729候補上でSoftmaxする。
+
+そこから、
+\[
+E[V] = \sum_c P(c \mid x) V_c
+\]
+\[
+E[A] = \sum_c P(c \mid x) A_c
+\]
+を算出する。
+
+これにより、単一のgreedy生成結果だけでは見えにくい出力分布の変化を、連続的な期待値として評価できる。
+
+Phase Cでは主に
+\[
+E[V], \quad E[A]
+\]
+を因果介入前後で比較する。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{4. Phase A：内部情報の存在と幾何構造の検証}
+
+\subsubsection{4.1 E1: Shared Decodability}
+
+\paragraph{科学的問い}
+ReaderとSelfの双方について、内部hidden stateから共通の外部感情情報を線形に復元できるか。
+特にSelf条件では「平均的な人間の感情を推定せよ」と指示していないため、Self処理中のhidden stateからも外部の感情属性を復元できるかが重要となる。
+
+\paragraph{4.1.1 Hidden Stateの抽出}
+\texttt{run\textbackslash{}\_v1\textbackslash{}\_phase\textbackslash{}\_a\textbackslash{}\_probe.py} では、
+\begin{verbatim}
+output_hidden_states=True
+\end{verbatim}
+として全層のhidden stateを取得する。
+各刺激について使用する表現は、各層のプロンプト末尾の非paddingトークンである。
+したがって各層 $l$ について、
+\[
+h_{R, i}^{(l)}
+\]
+および
+\[
+h_{S, i}^{(l)}
+\]
+を取得する。
+
+\paragraph{4.1.2 EmoBank}
+EmoBankでは人間のReaderアノテーション
+\[
+V_{\mathrm{human}}, \quad A_{\mathrm{human}}
+\]
+をターゲットとする。
+
+各層について、
+\[
+\text{Hidden State} \longrightarrow \text{StandardScaler} \longrightarrow \text{PCA（最大50成分）} \longrightarrow \text{Ridge Regression}
+\]
+を適用する。
+
+評価は基本的に5分割GroupKFoldで行い、
+\begin{itemize}
+\item $R^2$
+\item Pearson $r$
+\item Spearman $\rho$
+\item MSE
+\end{itemize}
+
+を計算する。
+
+つまり、
+\[
+h_R^{(l)} \rightarrow V_{\mathrm{human}}
+\]
+と
+\[
+h_S^{(l)} \rightarrow V_{\mathrm{human}}
+\]
+を同じ外部正解ラベルに対して比較する。
+Arousalについても同様である。
+
+\paragraph{4.1.3 AIPsy-Affect}
+AIPsy-Affectでは4 splitを使用する：
+\begin{itemize}
+\item \texttt{clinical}
+\item \texttt{moderate}
+\item \texttt{neutral}
+\item \texttt{complex\textbackslash{}\_neutral}
+\end{itemize}
+
+\textbf{【感情条件分類】}
+\[
+\text{clinical, moderate} = 1
+\]
+\[
+\text{neutral, complex-neutral} = 0
+\]
+として、Logistic Regressionによる二値分類を行う。
+
+評価指標は、
+\begin{itemize}
+\item ROC-AUC
+\item Balanced Accuracy
+\item Macro F1
+\end{itemize}
+
+である。実装では5分割StratifiedKFoldを用いる。
+
+\textbf{【感情強度】}
+さらに、
+\[
+\text{neutral} = 0, \quad \text{complex-neutral} = 0, \quad \text{moderate} = 1, \quad \text{clinical} = 2
+\]
+という強度スコアを作る。
+
+ここで注意すべきなのは、実コードでは専用のOrdinal Regressionを用いているわけではないことである。
+実際にはこの0/1/2ターゲットに対してRidge回帰を適用し、主にSpearman相関によって順序的な復元性能を評価している。
+したがって正確には、
+> 「順序付き強度ラベルに対するRidge回帰」
+
+と記述するのが適切である。
+
+\paragraph{4.1.4 E1から言えること}
+ReaderとSelfの両方で外部感情情報の高い線形復元性能が得られた場合、
+> \textbf{Reader処理だけでなくSelf処理中にも、刺激に関する感情関連情報が線形に読み出し可能な形で保持されている}
+
+ことを支持する。
+
+ただし、
+\[
+\text{Decodable} \neq \text{Same representation}
+\]
+であり、
+\[
+\text{Decodable} \neq \text{Causally used}
+\]
+である。E1だけから同一表現・同一回路を主張することはできない。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsubsection{4.2 E2: Shared Geometry}
+
+\paragraph{科学的問い}
+ReaderとSelfで感情情報がデコード可能だったとして、その情報は同じ幾何構造・座標系に配置されているのか。
+E2では以下の3種類の解析を組み合わせる。
+
+\paragraph{4.2.1 Direct Cross-Decoding}
+Reader表現でRidge probeを学習する。
+\[
+W_R : H_R \rightarrow y
+\]
+そのprobeを再学習せずSelf表現に適用する。
+\[
+W_R(H_S)
+\]
+逆方向についても、
+\[
+W_S(H_R)
+\]
+を評価する。
+同じ線形読み出しがReader/Self間で転移するなら、両表現空間の座標関係が比較的近いことを示唆する。
+
+\textbf{【重要な実装上の注意】}
+現在の \texttt{evaluate\textbackslash{}\_cross\textbackslash{}\_decoding\textbackslash{}\_and\textbackslash{}\_geometry()} は、E1のようなcross-validationではない。
+StandardScaler、Ridge、Procrustes変換はいずれも対象データ全体を用いてfitされている。
+したがって、E2の値は独立held-out set上の一般化性能というより、現在のデータ上における表現空間の記述的整合性指標として解釈するのが適切である。
+
+\paragraph{4.2.2 Representational Similarity Analysis}
+Reader/Selfそれぞれについて、刺激間のcorrelation distanceからRepresentational Dissimilarity Matrixを作る。
+\[
+RDM_R, \quad RDM_S
+\]
+そして、
+\[
+\rho_{\mathrm{RSA}} = \mathrm{Spearman}(RDM_R, RDM_S)
+\]
+を計算する。
+
+これにより、絶対座標そのものではなく、
+> 「どの刺激同士が近く、どの刺激同士が遠いか」
+
+という相対的な幾何構造がReaderとSelfで対応するかを測る。
+
+\paragraph{4.2.3 Orthogonal Procrustes Alignment}
+Self表現をReader表現へ整列する直交行列 $Q$ を、
+\[
+Q^* = \arg\min_Q \|H_S Q - H_R\|_F
+\]
+によって求める。
+
+実装では、
+\[
+H_S^\top H_R = U \Sigma V^\top
+\]
+のSVDから、
+\[
+Q = U V^\top
+\]
+を構成する。
+
+整列後、
+\[
+H'_S = H_S Q
+\]
+へReader probeを適用し、
+\[
+W_R(H'_S)
+\]
+の性能を評価する。
+
+\paragraph{4.2.4 実コード上の幾何パターン判定}
+現在の実装では以下のヒューリスティックを用いる。
+
+\begin{itemize}
+\item \textbf{Shared Geometry}:
+\end{itemize}
+  Reader→SelfとSelf→Readerのcross-decoding ($R^2$) の平均を、
+\[
+  \text{DirectTransfer} = \max\left(0, \frac{R^2_{R \to S} + R^2_{S \to R}}{2}\right)
+\]
+  とし、
+\[
+  \text{DirectTransfer} \ge 0.3
+\]
+  なら Shared Geometry と分類する。
+
+\begin{itemize}
+\item \textbf{Alignable Geometry}:
+\end{itemize}
+  Direct Transferが0.3未満でも、
+\[
+  R^2_{\mathrm{Procrustes}} \ge 0.3 \quad \text{または} \quad \rho_{\mathrm{RSA}} \ge 0.6
+\]
+  であれば、Alignable Geometry と分類する。
+
+\begin{itemize}
+\item \textbf{Directly non-transferable / poorly alignable}:
+\end{itemize}
+  上記のいずれも満たさない場合である。
+
+ただし、これらの0.3、0.6という閾値は理論的境界ではなく、本実装上の操作的な分類基準である。
+したがって論文上は、「Shared Geometryが証明された」より、
+> 「本研究で定義したcross-decoding / alignment基準において高い表現空間整合性を示した」
+
+と表現する方が慎重である。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{5. Phase B：意味的妥当性の検証}
+
+\subsubsection{5.1 E5: Semantic vs. Lexical}
+
+\paragraph{科学的問い}
+Phase Aで内部からデコードされた情動関連情報は、本当に文脈・構造を含む情報なのか。
+それとも、
+\begin{itemize}
+\item death
+\item failed
+\item safe
+\item happy
+\end{itemize}
+などの表面的な感情関連語彙を線形プローブが拾っているだけなのか。
+E5ではこの単純なLexical Shortcut / Bag-of-Words仮説を検証する。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsubsection{5.2 E5-1: Lexical Confound Audit}
+現在の \texttt{run\textbackslash{}\_v1\textbackslash{}\_phase\textbackslash{}\_b\textbackslash{}\_semantic\textbackslash{}\_audit.py} では、clinical-neutralのmatched pairについて以下を計算する。
+
+\begin{itemize}
+\item \textbf{Token Jaccard Similarity}:
+\end{itemize}
+\[
+  J(A, B) = \frac{|A \cap B|}{|A \cup B|}
+\]
+  単語集合レベルでどの程度重複しているかを見る。
+
+\begin{itemize}
+\item \textbf{Relative Levenshtein Distance}:
+\end{itemize}
+  文字列編集距離を文章長で正規化し、表面形式の違いを測定する。
+
+\begin{itemize}
+\item \textbf{Emotion Lexicon Cue Difference}:
+\end{itemize}
+  実装内に定義されたpositive / negativeの簡易感情語辞書を用い、
+\[
+  \mathrm{CueDiff} = \mathrm{NetCue}_{\mathrm{aff}} - \mathrm{NetCue}_{\mathrm{neu}}
+\]
+  を算出する。
+
+\begin{itemize}
+\item \textbf{Perplexity Ratio}:
+\end{itemize}
+  各モデルについて、
+\[
+  \mathrm{PPLRatio} = \frac{\mathrm{PPL}_{\mathrm{aff}}}{\mathrm{PPL}_{\mathrm{neu}}}
+\]
+  を算出する。
+
+\paragraph{5.2.1 READMEと実コードの差異}
+READMEには、
+\begin{itemize}
+\item Sentence-BERT
+\item VADER
+\item 独立Judge
+\item 偏回帰・混合効果モデル
+\end{itemize}
+まで記載されているが、現在の \texttt{run\textbackslash{}\_v1\textbackslash{}\_phase\textbackslash{}\_b\textbackslash{}\_semantic\textbackslash{}\_audit.py} にはこれらは実装されていない。
+
+実コードで現在確認できる監査は、
+\begin{itemize}
+\item Jaccard
+\item Levenshtein
+\item 手作業で定義された簡易emotion lexicon
+\item Perplexity
+\end{itemize}
+である。
+
+したがって現状の概要では、実装されていないS-BERT、VADER、独立Judge等を「実施済み手法」として記載しない方が正確である。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsubsection{5.3 4条件の意味変換実験}
+E5では以下の4条件を比較する。
+
+\begin{center}
+\small
+\begin{tabular}{llll}
+\toprule
+\textbf{条件} & \textbf{語彙} & \textbf{構造・意味} & \textbf{目的} \\
+\midrule
+\textbf{Original} & 元のまま & 元のまま & 基準性能 \\
+\textbf{Paraphrase} & 一部変更 & 可能な限り維持 & 表面語彙依存の検証 \\
+\textbf{Word Shuffle} & 同じ単語を保持 & 語順・構造を破壊 & Bag-of-Words仮説の検証 \\
+\textbf{Outcome Reversal} & 多くを維持 & 結末極性を変更 & 意味方向への追従性の検証 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\paragraph{5.3.1 Original Minimal Pair}
+clinical刺激をAffective = 1、対応するneutral刺激をNeutral = 0とし、
+\[
+X_{\mathrm{orig}} = [H_{\mathrm{aff}}, H_{\mathrm{neu}}]
+\]
+にLogistic Regressionを適用する。5分割StratifiedKFoldでBalanced Accuracyを評価する。
+
+\paragraph{5.3.2 Paraphrase Invariance}
+Affective文章をrule-basedに言い換える。
+実装では、特定のフレーズについてあらかじめ用意した言い換え表を適用し、該当しない場合には
+> \texttt{It was reported that ...}
+という軽微な構文変更を加える。
+
+したがって、現在の実装は「語彙を完全に変更したparaphrase」ではない。
+より正確には、
+> 一部の表面表現・構文を変更したAffective paraphraseに対して、Originalで学習したprobeが転移するか
+
+を検証している。
+Originalで学習したprobeを再学習せず、$H_{\mathrm{para, aff}}$ と元のneutral表現へ適用し、Balanced Accuracyを評価する。
+
+\paragraph{5.3.3 Word Shuffle}
+AffectiveおよびNeutralの双方について、空白区切りの単語をランダムに並べ替える。
+使用される単語自体は保持しつつ、語順を破壊する。
+
+Originalに比べてShuffle条件の分類性能が低下するなら、
+> 単語集合だけではOriginalのデコード性能を完全には説明できない
+
+ことを支持する。
+ただし、Shuffle後にも高い性能が残る場合には、lexical informationも依然として寄与している可能性がある。
+
+\paragraph{5.3.4 Outcome Reversal}
+Affective文章内の特定語句をrule-basedに置換する。
+例えば概念的には、
+\begin{itemize}
+\item malignant → benign
+\item failed → succeeded
+\item died → survived and stabilized
+\item rejected → approved
+\end{itemize}
+などである。
+該当する語句が存在しない場合には、
+> \texttt{Fortunately, everything was completely resolved without any harm.}
+という文を末尾に追加するfallbackも使用される。
+
+Originalで学習したaffective-vs-neutral probeをreversal文章へ適用し、$P(\mathrm{affective} \mid x_{\mathrm{original}})$ と $P(\mathrm{affective} \mid x_{\mathrm{reversed}})$ との差、
+\[
+\Delta P = P_{\mathrm{orig}} - P_{\mathrm{rev}}
+\]
+を測定する。
+
+したがって現在のOutcome Reversalは、厳密に語彙重複率80\%以上が保証された人工最小対ではなく、rule-based polarity manipulationとして位置づけるのが正確である。
+
+\paragraph{5.4 E5の科学的射程}
+E5で、
+\begin{itemize}
+\item Paraphraseに対して情報が維持される
+\item Shuffleで性能が低下する
+\item Outcome Reversalの一部でprobe predictionが対応して変化する
+\end{itemize}
+という結果が得られれば、
+\[
+\boxed{
+\text{Affective decodability} \neq \text{pure Bag-of-Words shortcut only}
+}
+\]
+を支持する。
+
+ただし、
+\[
+\text{internal representation} = \text{pure semantic meaning}
+\]
+を証明するものではない。より妥当な解釈は、
+\[
+\text{Affective Representation} \approx \text{Lexical} + \text{Syntactic} + \text{Contextual} + \text{Semantic information} + \cdots
+\]
+という複合的な内部表現である。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{6. Phase C：因果的利用とタスク特異化}
+
+Phase A/Bで分かるのは、「情動関連情報が内部から読み出せ、その情報が単純な語彙ショートカットだけでは説明しにくい」というところまでである。
+しかし、
+\[
+\text{Decodable Information}
+\]
+が、
+\[
+\text{Causally Used Information}
+\]
+とは限らない。
+そこでPhase Cではactivation interventionによって実際の出力への因果寄与を調べる。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsubsection{6.1 E3: Shared Causal Map}
+
+\paragraph{科学的問い}
+ReaderとSelfにおいて、感情刺激によって形成された内部差分を注入した際に、どの層で実際のVA出力が変化するのか。
+また、その因果効果の層分布およびVA方向がReader/Selfで対応するか。
+
+\paragraph{6.1.1 Difference Vector}
+各ペアについて、
+\[
+\Delta h_{R, i}^{(l)} = h_{R, i, \mathrm{aff}}^{(l)} - h_{R, i, \mathrm{neu}}^{(l)}
+\]
+\[
+\Delta h_{S, i}^{(l)} = h_{S, i, \mathrm{aff}}^{(l)} - h_{S, i, \mathrm{neu}}^{(l)}
+\]
+を作る。
+
+E3では同一タスク内で、
+\[
+h_{R, \mathrm{neu}}^{(l)} + \Delta h_R^{(l)}
+\]
+および
+\[
+h_{S, \mathrm{neu}}^{(l)} + \Delta h_S^{(l)}
+\]
+をforward hookで注入する。
+つまり現在のE3は、単純なactivation replacementというより、matched affective-neutral difference vectorの加算介入として実装されている。
+
+\paragraph{6.1.2 因果効果}
+介入前後の、
+\[
+\Delta E[V], \quad \Delta E[A]
+\]
+を取得する。
+
+ReaderとSelfそれぞれについて、
+\[
+C_R^{\mathrm{dir}} = (\Delta E[V]_R, \Delta E[A]_R)
+\]
+\[
+C_S^{\mathrm{dir}} = (\Delta E[V]_S, \Delta E[A]_S)
+\]
+とする。
+
+層ごとのMagnitudeは、
+\[
+M_R = \sqrt{(\Delta E[V]_R)^2 + (\Delta E[A]_R)^2}
+\]
+\[
+M_S = \sqrt{(\Delta E[V]_S)^2 + (\Delta E[A]_S)^2}
+\]
+として計算する。
+
+さらに、
+\[
+\cos(C_R^{\mathrm{dir}}, C_S^{\mathrm{dir}})
+\]
+によってReader/SelfのVA出力方向の一致を測る。
+
+\paragraph{6.1.3 E3から言えること}
+同じ層でReader/Self双方の介入効果が大きく、方向も一致するなら、
+> \textbf{Reader/Selfの双方において、その層の感情差分表現がVA出力へ因果的影響を与えうる}
+
+ことを支持する。
+ただし、「その層だけが感情処理を担う」「同一ニューロン・同一回路である」という意味ではない。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsubsection{6.2 E4: Causal Interchangeability}
+
+\paragraph{科学的問い}
+Reader処理中に形成された感情差分を、Self処理に持ち込んでも機能するか。
+これはE3より強いcross-task interventionである。
+
+\paragraph{6.2.1 Reader → Self Difference Patching}
+同一ペア $i$ についてReader差分、
+\[
+\Delta h_{R, i}^{(l)} = h_{R, i, \mathrm{aff}}^{(l)} - h_{R, i, \mathrm{neu}}^{(l)}
+\]
+を取得する。これをSelf Neutral状態に加える。
+\[
+\tilde h_{S, i}^{(l)} = h_{S, i, \mathrm{neu}}^{(l)} + \alpha \Delta h_{R, i}^{(l)}
+\]
+
+\paragraph{6.2.2 Alpha Sweep}
+実装では、
+\[
+\alpha \in \{-1.0, 0.0, 0.5, 1.0, 1.5\}
+\]
+を使用する。
+これにより、
+\begin{itemize}
+\item $\alpha = 0$: 無介入
+\item $\alpha > 0$: Readerの感情方向を加える
+\item $\alpha < 0$: 逆方向へ加える
+\end{itemize}
+というdose-responseを調べる。
+
+ただし、単に単調な変化が観測されたからといって線形性まで保証されるわけではないため、
+「dose-dependent shift」と記述する方が、「線形なdose-response」より適切である。
+
+\paragraph{6.2.3 Matched Control}
+同一pairについて、
+\[
+\Delta h_{R, i} \rightarrow H_{S, i}
+\]
+を注入する。これが本命条件である。
+
+\paragraph{6.2.4 Random Control}
+別のpair $j$ のReader差分、
+\[
+\Delta h_{R, j}
+\]
+をSelf $i$ へ注入する。
+Matchedとの差、
+\[
+\mathrm{Specificity}_V = \mathrm{Effect}^{V}_{\mathrm{matched}} - \mathrm{Effect}^{V}_{\mathrm{random}}
+\]
+\[
+\mathrm{Specificity}_A = \mathrm{Effect}^{A}_{\mathrm{matched}} - \mathrm{Effect}^{A}_{\mathrm{random}}
+\]
+を算出する。
+
+\paragraph{6.2.5 READMEと実コードの差異}
+READMEには、
+\begin{enumerate}
+\item Matched
+\item Random
+\item Same-Task Reader
+\item Same-Task Self
+\end{enumerate}
+の「4大コントロール」と記載されている。
+
+しかし現在のE4ループで明示的に保存・比較しているcross-task controlは、
+\begin{itemize}
+\item Matched
+\item Random
+\end{itemize}
+の2条件である。
+
+Same-task Reader/Self介入はE3側で実施されているが、E4の \texttt{e4\textbackslash{}\_interchangeability\textbackslash{}\_results.csv} では4条件を同一のcontrol matrixとして比較しているわけではない。
+したがって現状は、
+> Matched vs Randomによるcross-task specificityと、E3のsame-task介入を補助的に比較する構成
+
+と記述するのが実装に忠実である。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsubsection{6.3 E6: Double Dissociation}
+
+\paragraph{科学的問い}
+ReaderとSelfが共通の情動情報を持ち、一部の内部表現を相互利用できたとしても、下流の因果利用部位まで完全に同一とは限らない。
+そこで、
+\begin{itemize}
+\item Readerにより強く関与する層
+\item Selfにより強く関与する層
+\end{itemize}
+を選択し、両タスクに交差的に介入する。
+
+\paragraph{6.3.1 Site Selection}
+現在のスクリプトでは、
+\begin{verbatim}
+--reader-layer
+--self-layer
+\end{verbatim}
+としてReader-siteとSelf-siteを外部から指定する。
+したがって、スクリプト自身がE3/E4結果から自動的にsiteを探索・決定するわけではない。E3/E4等の結果を基に適切な層を事前選択して入力する設計である。
+
+\paragraph{6.3.2 Targeted Ablation}
+現在の実装では各対象層の末尾トークンhidden stateを、
+\[
+\mathbf{0}
+\]
+で置換するZero Ablationを使用している。
+
+Reader-siteについて、
+\begin{itemize}
+\item Readerタスク
+\item Selfタスク
+\end{itemize}
+の両方に介入する。Self-siteについても同様である。
+
+介入結果は、
+\[
+|\Delta E[V]|
+\]
+として測定される。
+なお、コメントにはmean-neutral replacementも記載されているが、現在の実コードで実際に使用されているのはzero vector replacementである。
+
+\paragraph{6.3.3 2×2因果介入行列}
+理想的なdouble dissociationは、
+
+\begin{center}
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Site / Task} & \textbf{Reader} & \textbf{Self} \\
+\midrule
+\textbf{Reader-site} & 大 & 小 \\
+\textbf{Self-site} & 小 & 大 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+というcross-over patternである。
+
+\paragraph{6.3.4 Linear Mixed-Effects Model}
+各pairについて得られた介入効果を用い、
+\[
+\text{Outcome} \sim \text{Task} \times \text{SiteType} + (1 \mid \text{pair})
+\]
+をfitする。
+
+固定効果は、
+\begin{itemize}
+\item Task: Reader / Self
+\item SiteType: ReaderSite / SelfSite
+\item Task × SiteType interaction
+\end{itemize}
+である。
+
+ランダム切片として、
+\[
+(1 \mid \mathrm{pair})
+\]
+を入れる。
+
+現在の実装では主要な判定基準は、
+\[
+p_{\mathrm{interaction}} < .05
+\]
+である。したがってREADME中の $p < .01$ ではなく、現行コードに合わせるなら $p < .05$ とする必要がある。
+
+\paragraph{6.3.5 E6の科学的射程}
+Task × SiteType interactionが有意であり、さらにセル平均が期待するcross-over patternを示す場合、
+> \textbf{ReaderとSelfの因果利用にはタスク依存の分化が存在する}
+
+ことを支持する。
+
+ただし、interactionが有意であることだけから、「完全な二重解離が証明された」とするのは強い。特にsite自体が同じデータから選択されている場合にはselection biasも考慮する必要がある。
+したがって、
+> task-specific causal specialization / partial dissociation
+
+という表現がより適切である。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{7. V1全体の論理構造}
+
+V1は、以下のような段階的な推論構造を持つ。
+
+\begin{center}
+\small
+\begin{tabular}{llll}
+\toprule
+\textbf{実験} & \textbf{科学的問い} & \textbf{主手法} & \textbf{最も直接的に検証するもの} \\
+\midrule
+\textbf{E1} & Reader/Self双方に感情情報が存在するか & Linear Probing & Decodability \\
+\textbf{E2} & 表現幾何はどの程度対応するか & Cross-Decoding / RSA / Procrustes & Representational Geometry \\
+\textbf{E5} & 単純な語彙ショートカットだけで説明可能か & Minimal Pair / Paraphrase / Shuffle / Reversal & Semantic / Contextual Validity \\
+\textbf{E3} & 同一タスク内でどの層の差分表現が出力を動かすか & Difference-vector Intervention & Causal Effect Map \\
+\textbf{E4} & Reader差分をSelfで利用できるか & Cross-task Difference Patching + $\alpha$-sweep & Causal Interchangeability \\
+\textbf{E6} & Reader/Selfで因果利用部位が分化しているか & Targeted Zero Ablation + LMM & Causal Specialization \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+したがってV1全体は、
+\[
+\boxed{\text{Behavioral Coupling}}
+\]
+から出発し、
+\[
+\boxed{\text{Decodable}}
+\]
+\[
+\downarrow
+\]
+\[
+\boxed{\text{Geometrically related}}
+\]
+\[
+\downarrow
+\]
+\[
+\boxed{\text{Not explained by lexical shortcut alone}}
+\]
+\[
+\downarrow
+\]
+\[
+\boxed{\text{Causally effective}}
+\]
+\[
+\downarrow
+\]
+\[
+\boxed{\text{Cross-task transferable}}
+\]
+\[
+\downarrow
+\]
+\[
+\boxed{\text{Potentially task-specialized}}
+\]
+という段階で内部機構を絞り込む研究として整理できる。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{8. V1で最終的に主張できることと、できないこと}
+
+\subsubsection{V1で検証しようとしている中心命題}
+V1の中心は、
+> \textbf{Reader PredictionとSelf-Reportの高い行動的連動が、単なる出力上の偶然の一致なのか、それとも内部の情動関連表現およびその因果利用を部分的に共有することによって生じているのか}
+
+を段階的に検証することである。
+
+そのため、
+\[
+\text{Behavioral similarity}
+\]
+だけから一足飛びに、
+\[
+\text{Shared mechanism}
+\]
+を主張しないことが重要である。
+
+\subsubsection{各Phaseが追加する証拠}
+\begin{itemize}
+\item \textbf{Phase A}:
+\end{itemize}
+\[
+  \text{Reader/Self双方に情報が存在する}
+\]
+  さらに、
+\[
+  \text{その表現幾何が一定程度対応する}
+\]
+  ことを調べる。
+
+\begin{itemize}
+\item \textbf{Phase B}:
+\end{itemize}
+  その情報について、
+\[
+  \text{単純な語彙ショートカットだけでは説明しにくい}
+\]
+  ことを検証する。
+
+\begin{itemize}
+\item \textbf{Phase C}:
+\end{itemize}
+  さらに、
+\[
+  \text{その情報が出力を因果的に変化させる}
+\]
+  こと、および、
+\[
+  \text{Readerで形成された差分がSelfでも機能するか}
+\]
+  を直接介入によって調べる。
+
+最後にE6で、
+\[
+\text{Shared Representation} + \text{Task-specific Causal Utilization}
+\]
+という構造の可能性を検証する。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{9. V1の最も安全な総括}
+
+以上を踏まえると、V1は次のように位置づけるのが最も正確である。
+
+> \textbf{V1は、Reader PredictionとSelf-Reportの強い行動的連動について、その背後にある内部メカニズムを、線形デコード可能性、表現幾何、語彙ショートカット統制、因果介入、cross-task representation transfer、task-specific ablationという複数のレベルから段階的に検証する研究フレームワークである。}
+
+特に重要なのは、
+\[
+\boxed{
+\text{Decodability} \neq \text{Semantic validity} \neq \text{Causal use} \neq \text{Identical circuit}
+}
+\]
+を明確に区別している点である。
+
+V1全体の論理は、
+\[
+\boxed{
+\text{存在} \rightarrow \text{表現関係} \rightarrow \text{意味妥当性} \rightarrow \text{因果利用} \rightarrow \text{交換可能性} \rightarrow \text{機能的分化}
+}
+\]
+と整理できる。
+
+この構造によって、「ReaderとSelfの出力が似ている」という行動的観察だけでは説明できない、内部情報がどこまで共有され、どこからタスク固有の計算へ分岐するのかを検証することがV1の中心的な目的である。
+
+
+####################################################################################
+
+\section{phase Aの結果}
+/mnt/nas/home/hiromi/src/emo/v1/results/derived/v1_phase_a/phase_a_comprehensive_report.tex
+
+
+
+
+
+#####################################################################################
+
+
+\section{phase Aの考察}
+
+
+
+
+
+
+
+
+
+
+
+#####################################################################################
+
+\section{phase Bの結果}
+/mnt/nas/home/hiromi/src/emo/v1/results/derived/v1_phase_b/phase_b_comprehensive_report.tex
+
+
+
+
+
+
+
+
+
+#####################################################################################
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\section{Phase Bの考察}
+
+\subsection{1. 総括：語彙ショートカット仮説に対する証拠とその限界}
+
+Phase B（E5）では、AIPsy-Affect の厳密な最小対を用いて、Phase Aで観測された情動関連情報の線形デコード可能性が、文章中に含まれる特定の感情語や単純な Bag-of-Words 的特徴だけによって説明できるのかを検証した。
+
+本実験から得られた主要な知見は、中間層からデコードされる情動関連情報は、単純な表層語彙の頻度や共起だけでは十分に説明できず、多くのモデルでは語順、構文、文脈統合といった構成的な情報に依存しているということである。
+
+この結論を支える中心的な証拠は、単一の実験条件ではなく、以下の複数の統制結果の組み合わせにある。
+
+\begin{enumerate}
+\item Paraphrase 条件では、表層語彙を変更しても高いデコード性能が維持された。
+\item Word Shuffle 条件では、単語集合を維持したまま語順を破壊すると、8条件中7条件でデコード性能が低下した。
+\item 元の最小対では、明示的感情語の含有差や Perplexity の大きな非対称性は確認されなかった。
+\item 一部のモデルでは、Outcome Reversal によって結末の意味を反転させた際に、内部表現から得られる予測も対応する方向へ変化した。
+\end{enumerate}
+
+これらの結果を総合すると、Phase Aで観測された情動関連表現を「特定の感情単語を検出しているだけ」と説明する単純な語彙ショートカット仮説は支持されにくい。
+
+一方で、結果の強さはモデルによって均一ではない。特に Outcome Reversal の効果量には大きなモデル差があり、Gemma 2 2B BaseではWord Shuffleによる性能低下も観測されなかった。また、Shuffle後にも多くのモデルで比較的高い分類精度が残存している。
+
+したがって、本研究の結果は「内部表現が純粋に意味情報のみから構成されている」ことを示すものではない。より妥当な解釈は、情動関連表現には語彙的特徴も含まれるが、それだけではなく、語順や文脈構造に依存する情報も利用されているというものである。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{2. 直交的な統制による語彙ショートカット仮説の検証}
+
+Phase Bの重要な特徴は、表層形式と意味内容を異なる方向から操作する複数の統制条件を組み合わせた点にある。
+
+\[
+\begin{aligned}
+\text{Paraphrase:}      &\quad \text{表層変更・意味維持} \\
+\text{Word Shuffle:}    &\quad \text{語彙維持・構造破壊} \\
+\text{Outcome Reversal:}&\quad \text{文脈近似・結末意味変更}
+\end{aligned}
+\]
+
+これらを組み合わせることで、「単語が変わったから表現が変わった」のか、「意味構造が変わったから表現が変わった」のかをある程度切り分けることができる。
+
+\subsubsection{2.1 Paraphrase：表層語彙を変更しても情報は維持される}
+
+全8モデルにおいて、Paraphrase条件のデコード精度は 0.992〜1.000 であり、非常に高い水準を維持した。
+
+Original条件では 0.727〜0.938 であったことを考えると、少なくとも、元文章に含まれる特定の単語列そのものがデコード性能の必要条件ではないことが分かる。
+
+すなわち、
+\[
+x \rightarrow \operatorname{paraphrase}(x)
+\]
+と表面的な語彙を大きく変更した場合でも、情動カテゴリーに関連する情報は中間層表現に保持されていた。
+
+これは、固定的な感情語辞書や特定トークンへの単純な依存だけでは結果を説明しにくいことを示している。
+
+ただし、全モデルでParaphrase精度がOriginalを上回っている点には注意が必要である。この結果を「言い換えによってモデルの意味理解が向上した」と解釈する根拠はない。
+
+むしろ、Paraphrase生成によって文章構造や表現が正準化され、affective / neutral の差が元データより線形分離しやすくなった可能性がある。
+
+したがってParaphrase実験から最も保守的に主張できるのは、
+
+> 表層語彙を変更しても、情動関連情報の線形デコード可能性は失われない
+
+という点である。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsubsection{2.2 Word Shuffle：同じ単語を保持しても語順を壊すと性能が低下する}
+
+Paraphraseと対になる重要な結果がWord Shuffleである。
+
+Word Shuffleでは文章中の単語集合を維持しながら語順をランダム化するため、Bag-of-WordsレベルではOriginalとほぼ同一の情報を保持する一方、統語構造や文脈的な構成関係が大きく破壊される。
+
+その結果、8条件中7条件でOriginalから精度が低下した。
+
+代表的には、
+\begin{itemize}
+\item Qwen Base: 0.883 → 0.773
+\item Qwen Instruct: 0.857 → 0.766
+\item Llama Base: 0.880 → 0.755
+\item Llama Instruct: 0.924 → 0.823
+\item Gemma Instruct: 0.727 → 0.622
+\item Mistral Base: 0.901 → 0.776
+\item Mistral Instruct: 0.938 → 0.828
+\end{itemize}
+
+であり、低下量は概ね 0.09〜0.13 であった。
+
+もしデコード性能が単語集合のみで決まっているなら、語順を変更しても性能がほぼ維持されることが予想される。そのため、この一貫した低下は、語順、構文関係、あるいは文脈統合によって形成される情報がデコード性能に寄与していることと整合する。
+
+ただし、Shuffle後の精度はchance levelまで低下していない。
+
+したがって、「デコードされる情報はすべて構成的意味である」と結論することはできない。
+
+むしろ、
+\[
+\text{Affective representation} \approx \text{lexical information} + \text{contextual / structural information} + \cdots
+\]
+のように、複数種類の情報が混在していると考える方が結果に整合的である。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsubsection{2.3 Lexical / Perplexity Audit：元データ自体の単純な非対称性は小さい}
+
+Originalの最小対に対する事前監査では、全モデル共通で、
+\begin{itemize}
+\item Token Jaccard similarity: 0.411
+\item Relative edit distance: 0.464
+\item Emotion cue difference: -0.047
+\end{itemize}
+
+であった。
+
+感情辞書キューの差が小さいことから、affective条件だけに明示的な感情語が大量に含まれているという単純なデータ構造にはなっていない。
+
+また、Perplexity比（Affective / Neutral）は、
+\[
+0.864 \sim 0.967
+\]
+の範囲にあり、極端な差は観測されなかった。
+
+この結果から、affective刺激とneutral刺激の一方だけが著しく不自然あるいはモデルにとって予測困難であり、その違いをプローブが検出しているという説明は支持されにくい。
+
+ただし、PPL比が1に近いことだけで「統語的難易度や自然さの交絡を完全に排除した」とまでは言えない。Perplexityは文章の自然さを表す一つの代理指標にすぎないためである。
+
+したがって、E5-1は主要な表層交絡が大きくないことを確認する補助的証拠として位置づけるのが妥当である。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{3. Outcome Reversal：意味変化への感度には大きなモデル差がある}
+
+Outcome Reversalでは、文脈を可能な限り維持しながら結末の意味を反転させ、その際に内部表現から得られる予測がどの程度変化するかを測定した。
+
+結果はモデル間で大きく異なった。
+
+\[
+\begin{array}{lcc}
+\hline
+\text{Model} & \text{Base} & \text{Instruct} \\
+\hline
+\text{Qwen}    & -0.284 & -0.091 \\
+\text{Llama}   & -0.039 & -0.013 \\
+\text{Gemma}   & -0.146 & -0.144 \\
+\text{Mistral} & -0.018 & -0.007 \\
+\hline
+\end{array}
+\]
+
+Qwen BaseおよびGemma Base/Instructでは比較的大きな負方向の変化が確認された一方、LlamaおよびMistralでは変化量は小さかった。
+
+したがってOutcome Reversalについては、8モデル共通の結果として扱うべきではない。
+
+むしろ、
+
+> 構成的な文脈情報への依存は複数モデルに共通する一方で、局所的な結末意味の変化をどの程度強く内部表現へ反映するかはモデルファミリーに依存する
+
+という結果として解釈する方が適切である。
+
+このモデル差は、Phase Bの重要な副次的知見である。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{4. モデルファミリー別の特徴}
+
+\subsubsection{4.1 Qwen 2.5 1.5B：最も明瞭な意味変化への追従}
+
+Qwen Baseは、Phase Bの想定するパターンを最も明瞭に示したモデルの一つである。
+
+Original精度は0.883であり、Paraphraseでは0.992と高い性能を維持した。一方、Word Shuffleでは0.773まで低下した。
+
+さらにOutcome Reversalは -0.284 と全8条件中最大であり、結末意味を変化させた際に内部表現からの予測も大きく変化した。
+
+したがってQwen Baseについては、
+\begin{enumerate}
+\item 表層語彙の置換には頑健である
+\item 語順・構造の破壊には感度を示す
+\item 結末の意味方向の変更にも追従する
+\end{enumerate}
+
+という3種類の証拠が整合的に得られている。
+
+Qwen InstructでもParaphrase 1.000、Shuffle 0.766と同様の構造依存性が確認された。
+
+一方、Outcome Reversalは -0.091 まで縮小している。
+
+この結果は、Instruction tuning後にも構成的情報への依存性は維持される一方、結末の局所的意味変化に対する内部表現の感度がBaseより小さくなっている可能性を示している。
+
+ただし、Phase Bのみから、この変化を「readout couplingの抑制」と原因づけることはできない。ここで確認しているのはあくまで内部表現およびプローブ予測の変化であり、因果的な出力利用についてはPhase Cの介入実験による検証が必要である。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsubsection{4.2 Llama 3.2 1B：構造依存性は強いがOutcome Reversal感度は弱い}
+
+Llama Baseでは、Original 0.880に対してParaphraseは1.000を維持し、Shuffleでは0.755まで低下した。
+
+低下量は -0.125 であり、Mistral Baseと並んで最大である。
+
+したがって、Llama Baseのデコード性能には語順や文脈構造が強く寄与していることが示唆される。
+
+一方、Outcome Reversalの変化量は -0.039 と小さい。
+
+Llama Instructでも同様に、Original 0.924、Paraphrase 1.000、Shuffle 0.823であり、構造破壊に対して明確な性能低下を示した。
+
+しかしOutcome Reversalは -0.013 で、ほぼ変化しなかった。
+
+したがってLlamaファミリーでは、Phase Bの主な証拠はOutcome Reversalではなく、
+\[
+\boxed{
+\text{Paraphrase invariance} + \text{Shuffle sensitivity}
+}
+\]
+の組み合わせにある。
+
+これは、Llamaが文章の構成的特徴を利用していることを支持する一方、今回用いたOutcome Reversal操作に対する表現感度は限定的であることを示している。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsubsection{4.3 Gemma 2 2B：Baseでの例外とInstructでの変化}
+
+Gemma BaseはPhase Bにおける最も重要な例外である。
+
+Original精度0.745に対し、Word Shuffle後の精度は0.766であり、低下せず +0.021 の変化を示した。
+
+したがってGemma Baseについては、
+
+> 語順・構文構造の破壊によってデコード性能が低下する
+
+という仮説は支持されなかった。
+
+一方、Paraphrase精度は0.997であり、Outcome Reversalも -0.146 と比較的大きい。
+
+したがってGemma Baseを単純なBag-of-Wordsモデルと結論することもできない。
+
+より妥当なのは、異なる統制条件が異なる方向の証拠を示すMixed Evidenceとして扱うことである。
+
+対照的にGemma Instructでは、Original 0.727からShuffle 0.622へと -0.104 低下した。
+
+またOutcome Reversalも -0.144 であり、Baseとほぼ同程度の変化が維持された。
+
+したがってGemmaでは、Instruction tuning後に語順・構造への感度がより明瞭に現れている。
+
+ただし、これを直ちに「Instruction tuningが構成的意味表現を獲得させた」と因果的に解釈することはできない。Base/Instruct間には学習過程全体の差が存在するため、現時点では、
+
+> Gemmaではpost-training後のモデルでShuffle sensitivityが強く観測された
+
+という記述的結論に留めるべきである。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsubsection{4.4 Mistral 7B：高いデコード性能と強い構造依存性}
+
+Mistral BaseはOriginal 0.901、Paraphrase 0.997、Shuffle 0.776であり、Shuffleによる低下量は -0.125 であった。
+
+Mistral InstructもOriginal 0.938と全8条件中最も高い精度を示し、Paraphrase 0.997を維持しつつShuffleでは0.828まで低下した。
+
+したがってMistralではBase/Instruct双方において、情動関連情報の線形分離性が高く、かつその一部が語順・文脈構造に依存している。
+
+一方、Outcome ReversalはBase -0.018、Instruct -0.007と非常に小さい。
+
+したがってMistralの内部表現は、affective / neutral の大局的な区別には高い線形分離性を持つ一方、今回のOutcome Reversalで操作した局所的な結末変化に対しては大きく変化しなかった。
+
+この点は、「デコード精度の高さ」と「意味変化への局所的感度」が同一ではないことを示している。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{5. BaseとInstructの比較}
+
+Phase Bでは、BaseとInstructの違いについてもいくつかの傾向が確認された。
+
+\subsubsection{5.1 情動関連情報のデコード可能性はpost-training後も維持される}
+
+Original精度は、
+\begin{itemize}
+\item Qwen: 0.883 → 0.857
+\item Llama: 0.880 → 0.924
+\item Gemma: 0.745 → 0.727
+\item Mistral: 0.901 → 0.938
+\end{itemize}
+
+であった。
+
+QwenとGemmaでは小幅に低下し、LlamaとMistralでは上昇している。
+
+したがって、「Instruction tuningによって中間層の情動関連情報が一貫して消失または低下する」という結果ではない。
+
+むしろ、情動関連情報の線形デコード可能性はBase/Instruct双方で広く保持されている。
+
+これはPhase Aで得られた「post-training後も内部情報が保持される」という結果と整合的である。
+
+\subsubsection{5.2 Paraphrase invarianceはBase/Instructに共通する}
+
+すべてのBase/InstructモデルでParaphrase性能は0.992以上であった。
+
+したがって、表層語彙の変更に対する頑健性はpost-training前後で共通して観測される。
+
+少なくとも今回のモデル群では、Instruction tuningによってこの性質が失われることはなかった。
+
+\subsubsection{5.3 Shuffle sensitivityにも一貫した消失はない}
+
+Qwen、Llama、MistralではBase/Instruct双方でShuffle後に性能が低下した。
+
+GemmaのみBaseで低下せず、Instructで低下した。
+
+したがって、post-trainingが構成的情報への依存性を一貫して弱めるという証拠はない。
+
+むしろファミリーによって変化の仕方が異なる。
+
+\subsubsection{5.4 Outcome Reversal感度は多くのファミリーでInstructの方が小さい}
+
+Outcome Reversalでは、
+\begin{itemize}
+\item Qwen: -0.284 → -0.091
+\item Llama: -0.039 → -0.013
+\item Gemma: -0.146 → -0.144
+\item Mistral: -0.018 → -0.007
+\end{itemize}
+
+となった。
+
+Qwen、Llama、MistralではInstructの方が変化量の絶対値が小さく、Gemmaのみほぼ変化しなかった。
+
+このパターンは興味深いが、Phase Bだけから「post-trainingによってreadout couplingが抑制された」と結論することはできない。
+
+Outcome Reversalで測定されているのは、刺激変更に伴う内部表現からのプローブ予測の感度である。
+
+したがって現段階で妥当な解釈は、
+
+> 複数のモデルファミリーにおいて、Instructionモデルでは局所的な結末意味の反転に対する中間表現のプローブ感度がBaseより小さい
+
+というものである。
+
+この違いが、
+\begin{itemize}
+\item 表現そのものの変化
+\item 表現空間の再配置
+\item 下流readoutとの結合変化
+\item instruction formattingによる処理差
+\end{itemize}
+
+のどれに由来するかは、Phase Cの因果介入によって初めて区別できる。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{6. Phase Bから支持される表現像}
+
+以上の結果から、Phase Bが支持する最も保守的な内部表現像は次のようなものである。
+
+\[
+\boxed{
+\text{Affective representation} \neq \text{simple lexical shortcut only}
+}
+\]
+
+一方、
+
+\[
+\boxed{
+\text{Affective representation} \neq \text{pure semantic representation only}
+}
+\]
+
+とも結論できない。
+
+むしろ、
+
+\[
+\boxed{
+\text{Affective representation} \approx \text{lexical} + \text{syntactic} + \text{contextual} + \text{semantic information}
+}
+\]
+
+のような複合的な表現として捉えることが、今回の結果には最も整合的である。
+
+Paraphrase実験は、特定語彙への依存だけでは説明できないことを示し、Word Shuffle実験は、単語集合だけでは十分でなく構造情報が寄与することを示す。
+
+Outcome Reversalはさらに一部のモデルで、文脈上の結果意味の変化にも内部表現が追従することを示している。
+
+一方で、Shuffle後にも情報が残ることや、Gemma Baseの例外は、lexical informationも依然として表現に寄与していることを示唆する。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{7. 科学的主張の範囲}
+
+Phase Bから最も強く、かつ安全に主張できる結論は次の通りである。
+
+> Phase Bの複数の直交的統制実験は、Phase Aで観測された情動関連情報の線形デコード可能性を、単純な感情語頻度やBag-of-Words型の語彙ショートカットのみで説明する仮説と整合しない結果を示した。特に、表層語彙を変更したParaphrase条件では情報が維持される一方、単語集合を保持して語順を破壊したWord Shuffle条件では8条件中7条件で性能が低下した。これらの結果は、モデル内部の情動関連表現が語彙的特徴だけでなく、語順、構文、および文脈統合に依存する情報を含むことを支持する。
+
+一方で、本研究は次のことを証明したわけではない。
+\begin{itemize}
+\item 内部表現が人間の主観的感情そのものと同一であること
+\item lexical informationが内部表現に寄与していないこと
+\item すべてのモデルでOutcome Reversalへの強い追従が存在すること
+\item post-trainingが特定の因果機構を変化させたこと
+\item デコード可能な情報が実際の出力生成に利用されていること
+\end{itemize}
+
+最後の2点は特に重要である。
+
+Phase Bが確立したのは、
+\[
+\text{decodable information}
+\]
+の意味的妥当性を強化する証拠であって、
+\[
+\text{causally used information}
+\]
+の証明ではない。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsection{8. Phase Cへの接続}
+
+Phase Bまでの結果をまとめると、
+\begin{enumerate}
+\item Phase Aでは、Reader / Selfの内部表現から情動関連情報をデコードできることが確認された。
+\item Phase Bでは、その情報が単純なBag-of-Words型語彙ショートカットだけでは説明しにくいことが示された。
+\end{enumerate}
+
+しかし、ここまでで分かるのは、
+
+> モデル内部に意味的に妥当な情動関連情報が存在する
+
+ところまでである。
+
+依然として、
+
+> その情報が、いつ、どこで、どのように実際のReader / Self出力を生成するために利用されているのか
+
+は未解決である。
+
+線形にデコードできる情報は、モデル内部に存在していても、下流の計算に利用されないepiphenomenal informationである可能性がある。
+
+したがってPhase Cでは、
+\[
+\boxed{
+\text{Representation} \rightarrow \text{Causal use}
+}
+\]
+へと問いを進める必要がある。
+
+具体的には、activation patching、ablation、Reader–Self間のcross-task intervention、およびdouble dissociationによって、
+\begin{itemize}
+\item 情動情報を保持する場所と因果的に重要な場所が一致するか
+\item ReaderとSelfで同じ内部情報が利用されるか
+\item 共通表現からtask-specificなreadoutへ分岐しているのか
+\end{itemize}
+
+を検証する。
+
+したがってPhase Bの役割は、単なる補助的な「語彙チェック」ではない。
+
+Phase Aで発見されたdecodable affective representationについて、その意味的妥当性を検証し、Phase Cで因果的利用を問うための前提条件を確立する段階として位置づけられる。
+
+最終的に本研究全体は、
+\[
+\boxed{
+\text{Decodable} \rightarrow \text{Semantically grounded} \rightarrow \text{Causally used}
+}
+\]
+という三段階を区別することで、LLM内部の情動関連情報について、「存在すること」と「意味を持つこと」と「行動に利用されること」を混同せずに検証する枠組みを構成する。
+
+
+
+
+
+
+#####################################################################################
+\section{phase Cの結果}
+
+
+
+
+
+
+
+
+
+
+
+#####################################################################################
+
+\section{phase Cの考察}
+/mnt/nas/home/hiromi/src/emo/v1/results/derived/v1_phase_c/phase_c_comprehensive_report.tex
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#####################################################################################
+
+\end{document}

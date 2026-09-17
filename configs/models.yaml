@@ -1,0 +1,61 @@
+# 4モデルファミリー定義設定ファイル
+families:
+  Qwen:
+    family_name: "Qwen 2.5"
+    scale: "1.5B"
+    num_layers: 28
+    hidden_dim: 1536
+    models:
+      base:
+        model_id: "Qwen/Qwen2.5-1.5B"
+        format: "plain"
+      instruct:
+        model_id: "Qwen/Qwen2.5-1.5B-Instruct"
+        format: "chat"
+    architecture: "qwen2"
+    role: "primary_exploration"
+
+  Llama:
+    family_name: "Llama 3.2"
+    scale: "1B"
+    num_layers: 16
+    hidden_dim: 2048
+    models:
+      base:
+        model_id: "meta-llama/Llama-3.2-1B"
+        format: "plain"
+      instruct:
+        model_id: "meta-llama/Llama-3.2-1B-Instruct"
+        format: "chat"
+    architecture: "llama"
+    role: "replication"
+
+  Gemma:
+    family_name: "Gemma 2"
+    scale: "2B"
+    num_layers: 26
+    hidden_dim: 2304
+    models:
+      base:
+        model_id: "google/gemma-2-2b"
+        format: "plain"
+      instruct:
+        model_id: "google/gemma-2-2b-it"
+        format: "chat"
+    architecture: "gemma2"
+    role: "replication"
+
+  Mistral:
+    family_name: "Mistral"
+    scale: "7B"
+    num_layers: 32
+    hidden_dim: 4096
+    models:
+      base:
+        model_id: "mistralai/Mistral-7B-v0.1"
+        format: "plain"
+      instruct:
+        model_id: "mistralai/Mistral-7B-Instruct-v0.2"
+        format: "chat"
+    architecture: "mistral"
+    role: "replication"

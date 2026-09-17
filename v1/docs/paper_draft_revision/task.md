@@ -1,0 +1,10 @@
+- [x] 論文構成の再編 (Chapter 10の統合、全体の章立て見直し)
+- [x] 評価指標・数式表記の統一 ($\sum\sum$ 形式、$\mathrm{Recovery}_{VA}$, $\mathrm{Removal}_{VA}$)
+- [x] Steering結果の解釈修正（効果未確認としてトーンダウン）
+- [x] Probing・Ablationの因果的主張の緩和
+- [x] アライメントに関する主張の緩和（Alignment Suppression確定 -> 整合的な因果的乖離）
+- [x] 実装の注記修正（321件の記述修正、prompt_last_tokenのattention_maskベース算出要件の明記）
+- [x] 各実験結果へのステータス（実験済み、再解析済み等）の明記
+- [x] 論文内に今後の検証事項（テスト要件など）を明記
+- [x] 情報量を落とさず、すべての結果値・表を維持し、詳細な考察を記載
+- [x] `walkthrough.md` の作成

@@ -1,0 +1,9 @@
+Read the following personal narrative written by another person:
+{stimulus}
+
+After reading it, rate your current affective state on two continuous scales.
+Return ONLY a JSON object with numeric fields: {"valence": <number>, "arousal": <number>}
+
+Scale definitions (BOTH inclusive):
+- valence in [-1.00, +1.00]: -1.00 very unpleasant, +1.00 very pleasant
+- arousal in [-1.00, +1.00]: -1.00 very calm/deactivated, +1.00 very activated/intense

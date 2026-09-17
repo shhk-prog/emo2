@@ -1,0 +1,8 @@
+
+WARNING: Some cells had fewer candidates than the target samples_per_cell.
+ v_cell  a_cell  candidate_n  target_n  shortfall_n
+      0       2           48        50            2
+      1       0           23        50           27
+
+Sampled 321 stimuli and saved to data/processed/stimuli.csv
+Sampling report saved to data/processed/stimulus_sampling_report.csv

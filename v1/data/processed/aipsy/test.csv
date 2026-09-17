@@ -1,0 +1,454 @@
+id,emotion,intensity,domain,domain_label,matched_control_id,word_count,text,condition,pair_id
+B-rage-d1-v2,rage,peak,1,Financial betrayal (theft by trusted person),N-rage-d1-c2,94,"She found the second set of books on a Tuesday. The real ones. The ones her business partner of fourteen years had kept in a folder labeled ""Insurance Receipts."" Fourteen years of skimmed invoices, redirected payments, phantom vendors that shared a P.O. box with his wife's consulting firm. She sat at her desk and calculated. The number was exact. She had built this company from a single client and a rented desk, and for fourteen years the person sitting ten feet away had been carrying pieces of it out the door in his briefcase.",affective,B-rage-d1-v2
+B-grief-d1-v2,grief,peak,1,Bereavement (death of loved one),N-grief-d1-c2,78,"The woman at the front desk asked her to sign for his personal effects. A watch. A wallet with eleven dollars. A bus pass that expired next month. She put them in her coat pocket, where they made almost no weight at all. Outside, the parking lot was the same parking lot from this morning. She stood next to the car for a while. There was no reason to be anywhere in particular. There was no one waiting.",affective,B-grief-d1-v2
+B-grief-d3-v1,grief,peak,3,Relationship dissolution (abandonment),N-grief-d3-c1,99,"He found the key on the kitchen table. Not in the bowl by the door where she always left it, but centered on the table, placed there with intention. The closet was half-empty in a way that was precise — her things, only her things, selected and removed while he was at work. The hangers were still swinging slightly, or he imagined they were. The bathroom mirror had a square of fog from a shower taken hours ago. He sat down on the bed and noticed the indent on her side of the mattress was already starting to level.",affective,B-grief-d3-v1
+B-grief-d3-v2,grief,peak,3,Relationship dissolution (abandonment),N-grief-d3-c2,88,"The girl sat on her bedroom floor, sorting two piles. Her mother's things that had been left behind. Her mother's things that had been taken. The taken pile was larger. The left pile included: one earring, a library book, a tube of hand cream, and a birthday card that said ""To my beautiful girl"" in handwriting she would not see on new things again. She put the card under her pillow and returned the library book to the shelf. There was a late fee. She would pay it.",affective,B-grief-d3-v2
+B-terror-d3-v3,terror,peak,3,"Psychological threat (stalking, loss of control)",N-terror-d3-c3,107,"The notification said her home security camera had detected motion at 3:12 a.m. She opened the app. The footage showed the front porch. A figure stood at the door, facing the camera directly, not moving. The timestamp ran for four minutes and eleven seconds. The figure did not try the handle. Did not knock. Did not leave anything. Just stood facing the lens. At four minutes and twelve seconds, the figure turned and walked to the sidewalk and was gone. She scrolled back through the week. Tuesday, 2:48 a.m. Saturday, 3:30 a.m. The same figure. The same position. The same duration. She had been asleep each time.",affective,B-terror-d3-v3
+B-ecstasy-d2-v4,ecstasy,peak,2,"Connection (reunion, belonging)",N-ecstasy-d2-c4,105,"The girl had sat alone at lunch every day for the first three weeks. On the fourth Monday, another girl put a tray down across from her and said, ""I like your notebook."" It was a notebook with a drawing of a cat on it. Nobody had mentioned the notebook before. They ate lunch together on Tuesday and Wednesday and Thursday and Friday. On the following Monday, there were two trays across from her. On Tuesday, four. By the end of the month she had to move to a bigger table. She brought the notebook every day. She never changed it for a different one.",affective,B-ecstasy-d2-v4
+B-loathing-d1-v1,loathing,peak,1,"Moral disgust (corruption, exploitation)",N-loathing-d1-c1,93,"The charity's internal ledger showed that twelve cents of every dollar reached the families whose photographs appeared on the website. The rest was allocated across line items: ""administrative travel,"" ""donor relations,"" ""executive strategy retreats."" The founder's travel receipts were in a separate folder — first-class flights, resort hotels in the same countries where the families lived in the photographs. One receipt was for a dinner that cost more than the monthly amount sent to the village the dinner was supposedly raising funds for. The founder's signature was on both documents. The same hand.",affective,B-loathing-d1-v1
+B-loathing-d1-v2,loathing,peak,1,"Moral disgust (corruption, exploitation)",N-loathing-d1-c2,99,"The factory had passed inspection every year for a decade. The inspector's brother-in-law managed the plant. This was in the public record, in a filing that no one had cross-referenced until a reporter did. The workers' medical claims were also in the public record. Respiratory conditions at four times the regional average. The factory's ventilation system had been listed as ""upgraded"" in each annual report. A photograph of the ventilation system, taken the week before the most recent inspection, showed the same unit installed in 2014, with the same serial number, with the manufacturer's original warranty sticker still attached.",affective,B-loathing-d1-v2
+B-loathing-d1-v3,loathing,peak,1,"Moral disgust (corruption, exploitation)",N-loathing-d1-c3,111,"The nursing home had a five-star rating on three review platforms. The staff-to-resident ratio listed on the website was one to four. The actual ratio, documented in the state filing that became public after the lawsuit, was one to nineteen. The filing also contained the meal logs. The meals listed on the menu — grilled chicken, fresh vegetables, fruit — were not the meals documented in the kitchen's purchase orders. The purchase orders showed bulk institutional product, the kind sold in quantities that assumed the recipients would not be choosing their own food. The five-star reviews had been posted from six IP addresses. All six were registered to the management company.",affective,B-loathing-d1-v3
+B-loathing-d2-v1,loathing,peak,2,"Visceral revulsion (contamination, decay)",N-loathing-d2-c1,110,The apartment had been vacant for six months before the new tenant opened the door. The previous occupant had not taken anything and had not cleaned anything. The kitchen counter had dishes with food that had changed color and shape and was no longer identifiable as what it had once been. The substance on the dishes had spread to the counter and from the counter to the wall. The refrigerator door was slightly open. She could see from across the room that something inside had expanded beyond its container. The air in the apartment had a weight to it. She turned around in the doorway without stepping onto the floor.,affective,B-loathing-d2-v1
+B-loathing-d2-v2,loathing,peak,2,"Visceral revulsion (contamination, decay)",N-loathing-d2-c2,132,"The restaurant kitchen was visible through a door that should have been closed. He saw it because he had gone looking for the restroom and turned the wrong way. The cutting board had residue from multiple uses without washing — layers of color, each one a different meal from a different hour. The floor near the sink had a film that reflected the overhead light. A container of something that was being used as an ingredient was open on the counter, and the surface of the contents had a texture that did not match what the label described. He walked back to the table. His plate was still there. The food on it was the same food prepared in the room he had just seen. He put his napkin over the plate.",affective,B-loathing-d2-v2
+B-loathing-d2-v3,loathing,peak,2,"Visceral revulsion (contamination, decay)",N-loathing-d2-c3,145,"The water from the tap had been clear for the first three years they lived in the house. The change happened gradually — a slight tint, then a color, then a texture. By the time they called someone, the water left a residue on the inside of the glass that did not rinse away with more water. The technician took a sample and held it up to the window. In the light, things were visible in the water that were not visible when it was in the pipe. Small things. Moving. The technician set the glass down on the counter and did not touch it again. He suggested they not use the faucets until the results came back. They had been drinking this water. They had been bathing their children in this water. For how long was the question neither of them asked out loud.",affective,B-loathing-d2-v3
+B-loathing-d3-v3,loathing,peak,3,Social betrayal (hypocrisy exposed),N-loathing-d3-c3,102,"The wellness influencer had three million followers and a product line built on ""clean living."" Every post was a catalog of purity — filtered water, organic produce, handmade soaps, sunrise meditations. The lawsuit was filed by a former employee. The depositions included photographs of the production facility. The ""handmade"" soaps were manufactured by a chemical company in a building with no windows. The ""organic"" supplements contained synthetic compounds listed under proprietary ingredient names. The wellness influencer's personal grocery deliveries, documented in the deposition as business expenses, came from the same chain supermarket she had publicly called ""a place I could never shop.""",affective,B-loathing-d3-v3
+B-amazement-d3-v4,amazement,peak,3,Intellectual revelation (paradigm shift),N-amazement-d3-c4,121,"The student had asked the question to be polite. It was a visiting lecture, and no one else had raised a hand, and the silence was becoming uncomfortable. She asked about the third equation on the second slide. The lecturer paused. Then the lecturer took a step back from the podium. Then the lecturer said, ""Say that again."" She said it again. The lecturer turned to the board and began writing. Other faculty in the room were leaning forward. The lecturer wrote for four minutes without stopping. When he turned around, he said, ""That question has a consequence I have not considered in forty years of working on this."" The student was twenty-two. She had asked the question to be polite.",affective,B-amazement-d3-v4
+B-admiration-d3-v1,admiration,peak,3,Resilience (endurance against odds),N-admiration-d3-c1,144,"The woman had rebuilt the house herself. Not with a crew. By herself. The flood had taken everything below the waterline, which was everything — the floors, the walls to four feet, the wiring, the plumbing. Insurance had covered a fraction. She was sixty-seven years old. She watched videos on the internet and she went to the hardware store and she asked questions until she understood the answers, and then she did the work. It took her fourteen months. The building inspector who signed off on the final permit said the wiring was better than what had been there before the flood. She had learned how to do it correctly by doing it for the first time. Her neighbors had offered to help. She had thanked them and done it herself, not out of stubbornness, but because she wanted to know that she could.",affective,B-admiration-d3-v1
+B-vigilance-d1-v4,vigilance,peak,1,Protective watch (child in danger),N-vigilance-d1-c4,121,"The lifeguard was watching lane four. The boy in lane four was eight and he was swimming with a class, but he was behind the group by half a length and his stroke was changing. The left arm was entering the water at a different angle than it had three laps ago. His kick interval had slowed. The instructor was at the front of the group, facing away. The lifeguard shifted her chair position by six inches, which changed her angle to lane four. She had her rescue tube across her knees, not on the hook behind her. The boy's head went under on the recovery stroke and came up a half-second later than the previous cycle. She was already standing.",affective,B-vigilance-d1-v4
+B-vigilance-d2-v1,vigilance,peak,2,Strategic anticipation (high-stakes decision),N-vigilance-d2-c1,140,"The surgeon had been looking at the scan for forty minutes. The tumor was adjacent to the artery. Not touching it — adjacent. The margin was four millimeters. Her team was scrubbing in. She had drawn the approach on a whiteboard three times, erasing and redrawing the angle of the second incision each time. The margin was four millimeters when the patient was still. During the procedure, the tissue would shift. Four millimeters could become two. Two millimeters was the distance between a successful resection and a bleed she would have ninety seconds to control. She picked up the marker and drew the approach a fourth time. Then she asked the anesthesiologist what the patient's resting blood pressure variance was, because a three-point systolic swing would change the arterial position by a distance she needed to know before she opened.",affective,B-vigilance-d2-v1
+B-vigilance-d2-v4,vigilance,peak,2,Strategic anticipation (high-stakes decision),N-vigilance-d2-c4,135,"The chess player had been sitting for twenty-three minutes without moving. His opponent had played a move that created two threats simultaneously — one to the knight on c6, one to the pawn structure on the kingside. Each threat individually had a clear response. Together, they required him to choose which to concede. But he was not looking at the threats. He was looking at the square d5, which was empty. If he answered the knight threat, d5 would be available to his opponent's bishop in three moves. If he answered the pawn threat, d5 would be available to his own knight in four moves. The difference between those two futures was the game. He sat and looked at the empty square, because the empty square was where the next forty moves would be decided.",affective,B-vigilance-d2-v4
+B-rage-d4-v4,rage,peak,4,Caregiving responsibility (dependent in your charge),N-rage-d4-c4,93,"She had power of attorney for her brother. He was thirty-one and
+non-verbal. The group home billed for three hours of daily activities.
+She visited on a Wednesday at 2 PM without calling ahead. Her brother
+was in his room. The television was off. No materials on the table,
+no items moved from the shelf, no coat by the door. The log book
+listed ""morning outing: park."" It was raining. It had been raining
+since Monday. She turned to Tuesday's entry. Park. Monday. Park. She
+photographed each page.",affective,B-rage-d4-v4
+B-rage-d5-v3,rage,peak,5,Inheritance/legacy (intergenerational discovery),N-rage-d5-c3,108,"The archive sent his grandfather's service file in a manila envelope.
+Not the version framed in the hallway. The real one. His grandfather
+had not been a medic. The commendation was for a different man with a
+similar name, from a different unit. His grandfather's file contained
+three disciplinary actions and an early discharge. Sixty years of
+Sunday dinners where the story was told. His mother had repeated it at
+every holiday. His wife had heard it. His son had done a school report
+on it last spring and received an A. The framed report was next to the
+framed commendation on the hallway wall. He looked at both frames. He
+took them both off the wall.",affective,B-rage-d5-v3
+B-rage-d6-v2,rage,peak,6,Public witness (stranger encounter in shared space),N-rage-d6-c2,108,"The men had been working since 6 AM. She knew because she had seen
+them from her window when she left for her shift. Twelve hours later
+they were standing in the parking lot of the strip mall. The contractor
+counted out bills from an envelope and handed each man roughly half of
+what the hand-lettered sign at the pickup site had promised. One man
+said something. The contractor pointed at the road. The man said it
+again. The contractor took back the bills he had just handed him and
+pointed at the road a second time. The man stood in the parking lot.
+The contractor drove away. The other men did not look at him.",affective,B-rage-d6-v2
+B-rage-d6-v3,rage,peak,6,Public witness (stranger encounter in shared space),N-rage-d6-c3,103,"The moving truck was already half-loaded. The family's belongings were
+on the sidewalk — furniture, boxes, a child's bicycle with training
+wheels. The landlord stood on the porch with a clipboard. A woman
+carried a box past him and he checked his watch. She went back inside
+and came out with another box. He checked his watch again. He was
+timing her. The locksmith's van had arrived before the family finished.
+It was parked at the curb with the engine running. The woman carried
+another box. The landlord checked his watch. The child's bicycle was
+the last thing on the sidewalk. No one picked it up.",affective,B-rage-d6-v3
+B-terror-d4-v2,terror,peak,4,Caregiving responsibility (dependent in your charge),N-terror-d4-c2,108,"His mother's shoes were by the door but his mother was not in the
+house. The back door was open. It was January and it was dark at 4:30
+and the thermometer on the porch read twenty-one degrees. Her coat was
+on the hook. He checked every room. He checked the garage. He checked
+the yard with the flashlight on his phone. The grass was stiff with
+frost. There were no footprints. The neighbor's fence had a gap she
+had walked through once before, eight months ago, when the police
+found her at a gas station in her slippers. He called her name into
+the yard. The yard gave back nothing.",affective,B-terror-d4-v2
+B-terror-d6-v3,terror,peak,6,Public witness (stranger encounter in shared space),N-terror-d6-c3,108,"The fire alarm in the mall had been sounding for ninety seconds. No
+one was leaving. A security guard walked past without running. Then
+the second alarm started — a different tone, lower, with a pulse. The
+guard stopped. She watched him reach for his radio, listen, and break
+into a run toward the east exit. The stores began pulling their gates
+down. Not slowly. A woman at the pretzel stand left the register open
+and walked out the side door without turning around. The shoppers were
+still standing in the corridor. The second tone continued. The guard
+had not come back. She counted the exits she could see from where she
+stood. Two.",affective,B-terror-d6-v3
+B-ecstasy-d4-v3,ecstasy,peak,4,Caregiving responsibility (dependent in your charge),N-ecstasy-d4-c3,98,"His mother had not said his name in fourteen months. The chart said
+""variable responsiveness."" He visited every Sunday at 10 AM and
+brought flowers because the routine needed an object. He was arranging
+them in the vase on the windowsill when she spoke. She said his name.
+Not her brother's name. Not his father's. His. He turned around. She
+was looking at him. Both eyes on his face. He stood at the window. She
+said it again. He walked to the chair beside her bed and sat down. She
+watched him cross the room. She said it a third time.",affective,B-ecstasy-d4-v3
+B-loathing-d5-v2,loathing,peak,5,Inheritance/legacy (intergenerational discovery),N-loathing-d5-c2,108,"The emails were on his mother's old laptop, which he was clearing for
+donation. The folder was labeled ""Sent — Personal."" Addressed to a
+friend. In them, his mother described the people she helped at the
+food bank. She used language she had never used in his presence. She
+assigned them categories. She ranked them. She speculated about their
+choices in terms that assumed the choices were the cause. She had
+volunteered for twenty-two years. The emails spanned nineteen. She had
+written these assessments while sorting donations and being
+photographed for the annual newsletter with her arm around the people
+she described this way in the emails. The newsletter was in a frame in
+the hallway. The laptop was on the desk.",affective,B-loathing-d5-v2
+B-loathing-d5-v4,loathing,peak,5,Inheritance/legacy (intergenerational discovery),N-loathing-d5-c4,110,"His uncle's filing cabinet had a locked drawer labeled ""Professional.""
+His uncle had been a veterinarian for twenty-eight years before he
+died in November. The drawer held insurance claims for procedures
+never performed. The ""pre-op"" and ""post-op"" photographs showed
+identical conditions — same markings, same positions, same date. The
+animals had been sedated, photographed, and returned. Owners were told
+the procedures were complete. Insurance paid. He counted the files.
+Hundreds. Twenty-eight years of billing for operations that did not
+happen, on animals that went home carrying the conditions their owners
+paid to have removed. The practice had been sold. The new veterinarian
+had the files. The locked drawer was no longer locked.",affective,B-loathing-d5-v4
+B-amazement-d5-v1,amazement,peak,5,Inheritance/legacy (intergenerational discovery),N-amazement-d5-c1,103,"The storage unit had been paid automatically since her grandmother's
+death in 2004. She opened it expecting furniture. Inside were
+forty-six canvases. Oil paintings — landscapes, portraits, a series of
+the same harbor at different hours of the day. The earliest was dated
+1961. The most recent was 2003. Her grandmother had been a bank teller
+for forty years. She had never mentioned painting. There was no studio,
+no easel at the house, no photographs of her holding a brush. But the
+light in the harbor paintings shifted from canvas to canvas in a
+sequence that covered a full day, and each one was signed with a name
+she recognized.",affective,B-amazement-d5-v1
+B-amazement-d5-v2,amazement,peak,5,Inheritance/legacy (intergenerational discovery),N-amazement-d5-c2,101,"His father had worked in a shoe factory for thirty-three years. After
+the funeral, he found a notebook in the bottom drawer of the desk his
+father never let anyone open. The notebook contained mathematical
+proofs. Eighty-seven pages, written in pencil, in handwriting he
+recognized. The notation was formal. He photographed a page and sent
+it to a colleague in the mathematics department. The colleague called
+him that evening and asked where the notebook had come from. The
+proofs were original. Two of them addressed problems his colleague
+said had been open for decades. His father had not finished secondary
+school. The pencil marks were pressed deep into every page.",affective,B-amazement-d5-v2
+B-amazement-d6-v3,amazement,peak,6,Public witness (stranger encounter in shared space),N-amazement-d6-c3,98,"The waiting room had been quiet for an hour. An elderly man in the
+corner had a deck of cards. He was building a structure on the
+magazine table. Not a house. A cathedral. The base was fourteen cards
+wide. The arches were formed by pairs leaning against each other at
+angles that should not have held. He added a spire. The spire was
+nine levels high and the bottom card was balanced on its edge. The
+structure used all fifty-two cards. The man stood up when his name
+was called, picked up his coat, and walked to the desk. He left the
+cathedral standing. It was still standing when she left.",affective,B-amazement-d6-v3
+B-admiration-d4-v2,admiration,peak,4,Caregiving responsibility (dependent in your charge),N-admiration-d4-c2,101,"His sister had taken their mother in when no one else could. She had
+a two-bedroom apartment and two children of her own. She gave up the
+bedroom. She slept on the couch for four years. He visited on a
+Saturday and noticed the couch cushions were worn into a shape — her
+shape, pressed into the foam from fifteen hundred nights. The
+apartment was organized around his mother's needs: the grab bars she
+had installed herself, the labels on the cabinets in large print, the
+path from the bedroom to the bathroom cleared of every object. His
+sister was forty-one. She had not taken a vacation in four years. Her
+children set the table for five without being asked.",affective,B-admiration-d4-v2
+B-admiration-d5-v3,admiration,peak,5,Inheritance/legacy (intergenerational discovery),N-admiration-d5-c3,102,"His father had kept a box of tools under the workbench. After the
+estate was settled, he opened the box. Beneath the wrenches was a
+stack of envelopes, each labeled with a year. Inside each envelope
+was a letter addressed to him, written on his birthday, every year
+from the year he was born. Thirty-four letters. His father had never
+given him one. The letters described what his father had observed that
+year — what the boy had learned, what he had built, what he had
+changed. They were factual. They were specific. They contained no
+instructions. His father had watched him for thirty-four years and
+written it down every year and put it in a box under the wrenches
+and said nothing.",affective,B-admiration-d5-v3
+B-vigilance-d5-v4,vigilance,peak,5,Inheritance/legacy (intergenerational discovery),N-vigilance-d5-c4,99,"The beekeepers in the region had lost colonies for three consecutive
+seasons. His uncle had not. After his uncle's death, they opened the
+shed behind the apiary. On the wall was a chart — hand-drawn, updated
+daily for nineteen years. Temperature, humidity, wind direction,
+bloom timing for every flowering species within two kilometers. Cross-
+referenced against colony weight, measured each morning with a scale
+built into the hive platform. The correlations were marked in pencil.
+His uncle had identified the pattern four years before the university
+extension office published its findings. He had adjusted his hive
+placement, his feeding schedule, and his mite treatment timing
+accordingly. The chart covered the entire wall. Every day for nineteen
+years.",affective,B-vigilance-d5-v4
+B-vigilance-d6-v1,vigilance,peak,6,Public witness (stranger encounter in shared space),N-vigilance-d6-c1,105,"She noticed the woman on the platform because of the woman's eyes.
+They were not looking at a phone or at the tracks or at the schedule
+board. They were moving. Left to right across the platform, then back,
+in a pattern that covered every person and every exit. The woman was
+standing with her back to the pillar. Her bag was in front of her,
+not behind. Her weight was on the balls of her feet. When a man in a
+jacket moved behind the crowd, the woman's head turned three degrees
+to track him and then returned. She did this for everyone who moved
+behind the group. She was watching the platform the way no one else
+on the platform was watching anything.",affective,B-vigilance-d6-v1
+B-vigilance-d6-v2,vigilance,peak,6,Public witness (stranger encounter in shared space),N-vigilance-d6-c2,102,"The old man sat at the same bench in the park every morning. He had
+a thermos and a folded newspaper he did not read. She had passed him
+for six weeks before she understood what he was doing. He was watching
+the children's playground. Not one child — all of them. His eyes
+followed the perimeter fence, then the gate, then the equipment, then
+the adults. He did this in a rotation that took approximately forty
+seconds to complete. When a child climbed higher than the structure
+was designed for, he straightened. When a stranger entered the gate
+without a child, he set down the thermos. The newspaper was a prop.
+The bench was positioned at the only point where both the gate and
+the equipment were visible simultaneously.",affective,B-vigilance-d6-v2
+B-vigilance-d6-v3,vigilance,peak,6,Public witness (stranger encounter in shared space),N-vigilance-d6-c3,107,"The bartender had been working the room for four hours. He watched
+her from his seat near the door. She was carrying drinks, clearing
+tables, and taking orders, but she was also doing something else. She
+was counting. He could see it in the way her eyes moved to the same
+table every few minutes — the table in the corner where a woman was
+with a man who had been ordering for her all night. The bartender
+noted each drink. She noted the woman's posture, which had changed
+twice in the last hour. When the woman stood to go to the restroom,
+the bartender intercepted her route and said something. The woman
+nodded. The bartender walked her to a different exit. The man at the
+table did not see them leave.",affective,B-vigilance-d6-v3
+B-vigilance-d6-v4,vigilance,peak,6,Public witness (stranger encounter in shared space),N-vigilance-d6-c4,104,"The guide had taken the group into the canyon at 6 a.m. By noon, the
+sky had changed. He watched the guide stop talking and look west. The
+clouds were building in a formation that looked no different from the
+clouds they'd been under all morning, but the guide was reading
+something else — the wind direction at the rim, the color of the
+light on the far wall, the temperature drop that he could feel on his
+own forearms. The guide checked his watch. He checked the water level
+markers on the canyon wall. He counted the group. He looked west
+again. Then he turned the group around. They were three hours from
+the trailhead. The guide set a pace that would reach it in two.",affective,B-vigilance-d6-v4
+N-rage-d3-c2,neutral,none,3,Personal-Violation-Matched (Interpersonal/Domestic Settings),B-rage-d3-v2,88,The maintenance technician had entered the apartment for the scheduled repair. She knew because the building's entry log showed the timestamp. Forty-seven minutes for the kitchen faucet replacement. He had checked under the sink. He had tested the water pressure. He had placed the old fixture in a bag by the door. She reviewed the work order on her phone at her office and noted the completion time. She had submitted the request two weeks ago. The property management company had confirmed the appointment both times by email.,neutral,N-rage-d3-c2
+N-grief-d1-c2,neutral,none,1,Bereavement-Matched (Domestic/Medical Settings),B-grief-d1-v2,84,"The woman at the front desk asked her to sign for the package. A box with a shipping label from the supplier. Inside were three folders and a USB drive. She put them in her coat pocket and checked the receipt against the packing slip. Outside, the parking lot was filling up with the afternoon shift. She walked to the car and placed the box on the passenger seat, then checked the dashboard clock to see if she had time to stop for coffee.",neutral,N-grief-d1-c2
+N-grief-d1-c4,neutral,none,1,Bereavement-Matched (Domestic/Medical Settings),B-grief-d1-v4,84,"They told her the room was available whenever she wanted to see it. She stepped inside. The sheets had been changed and folded at the corner. A glass of water sat on the nightstand, placed there by housekeeping. The television remote was balanced on the arm of the chair. She picked up the water glass, took a sip, and set it back down. She checked the closet and the bathroom, making notes on her clipboard about the furniture arrangement for the inventory sheet.
+
+---",neutral,N-grief-d1-c4
+N-grief-d3-c1,neutral,none,3,Abandonment-Matched (Interpersonal/Domestic Settings),B-grief-d3-v1,84,"He found the spare key on the kitchen table. She'd moved it from the bowl by the door while cleaning that morning. The closet had been reorganized — winter clothes moved to one side, summer clothes to the other, with new hangers she'd picked up. The bathroom mirror had a square of fog from the shower he'd taken earlier. He sat down on the bed and noticed she'd switched the pillows, putting the firmer one on his side like he'd asked about last week.",neutral,N-grief-d3-c1
+N-grief-d3-c3,neutral,none,3,Abandonment-Matched (Interpersonal/Domestic Settings),B-grief-d3-v3,90,The man sat across from his son in the food court. The boy was twelve and had ordered a sandwich. The man had coffee and a newspaper. Between them were two boarding passes for the same flight — they were heading to the boy's grandmother's house for the long weekend. The boy was folding his straw wrapper into a small shape. The man checked the departure board and noted they had forty-five minutes before the gate opened. He asked the boy if he wanted anything else before they headed over.,neutral,N-grief-d3-c3
+N-terror-d1-c2,neutral,none,1,Physical-Threat-Matched (Domestic/Vehicular Settings),B-terror-d1-v2,95,"The man in the parking garage was walking toward the same elevator bank. She turned left at the row marker. He continued straight ahead toward the stairwell. She stopped at her car and checked her bag for the parking ticket. He was several cars away, talking on his phone as he walked. She beeped her car open and loaded the shopping bags into the trunk. The elevator was two rows ahead, but she was parked closer to the exit ramp. The overhead lights buzzed faintly. She checked her mirrors and pulled out of the space.",neutral,N-terror-d1-c2
+N-ecstasy-d2-c4,neutral,none,2,Connection-Matched (Interpersonal/Domestic Settings),B-ecstasy-d2-v4,110,"The girl had eaten lunch in the cafeteria every day since the start of the term. The tables were assigned by grade, and she sat in the section nearest the windows. On Monday, the cafeteria introduced a new rotation of menu options. She chose the pasta. The notebook on the table was for her afternoon science class — it had a standard cover from the school supply list. She ate lunch and reviewed the vocabulary list for the quiz after lunch. The tables filled in their usual pattern. She finished eating, returned her tray to the rack, and walked to her locker to swap her notebooks before the bell.
+
+---",neutral,N-ecstasy-d2-c4
+N-loathing-d1-c2,neutral,none,1,Moral-Disgust-Matched (Institutional/Professional Settings),B-loathing-d1-v2,91,"The factory had passed inspection every year for a decade. The inspector was assigned through the standard regional rotation. The inspection records were in the public database, cross-referenced with the facility's maintenance logs. The workers' medical claims were tracked through the company's occupational health program. The factory's ventilation system had been upgraded according to the maintenance schedule, with each unit's installation date and serial number documented. A photograph of the ventilation system, taken during the most recent inspection, showed the current model, installed in 2022, with the updated compliance certification attached.",neutral,N-loathing-d1-c2
+N-loathing-d1-c4,neutral,none,1,Moral-Disgust-Matched (Institutional/Professional Settings),B-loathing-d1-v4,103,"He had mentored her for three years through the department's formal advising program. He had written her recommendation letters for the fellowship applications. He had introduced her at the conference as part of the research group's panel. The patent filing listed both their names, along with the two other team members who had contributed to the design phase. The work was a group effort — the design originated in a brainstorming session, the prototype was built by the engineering staff, and the testing data was compiled by the lab's research assistants. The filing had been reviewed by the university's technology transfer office.
+
+---",neutral,N-loathing-d1-c4
+N-loathing-d3-c4,neutral,none,3,Social-Betrayal-Matched (Public Figure/Institutional Settings),B-loathing-d3-v4,96,"The judge had handled forty-three cases in the drug court division over two years, following the sentencing guidelines established by the judicial council. The guidelines specified ranges based on substance classification and quantity, with provisions for mitigating factors. Her rulings were consistent with the published benchmarks for the district. Her son worked as a paralegal in a different county, which was standard practice to avoid conflicts of interest. The judicial council reviewed sentencing data annually and published a summary report. The judge's caseload for the coming quarter included a mix of new filings and scheduled reviews.",neutral,N-loathing-d3-c4
+N-amazement-d1-c1,neutral,none,1,Natural-Phenomenon-Matched (Outdoor/Environmental Settings),B-amazement-d1-v1,116,"She had pulled over because the road was too dark to drive safely. When she got out of the car to check the tires, she looked up. The sky was clear, with the usual scattering of stars visible away from the city. She had checked the weather forecast before leaving, and the conditions matched — no cloud cover, low humidity. The visibility was typical for this latitude and time of year. She could identify the standard constellations and the brighter planets near the horizon. She walked around the car, confirmed the tires were fine, and checked her phone for the remaining distance. A car passed in the other lane. She got back in and continued driving.",neutral,N-amazement-d1-c1
+N-amazement-d2-c2,neutral,none,2,Human-Capability-Matched (Emergency/Performance Settings),B-amazement-d2-v2,112,"The pianist had been performing with this orchestra for nine years. The program listed the piece as a concerto from the standard repertoire. The audience read the program notes, which included background on the composer and the performance history. She sat down and placed both hands on the keys. The orchestra began the introduction, and she entered at the marked measure. The performance followed the score — the left hand carrying the bass line, the right hand the melody, with the standard dynamic markings observed throughout. The audience followed along, some with printed programs. The last note ended and the applause began promptly, followed by the customary standing acknowledgment from the soloist.",neutral,N-amazement-d2-c2
+N-amazement-d2-c4,neutral,none,2,Human-Capability-Matched (Emergency/Performance Settings),B-amazement-d2-v4,126,"The girl was seven years old and had been at the outdoor education camp for three days. The program teams followed the daily activity grid. The group had walked the nature trail by the river that morning. On the fourth morning, a counselor led the group into a section of forest that was part of the scheduled orienteering course. They walked for two hours along the marked path, through terrain the coordinators had mapped with distance markers every quarter mile. They stopped at a hollow formed by two fallen trees, which was a designated rest point on the route. The girl had brought her water bottle and a granola bar. She sat on a log and said she wanted to finish the trail before lunch.
+
+---",neutral,N-amazement-d2-c4
+N-amazement-d3-c4,neutral,none,3,Intellectual-Revelation-Matched (Academic/Professional Settings),B-amazement-d3-v4,111,"The student had asked the question during the Q&A portion of the visiting lecture. Several other students had also raised their hands, and the moderator called on them in order. She asked about the methodology behind the third equation on the second slide. The lecturer nodded and explained the derivation, pointing to the relevant terms. A few faculty members in the audience took notes. The lecturer answered two more questions from other students and wrapped up on schedule. Afterward, the student spoke briefly with the lecturer in the hallway. He recommended a textbook chapter that covered the topic in more detail. She noted the reference and walked to her next class.",neutral,N-amazement-d3-c4
+N-admiration-d1-c1,neutral,none,1,Competence-Matched (Professional/Craft Settings),B-admiration-d1-v1,115,"The apprentice had been working with the glassblower for four years. In that time he had learned the standard techniques for pipe rotation, shaping, and annealing. Each session followed the guild's curriculum — foundational skills in the first year, intermediate forms in the second, and independent projects by the third. She demonstrated each technique at the standard pace, and he practiced until the results met the quality benchmarks. He had recorded several sessions on video for his portfolio, comparing his progress to the sample work in the guild archive. His skill had improved on the expected timeline. He was in his fourth year, and the next milestone was the journeyman assessment scheduled for the spring.",neutral,N-admiration-d1-c1
+N-admiration-d2-c2,neutral,none,2,Moral-Character-Matched (Professional/Institutional Settings),B-admiration-d2-v2,109,"The woman had been a licensed foster care provider for twenty-two years. She worked within the standard placement system, coordinating with the caseworkers assigned to each child. She had hosted multiple placements over the years, following the guidelines for housing, meals, and educational support. Each placement had a case plan with documented milestones and transition timelines. She maintained the required records — medical appointments, school reports, behavioral notes — and submitted them to the agency on the regular schedule. The caseworker conducted home visits quarterly. The refrigerator had a calendar with appointment dates and a list of emergency contact numbers. Her license had been renewed on the standard cycle.",neutral,N-admiration-d2-c2
+N-admiration-d2-c3,neutral,none,2,Moral-Character-Matched (Professional/Institutional Settings),B-admiration-d2-v3,120,"The journalist had been working on the story for several weeks. It was a mid-level feature for the metro section. The source was a government spokesperson who provided an official statement. Publishing the story with the statement was standard practice. The editor reviewed the draft and suggested minor revisions to the structure. The journalist revised the piece over two days and submitted the final version. It ran in the metro section on a Tuesday. The story was consistent with the publication's editorial standards. The journalist's colleagues read it and provided the usual feedback. The editor approved the next assignment, which was a follow-up piece on the same topic. The story was archived in the publication's database with the standard tags.",neutral,N-admiration-d2-c3
+N-admiration-d3-c2,neutral,none,3,Resilience-Matched (Recovery/Personal Settings),B-admiration-d3-v2,110,"He had applied to the program through the standard admissions process. The application required transcripts, a statement, and three references. He submitted the materials by the March deadline and received the decision within the standard notification window. He worked during the day as a technician in the building's equipment department. The program had an acceptance rate consistent with other graduate programs in the field. He was forty-one years old, which placed him within the range of non-traditional applicants the program actively recruited. The admissions office confirmed his enrollment and sent the orientation packet. He would begin in the fall semester, attending classes in the same building where he currently worked.",neutral,N-admiration-d3-c2
+N-vigilance-d1-c1,neutral,none,1,Protective-Watch-Matched (Parental/Supervisory Settings),B-vigilance-d1-v1,123,"The boy was three years old and he was playing near the bench in the park. His mother was seated next to the picnic table, leaning back with her legs crossed. The grass around the bench was level and dry from the afternoon sun. The boy picked up a stick and tapped it against a rock. A dog walked past on the path with its owner, and the boy pointed at it. She took a sip of her coffee and checked the time on her phone. The coffee had cooled down to the temperature she preferred. She watched the boy stack pebbles on the bench for a few minutes, then pulled out the snack bag from her tote and set it between them.",neutral,N-vigilance-d1-c1
+N-rage-d5-c2,neutral,none,5,Inheritance-Legacy-Matched (Intergenerational/Archival Settings),B-rage-d5-v2,108,"Her mother had kept a folder labeled ""School Correspondence"" in the
+bottom drawer of the filing cabinet. Seven letters to the school
+board, dated across four years. Each one covered the annual budget
+review — the schedule updates, the bus routes, the lunch program
+changes. The letters were organized. They referenced the agenda items.
+They cited the meeting dates. They included her notes from each
+session. Her mother had attended every meeting. Every year. And filed
+the materials afterward. Her mother had sat across from her at the
+kitchen table and reviewed the minutes while the folder grew thicker
+in the drawer. Seven meetings. All documented. All filed.",neutral,N-rage-d5-c2
+N-rage-d5-c4,neutral,none,5,Inheritance-Legacy-Matched (Intergenerational/Archival Settings),B-rage-d5-v4,114,"The deed was in the strongbox with the rest of his grandmother's
+papers. The original, from 1962. Attached was a purchase agreement
+signed by the previous owners — a family whose name he recognized
+because their grandson now lived three houses down. His grandmother
+had paid the listed price at the time of sale. The signatures on the
+purchase agreement included a county clerk who had notarized documents
+for most families in the neighborhood. He had grown up in this house.
+He had inherited this house. He had raised his children in it. The
+house three doors down had been recently painted. He read the deed
+again. He placed it back in the strongbox.",neutral,N-rage-d5-c4
+N-grief-d4-c4,neutral,none,4,Caregiving-Responsibility-Matched (Dependent/Institutional Settings),B-grief-d4-v4,108,"The social worker arrived at nine. The bag was by the door — three
+shirts, two pairs of pants, the stuffed rabbit he always brought
+along, and a toothbrush she had packed in a zippered pouch. He had
+been with her for eleven months. She signed the paperwork at the
+kitchen table. The boy was watching cartoons. He was wearing shoes she
+had bought on sale. The social worker picked up the bag. It was packed
+neatly. She had put a label inside with his name, printed in block
+letters on a piece of tape. The boy knew they were going to the
+appointment. He was watching cartoons.",neutral,N-grief-d4-c4
+N-grief-d5-c3,neutral,none,5,Inheritance-Legacy-Matched (Intergenerational/Archival Settings),B-grief-d5-v3,114,"The box was labeled ""Danny — school"" in their mother's handwriting.
+It had been in the storage room for twenty-six years. Inside: report
+cards, a science fair ribbon, a crayon drawing of a house with five
+windows, and a savings passbook. The first deposit was twenty-five
+dollars, dated September 1989. The deposits continued monthly —
+fifteen, twenty, forty dollars — through March 1997. Then they
+increased. Danny was fourteen in March 1997. The passbook had a
+balance of four thousand dollars. The account had been closed in 2002.
+The balance was withdrawn. She turned to the last page. Her mother's
+handwriting again, in the margin: the name of a university and a
+check mark.",neutral,N-grief-d5-c3
+N-grief-d6-c1,neutral,none,6,Public-Witness-Matched (Civic/Transit Settings),B-grief-d6-v1,106,"The bench at the bus stop on Ninth Street had a brass plate: ""Donated
+by the Ninth Street Business Association, 2019."" Under it, a planter
+with seasonal flowers replaced last month. Next to the planter, a
+transit map in a plastic sleeve. The map showed the current route
+schedule. She sat on the bench to wait for the 9:15. A man across the
+street ate a sandwich. The flowers had been trimmed at an angle and
+arranged in a row along the base. The 9:15 came. She got on. Through
+the window she could see the bench and the planter and the map in its
+sleeve.",neutral,N-grief-d6-c1
+N-grief-d6-c2,neutral,none,6,Public-Witness-Matched (Civic/Transit Settings),B-grief-d6-v2,111,"He watched the old man at the next table signal the waiter and ask for
+the place setting to be shifted aside for his briefcase. The waiter
+moved the plate, the glass, the napkin, the silverware. The table
+looked wider afterward. The old man unfolded his napkin and placed it
+on his lap. He ordered the special — the waiter read it back, and the
+old man nodded and adjusted his glasses. He cut his food into pieces
+and read the paper while he ate. When he was finished, he placed his
+napkin on the plate and signaled for the check. The restaurant was
+filling up. He left before the rush.",neutral,N-grief-d6-c2
+N-terror-d4-c2,neutral,none,4,Caregiving-Responsibility-Matched (Dependent/Institutional Settings),B-terror-d4-v2,115,"His mother's shoes were by the door and his mother was in the kitchen.
+The back door was closed. It was January and it was dark at 4:30 and
+the thermometer on the porch read twenty-one degrees. Her coat was on
+the hook. He checked the living room. He checked the garage. He
+checked the yard from the window with the porch light. The grass was
+stiff with frost. There were no footprints on the walk. The neighbor's
+fence had a gap that had been repaired eight months ago, after the
+property survey, when the posts were replaced along the full boundary
+line. He called her name from the hallway. She answered from the
+kitchen.",neutral,N-terror-d4-c2
+N-terror-d4-c4,neutral,none,4,Caregiving-Responsibility-Matched (Dependent/Institutional Settings),B-terror-d4-v4,96,"She told him to stay in the waiting room. The appointment took fifteen
+minutes. When she came back, the room was the same. His jacket was on
+the chair. His coloring book was open, the crayon on the page
+mid-stroke. The receptionist had waved to him once. The front door had
+a chime — it had sounded for a delivery. She walked to the hallway.
+Three doors. Two closed. The third open, leading to a restroom. She
+looked down the hall. The hallway was lit and quiet. The boy was on
+the floor, finishing his page.",neutral,N-terror-d4-c4
+N-terror-d5-c4,neutral,none,5,Inheritance-Legacy-Matched (Intergenerational/Archival Settings),B-terror-d5-v4,118,"The home inspector's report was in the closing folder, filed
+twenty-three years ago. It mentioned a utility alcove behind the south
+wall — ""houses original electrical panel, sealed per code upgrade."" He
+had never opened the panel. He went to the south wall and knocked. The
+sound was solid. He measured the exterior of the house and the
+interior. The numbers matched except for four feet accounted for by
+the utility chase. He put his level to the wall. Plumb. He went
+upstairs and checked the property records. The house had been in his
+family for six years before his parents bought it outright. The
+previous owner was his grandfather. The panel had been sealed by the
+contractor.",neutral,N-terror-d5-c4
+N-ecstasy-d5-c1,neutral,none,5,Inheritance-Legacy-Matched (Intergenerational/Archival Settings),B-ecstasy-d5-v1,111,"The scholarship had been institutional. She had known that fifteen
+years ago — a letter informing her that the university had covered
+full tuition for four years. She graduated. She built a career. Her
+name was above a door now. Her mother died in April. In the filing
+cabinet: a standard mortgage on the house, dated four years before the
+scholarship letter. The monthly payments matched the original
+amortization schedule. Her mother had been a secretary. She had
+mentioned the mortgage once. The house was paid off. The last payment
+was dated three months before the refinance. She held the mortgage
+paper and the account statement side by side. The numbers matched.",neutral,N-ecstasy-d5-c1
+N-ecstasy-d5-c3,neutral,none,5,Inheritance-Legacy-Matched (Intergenerational/Archival Settings),B-ecstasy-d5-v3,109,"The DNA results had been on the website for three weeks before she
+checked. The match was near the top. Third-degree relative. She had
+submitted her sample for a genealogy project and expected regional
+estimates. The name was a woman in a city two hundred miles away who
+had submitted her sample four years ago. Four years. She clicked the
+profile. The woman had written one line in the contact field: ""Willing
+to compare records if you are researching the same branch."" She read
+it. She bookmarked the page. She drafted a reply with her surname
+variants and the county records she had already checked. She clicked
+send.",neutral,N-ecstasy-d5-c3
+N-loathing-d5-c4,neutral,none,5,Inheritance/Legacy-Matched (Intergenerational Records),B-loathing-d5-v4,109,"His uncle's filing cabinet had a labeled drawer marked ""Professional.""
+His uncle had been a veterinarian for twenty-eight years before he
+retired in November. The drawer held insurance claims for procedures
+performed over the final year. The ""pre-op"" and ""post-op"" photographs
+showed different conditions — healed incisions, changed markings,
+updated positions. The animals had been sedated, treated, and
+returned. Owners were sent the post-op reports when the procedures
+were complete. Insurance processed the claims. He counted the files.
+Hundreds. Twenty-eight years of records for operations documented with
+photographs, on animals that went home carrying documentation their
+owners kept in household files. The practice had been sold. The new
+veterinarian had the files. The labeled drawer was organized
+alphabetically.",neutral,N-loathing-d5-c4
+N-loathing-d6-c1,neutral,none,6,Public-Witness-Matched (Civic/Transit Settings),B-loathing-d6-v1,107,"The food cart had a line of twelve people. She was standing at an
+angle that let her see behind the service window. The cook placed a
+piece of meat on the grill. He turned it once. He placed it on a plate
+and served it to the next person in line. The person took the plate
+and walked away. She watched the cook prepare three more orders. He
+changed gloves between raw and cooked items. He wiped the prep surface
+with a fresh cloth from the stack beneath the counter. The line was
+still twelve people long. None of them could see behind the window from
+where they stood. She could.",neutral,N-loathing-d6-c1
+N-amazement-d4-c1,neutral,none,4,Caregiving-Responsibility-Matched (Dependent/Institutional Settings),B-amazement-d4-v1,96,"His son was four and had begun speaking at the usual age. The
+specialists had a term for his developmental stage and a timeline that
+matched the standard range. He walked into the living room on a Tuesday
+and his son was sitting on the floor with two dozen wooden blocks
+arranged in a row. He looked at the arrangement. It was a line of
+alternating colors — red, blue, red, blue — following the pattern on
+the box the blocks came in. The boy had been holding a pencil that
+morning. He had built a single row from the set on the carpet, and the
+colors matched the packaging.",neutral,N-amazement-d4-c1
+N-amazement-d4-c2,neutral,none,4,Caregiving-Responsibility-Matched (Dependent/Institutional Settings),B-amazement-d4-v2,101,"Her mother had recognized her each visit for the past fourteen months.
+The doctors used the word ""stable."" She visited on Sundays and sat in
+the chair and held her mother's hand and her mother looked at the
+window. On this Sunday, a piano in the common room was left open. Her
+mother glanced at the bench and stayed seated. A staff member played a
+short piece during the afternoon activity hour. Both hands. Sheet
+music on the stand. The notes followed the printed page. Her mother
+had not played piano since 1987. When the piece ended, her mother
+returned to looking at the window. The staff continued their rounds.",neutral,N-amazement-d4-c2
+N-amazement-d4-c3,neutral,none,4,Caregiving-Responsibility-Matched (Dependent/Institutional Settings),B-amazement-d4-v3,99,"The foster child had been with them for eleven weeks. She was eight.
+She did not speak about school. Her backpack came home zipped and she
+took it to her room. On conference night, the teacher handed him a
+folder. Inside were thirty-one pages of math — third-grade math. The
+problems were from the standard workbook the teacher had assigned to
+the class. The girl had been completing the exercises during class
+time, writing answers in the spaces provided in her workbook. She had
+gotten most of them right. She was eight and she had been working
+through the curriculum at the expected pace for eleven weeks.",neutral,N-amazement-d4-c3
+N-amazement-d6-c4,neutral,none,6,Public-Witness-Matched (Civic/Transit Settings),B-amazement-d6-v4,102,"The street performer had a table and three cups. The crowd expected a
+shell game. He placed a coin under the center cup. Then he shuffled
+the cups on the table, moving them in a standard pattern. He asked a
+woman to point to the cup with the coin. She pointed. He lifted it.
+The coin was there. He shuffled them again. She pointed. He lifted it.
+The coin was there. He turned all three cups over. One coin, two empty
+cups. He reached into his pocket and produced a second coin for the
+tip jar. Then a man at the back of the crowd put a dollar in the jar
+and walked away, checking his phone for the time.",neutral,N-amazement-d6-c4
+N-admiration-d6-c1,neutral,none,6,Public-Witness-Matched (Civic/Transit Settings),B-admiration-d6-v1,102,"The bus driver had been on the same route for sixteen years. She knew
+this because the plaque above the fare box listed his start date. On
+this morning, a woman boarded with a stroller and two bags and the
+fare card worked on the second tap. The driver waited. He did not say
+anything about the delay. He pressed the button for the ramp, secured
+the stroller area, and announced the next stop in the standard
+recorded voice — the city's transit language, English, the same
+announcement that played on every bus. The other passengers waited.
+The woman sat down. The driver pulled away from the curb. He had done
+this before. It was visible in the way he did it — on schedule,
+without delay.",neutral,N-admiration-d6-c1
+N-vigilance-d4-c3,neutral,none,4,Caregiving-Responsibility-Matched (Dependent/Institutional Settings),B-vigilance-d4-v3,100,"She had been preparing her daughter's meals for three weeks. The
+portions served were measured and presented on the usual plates. She
+noted what came back to the kitchen: which foods were eaten, which
+were left on the plate, which were pushed to the side. She tracked
+the grocery list on a notepad in her desk drawer — items purchased
+by week, seven days per row. The pattern was consistent by the second
+week. Breakfast finished. Lunch steady. Dinner mostly finished. Her
+daughter was sixteen and she was sitting at the table right now,
+cutting her food into the usual pieces. She watched from the counter.
+She did not comment on the pieces. She was planning the next week's
+menu. She was checking what needed restocking.",neutral,N-vigilance-d4-c3
+N-vigilance-d5-c2,neutral,none,5,Inheritance/Legacy-Matched (Intergenerational Records),B-vigilance-d5-v2,103,"The house had been his father's project for thirty years. After the
+funeral, the contractor came to assess the foundation. He found what
+he expected: a drainage system. Standard-issue channels running along
+every footing, lined with gravel, routed to a sump basin under the
+porch. The channels were clean. His father had maintained them — she
+found the maintenance log in the basement, entries every April and
+October. The contractor said the water table in the area had been
+stable over the past two decades. The houses on the block were in
+similar condition. This one matched the rest. His father had maintained
+the drainage for thirty years. The house stood on ground that was
+stable, and the foundation was in standard condition.",neutral,N-vigilance-d5-c2
+N-vigilance-d6-c2,neutral,none,6,Public-Witness-Matched (Civic/Transit Settings),B-vigilance-d6-v2,101,"The old man sat at the same bench in the park every morning. He had
+a thermos and a folded newspaper he read section by section. She had
+passed him for six weeks and understood what he was doing. He was
+reading the paper. Not one section — all of them. His eyes followed
+the columns, then the headlines, then the classifieds, then the
+sports. He did this in a sequence that took approximately forty
+minutes to complete. When he finished a section, he folded it and
+set it aside. When he reached the last page, he capped the thermos.
+The newspaper was his morning routine. The bench was positioned where
+the morning sun reached it between nine and ten.",neutral,N-vigilance-d6-c2
+N-vigilance-d6-c4,neutral,none,6,Public-Witness-Matched (Civic/Transit Settings),B-vigilance-d6-v4,103,"The guide had taken the group into the canyon at 6 a.m. By noon, the
+sky had stayed the same. He watched the guide pause talking and look
+west. The clouds were in a formation consistent with the clouds they'd
+been under all morning, and the guide was confirming what he
+expected — the wind direction at the rim, the color of the light on
+the far wall, the temperature holding steady as he could feel on his
+own forearms. The guide checked his watch. He checked the trail
+markers on the canyon wall. He counted the group. He looked west
+again. Then he continued on the planned route. They were three hours
+from the trailhead. The guide kept the pace that would reach it in
+three.",neutral,N-vigilance-d6-c4

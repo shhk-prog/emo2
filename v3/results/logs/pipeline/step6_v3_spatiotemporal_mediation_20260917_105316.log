@@ -1,0 +1,13 @@
+2026-09-17 10:55:18,515 [INFO] Starting V3-RQ2 & RQ3 Spatiotemporal Map Analysis (dry_run=False)
+2026-09-17 10:55:18,519 [INFO] Analyzing Qwen with 28 layers across 6 semantic stages...
+2026-09-17 10:55:18,540 [INFO] Saved raw spatiotemporal maps to v3/results/raw/v3_spatiotemporal_maps_qwen.json
+2026-09-17 10:55:18,541 [INFO] Saved spatiotemporal summary to v3/results/derived/v3_spatiotemporal_summary.json
+2026-09-17 10:55:18,541 [INFO] Spatiotemporal analysis completed successfully.
+2026-09-17 10:55:19,612 [INFO] Starting V3-RQ3 Path Mediation Analysis (dry_run=False)
+2026-09-17 10:55:19,622 [INFO] Data split: Discovery n=500, Confirmation n=500
+2026-09-17 10:55:19,622 [INFO] Executing Discovery phase...
+2026-09-17 10:55:19,622 [INFO] Discovered Mediator Layer: l_med* = 18 (depth=0.679)
+2026-09-17 10:55:19,622 [INFO] Executing Confirmation phase...
+2026-09-17 10:55:19,682 [INFO] Saved raw path mediation results to v3/results/raw/v3_path_mediation_qwen.json
+2026-09-17 10:55:19,682 [INFO] Saved path mediation summary to v3/results/derived/v3_path_mediation_summary.json
+2026-09-17 10:55:19,682 [INFO] Path mediation analysis completed successfully.

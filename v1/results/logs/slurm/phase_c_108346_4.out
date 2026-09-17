@@ -1,0 +1,11 @@
+Working directory: /mnt/nas/home/hiromi/src/emo
+========================================================================
+Starting Slurm Task: Array ID 4 / Job ID 108350
+Running on Host: iag-03 | GPU: NVIDIA H100 NVL
+========================================================================
+
+========================================================================
+Executing Job 4: qwen2.5_1.5b_instruct_ablation
+Command: python v1/scripts/run_v1_phase_c_targeted_ablation.py --model-id "Qwen/Qwen2.5-1.5B-Instruct" --model-prefix "qwen2.5_1.5b_instruct" --reader-layer 8 --self-layer 20 --limit 0 --device "cuda" --sub-batch-size 81
+Log:     v1/results/logs/phase_c/qwen2.5_1.5b_instruct_ablation_20260917_124612.log
+========================================================================

@@ -1,0 +1,23 @@
+{
+  "num_samples": 2,
+  "recognition_continuous_r_v": -1.0,
+  "recognition_continuous_p_v": 1.0,
+  "recognition_continuous_r_a": 1.0,
+  "recognition_continuous_p_a": 1.0,
+  "recognition_discrete_r_v": 1.0,
+  "recognition_discrete_p_v": 1.0,
+  "recognition_discrete_r_a": -1.0,
+  "recognition_discrete_p_a": 1.0,
+  "self_report_continuous_r_v": -1.0,
+  "self_report_continuous_p_v": 1.0,
+  "self_report_mean_ev": 3.0354839203686845,
+  "self_report_std_ev": 0.34002479888396675,
+  "self_report_mean_ea": 4.149346982681767,
+  "self_report_std_ea": 0.15435496248398978,
+  "self_report_exact_55_neutral_pct": 50.0,
+  "self_report_mean_p55_pct": 0.004627967927926825,
+  "self_report_mean_entropy": 3.313397094792279,
+  "model": "meta-llama/Llama-3.2-1B-Instruct",
+  "is_instruct": true,
+  "tag": "llama3.2_1b_instruct"
+}

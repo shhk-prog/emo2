@@ -1,0 +1,20 @@
+.venv/
+venv/
+
+__pycache__/
+*.pyc
+
+# 実験生成物
+# v1/results/
+
+
+# モデル・チェックポイント（ルート直下の重みディレクトリのみ対象）
+/models/
+/checkpoints/
+!src/**/models/
+!v1/**/models/
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.safetensors

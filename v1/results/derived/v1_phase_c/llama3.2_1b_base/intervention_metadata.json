@@ -1,0 +1,23 @@
+{
+  "model": "meta-llama/Llama-3.2-1B",
+  "model_type": "base",
+  "phase": "phase_c",
+  "experiments": ["E3", "E4", "E6"],
+  "intervention_definition": {
+    "intervention_source_position": "prompt_end",
+    "intervention_target_position": "response_onset",
+    "legacy_bos_offset": 1,
+    "formal_specification": "prompt-derived affect difference -> response-onset intervention",
+    "math_definition": "\\tilde{h}_{T,response_onset}^{(l)} = h_{T,response_onset}^{(l)} + (h_{T,aff}^{(l,prompt_end)} - h_{T,neu}^{(l,prompt_end)})",
+    "e3_experiment_name": "Response-Onset Causal Map",
+    "e4_experiment_name": "Cross-Perspective Interchangeability (Reader prompt-derived affect vector -> Self response-onset state)",
+    "first_candidate_token_validation": {
+      "verified_identical": true,
+      "num_unique_first_tokens": 1,
+      "unique_first_token_id": 5018,
+      "decoded_token": "'{\"'",
+      "boundary_mismatches": 0,
+      "theoretical_justification": "All 729 VAD candidates start with '{\"'. The probability of this first token is determined by logits at the prompt-end position and represents an identical constant factor across all candidates in softmax comparison. Thus, injecting the difference vector at the response-onset hidden state cleanly and validly affects the subsequent sequence generation (tokens 2+) of the VAD report."
+    }
+  }
+}

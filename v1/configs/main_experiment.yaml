@@ -1,0 +1,51 @@
+experiment:
+  name: "LLM_Affective_Reactivity_Main_Experiment"
+  phase: "main"
+  random_seed: 42
+  repetitions: 1
+  baseline_block_size: 25
+  annotation_perspective: "reader"
+
+open_weight_models:
+  - id: "meta-llama/Llama-3.2-1B-Instruct"
+    enabled: true
+    num_layers: 16
+    hidden_dim: 2048
+  - id: "Qwen/Qwen2.5-1.5B-Instruct"
+    enabled: true
+    num_layers: 28
+    hidden_dim: 1536
+
+extraction:
+  layers_to_extract: [0, 4, 8, 12, 16, 20, 24, 27]
+  positions: ["stimulus_last_token", "mean_pooled", "pre_answer_last_token"]
+
+probing:
+  alpha: 1.0
+  cv_folds: 5
+  n_shuffled_permutations: 10
+  target_variables: ["stimulus_va", "recognition_va", "reception_va", "shift_va"]
+
+causal_intervention:
+  patching:
+    enabled: true
+    weights: [0.25, 0.5, 0.75, 1.0]
+  ablation:
+    enabled: true
+    types: ["zero", "mean", "neutral"]
+  steering:
+    enabled: true
+    scales: [-2.0, -1.0, 0.0, 1.0, 2.0]
+
+conditions:
+  - "empty_baseline"
+  - "recognition_va"
+  - "post_reported_va"
+  - "free_response"
+
+inference:
+  temperature: 0.0
+  top_p: 1.0
+  max_tokens: 64
+  max_retries: 3
+  batch_size: 512

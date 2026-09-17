@@ -68,7 +68,7 @@ def simulate_model_confirmatory(
     dry-run用: 特定モデルファミリーに対する Confirmatory 検証のシミュレーション
     """
     rng = np.random.default_rng(seed)
-    relative_depths = [(l + 1) / num_layers for l in range(num_layers)]
+    relative_depths = [l / (num_layers - 1) if num_layers > 1 else 0.0 for l in range(num_layers)]
 
     d_center = 0.46 if family == "Llama" else (0.50 if family == "Gemma" else 0.48)
     c_center = 0.65 if family == "Llama" else (0.72 if family == "Gemma" else 0.70)
@@ -161,7 +161,7 @@ def run_real_model_confirmatory(
     fam_cfg = registry.get_family(model_id)
     adapter = get_model_adapter(model, fam_cfg)
     num_layers = fam_cfg.num_layers
-    relative_depths = [(l + 1) / num_layers for l in range(num_layers)]
+    relative_depths = [l / (num_layers - 1) if num_layers > 1 else 0.0 for l in range(num_layers)]
 
     eval_df = df.head(subsample).copy().reset_index(drop=True)
     N = len(eval_df)

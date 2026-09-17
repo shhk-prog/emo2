@@ -64,7 +64,7 @@ def simulate_spatiotemporal_maps(
     論文中の発見（刺激提示時は中間層でデコードピーク、生成時は後期層 pre_V で因果ピーク）を反映
     """
     rng = np.random.default_rng(42)
-    relative_depths = [(l + 1) / num_layers for l in range(num_layers)]
+    relative_depths = [l / (num_layers - 1) if num_layers > 1 else 0.0 for l in range(num_layers)]
     num_stages = len(semantic_stages)
 
     # 4-Map の初期化 (Layer × Stage)
@@ -176,7 +176,7 @@ def run_real_spatiotemporal_maps(
     fam_cfg = registry.get_family(model_id)
     adapter = get_model_adapter(model, fam_cfg)
     num_layers = fam_cfg.num_layers
-    relative_depths = [(l + 1) / num_layers for l in range(num_layers)]
+    relative_depths = [l / (num_layers - 1) if num_layers > 1 else 0.0 for l in range(num_layers)]
     num_stages = len(semantic_stages)
 
     eval_df = df.head(subsample).copy().reset_index(drop=True)

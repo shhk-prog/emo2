@@ -423,7 +423,7 @@ def main():
 
                 e3_pair_records.append({
                     "layer": l,
-                    "relative_depth": (l + 1) / num_layers,
+                    "relative_depth": l / (num_layers - 1) if num_layers > 1 else 0.0,
                     "pair_id": p_id,
                     "eval_split": split_tag,
                     "shift_V_self": sv,
@@ -459,7 +459,7 @@ def main():
 
             e3_causal_records.append({
                 "layer": l,
-                "relative_depth": (l + 1) / num_layers,
+                "relative_depth": l / (num_layers - 1) if num_layers > 1 else 0.0,
                 "magnitude_self": mag_s,
                 "magnitude_reader": mag_r,
                 "shift_V_self": mean_sv,
@@ -624,7 +624,7 @@ def main():
 
                 e4_patching_records.append({
                     "layer": l,
-                    "relative_depth": (l + 1) / num_layers,
+                    "relative_depth": l / (num_layers - 1) if num_layers > 1 else 0.0,
                     "alpha": alpha,
                     "matched_shift_V": mean_m_v,
                     "matched_shift_A": mean_m_a,

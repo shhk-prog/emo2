@@ -65,7 +65,7 @@ def simulate_path_mediation_discovery(
     dry-run用: Discovery セットを用いた刺激提示時ピークおよび Mediator 層候補の模擬選定
     """
     rng = np.random.default_rng(101)
-    relative_depths = [(l + 1) / num_layers for l in range(num_layers)]
+    relative_depths = [l / (num_layers - 1) if num_layers > 1 else 0.0 for l in range(num_layers)]
 
     d_stim = [np.exp(-((d - 0.48) ** 2) / (2 * 0.16**2)) * 0.70 + rng.normal(0, 0.02) for d in relative_depths]
     c_gen = [np.exp(-((d - 0.68) ** 2) / (2 * 0.14**2)) * 1.10 + rng.normal(0, 0.02) for d in relative_depths]
@@ -162,7 +162,7 @@ def run_real_path_mediation(
     fam_cfg = registry.get_family(model_id)
     adapter = get_model_adapter(model, fam_cfg)
     num_layers = fam_cfg.num_layers
-    relative_depths = [(l + 1) / num_layers for l in range(num_layers)]
+    relative_depths = [l / (num_layers - 1) if num_layers > 1 else 0.0 for l in range(num_layers)]
 
     # 1. 厳格な 50/50 Data Splitting (seed 42)
     rng = np.random.default_rng(42)

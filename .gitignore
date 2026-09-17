@@ -1,20 +1,44 @@
+# Python / Environments
 .venv/
 venv/
-
+ENV/
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
 
-# 実験生成物
-# v1/results/
+# System / OS Artifacts
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
+# Secrets & Environment Variables
+.env
+.env.local
+*.key
+*.pem
 
-# モデル・チェックポイント（ルート直下の重みディレクトリのみ対象）
+# Large Binaries & Checkpoints
 /models/
 /checkpoints/
 !src/**/models/
-!v1/**/models/
 *.pt
 *.pth
 *.ckpt
 *.bin
 *.safetensors
+*.npz
+
+# Logs and Caches
+*.log
+**/results/cache/
+**/results/logs/
+**/results/mock_simulation_archive/
+scratch/
+archive/

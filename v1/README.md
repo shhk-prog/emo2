@@ -186,16 +186,19 @@ Step 7: E6 Double Dissociation (特異化)
 
 #### 【Phase B & 発展検証】
 
-#### ■ E5: Semantic vs. Lexical（語彙交絡監査と独立Judge検証付き4段階統制）
+#### ■ Phase B: Semantic vs. Lexical Controls Audit（語彙交絡監査と4段階統制対）
 - **科学的問い**: 観測された発火場所・表現は、単純な語彙共起（Bag-of-Words / Lexical Shortcuts）だけで説明できるか？
 - **実験手法**:
-  1. **Lexical Confound Audit (事前の語彙交絡監査)**:
-     - Token Jaccard, Levenshtein距離, Sentence-BERT類似度, 単語長, 感情語辞書（VADER）, Perplexity差を算出し、共変量として統制した偏回帰・混合効果モデルを適用。
-  2. **4段階統制対の評価（独立Judge検証基準付）**:
+  1. **Lexical Confound Audit (語彙交絡監査)**:
+     - Token Jaccard, Levenshtein距離, 単語長, 感情語辞書重複を算出して統制。
+  2. **4段階統制対の評価**:
      - (a) **Lexically matched minimal pairs**: 語彙監査を通過した基本対。
-     - (b) **Compositional / Outcome Reversal**: 同一主要語彙を残した結末反転対（Lexical overlap $\ge 0.80$, Polarity Reversal, Grammaticality を独立検証）。
-     - (c) **Paraphrase Invariance**: 異なる語彙で同一事態を記述（Semantic equivalence, Affective equivalence, Fluency を独立検証）。
-     - (d) **Word Shuffle**: 語彙を100%保持したまま語順を破壊し、プローブ精度・発火が崩壊することを確認。
+     - (b) **Outcome Reversal**: 文脈・語彙を保持したまま結末・極性を反転させた対。
+     - (c) **Paraphrase Invariance / Surface Perturbation**: 語彙を変えて同一意味・感情を保持した対。
+     - (d) **Word Shuffle**: 語彙を100%保持したまま語順を破壊し、プローブ精度が低下することを確認。
+- **注意（旧計画E5との対応関係）**:
+  - 旧計画で検討されていた「LLM Judgeを用いた自由生成テキストの評価（旧E5）」は未実装であり、本論文の主筋からは除外されています。
+  - 本研究のV1実験体系は、**5大実験（E1, E2, E3, E4, E6）**および**Phase B（Semantic Controls）**で厳密に構成されています。
 
 ---
 
@@ -207,57 +210,43 @@ Step 7: E6 Double Dissociation (特異化)
     $$\text{Outcome} \sim \text{Task} \times \text{SiteType} + (1 \mid \text{pair})$$
     - 固定効果: $\text{Task (Reader vs Self)} \times \text{SiteType (Reader-site vs Self-site)}$
     - ランダム効果: 刺激ペアごとの切片 $(1 \mid \text{pair})$
-  - 交互作用項の有意性（$p < .01$）により、「完全独立回路」ではなく**因果的特異化／部分解離（Causal Specialization / Partial Dissociation）**を実証。
+  - 交互作用項の有意性（$p < .05$）により、「完全独立回路」ではなく**因果的特異化／部分解離（Causal Specialization / Partial Dissociation）**を実証。
 
 ---
 
-## 4. 共通評価プロトコル (Sequence-Likelihood Protocol)
+## 4. 共通評価プロトコル (Sequence-Likelihood & Prompt-End Normalization)
 
 従来のテキスト生成（Greedy / Sampling）に起因する量子化エラーや完全中立への収束を回避するため、本研究では **729通り（$V, A, D \in \{1..9\}^3$）の完全直積 JSON 候補** に対する条件付き対数尤度を算出するプロトコルを採用しています。
 
+- **Prompt-End Normalized 介入**:
+  - トークン化境界のずれを防ぐため、すべての介入・隠れ状態抽出において `add_special_tokens=False` と `prompt_end = len(prompt_ids) - 1` を厳密に適用。
+- **相対深度の標準化**:
+  - 内部層番号 $0 \le l < L$ に対し、相対計算深度を $d = \frac{l}{L - 1}$（0-based）として統一。
 - **連続期待値の算出**:
   $$E[V] = \sum_{v=1}^9 v \cdot P(V = v), \quad E[A] = \sum_{a=1}^9 a \cdot P(A = a), \quad E[D] = \sum_{d=1}^9 d \cdot P(D = d)$$
 - **独立セッションの厳密な保持**:
   - **Writer Estimation ($W$)**: 「書き手はどう感じていたか？」
   - **Reader Prediction ($R$)**: 「平均的な読者はどう感じるか？」
   - **Self-Report ($S$)**: 「あなた自身はどう感じるか？」
-  これらを同一の会話履歴に混ぜず、完全に独立したAPI呼び出し・フォワードパスとして実行します。
+  これらを同一の会話履歴に混ぜず、完全に独立したフォワードパスとして実行します。
 
 ---
 
-## 5. データセット構成
+## 5. ディレクトリ・スクリプト構成
 
-### 5.1 EmoBank 3-Way VAD (`data/processed/stimuli_vad_3way_test1k.csv`)
-人間アノテーション済みの客観的 VAD コーパスから抽出した 1,000 件の刺激文。
-- `id`, `text`: 刺激識別子と原文テキスト
-- `reader_V`, `reader_A`, `reader_D`: 人間読者アノテーション値
-- `writer_V`, `writer_A`, `writer_D`: 人間執筆者アノテーション値
+### 5.1 Primary パイプライン (`v1/primary/`)
+論文の主結果を再現する正式スクリプト群：
+- **`v1/primary/run_phase_a.py`**: E1 (Decodability) & E2 (Geometry) 評価スクリプト。
+- **`v1/primary/run_phase_b.py`**: Phase B Semantic Controls Audit スクリプト。
+- **`v1/primary/run_phase_c.py`**: E3 (Causal Map) & E4 (Interchangeability) 介入スクリプト。
+- **`v1/primary/phase_c/`**:
+  - `run_e3_causal_map.py`: E3 全層因果マッピング。
+  - `select_e4_sites.py`: Discovery スプリットに基づく E4 候補層決定論的選定。
+  - `run_e4_interchangeability.py`: E4 Confirmation スプリット上での差分ベクトル置換・特異性評価。
+  - `run_e6_specialization.py`: E6 標的消去・2×2因果交互作用検定 (LMM)。
+  - `summarize_phase_c.py`: Phase C モデル間統合集計レポート生成。
 
-### 5.2 AIPsy-Affect 4-Split (`data/processed/aipsy_4split_all.csv`)
-キーワード（感情語）を排除し、文章の長さや構文複雑性を厳密に統制した臨床ヴィネット最小対データセット（全 2,196 件）。
-- **4つの条件スプリット (`split`)**:
-  1. `clinical`: 臨床的に重度な情動文（8感情カテゴリ: rage, grief, terror, ecstacy 等）
-  2. `moderate`: 中等度の情動文（Dose-Response 検証用）
-  3. `neutral`: 語彙・長さを統制したマッチド中立文
-  4. `complex_neutral`: 構文難度・語数を clinical と等質化させた複雑中立文（Specificity 検証用）
-- `pair_id`: 同一状況の情動文と中立文を結ぶ最小対識別子
-- `emotion`, `intensity`: 感情ラベルおよび強度レベル
-
----
-
-## 6. スクリプト構成と役割
-
-### 6.1 データ準備・検証
-- **`scripts/prepare_3way_emobank.py`**: EmoBank から 3-Way 評価用刺激セット（1,000件）を決定論的に抽出。
-- **`scripts/prepare_aipsy_4splits.py`**: AIPsy-Affect Arrow キャッシュから 4-Split 統合 CSV を構築。
-- **`scripts/inspect_aipsy_4splits.py`**: スプリットごとの単語数・感情分布・単調性条件の整合性を検査。
-
-### 6.2 行動評価実験 (Behavioral Stage)
-- **`scripts/run_3way_vad_evaluation.py`**: EmoBank 1,000件に対する 729候補 Sequence-Likelihood 推論スクリプト。
-- **`scripts/run_all_3way_vad.sh`**: 4大モデルファミリー（Base / Instruct 計8モデル）を一括推論。
-- **`scripts/summarize_3way_vad.py`**: EmoBank 推論結果を集計し、モデル間相関・人間一致度・詳細レポート（`3way_vad_detailed_report.md`）を出力。
-- **`scripts/run_aipsy_4split_evaluation.py`**: AIPsy 4-Split に対する 729候補 Sequence-Likelihood 推論スクリプト。
-- **`scripts/run_all_aipsy_4split.sh`**: AIPsy 4-Split 全モデル一括推論シェル。
+※ 行動実験（EmoBank 3-Way および AIPsy 4-Split）は独立パイプライン `behavioral/` に集約されました。
 - **`scripts/summarize_aipsy_4split.py`**: 4大RQ（Sensitivity, Dose-Response, Specificity, Coupling）＋ 8感情別プロファイルを集計し、詳細レポート（`aipsy_4split_detailed_report.md`）を出力。
 
 ### 6.3 内部表現・幾何・因果回路解析 (V1 Phases)

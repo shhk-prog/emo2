@@ -1,7 +1,7 @@
 [project]
 name = "affective_empathy_eval"
-version = "0.1.0"
-description = "LLM Affective Reactivity Evaluation Experiment (Behavioral, V1, V2, V3)"
+version = "0.3.0"
+description = "Affective Reactivity & Representation Evaluation Pipeline (Behavioral, V1, V2, V3)"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -13,6 +13,7 @@ dependencies = [
     "requests>=2.31.0",
     "scipy>=1.12.0",
     "scikit-learn>=1.4.0",
+    "statsmodels>=0.14.0",
     "torch>=2.2.0",
     "transformers>=4.40.0",
     "accelerate>=0.29.0",
@@ -21,6 +22,7 @@ dependencies = [
     "matplotlib>=3.8.0",
     "seaborn>=0.13.0",
     "POT>=0.9.0",
+    "tqdm>=4.66.0",
 ]
 
 [project.optional-dependencies]
@@ -47,3 +49,7 @@ ignore = []
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::RuntimeWarning",
+]

@@ -2,7 +2,7 @@
 """
 v1/primary/phase_c/run_e6_specialization.py
 
-V1 Phase C Primary Script: E6 Targeted Ablation & Double Dissociation Analysis
+V1 Phase C Primary Script: E6 Targeted Ablation & Task-Specific Causal Specialization
 Evaluates whether Reader and Self recruit task-specific causal sub-circuits
 through Targeted Ablation and Linear Mixed-Effects Model (LMM) interaction testing:
   Outcome ~ Task * SiteType + (1 | pair)
@@ -303,8 +303,11 @@ def main():
 
     try:
         num_layers, _ = resolve_architecture_dims(args.model_id)
-    except Exception:
-        num_layers = 28
+    except Exception as ex:
+        logger.error(
+            f"Failed to resolve architecture dimensions for '{args.model_id}': {ex}"
+        )
+        raise
 
     # 動的レイヤー決定 (E3 Discovery 結果または指定)
     e3_csv_path = args.e3_csv or os.path.join(model_dir, "e3_causal_map.csv")
@@ -406,10 +409,6 @@ def main():
         )
         dry_df.to_csv(
             os.path.join(model_dir, "e6_specialization_trials.csv"),
-            index=False,
-        )
-        dry_df.to_csv(
-            os.path.join(model_dir, "e6_double_dissociation_trials.csv"),
             index=False,
         )
         manifest = create_run_manifest(
@@ -609,15 +608,10 @@ def main():
         )
 
     df_long = pd.DataFrame(long_records)
-    # Save both canonical specialization filename and legacy double dissociation filename
     spec_csv_path = os.path.join(
         model_dir, "e6_specialization_trials.csv"
     )
-    legacy_csv_path = os.path.join(
-        model_dir, "e6_double_dissociation_trials.csv"
-    )
     df_long.to_csv(spec_csv_path, index=False)
-    df_long.to_csv(legacy_csv_path, index=False)
 
     stat_results = run_lmm_interaction_test(df_long)
     cell_means = df_long.groupby(["task", "site_type"])["impact"].mean()

@@ -151,6 +151,10 @@ def simulate_spatiotemporal_maps(
             "valence": dissoc_v,
             "arousal": dissoc_a,
         },
+        "n_total_samples": 32,
+        "n_map_samples": 32,
+        "n_intervene_samples": 5,
+        "n_causal_intervention_samples": 5,
         "dry_run": True,
     }
 
@@ -280,12 +284,24 @@ def run_real_spatiotemporal_maps(
 
             H = np.array(h_stage)  # (N, D)
 
-            # 2. デコード能 D: Held-out Ridge R^2 (5-fold CV)
-            from sklearn.model_selection import KFold
-            kf = KFold(n_splits=3, shuffle=True, random_state=42)
-            r2_v_folds, r2_a_folds = [], []
+            # 2. デコード能 D: Held-out Ridge R^2 (GroupKFold CV by pair_id if available)
+            if "pair_id" in eval_df.columns:
+                from sklearn.model_selection import GroupKFold
+                groups = eval_df["pair_id"].values
+                n_groups = len(np.unique(groups))
+                n_splits = min(3, n_groups)
+                if n_splits > 1:
+                    cv = GroupKFold(n_splits=n_splits)
+                    cv_splits = list(cv.split(H, y_v, groups=groups))
+                else:
+                    from sklearn.model_selection import KFold
+                    cv_splits = list(KFold(n_splits=min(3, N), shuffle=True, random_state=42).split(H))
+            else:
+                from sklearn.model_selection import KFold
+                cv_splits = list(KFold(n_splits=min(3, N), shuffle=True, random_state=42).split(H))
+
             preds_v, preds_a = np.zeros(N), np.zeros(N)
-            for tr, te in kf.split(H):
+            for tr, te in cv_splits:
                 ridge_v = Ridge(alpha=10.0).fit(H[tr], y_v[tr])
                 ridge_a = Ridge(alpha=10.0).fit(H[tr], y_a[tr])
                 preds_v[te] = ridge_v.predict(H[te])
@@ -370,7 +386,9 @@ def run_real_spatiotemporal_maps(
         "semantic_stages": semantic_stages,
         "relative_depths": relative_depths,
         "n_total_samples": len(df),
-        "n_intervene_samples": N,
+        "n_map_samples": N,
+        "n_intervene_samples": len(sub_eval_idx),
+        "n_causal_intervention_samples": len(sub_eval_idx),
         "maps": {
             "D_V": D_V.tolist(),
             "D_A": D_A.tolist(),
@@ -443,10 +461,16 @@ def main():
                 subsample=args.subsample,
             )
 
+        n_dataset_total = int(len(df))
+        n_map_samples = int(results.get("n_map_samples", (args.subsample if args.subsample and args.subsample > 0 else len(df))))
+        n_causal_intervene = int(results.get("n_causal_intervention_samples", min(5, n_map_samples)))
+
         results["dry_run"] = bool(args.dry_run)
         results["analysis_role"] = "discovery"
-        results["n_dataset_total"] = int(len(df))
-        results["n_intervention_samples"] = int(args.subsample if args.subsample and args.subsample > 0 else len(df))
+        results["n_dataset_total"] = n_dataset_total
+        results["n_map_samples"] = n_map_samples
+        results["n_intervene_samples"] = n_causal_intervene
+        results["n_causal_intervention_samples"] = n_causal_intervene
 
         with open(out_raw, "w", encoding="utf-8") as f:
             json.dump(results, f, indent=2)
@@ -467,7 +491,9 @@ def main():
         metadata={
             "analysis_role": "discovery",
             "n_dataset_total": int(len(df)),
-            "n_intervention_samples": int(results.get("n_intervention_samples", len(df))),
+            "n_map_samples": int(results.get("n_map_samples", len(df))),
+            "n_intervene_samples": int(results.get("n_intervene_samples", min(5, len(df)))),
+            "n_causal_intervention_samples": int(results.get("n_causal_intervention_samples", min(5, len(df)))),
             "dissociation_summary": results["dissociation_summary"],
         },
     )

@@ -153,23 +153,29 @@ def main():
     parser.add_argument(
         "--input-dir",
         type=str,
-        default="behavioral/results/emobank_3way",
+        default="behavioral/results/raw/emobank_3way",
         help="Directory containing *_3way_vad.csv files",
     )
     parser.add_argument(
         "--out-dir",
         type=str,
-        default="behavioral/results/emobank_3way_summary",
+        default="behavioral/results/derived/emobank_3way_summary",
         help="Output directory for reports",
     )
     args = parser.parse_args()
 
     files = sorted(glob.glob(os.path.join(args.input_dir, "*_3way_vad.csv")))
     if not files:
-        # Fallback to v1 results if behavioral results are empty
-        v1_fallback = "v1/results/emobank_3way_vad_test1k"
-        if os.path.exists(v1_fallback):
-            files = sorted(glob.glob(os.path.join(v1_fallback, "*_3way_vad.csv")))
+        # Fallbacks: legacy path and v1 results
+        fallbacks = [
+            "behavioral/results/emobank_3way",
+            "v1/results/emobank_3way_vad_test1k",
+        ]
+        for fb in fallbacks:
+            if os.path.exists(fb):
+                files = sorted(glob.glob(os.path.join(fb, "*_3way_vad.csv")))
+                if files:
+                    break
 
     if not files:
         print(f"No result CSVs found in {args.input_dir} or fallback.")

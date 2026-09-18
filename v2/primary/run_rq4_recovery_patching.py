@@ -64,6 +64,7 @@ def run_recovery_patching_for_task(
     model_inst: Any = None,
     tok_base: Any = None,
     tok_inst: Any = None,
+    seed: int = 42,
 ) -> dict[str, Any]:
     """
     指定タスク（Reader または Self）において、Base 活性化の Instruct への層別パッチングを実施。
@@ -241,14 +242,27 @@ def run_recovery_patching_for_task(
     layer_mean_ratios_plain = []
     layer_mean_ratios_aligned = []
 
-    # Train / Eval 分割 (Procrustes alignment 学習に評価サンプルを含めない)
-    n_train = max(2, int(0.7 * N))
-    eval_indices = list(range(n_train, N)) if N > n_train else list(range(N))
+    # Train / Eval 分割 (Procrustes alignment 学習に評価サンプルを含めない: seeded group/permutation split)
+    rng_split = np.random.default_rng(seed)
+    if "pair_id" in df.columns:
+        unique_pairs = list(df["pair_id"].unique())
+        rng_split.shuffle(unique_pairs)
+        n_train_pairs = max(1, int(0.7 * len(unique_pairs)))
+        train_pairs = set(unique_pairs[:n_train_pairs])
+        train_indices = [idx for idx, pid in enumerate(df["pair_id"]) if pid in train_pairs]
+        eval_indices = [idx for idx, pid in enumerate(df["pair_id"]) if pid not in train_pairs]
+        if len(eval_indices) == 0:
+            eval_indices = train_indices
+    else:
+        perm = list(rng_split.permutation(N))
+        n_train = max(2, int(0.7 * N))
+        train_indices = perm[:n_train]
+        eval_indices = perm[n_train:] if N > n_train else perm
 
     for l in range(num_layers):
         # SVD による直交 Procrustes 行列 R の学習 (Train split のみ)
-        H_b_train = torch.cat([base_activations[l][idx].squeeze() for idx in range(n_train)], dim=0).view(n_train, -1).cpu().float().numpy()
-        H_i_train = torch.cat([inst_activations[l][idx].squeeze() for idx in range(n_train)], dim=0).view(n_train, -1).cpu().float().numpy()
+        H_b_train = torch.cat([base_activations[l][idx].squeeze() for idx in train_indices], dim=0).view(len(train_indices), -1).cpu().float().numpy()
+        H_i_train = torch.cat([inst_activations[l][idx].squeeze() for idx in train_indices], dim=0).view(len(train_indices), -1).cpu().float().numpy()
 
         mu_b = np.mean(H_b_train, axis=0, keepdims=True)
         mu_i = np.mean(H_i_train, axis=0, keepdims=True)
@@ -386,31 +400,33 @@ def run_recovery_patching_for_family(
     device: str = "cpu",
     is_dry_run: bool = False,
     n_boot: int = 1000,
+    seed: int = 42,
 ) -> dict[str, Any]:
     """
-    同一 Family 内の Base 活性化を Instruct モデルへパッチングし、
-    Reader および Self 両タスクで分布回復率を測定・比較
+    1ファミリーについて Base/Instruct モデルをロードし、Reader と Self の両タスクで回復パッチングを実行
     """
-    num_layers = fam_cfg.num_layers
+    logger.info(f"=== Starting RQ4 Recovery Patching for Family: {fam_id} ===")
+    num_layers = min(fam_cfg.num_layers, 4) if is_dry_run else fam_cfg.num_layers
     depths = [compute_relative_depth(l, num_layers) for l in range(num_layers)]
 
-    model_base = None
-    model_inst = None
-    tok_base = None
-    tok_inst = None
-
-    if not is_dry_run:
-        base_spec = fam_cfg.get_model_spec("base")
-        inst_spec = fam_cfg.get_model_spec("instruct")
-        logger.info(f"Loading Base ({base_spec.model_id}) and Instruct ({inst_spec.model_id})...")
-        dtype = torch.bfloat16 if "cuda" in device else torch.float32
-        tok_base = AutoTokenizer.from_pretrained(base_spec.model_id)
-        tok_inst = AutoTokenizer.from_pretrained(inst_spec.model_id)
+    if is_dry_run:
+        model_base, model_inst, tok_base, tok_inst = None, None, None, None
+    else:
+        spec_base = fam_cfg.get_model_spec("base")
+        spec_inst = fam_cfg.get_model_spec("instruct")
+        logger.info(f"Loading Base model: {spec_base.model_id}...")
+        tok_base = AutoTokenizer.from_pretrained(spec_base.model_id)
         model_base = AutoModelForCausalLM.from_pretrained(
-            base_spec.model_id, torch_dtype=dtype, device_map=device if "cuda" in device else None
+            spec_base.model_id,
+            torch_dtype=torch.bfloat16 if "cuda" in device else torch.float32,
+            device_map=device if "cuda" in device else None,
         )
+        logger.info(f"Loading Instruct model: {spec_inst.model_id}...")
+        tok_inst = AutoTokenizer.from_pretrained(spec_inst.model_id)
         model_inst = AutoModelForCausalLM.from_pretrained(
-            inst_spec.model_id, torch_dtype=dtype, device_map=device if "cuda" in device else None
+            spec_inst.model_id,
+            torch_dtype=torch.bfloat16 if "cuda" in device else torch.float32,
+            device_map=device if "cuda" in device else None,
         )
 
     # 1. Reader タスクでの回復パッチング
@@ -427,6 +443,7 @@ def run_recovery_patching_for_family(
         model_inst=model_inst,
         tok_base=tok_base,
         tok_inst=tok_inst,
+        seed=seed,
     )
 
     # 2. Self タスクでの回復パッチング
@@ -515,6 +532,7 @@ def main():
             device=args.device,
             is_dry_run=args.dry_run,
             n_boot=n_boot,
+            seed=v2_config.get("seed", 42),
         )
         all_recovery_results[fam_id] = res
 

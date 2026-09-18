@@ -35,6 +35,8 @@ from affective_empathy_eval.likelihood import (
     build_va_candidates,
     compute_expected_va,
     compute_sequence_likelihoods_for_candidates,
+    prepare_joint_sequence_with_boundary,
+    resolve_joint_stage_index,
 )
 from affective_empathy_eval.data import (
     describe_loaded_frame,
@@ -164,6 +166,39 @@ def simulate_model_confirmatory(
     }
 
 
+def validate_stage_index_invariance(
+    tokenizer: Any,
+    prompt: str,
+    candidates: List[Dict[str, Any]],
+    stage_names: List[str],
+) -> Dict[str, int]:
+    """
+    81候補すべてでセマンティックステージのトークン絶対位置が同一であることを検証し、共通インデックスを返す
+    """
+    ref_cand = candidates[0]["json_str"]
+    full_ids_ref, cand_start_ref = prepare_joint_sequence_with_boundary(prompt, ref_cand, tokenizer)
+    cand_tokens_ref = tokenizer.encode(ref_cand, add_special_tokens=False)
+    offsets_ref = get_generation_stage_tokens(cand_tokens_ref, tokenizer, candidate_str=ref_cand)
+
+    ref_indices = {}
+    for stg in stage_names:
+        ref_indices[stg] = resolve_joint_stage_index(cand_start_ref, stg, offsets_ref, len(full_ids_ref))
+
+    for cand_dict in candidates[1:]:
+        cand_str = cand_dict["json_str"]
+        full_ids, cand_start = prepare_joint_sequence_with_boundary(prompt, cand_str, tokenizer)
+        cand_tokens = tokenizer.encode(cand_str, add_special_tokens=False)
+        offsets = get_generation_stage_tokens(cand_tokens, tokenizer, candidate_str=cand_str)
+        for stg in stage_names:
+            idx = resolve_joint_stage_index(cand_start, stg, offsets, len(full_ids))
+            if idx != ref_indices[stg]:
+                raise AssertionError(
+                    f"Stage index variance detected for stage '{stg}': candidate '{cand_str}' has index {idx}, "
+                    f"while reference candidate '{ref_cand}' has index {ref_indices[stg]}."
+                )
+    return ref_indices
+
+
 def run_real_model_confirmatory(
     family: str,
     model_id: str,
@@ -173,6 +208,8 @@ def run_real_model_confirmatory(
 ) -> Dict[str, Any]:
     """
     実モデル (Llama 3.2, Gemma 3, OLMo 2) に対する 4大仮説の Confirmatory 検証
+    H2(十分性), H3(必然性), H4(時間的局在) をすべて同一の Cross-Fitting (GroupKFold) ループ内で
+    train fold のみから推定・test fold のみで評価する完全独立評価に統一。
     """
     logger.info(f"Loading {family} model: {model_id} on {device}...")
     tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
@@ -265,7 +302,6 @@ def run_real_model_confirmatory(
         H = np.array(h_l)
         all_H[l] = H
 
-        # Compute held-out predictions out-of-fold (pair-aware if pair_id present)
         oof_preds = np.zeros(N)
         for train_idx, test_idx in split_gen_fn(H):
             ridge = Ridge(alpha=10.0).fit(H[train_idx], y_v[train_idx])
@@ -276,27 +312,32 @@ def run_real_model_confirmatory(
         r2 = max(0.0, float(1.0 - ss_res / (ss_tot + 1e-6)))
         d_profile_v.append(r2)
 
-    # 3. 中間〜後期層における介入効果 (gamma_V, slope_v)
-    # NOTE: Confirmatory data reuse 防止のため、direction 推定と intervention 評価を同一サンプルで行わず、
-    # pair_id 単位の cross-fitting (Out-of-fold intervention evaluation) を実施する。
+    # 3. 統合 Cross-Fitting: H2 (Sufficiency), H3 (Necessity), H4 (Temporal Emergence)
+    # NOTE: Confirmatory data reuse 完全排除のため、direction / Q / mu_neu の推定を train fold のみで行い、
+    # 評価を独立な test fold のみで実行する。
     mid_layer = int(num_layers * 0.65)
     alphas = [-1.0, -0.5, 0.0, 0.5, 1.0]
 
-    # 全 fold の test sample における alpha ごとの shift を集約
+    # 集約用データ構造
     test_shifts_v = {alpha: [] for alpha in alphas}
     test_shifts_a = {alpha: [] for alpha in alphas}
-
-    # 各層の因果プロファイル C(l) の out-of-fold shifts
     test_c_profile_shifts = {l: [] for l in range(num_layers)}
+    nat_shifts = []
+    att_shifts = []
+
+    stage_keys = ["candidate_start", "pre_V", "V_value", "pre_A", "A_value", "response_end"]
+    test_stage_shifts_v = {stg: [] for stg in stage_keys}
+    test_stage_shifts_a = {stg: [] for stg in stage_keys}
 
     H_mid = all_H[mid_layer]
     splits_list = list(split_gen_fn(H_mid))
 
     for fold_idx, (train_idx, test_idx) in enumerate(splits_list):
-        # 厳密なリーク防止チェック
         assert len(set(train_idx).intersection(set(test_idx))) == 0, "Train and test sample sets overlap!"
 
-        # Fold 内の訓練データのみから方向 d とスケール h_std を推定
+        # ----------------------------------------------------
+        # Train fold only: direction d_v, d_a, Q, mu_neu, layer directions
+        # ----------------------------------------------------
         ridge_mid_v = Ridge(alpha=10.0).fit(H_mid[train_idx], y_v[train_idx])
         norm_v = np.linalg.norm(ridge_mid_v.coef_)
         d_v = ridge_mid_v.coef_ / (norm_v + 1e-6) if norm_v > 0 else np.zeros_like(ridge_mid_v.coef_)
@@ -309,18 +350,62 @@ def run_real_model_confirmatory(
         proj_std_a = float(np.std(H_mid[train_idx] @ d_a))
         h_std_a = proj_std_a if proj_std_a > 1e-6 else float(np.std(H_mid[train_idx]))
 
-        # 評価は独立な test_idx のみで実行 (最大各fold 5件程度で高速化)
+        # H3: 2D 直交基底 Q (QR 分解)
+        M_sub = np.column_stack([d_v, d_a])
+        Q_np, _ = np.linalg.qr(M_sub)
+        Q = torch.tensor(Q_np, dtype=torch.float32, device=device)
+
+        # H3: 中立平均ベクトル mu_neu (Train samples only)
+        train_neutral_reps = []
+        with torch.no_grad():
+            for tr_i in train_idx:
+                tr_row = eval_df.iloc[tr_i]
+                neu_text = resolve_matched_neutral_text(tr_row, df)
+                if neu_text and neu_text.strip():
+                    p_neu = build_prompt(neu_text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
+                    enc_neu = encode_prompt_canonical(tokenizer, p_neu, device=device)
+                    anch_neu = find_semantic_anchors(enc_neu["input_ids"][0].tolist(), tokenizer, neu_text)
+                    with ActivationHookManager(adapter) as hook_mgr:
+                        hook_mgr.register_capture_hook(
+                            layer_idx=mid_layer,
+                            hook_point=HookPoint.POST_MLP_RESID,
+                            token_indices=anch_neu["prompt_end"],
+                            key="h_neu",
+                        )
+                        _ = model(**enc_neu)
+                        train_neutral_reps.append(hook_mgr.captured_activations["h_neu"].cpu().float().numpy().ravel())
+
+        if train_neutral_reps:
+            mu_neu = torch.tensor(np.mean(train_neutral_reps, axis=0), dtype=torch.float32, device=device)
+        else:
+            mu_neu = torch.tensor(np.mean(H_mid[train_idx], axis=0), dtype=torch.float32, device=device)
+
+        # 各層の因果効果 C(l) 推定用方向 (Train fold only)
+        layer_dirs = {}
+        for l_idx in range(num_layers):
+            H_l_train = all_H[l_idx][train_idx]
+            ridge_l = Ridge(alpha=10.0).fit(H_l_train, y_v[train_idx])
+            norm_l = np.linalg.norm(ridge_l.coef_)
+            d_l = ridge_l.coef_ / (norm_l + 1e-6) if norm_l > 0 else np.zeros_like(ridge_l.coef_)
+            std_l = float(np.std(H_l_train @ d_l))
+            h_std_l = std_l if std_l > 1e-6 else float(np.std(H_l_train))
+            layer_dirs[l_idx] = (d_l, h_std_l)
+
+        # ----------------------------------------------------
+        # Held-out Test fold only: H2, H3, H4 evaluation
+        # ----------------------------------------------------
         eval_sub_test_idx = test_idx[:min(5, len(test_idx))]
 
         with torch.no_grad():
             for sample_idx in eval_sub_test_idx:
-                text = str(eval_df.loc[sample_idx, "text"])
-                prompt = build_prompt(text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
-                enc = encode_prompt_canonical(tokenizer, prompt, device=device)
+                row = eval_df.iloc[sample_idx]
+                text = str(row["text"])
+                prompt_self = build_prompt(text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
+                enc = encode_prompt_canonical(tokenizer, prompt_self, device=device)
                 anchors = find_semantic_anchors(enc["input_ids"][0].tolist(), tokenizer, text)
                 patch_pos = anchors["prompt_end"]
 
-                # Dose-response evaluation on test sample
+                # --- H2: Dose-response evaluation ---
                 for axis_name, direction, h_std, store_dict, clean_val in (
                     ("v", d_v, h_std_v, test_shifts_v, clean_ev_list[sample_idx]),
                     ("a", d_a, h_std_a, test_shifts_a, clean_ea_list[sample_idx]),
@@ -337,21 +422,15 @@ def run_real_model_confirmatory(
                                 mode="inject",
                             )
                             _, probs_p = compute_sequence_likelihoods_for_candidates(
-                                model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device, batch_size=81
+                                model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=81
                             )
                         ev_p, ea_p = compute_expected_va(probs_p, candidates)
                         shift = (ev_p if axis_name == "v" else ea_p) - clean_val
                         store_dict[alpha].append(shift)
 
-                # 各層の因果効果 C(l) の推定 (alpha=1.0)
+                # --- H2: C(l) profile evaluation (alpha=1.0) ---
                 for l_idx in range(num_layers):
-                    H_l_train = all_H[l_idx][train_idx]
-                    ridge_l = Ridge(alpha=10.0).fit(H_l_train, y_v[train_idx])
-                    norm_l = np.linalg.norm(ridge_l.coef_)
-                    d_l = ridge_l.coef_ / (norm_l + 1e-6) if norm_l > 0 else np.zeros_like(ridge_l.coef_)
-                    std_l = float(np.std(H_l_train @ d_l))
-                    h_std_l = std_l if std_l > 1e-6 else float(np.std(H_l_train))
-
+                    d_l, h_std_l = layer_dirs[l_idx]
                     with ActivationHookManager(adapter) as hook_mgr:
                         hook_mgr.register_direction_intervention_hook(
                             layer_idx=l_idx,
@@ -363,12 +442,85 @@ def run_real_model_confirmatory(
                             mode="inject",
                         )
                         _, probs_l = compute_sequence_likelihoods_for_candidates(
-                            model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device, batch_size=81
+                            model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=81
                         )
                     ev_l, _ = compute_expected_va(probs_l, candidates)
                     test_c_profile_shifts[l_idx].append(abs(ev_l - clean_ev_list[sample_idx]))
 
-    # Test fold のみから平均シフトとスロープを算出
+                # --- H3: Centered 2D Orthogonal Subspace Removal ---
+                neu_text = resolve_matched_neutral_text(row, df)
+                if neu_text and neu_text.strip():
+                    p_neu = build_prompt(neu_text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
+                    _, probs_neu = compute_sequence_likelihoods_for_candidates(
+                        model=model, tokenizer=tokenizer, prompt=p_neu, candidates=candidates, device=device, batch_size=81
+                    )
+                    neutral_base, _ = compute_expected_va(probs_neu, candidates)
+                else:
+                    neutral_base = float(clean_ev_list[sample_idx])
+
+                ev_clean = float(clean_ev_list[sample_idx])
+                n_shift = abs(ev_clean - neutral_base)
+                nat_shifts.append(n_shift)
+
+                with ActivationHookManager(adapter) as hook_mgr:
+                    hook_mgr.register_subspace_removal_hook(
+                        layer_idx=mid_layer,
+                        orth_basis_q=Q,
+                        mean_vector=mu_neu,
+                        token_indices=patch_pos,
+                        hook_point=HookPoint.POST_MLP_RESID,
+                    )
+                    _, probs_abl = compute_sequence_likelihoods_for_candidates(
+                        model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=81
+                    )
+                ev_abl, _ = compute_expected_va(probs_abl, candidates)
+                a_shift = abs(ev_abl - neutral_base)
+                att_shifts.append(a_shift)
+
+                # --- H4: Temporal Emergence across Generation Stages ---
+                # Joint Tokenization によるステージ位置解決と不変性検証
+                stage_target_indices = validate_stage_index_invariance(
+                    tokenizer, prompt_self, candidates, stage_keys
+                )
+
+                for stg in stage_keys:
+                    t_pos = stage_target_indices[stg]
+
+                    # 1) Valence steering
+                    with ActivationHookManager(adapter) as hook_mgr:
+                        hook_mgr.register_direction_intervention_hook(
+                            layer_idx=mid_layer,
+                            direction=d_v,
+                            alpha=1.0,
+                            hidden_std=h_std_v,
+                            token_indices=t_pos,
+                            hook_point=HookPoint.POST_MLP_RESID,
+                            mode="inject",
+                        )
+                        _, probs_stg_v = compute_sequence_likelihoods_for_candidates(
+                            model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=81
+                        )
+                    ev_stg_v, _ = compute_expected_va(probs_stg_v, candidates)
+                    test_stage_shifts_v[stg].append(abs(ev_stg_v - clean_ev_list[sample_idx]))
+
+                    # 2) Arousal steering
+                    with ActivationHookManager(adapter) as hook_mgr:
+                        hook_mgr.register_direction_intervention_hook(
+                            layer_idx=mid_layer,
+                            direction=d_a,
+                            alpha=1.0,
+                            hidden_std=h_std_a,
+                            token_indices=t_pos,
+                            hook_point=HookPoint.POST_MLP_RESID,
+                            mode="inject",
+                        )
+                        _, probs_stg_a = compute_sequence_likelihoods_for_candidates(
+                            model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=81
+                        )
+                    _, ea_stg_a = compute_expected_va(probs_stg_a, candidates)
+                    test_stage_shifts_a[stg].append(abs(ea_stg_a - clean_ea_list[sample_idx]))
+
+    # 全 Test fold からの指標集計
     shifts_v = [float(np.mean(test_shifts_v[a])) if test_shifts_v[a] else 0.0 for a in alphas]
     shifts_a = [float(np.mean(test_shifts_a[a])) if test_shifts_a[a] else 0.0 for a in alphas]
     slope_v = estimate_interventional_slope(alphas, shifts_v)
@@ -380,156 +532,13 @@ def run_real_model_confirmatory(
     ]
     dissoc_v = compute_layer_dissociation(relative_depths, d_profile_v, c_profile_v)
 
-
-    # 5. Necessity via Centered 2D Orthogonal Subspace Removal (Empirical H3)
-    logger.info("Measuring empirical necessity via centered 2D orthogonal subspace removal...")
-    nat_shifts = []
-    att_shifts = []
-
-    # 2D Orthonormal Basis Q via QR decomposition
-    M_sub = np.column_stack([d_v, d_a])  # (dim, 2)
-    Q_np, _ = np.linalg.qr(M_sub)        # (dim, 2) orthonormal
-    Q = torch.tensor(Q_np, dtype=torch.float32, device=device)
-
-    # Pre-compute neutral reference representations and baselines
-    neutral_reps = []
-    neutral_baselines = []
-    for row_i, (_, row) in enumerate(causal_sub_df.iterrows()):
-        neu_text = resolve_matched_neutral_text(row, df)
-        if neu_text.strip():
-            p_neu = build_prompt(neu_text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
-            enc_neu = encode_prompt_canonical(tokenizer, p_neu, device=device)
-            anch_neu = find_semantic_anchors(enc_neu["input_ids"][0].tolist(), tokenizer, neu_text)
-            with ActivationHookManager(adapter) as hook_mgr:
-                hook_mgr.register_capture_hook(
-                    layer_idx=opt_layer,
-                    hook_point=HookPoint.POST_MLP_RESID,
-                    token_indices=anch_neu["prompt_end"],
-                    key="h_neu",
-                )
-                _ = model(**enc_neu)
-                neutral_reps.append(hook_mgr.captured_activations["h_neu"].cpu().float().numpy().ravel())
-            with torch.no_grad():
-                probs_neu = evaluate_candidate_likelihoods(
-                    model=model, tokenizer=tokenizer, prompt=p_neu, candidates=candidates, device=device, batch_size=batch_size
-                )
-                neu_ev, _ = compute_expected_va(probs_neu, candidates)
-                neutral_baselines.append(neu_ev)
-        else:
-            global_idx = causal_sub_indices[row_i]
-            neutral_baselines.append(float(clean_ev_list[global_idx]))
-
-    if neutral_reps:
-        mu_neu = torch.tensor(np.mean(neutral_reps, axis=0), dtype=torch.float32, device=device)
-    else:
-        mu_neu = torch.tensor(np.mean(H_mid, axis=0), dtype=torch.float32, device=device)
-
-    for row_i, (_, row) in enumerate(causal_sub_df.iterrows()):
-        text = str(row["text"])
-        global_idx = causal_sub_indices[row_i]
-        prompt_self = build_prompt(text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
-        enc = encode_prompt_canonical(tokenizer, prompt_self, device=device)
-        anchors = find_semantic_anchors(enc["input_ids"][0].tolist(), tokenizer, text)
-        p_pos = anchors["prompt_end"]
-
-        # Clean state expected VA
-        ev_clean = float(clean_ev_list[global_idx])
-        neutral_base = float(neutral_baselines[row_i])
-        n_shift = abs(ev_clean - neutral_base)
-        nat_shifts.append(n_shift)
-
-        # Centered 2D orthogonal subspace removal hook: h' = h - Q Q^T (h - mu_neu)
-        with ActivationHookManager(adapter) as hook_mgr:
-            hook_mgr.register_subspace_removal_hook(
-                layer_idx=opt_layer,
-                orth_basis_q=Q,
-                mean_vector=mu_neu,
-                token_indices=p_pos,
-                hook_point=HookPoint.POST_MLP_RESID,
-            )
-            probs_abl = evaluate_candidate_likelihoods(
-                model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
-            )
-        ev_abl, _ = compute_expected_va(probs_abl, candidates)
-        a_shift = abs(ev_abl - neutral_base)
-        att_shifts.append(a_shift)
-
     natural_shift = float(np.mean(nat_shifts)) if nat_shifts else 1.0
     attenuated_shift = float(np.mean(att_shifts)) if att_shifts else 0.5
     attenuation_ratio = float((natural_shift - attenuated_shift) / (natural_shift + 1e-6))
     attenuation_ratio = float(np.clip(attenuation_ratio, 0.0, 1.0))
 
-    # 6. Temporal Emergence across Generation Stages (Empirical H4 for Valence and Arousal)
-    logger.info("Measuring empirical temporal emergence across generation stages (Valence & Arousal)...")
-    temp_effects_v = {}
-    temp_effects_a = {}
-
-    # Representative candidate JSON string for stage token identification
-    sample_cand_str = candidates[40]["json_str"] if len(candidates) > 40 else '{"valence": 5, "arousal": 5}'
-    cand_tokens = tokenizer.encode(sample_cand_str, add_special_tokens=False)
-    cand_stage_offsets = get_generation_stage_tokens(cand_tokens, tokenizer, candidate_str=sample_cand_str)
-    stage_keys = ["candidate_start", "pre_V", "V_value", "pre_A", "A_value", "response_end"]
-    stage_anchors = ["prompt_end"] + [k for k in stage_keys if k in cand_stage_offsets]
-
-    proj_std_v_mid = float(np.std(H_mid @ d_v))
-    h_std_v_mid = proj_std_v_mid if proj_std_v_mid > 1e-6 else float(np.std(H_mid))
-    dv_torch = torch.tensor(1.0 * h_std_v_mid * d_v, dtype=torch.float32, device=device)
-
-    proj_std_a_mid = float(np.std(H_mid @ d_a))
-    h_std_a_mid = proj_std_a_mid if proj_std_a_mid > 1e-6 else float(np.std(H_mid))
-    da_torch = torch.tensor(1.0 * h_std_a_mid * d_a, dtype=torch.float32, device=device)
-
-    for stg in stage_anchors:
-        stg_shifts_v = []
-        stg_shifts_a = []
-        for row_i, (_, row) in enumerate(causal_sub_df.iloc[:min(5, len(causal_sub_df))].iterrows()):
-            text = str(row["text"])
-            global_idx = causal_sub_indices[row_i]
-            clean_v = float(clean_ev_list[global_idx])
-            clean_a = float(clean_ea_list[global_idx])
-
-            prompt_self = build_prompt(text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
-            p_ids = tokenizer.encode(prompt_self, add_special_tokens=False)
-            p_end = len(p_ids) - 1
-
-            if stg == "prompt_end":
-                target_pos = p_end
-            else:
-                target_pos = p_end + 1 + cand_stage_offsets[stg]
-
-            # 1) Valence steering
-            with ActivationHookManager(adapter) as hook_mgr:
-                hook_mgr.register_direction_injection_hook(
-                    layer_idx=opt_layer,
-                    direction=dv_torch,
-                    alpha=1.0,
-                    token_indices=target_pos,
-                )
-                probs_stg_v = evaluate_candidate_likelihoods(
-                    model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
-                )
-            ev_stg_v, _ = compute_expected_va(probs_stg_v, candidates)
-            stg_shifts_v.append(abs(ev_stg_v - clean_v))
-
-            # 2) Arousal steering
-            with ActivationHookManager(adapter) as hook_mgr:
-                hook_mgr.register_direction_injection_hook(
-                    layer_idx=opt_layer,
-                    direction=da_torch,
-                    alpha=1.0,
-                    token_indices=target_pos,
-                )
-                probs_stg_a = evaluate_candidate_likelihoods(
-                    model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
-                )
-            _, ea_stg_a = compute_expected_va(probs_stg_a, candidates)
-            stg_shifts_a.append(abs(ea_stg_a - clean_a))
-
-        temp_effects_v[stg] = float(np.mean(stg_shifts_v)) if stg_shifts_v else 0.0
-        temp_effects_a[stg] = float(np.mean(stg_shifts_a)) if stg_shifts_a else 0.0
-
-    stage_causal_v = temp_effects_v
-    stage_causal_a = temp_effects_a
+    stage_causal_v = {stg: float(np.mean(test_stage_shifts_v[stg])) if test_stage_shifts_v[stg] else 0.0 for stg in stage_keys}
+    stage_causal_a = {stg: float(np.mean(test_stage_shifts_a[stg])) if test_stage_shifts_a[stg] else 0.0 for stg in stage_keys}
 
     h1_pass = dissoc_v["delta_d_peak"] > 0 and dissoc_v["delta_d_center"] > 0
     h2_pass = slope_v > 0.1 and slope_a > 0.1
@@ -598,7 +607,8 @@ def main():
             )
         fam_cfg = registered_models[fam_lower]
         conf_models.append({
-            "family": fam_cfg.family_name,
+            "family_key": fam_lower,
+            "family_name": fam_cfg.family_name,
             "model_id": fam_cfg.instruct_model.model_id,
         })
     semantic_stages = v3_cfg["spatiotemporal"]["semantic_stages"]
@@ -610,20 +620,21 @@ def main():
     derived_dir.mkdir(parents=True, exist_ok=True)
 
     family_results = {}
-    seeds = {"Llama": 301, "Gemma": 302, "OLMo": 303, "Mistral": 304}
+    seeds = {"llama": 301, "gemma": 302, "olmo": 303, "mistral": 304}
 
     for item in conf_models:
-        fam = item["family"]
+        fam_key = item["family_key"]
+        fam_name = item["family_name"]
         model_id = item["model_id"]
-        out_raw = raw_dir / f"v3_confirmatory_{fam.lower()}.json"
+        out_raw = raw_dir / f"v3_confirmatory_{fam_key}.json"
 
         if out_raw.exists() and not args.dry_run:
             try:
                 with open(out_raw, "r", encoding="utf-8") as f:
                     cached = json.load(f)
                 if cached and "all_confirmed" in cached:
-                    logger.info(f"Loaded existing results for {fam} from {out_raw}. Skipping.")
-                    family_results[fam] = cached
+                    logger.info(f"Loaded existing results for {fam_name} from {out_raw}. Skipping.")
+                    family_results[fam_name] = cached
                     continue
             except Exception:
                 pass
@@ -631,25 +642,24 @@ def main():
         num_layers = resolve_architecture_dims(model_id)[0]
 
         if args.dry_run:
-            logger.info(f"Simulating confirmatory replication for {fam} (--dry-run)...")
-            res = simulate_model_confirmatory(fam, num_layers, normalized_stages, seed=seeds.get(fam, 999))
+            logger.info(f"Simulating confirmatory replication for {fam_name} (--dry-run)...")
+            res = simulate_model_confirmatory(fam_name, num_layers, normalized_stages, seed=seeds.get(fam_key, 999))
         else:
-            logger.info(f"Running REAL confirmatory replication for {fam} ({model_id})...")
+            logger.info(f"Running REAL confirmatory replication for {fam_name} ({model_id})...")
             res = run_real_model_confirmatory(
-                family=fam,
+                family=fam_name,
                 model_id=model_id,
                 df=df,
                 device=args.device,
                 subsample=args.subsample,
             )
 
-        family_results[fam] = res
+        family_results[fam_name] = res
 
         res["dry_run"] = bool(args.dry_run)
-        out_raw = raw_dir / f"v3_confirmatory_{fam.lower()}.json"
         with open(out_raw, "w", encoding="utf-8") as f:
             json.dump(res, f, indent=2)
-        logger.info(f"Saved {fam} confirmatory results to {out_raw}")
+        logger.info(f"Saved {fam_name} confirmatory results to {out_raw}")
 
     # メタ分析サマリーの生成
     all_passed = all(res["all_confirmed"] for res in family_results.values())

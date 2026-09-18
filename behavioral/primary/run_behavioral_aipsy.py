@@ -191,7 +191,7 @@ def main():
     parser.add_argument(
         "--out-dir",
         type=str,
-        default="behavioral/results/aipsy_4split",
+        default="behavioral/results/raw/aipsy_4split",
     )
     parser.add_argument(
         "--limit", type=int, default=0, help="Optional limit for dry-run"

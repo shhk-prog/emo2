@@ -35,7 +35,7 @@ from affective_empathy_eval.likelihood import (
     compute_expected_va,
     compute_sequence_likelihoods_for_candidates,
 )
-from affective_empathy_eval.manifests import create_run_manifest
+from affective_empathy_eval.manifests import create_run_manifest, is_manifest_matching
 from affective_empathy_eval.models.adapters import get_model_adapter
 from affective_empathy_eval.data import (
     describe_loaded_frame,
@@ -273,7 +273,6 @@ def run_real_path_mediation(
         eval_k = min(8, len(disc_texts))
         delta_reports = []
         if H_s.shape[0] >= 2 and np.std(y_v_disc) > 1e-4:
-            # 層 l での Valence 方向ベクトル
             ridge_dir = Ridge(alpha=10.0).fit(H_s, y_v_disc)
             d_l = ridge_dir.coef_
             norm_d = np.linalg.norm(d_l)
@@ -283,6 +282,11 @@ def run_real_path_mediation(
                 d_l = np.zeros_like(d_l)
         else:
             d_l = np.zeros(H_s.shape[1])
+
+        proj_l = H_s @ d_l
+        h_std_l = float(np.std(proj_l))
+        if h_std_l < 1e-6:
+            h_std_l = float(np.std(H_s)) if np.std(H_s) > 1e-6 else 1.0
 
         with torch.no_grad():
             for k_idx in range(eval_k):
@@ -298,17 +302,16 @@ def run_real_path_mediation(
                 )
                 ev_c, ea_c = compute_expected_va(probs_clean_k, candidates)
 
-                # b. Intervened expected report (alpha=1.0 along d_l)
-                h_orig = H_s[k_idx]
-                h_patched = h_orig + d_l * 1.0
-                patch_tensor_k = torch.tensor(h_patched, dtype=torch.float32, device=device)
-
+                # b. Intervened expected report (alpha=1.0 along d_l with h_std_l scale)
                 with ActivationHookManager(adapter) as hook_mgr:
-                    hook_mgr.register_patch_hook(
+                    hook_mgr.register_direction_intervention_hook(
                         layer_idx=l,
-                        patch_tensor=patch_tensor_k,
+                        direction=d_l,
+                        alpha=1.0,
+                        hidden_std=h_std_l,
                         token_indices=patch_pos_k,
                         hook_point=HookPoint.POST_MLP_RESID,
+                        mode="inject",
                     )
                     _, probs_int_k = compute_sequence_likelihoods_for_candidates(
                         model=model, tokenizer=tokenizer, prompt=p_k, candidates=candidates, device=device, batch_size=81
@@ -515,6 +518,7 @@ def main():
     num_layers = resolve_architecture_dims(target_model_id)[0]
     discovery_res = None
     confirmation_res = None
+    full_output = None
 
     out_raw = raw_dir / f"v3_path_mediation_{fam_key}.json"
     if out_raw.exists() and not args.dry_run:
@@ -522,13 +526,21 @@ def main():
             with open(out_raw, "r", encoding="utf-8") as f:
                 cached = json.load(f)
             if cached and "confirmation" in cached:
-                logger.info(f"Loaded existing results from {out_raw}. Skipping computation.")
-                discovery_res = cached["discovery"]
-                confirmation_res = cached["confirmation"]
+                cached_manifest = cached.get("manifest", {})
+                if is_manifest_matching(
+                    cached_manifest,
+                    target_model_id,
+                    expected_intervention_version="v3_additive_injection_v2",
+                    expected_candidate_space="81_va",
+                ):
+                    logger.info(f"Loaded existing results from {out_raw}. Skipping computation.")
+                    full_output = cached
+                    discovery_res = cached["discovery"]
+                    confirmation_res = cached["confirmation"]
         except Exception:
             pass
 
-    if discovery_res is None or confirmation_res is None:
+    if full_output is None or discovery_res is None or confirmation_res is None:
         if args.dry_run:
             logger.info("Executing mock path mediation analysis (--dry-run specified)...")
             discovery_res = simulate_path_mediation_discovery(df.head(len(df) // 2), num_layers)

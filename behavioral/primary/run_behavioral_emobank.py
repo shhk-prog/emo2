@@ -251,7 +251,7 @@ def main():
     parser.add_argument(
         "--out-dir",
         type=str,
-        default="behavioral/results/emobank_3way",
+        default="behavioral/results/raw/emobank_3way",
     )
     parser.add_argument(
         "--device",

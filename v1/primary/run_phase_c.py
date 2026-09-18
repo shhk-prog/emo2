@@ -875,7 +875,15 @@ def main():
             if merged.loc[i, "eval_split"] == "confirmation"
         ]
         if len(conf_indices) < 5:
-            conf_indices = list(range(n_pairs))
+            if args.dry_run:
+                print(f"[DRY-RUN] Small confirmation sample (N={len(conf_indices)}); using available confirmation pairs or fallback.")
+                if len(conf_indices) < 2:
+                    conf_indices = list(range(n_pairs))
+            else:
+                raise ValueError(
+                    f"Insufficient confirmation pairs for E4: found {len(conf_indices)}, required >= 5. "
+                    f"Aborting to prevent data leakage between discovery and confirmation splits."
+                )
 
         n_conf = len(conf_indices)
         rng_derange = np.random.default_rng(args.split_seed + 100)
@@ -885,16 +893,23 @@ def main():
             for i in range(n_conf)
         }
 
-        print(f"Running E4 Interchangeability on Layers {e4_layers}...")
+        print(f"Running E4 Interchangeability on Layers {e4_layers} (with Same-Task Controls)...")
         for l in e4_layers:
             rel_d = l / (num_layers - 1) if num_layers > 1 else 0.0
             delta_h_r = reps_r_aff[l] - reps_r_neu[l]
+            delta_h_s = reps_s_aff[l] - reps_s_neu[l]
 
             for alpha in args.alphas:
                 matched_shifts_v = []
                 matched_shifts_a = []
                 random_shifts_v = []
                 random_shifts_a = []
+                self_self_shifts_v = []
+                self_self_shifts_a = []
+                reader_reader_shifts_v = []
+                reader_reader_shifts_a = []
+                self_reader_shifts_v = []
+                self_reader_shifts_a = []
                 is_zero_alpha = abs(alpha) < 1e-9
 
                 for p_idx in conf_indices:
@@ -902,11 +917,18 @@ def main():
                     pos_s = get_prompt_end_position(
                         tokenizer, prompts_s_neu[p_idx]
                     )
+                    pos_r = get_prompt_end_position(
+                        tokenizer, prompts_r_neu[p_idx]
+                    )
 
                     if is_zero_alpha:
                         m_sv, m_sa = 0.0, 0.0
                         r_sv, r_sa = 0.0, 0.0
+                        ss_v, ss_a = 0.0, 0.0
+                        rr_v, rr_a = 0.0, 0.0
+                        sr_v, sr_a = 0.0, 0.0
                     else:
+                        # 1. Primary: Reader -> Self (Cross-task Matched)
                         diff_matched = delta_h_r[p_idx]
                         with PyTorchActivationPatcher(
                             model,
@@ -928,6 +950,7 @@ def main():
                             m_sv = float(m_ev[0] - clean_ev_s_neu[p_idx])
                             m_sa = float(m_ea[0] - clean_ea_s_neu[p_idx])
 
+                        # 2. Control 1: Reader -> Self (Random Permuted)
                         rnd_idx = random_indices_map[p_idx]
                         diff_random = delta_h_r[rnd_idx]
                         with PyTorchActivationPatcher(
@@ -950,10 +973,80 @@ def main():
                             r_sv = float(rnd_ev[0] - clean_ev_s_neu[p_idx])
                             r_sa = float(rnd_ea[0] - clean_ea_s_neu[p_idx])
 
+                        # 3. Same-task Control: Self -> Self (Upper bound of causal influence)
+                        diff_s = delta_h_s[p_idx]
+                        with PyTorchActivationPatcher(
+                            model,
+                            l,
+                            diff_s,
+                            patch_weight=alpha,
+                            position=pos_s,
+                            intervention_type="add",
+                        ):
+                            ss_ev, ss_ea = evaluate_expected_va_batch(
+                                model,
+                                tokenizer,
+                                [prompts_s_neu[p_idx]],
+                                candidates,
+                                vad_triplets,
+                                device=args.device,
+                                sub_batch_size=args.sub_batch_size,
+                            )
+                            ss_v = float(ss_ev[0] - clean_ev_s_neu[p_idx])
+                            ss_a = float(ss_ea[0] - clean_ea_s_neu[p_idx])
+
+                        # 4. Same-task Control: Reader -> Reader
+                        with PyTorchActivationPatcher(
+                            model,
+                            l,
+                            diff_matched,
+                            patch_weight=alpha,
+                            position=pos_r,
+                            intervention_type="add",
+                        ):
+                            rr_ev, rr_ea = evaluate_expected_va_batch(
+                                model,
+                                tokenizer,
+                                [prompts_r_neu[p_idx]],
+                                candidates,
+                                vad_triplets,
+                                device=args.device,
+                                sub_batch_size=args.sub_batch_size,
+                            )
+                            rr_v = float(rr_ev[0] - clean_ev_r_neu[p_idx])
+                            rr_a = float(rr_ea[0] - clean_ea_r_neu[p_idx])
+
+                        # 5. Reverse Cross-task: Self -> Reader
+                        with PyTorchActivationPatcher(
+                            model,
+                            l,
+                            diff_s,
+                            patch_weight=alpha,
+                            position=pos_r,
+                            intervention_type="add",
+                        ):
+                            sr_ev, sr_ea = evaluate_expected_va_batch(
+                                model,
+                                tokenizer,
+                                [prompts_r_neu[p_idx]],
+                                candidates,
+                                vad_triplets,
+                                device=args.device,
+                                sub_batch_size=args.sub_batch_size,
+                            )
+                            sr_v = float(sr_ev[0] - clean_ev_r_neu[p_idx])
+                            sr_a = float(sr_ea[0] - clean_ea_r_neu[p_idx])
+
                     matched_shifts_v.append(m_sv)
                     matched_shifts_a.append(m_sa)
                     random_shifts_v.append(r_sv)
                     random_shifts_a.append(r_sa)
+                    self_self_shifts_v.append(ss_v)
+                    self_self_shifts_a.append(ss_a)
+                    reader_reader_shifts_v.append(rr_v)
+                    reader_reader_shifts_a.append(rr_a)
+                    self_reader_shifts_v.append(sr_v)
+                    self_reader_shifts_a.append(sr_a)
 
                     e4_pair_records.append(
                         {
@@ -964,6 +1057,12 @@ def main():
                             "matched_shift_A": m_sa,
                             "random_shift_V": r_sv,
                             "random_shift_A": r_sa,
+                            "self_self_shift_V": ss_v,
+                            "self_self_shift_A": ss_a,
+                            "reader_reader_shift_V": rr_v,
+                            "reader_reader_shift_A": rr_a,
+                            "self_reader_shift_V": sr_v,
+                            "self_reader_shift_A": sr_a,
                             "specificity_V": m_sv - r_sv,
                             "specificity_A": m_sa - r_sa,
                         }
@@ -973,8 +1072,19 @@ def main():
                 mean_m_a = float(np.mean(matched_shifts_a))
                 mean_rnd_v = float(np.mean(random_shifts_v))
                 mean_rnd_a = float(np.mean(random_shifts_a))
+                mean_ss_v = float(np.mean(self_self_shifts_v))
+                mean_ss_a = float(np.mean(self_self_shifts_a))
+                mean_rr_v = float(np.mean(reader_reader_shifts_v))
+                mean_rr_a = float(np.mean(reader_reader_shifts_a))
+                mean_sr_v = float(np.mean(self_reader_shifts_v))
+                mean_sr_a = float(np.mean(self_reader_shifts_a))
+
                 spec_v = mean_m_v - mean_rnd_v
                 spec_a = mean_m_a - mean_rnd_a
+
+                # Transfer Ratio (Reader->Self shift normalized by Self->Self same-task ceiling)
+                transfer_ratio_v = float(mean_m_v / (mean_ss_v + 1e-6)) if abs(mean_ss_v) > 1e-6 else 0.0
+                transfer_ratio_a = float(mean_m_a / (mean_ss_a + 1e-6)) if abs(mean_ss_a) > 1e-6 else 0.0
 
                 if not is_zero_alpha and len(matched_shifts_v) > 2:
                     dz_v = compute_paired_cohen_dz(
@@ -1019,6 +1129,14 @@ def main():
                         "matched_shift_A": mean_m_a,
                         "random_shift_V": mean_rnd_v,
                         "random_shift_A": mean_rnd_a,
+                        "self_self_shift_V": mean_ss_v,
+                        "self_self_shift_A": mean_ss_a,
+                        "reader_reader_shift_V": mean_rr_v,
+                        "reader_reader_shift_A": mean_rr_a,
+                        "self_reader_shift_V": mean_sr_v,
+                        "self_reader_shift_A": mean_sr_a,
+                        "transfer_ratio_V": transfer_ratio_v,
+                        "transfer_ratio_A": transfer_ratio_a,
                         "specificity_V": spec_v,
                         "specificity_A": spec_a,
                         "cohen_dz_V": dz_v,
@@ -1028,7 +1146,6 @@ def main():
                         "ci_95_low_A": ci_low_a,
                         "ci_95_high_A": ci_high_a,
                         "p_val_V": p_val_v,
-                        "p_val_A": p_val_a,
                     }
                 )
 

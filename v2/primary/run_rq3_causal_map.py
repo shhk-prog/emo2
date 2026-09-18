@@ -85,6 +85,8 @@ def parse_args():
     return parser.parse_args()
 
 
+from sklearn.linear_model import Ridge
+
 def run_causal_patching_for_model(
     model: Any,
     tokenizer: Any,
@@ -96,12 +98,15 @@ def run_causal_patching_for_model(
     is_dry_run: bool = False,
 ) -> dict[str, Any]:
     """
-    各層の残差ストリームを中立ベースライン活性化で置換（パッチング）し、
-    出力期待値の変化量 C_V, C_A を層平均およびサンプル（ペア）単位で測定
+    各層の残差ストリームにおいて:
+    1. [Primary] 情動特異的因果マップ: 推定された情動方向 d_V, d_A に対する加算介入 (C_V, C_A)
+    2. [Secondary] 統制条件: prompt_end のゼロ置換による非特異的回路感度 (C_V^zero, C_A^zero)
     戻り値: {
         "c_v": [layer0..layerL],
         "c_a": [layer0..layerL],
-        "pair_level": [{"pair_id": ..., "layer": ..., "c_v": ..., "c_a": ...}]
+        "c_v_zero": [layer0..layerL],
+        "c_a_zero": [layer0..layerL],
+        "pair_level": [{"pair_id": ..., "layer": ..., "c_v": ..., "c_a": ..., "c_v_zero": ..., "c_a_zero": ...}]
     }
     """
     if is_dry_run:
@@ -116,6 +121,14 @@ def run_causal_patching_for_model(
             float(1.2 / (1.0 + np.exp(-10.0 * (d - 0.70))))
             for d in depths
         ]
+        c_v_zero = [
+            float(2.0 / (1.0 + np.exp(-8.0 * (d - 0.60))))
+            for d in depths
+        ]
+        c_a_zero = [
+            float(1.8 / (1.0 + np.exp(-8.0 * (d - 0.60))))
+            for d in depths
+        ]
 
         pair_records = []
         for i, row in df.iterrows():
@@ -125,6 +138,8 @@ def run_causal_patching_for_model(
                 noise_a = float(rng.normal(0, 0.08))
                 cv = max(0.0, c_v_mean[l] + noise_v)
                 ca = max(0.0, c_a_mean[l] + noise_a)
+                cvz = max(0.0, c_v_zero[l] + noise_v)
+                caz = max(0.0, c_a_zero[l] + noise_a)
                 pair_records.append({
                     "sample_idx": i,
                     "pair_id": str(p_id),
@@ -132,6 +147,8 @@ def run_causal_patching_for_model(
                     "relative_depth": depths[l],
                     "c_v": cv,
                     "c_a": ca,
+                    "c_v_zero": cvz,
+                    "c_a_zero": caz,
                 })
 
         return {
@@ -139,6 +156,8 @@ def run_causal_patching_for_model(
             "c_a": c_a_mean,
             "c_v_mean": c_v_mean,
             "c_a_mean": c_a_mean,
+            "c_v_zero": c_v_zero,
+            "c_a_zero": c_a_zero,
             "pair_level": pair_records,
         }
 
@@ -149,7 +168,17 @@ def run_causal_patching_for_model(
     model.eval()
     layer_shifts_v = [[] for _ in range(actual_layers)]
     layer_shifts_a = [[] for _ in range(actual_layers)]
+    layer_shifts_v_zero = [[] for _ in range(actual_layers)]
+    layer_shifts_a_zero = [[] for _ in range(actual_layers)]
     pair_records = []
+
+    # Step 1: Clean runs 及び各層の prompt_end 活性化の収集
+    clean_ev_list = []
+    clean_ea_list = []
+    sample_prompts = []
+    sample_anchors = []
+    sample_pids = []
+    layer_activations = [[] for _ in range(actual_layers)]
 
     with torch.no_grad():
         for i, row in df.iterrows():
@@ -158,60 +187,168 @@ def run_causal_patching_for_model(
             prompt = build_prompt(
                 text=text, task=task, format_type=format_type, tokenizer=tokenizer
             )
-            # 正準トークナイズ
             enc = encode_prompt_canonical(tokenizer, prompt, device=device)
             input_ids = enc["input_ids"]
             anchors = find_semantic_anchors(
                 input_ids[0].tolist(), tokenizer, text
             )
-            patch_pos = anchors["prompt_end"]  # プロンプト末尾（生成直前プレフィックス終端）
+            patch_pos = anchors["prompt_end"]
 
-            # 1. Clean run (ベースライン出力期待値: 81候補 Joint Sequence-Likelihood Protocol)
+            sample_prompts.append(prompt)
+            sample_anchors.append(patch_pos)
+            sample_pids.append(p_id)
+
+            # Clean run (ベースライン出力期待値: 81候補 Joint Sequence-Likelihood Protocol)
             _, probs_clean = compute_sequence_likelihoods_for_candidates(
                 model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device
             )
             ev_clean, ea_clean = compute_expected_va(probs_clean, candidates)
+            clean_ev_list.append(ev_clean)
+            clean_ea_list.append(ea_clean)
 
-            # 2. 各層へのパッチング（Zero Ablation: prompt_end token をゼロ置換）
-            hidden_dim = model.config.hidden_size
-            zero_patch = torch.zeros(1, 1, hidden_dim, device=device)
-
-            for l in range(actual_layers):
-                rel_d = compute_relative_depth(l, actual_layers)
-                with ActivationHookManager(adapter) as hook_mgr:
-                    hook_mgr.register_patch_hook(
+            # 活性化収集
+            with ActivationHookManager(adapter) as hook_mgr:
+                for l in range(actual_layers):
+                    hook_mgr.register_capture_hook(
                         layer_idx=l,
-                        patch_tensor=zero_patch,
-                        token_indices=patch_pos,
                         hook_point=HookPoint.POST_MLP_RESID,
+                        token_indices=patch_pos,
+                        key=f"layer_{l}",
                     )
-                    _, probs_patched = compute_sequence_likelihoods_for_candidates(
-                        model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device
-                    )
-                    ev_patch, ea_patch = compute_expected_va(probs_patched, candidates)
+                _ = model(**enc)
+                caps = hook_mgr.get_captured()
+                for l in range(actual_layers):
+                    act = caps[f"layer_{l}"].squeeze(0).squeeze(0).cpu().to(torch.float32).numpy()
+                    layer_activations[l].append(act)
 
-                    cv, _ = compute_causal_leverage(ev_patch, ev_clean)
-                    ca, _ = compute_causal_leverage(ea_patch, ea_clean)
-                    layer_shifts_v[l].append(cv)
-                    layer_shifts_a[l].append(ca)
+    # Step 2: 目的変数の準備（外部ラベル優先、なければモデルのクリーン出力期待値）
+    if "reader_V" in df.columns:
+        y_v = df["reader_V"].to_numpy(dtype=np.float64)
+        y_a = df["reader_A"].to_numpy(dtype=np.float64) if "reader_A" in df.columns else y_v
+    else:
+        y_v = np.array(clean_ev_list, dtype=np.float64)
+        y_a = np.array(clean_ea_list, dtype=np.float64)
 
-                    pair_records.append({
-                        "sample_idx": i,
-                        "pair_id": p_id,
-                        "layer": l,
-                        "relative_depth": rel_d,
-                        "c_v": cv,
-                        "c_a": ca,
-                    })
+    # Step 3: 各層での方向推定と介入実行
+    hidden_dim = model.config.hidden_size
+    zero_patch = torch.zeros(1, 1, hidden_dim, device=device)
+
+    for l in range(actual_layers):
+        rel_d = compute_relative_depth(l, actual_layers)
+        H_l = np.array(layer_activations[l], dtype=np.float64)
+
+        # 情動特異的介入方向 d_V, d_A の推定
+        if H_l.shape[0] >= 4 and np.std(y_v) > 1e-4:
+            reg_v = Ridge(alpha=10.0).fit(H_l, y_v)
+            d_v = reg_v.coef_
+            norm_v = np.linalg.norm(d_v)
+            d_v = d_v / norm_v if norm_v > 1e-6 else np.zeros_like(d_v)
+        else:
+            d_v = np.zeros(H_l.shape[1])
+
+        if H_l.shape[0] >= 4 and np.std(y_a) > 1e-4:
+            reg_a = Ridge(alpha=10.0).fit(H_l, y_a)
+            d_a = reg_a.coef_
+            norm_a = np.linalg.norm(d_a)
+            d_a = d_a / norm_a if norm_a > 1e-6 else np.zeros_like(d_a)
+        else:
+            d_a = np.zeros(H_l.shape[1])
+
+        proj_v = H_l @ d_v
+        std_v = float(np.std(proj_v)) if np.std(proj_v) > 1e-6 else float(np.std(H_l))
+        std_v = max(1e-4, std_v)
+
+        proj_a = H_l @ d_a
+        std_a = float(np.std(proj_a)) if np.std(proj_a) > 1e-6 else float(np.std(H_l))
+        std_a = max(1e-4, std_a)
+
+        d_v_t = torch.tensor(d_v, dtype=torch.float32, device=device).reshape(1, 1, -1)
+        d_a_t = torch.tensor(d_a, dtype=torch.float32, device=device).reshape(1, 1, -1)
+
+        for i in range(len(sample_prompts)):
+            prompt = sample_prompts[i]
+            patch_pos = sample_anchors[i]
+            p_id = sample_pids[i]
+            ev_clean = clean_ev_list[i]
+            ea_clean = clean_ea_list[i]
+
+            # 3-1. Primary: 情動特異的介入 (d_V 加算注入 -> C_V 測定)
+            with ActivationHookManager(adapter) as hook_mgr:
+                hook_mgr.register_direction_intervention_hook(
+                    layer_idx=l,
+                    direction=d_v_t,
+                    alpha=1.0,
+                    hidden_std=std_v,
+                    token_indices=patch_pos,
+                    hook_point=HookPoint.POST_MLP_RESID,
+                    mode="inject",
+                )
+                _, probs_v = compute_sequence_likelihoods_for_candidates(
+                    model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device
+                )
+                ev_v, _ = compute_expected_va(probs_v, candidates)
+                cv, _ = compute_causal_leverage(ev_v, ev_clean)
+
+            # 3-2. Primary: 情動特異的介入 (d_A 加算注入 -> C_A 測定)
+            with ActivationHookManager(adapter) as hook_mgr:
+                hook_mgr.register_direction_intervention_hook(
+                    layer_idx=l,
+                    direction=d_a_t,
+                    alpha=1.0,
+                    hidden_std=std_a,
+                    token_indices=patch_pos,
+                    hook_point=HookPoint.POST_MLP_RESID,
+                    mode="inject",
+                )
+                _, probs_a = compute_sequence_likelihoods_for_candidates(
+                    model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device
+                )
+                _, ea_a = compute_expected_va(probs_a, candidates)
+                ca, _ = compute_causal_leverage(ea_a, ea_clean)
+
+            # 3-3. Secondary: 非特異的ゼロアブレーション統制
+            with ActivationHookManager(adapter) as hook_mgr:
+                hook_mgr.register_patch_hook(
+                    layer_idx=l,
+                    patch_tensor=zero_patch,
+                    token_indices=patch_pos,
+                    hook_point=HookPoint.POST_MLP_RESID,
+                )
+                _, probs_zero = compute_sequence_likelihoods_for_candidates(
+                    model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device
+                )
+                ev_z, ea_z = compute_expected_va(probs_zero, candidates)
+                cv_z, _ = compute_causal_leverage(ev_z, ev_clean)
+                ca_z, _ = compute_causal_leverage(ea_z, ea_clean)
+
+            layer_shifts_v[l].append(cv)
+            layer_shifts_a[l].append(ca)
+            layer_shifts_v_zero[l].append(cv_z)
+            layer_shifts_a_zero[l].append(ca_z)
+
+            pair_records.append({
+                "sample_idx": i,
+                "pair_id": p_id,
+                "layer": l,
+                "relative_depth": rel_d,
+                "c_v": cv,
+                "c_a": ca,
+                "c_v_zero": cv_z,
+                "c_a_zero": ca_z,
+            })
 
     c_v_m = [float(np.mean(shifts)) if len(shifts) > 0 else 0.0 for shifts in layer_shifts_v]
     c_a_m = [float(np.mean(shifts)) if len(shifts) > 0 else 0.0 for shifts in layer_shifts_a]
+    c_v_z_m = [float(np.mean(shifts)) if len(shifts) > 0 else 0.0 for shifts in layer_shifts_v_zero]
+    c_a_z_m = [float(np.mean(shifts)) if len(shifts) > 0 else 0.0 for shifts in layer_shifts_a_zero]
 
     return {
         "c_v": c_v_m,
         "c_a": c_a_m,
         "c_v_mean": c_v_m,
         "c_a_mean": c_a_m,
+        "c_v_zero": c_v_z_m,
+        "c_a_zero": c_a_z_m,
         "pair_level": pair_records,
     }
 
@@ -302,6 +439,8 @@ def main():
                 fam_causal[cond_key] = {
                     "c_v": res["c_v"],
                     "c_a": res["c_a"],
+                    "c_v_zero": res.get("c_v_zero", []),
+                    "c_a_zero": res.get("c_a_zero", []),
                 }
 
                 # pair-level 記録の集約
@@ -315,6 +454,8 @@ def main():
                         "relative_depth": prec["relative_depth"],
                         "c_v": prec["c_v"],
                         "c_a": prec["c_a"],
+                        "c_v_zero": prec.get("c_v_zero", 0.0),
+                        "c_a_zero": prec.get("c_a_zero", 0.0),
                     })
 
             if not args.dry_run and model is not None:

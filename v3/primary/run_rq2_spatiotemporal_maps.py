@@ -381,68 +381,72 @@ def run_real_spatiotemporal_maps(
             abs_beta_A[l, s_idx] = float(abs(reg_a.coef_[0]))
 
             # 4. 介入: d_V → gamma_V,C_V / d_A → gamma_A,C_A（生成段階は joint sequence 上）
+            # Cross-fitting: 方向ベクトルを train fold のみで学習し、held-out test サンプル（かつ sub_eval_idx）で介入評価
             sample_gamma_v, sample_c_v = [], []
             sample_gamma_a, sample_c_a = [], []
-            probe_dir_v = Ridge(alpha=10.0).fit(H, y_v).coef_
-            norm_v = np.linalg.norm(probe_dir_v)
-            d_v = probe_dir_v / (norm_v + 1e-6) if norm_v > 0 else np.zeros_like(probe_dir_v)
 
-            probe_dir_a = Ridge(alpha=10.0).fit(H, y_a).coef_
-            norm_a = np.linalg.norm(probe_dir_a)
-            d_a = probe_dir_a / (norm_a + 1e-6) if norm_a > 0 else np.zeros_like(probe_dir_a)
+            for tr, te in cv_splits:
+                ridge_v_tr = Ridge(alpha=10.0).fit(H[tr], y_v[tr])
+                norm_v = np.linalg.norm(ridge_v_tr.coef_)
+                d_v = ridge_v_tr.coef_ / (norm_v + 1e-6) if norm_v > 0 else np.zeros_like(ridge_v_tr.coef_)
+                h_std_v = float(np.std(H[tr] @ d_v)) if np.std(H[tr] @ d_v) > 0 else 1.0
 
-            h_std_v = float(np.std(H @ d_v)) if np.std(H @ d_v) > 0 else 1.0
-            h_std_a = float(np.std(H @ d_a)) if np.std(H @ d_a) > 0 else 1.0
+                ridge_a_tr = Ridge(alpha=10.0).fit(H[tr], y_a[tr])
+                norm_a = np.linalg.norm(ridge_a_tr.coef_)
+                d_a = ridge_a_tr.coef_ / (norm_a + 1e-6) if norm_a > 0 else np.zeros_like(ridge_a_tr.coef_)
+                h_std_a = float(np.std(H[tr] @ d_a)) if np.std(H[tr] @ d_a) > 0 else 1.0
 
-            with torch.no_grad():
-                for idx in sub_eval_idx:
-                    prompt = sample_prompts[idx]
-                    meta = sample_joint_meta[idx]
-                    t_idx = resolve_joint_stage_index(
-                        meta["cand_start"], stage_name, meta["stage_offsets"], meta["seq_len"]
-                    )
+                fold_intervene_indices = [i for i in te if i in sub_eval_idx]
+                with torch.no_grad():
+                    for idx in fold_intervene_indices:
+                        prompt = sample_prompts[idx]
+                        meta = sample_joint_meta[idx]
+                        t_idx = resolve_joint_stage_index(
+                            meta["cand_start"], stage_name, meta["stage_offsets"], meta["seq_len"]
+                        )
 
-                    shifts_v, shifts_a = [], []
-                    for axis_name, direction, h_std, shift_store in (
-                        ("v", d_v, h_std_v, shifts_v),
-                        ("a", d_a, h_std_a, shifts_a),
-                    ):
-                        axis_shifts = []
-                        for alpha in alpha_sweep:
-                            _, probs_p = compute_sequence_likelihoods_for_candidates(
-                                model=model,
-                                tokenizer=tokenizer,
-                                prompt=prompt,
-                                candidates=candidates,
-                                device=device,
-                                batch_size=81,
-                                generation_patch={
-                                    "adapter": adapter,
-                                    "layer_idx": l,
-                                    "direction": direction,
-                                    "alpha": alpha,
-                                    "hidden_std": h_std,
-                                    "token_index": t_idx,
-                                    "hook_point": HookPoint.POST_MLP_RESID,
-                                    "mode": "inject",
-                                },
-                            )
+                        shifts_v, shifts_a = [], []
+                        for axis_name, direction, h_std, shift_store in (
+                            ("v", d_v, h_std_v, shifts_v),
+                            ("a", d_a, h_std_a, shifts_a),
+                        ):
+                            axis_shifts = []
+                            for alpha in alpha_sweep:
+                                _, probs_p = compute_sequence_likelihoods_for_candidates(
+                                    model=model,
+                                    tokenizer=tokenizer,
+                                    prompt=prompt,
+                                    candidates=candidates,
+                                    device=device,
+                                    batch_size=81,
+                                    generation_patch={
+                                        "adapter": adapter,
+                                        "layer_idx": l,
+                                        "direction": direction,
+                                        "alpha": alpha,
+                                        "hidden_std": h_std,
+                                        "token_index": t_idx,
+                                        "hook_point": HookPoint.POST_MLP_RESID,
+                                        "mode": "inject",
+                                    },
+                                )
 
-                            ev_p, ea_p = compute_expected_va(probs_p, candidates)
-                            if axis_name == "v":
-                                axis_shifts.append(ev_p - clean_ev_list[idx])
-                            else:
-                                axis_shifts.append(ea_p - clean_ea_list[idx])
-                        shift_store.extend(axis_shifts)
+                                ev_p, ea_p = compute_expected_va(probs_p, candidates)
+                                if axis_name == "v":
+                                    axis_shifts.append(ev_p - clean_ev_list[idx])
+                                else:
+                                    axis_shifts.append(ea_p - clean_ea_list[idx])
+                            shift_store.extend(axis_shifts)
 
-                    sample_gamma_v.append(estimate_interventional_slope(alpha_sweep, shifts_v))
-                    sample_gamma_a.append(estimate_interventional_slope(alpha_sweep, shifts_a))
-                    sample_c_v.append(abs(shifts_v[-1]))
-                    sample_c_a.append(abs(shifts_a[-1]))
+                        sample_gamma_v.append(estimate_interventional_slope(alpha_sweep, shifts_v))
+                        sample_gamma_a.append(estimate_interventional_slope(alpha_sweep, shifts_a))
+                        sample_c_v.append(abs(shifts_v[-1]))
+                        sample_c_a.append(abs(shifts_a[-1]))
 
-            gamma_V[l, s_idx] = float(np.mean(sample_gamma_v))
-            gamma_A[l, s_idx] = float(np.mean(sample_gamma_a))
-            C_V[l, s_idx] = float(np.mean(sample_c_v))
+            gamma_V[l, s_idx] = float(np.mean(sample_gamma_v)) if sample_gamma_v else 0.0
+            gamma_A[l, s_idx] = float(np.mean(sample_gamma_a)) if sample_gamma_a else 0.0
+            C_V[l, s_idx] = float(np.mean(sample_c_v)) if sample_c_v else 0.0
+            C_A[l, s_idx] = float(np.mean(sample_c_a)) if sample_c_a else 0.0
             C_A[l, s_idx] = float(np.mean(sample_c_a))
 
     pre_v_idx = semantic_stages.index("pre_V") if "pre_V" in semantic_stages else 1

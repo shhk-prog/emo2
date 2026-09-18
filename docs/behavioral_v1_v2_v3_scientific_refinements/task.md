@@ -88,3 +88,24 @@
 - [x] Behavioral の covariation を「Reader and Self covary in their responses to controlled affective changes」と定義
 - [x] 仮説図の結論先取りを解消し、内部表現からの計算分岐として記述
 - [x] 729 VAD / 81 VA の Stage 間推論境界（contrast / relative pattern）および Supplementary 感度分析計画を明記
+
+## 19. P0〜P2 実装修正（本実験実行前最終リファインメント）
+- [x] **P0-1〜P0-4**: `v3/primary/run_confirmatory_replication.py` の実モデル経路修正
+  - H2/H3/H4 を単一の cross-fitting ループに統合（train で方向・部分空間・中立平均推定、held-out test のみで評価）
+  - 未定義変数（`causal_sub_df`, `opt_layer`, `batch_size`, `evaluate_candidate_likelihoods` 等）の解消
+  - 共通尤度 API (`compute_sequence_likelihoods_for_candidates`, `compute_expected_va`) への統一
+  - トークン位置計算を Joint Tokenization 方式へ統一し、81候補のステージ位置不変性をアサート
+- [x] **P0-5**: `v3/primary/run_rq3_path_mediation.py` の cache load 時 `full_output` 未定義バグ修正
+- [x] **P1-1**: `behavioral/analysis/summarize_behavioral_aipsy.py` の Sensitivity における事前定義期待方向への符号整列（`direction_aligned_mean_diff`）
+- [x] **P1-2**: Behavioral Dose-Response における Moderate の真の活用（`aligned_step_1`, `aligned_step_2`, `monotonicity_rate`, `midpoint_deviation`）
+- [x] **P1-3**: Behavioral Specificity における感情変位量（Affective Displacement）または期待方向整列の導入
+- [x] **P1-4**: `v3/primary/run_rq3_path_mediation.py` Discovery の $C(l)$ 介入スケールを加算注入（$\alpha=1.0, \sigma_h, \hat{d}$）へ統一
+- [x] **P1-5**: `v3/primary/run_rq2_spatiotemporal_maps.py` の direction 推定を CV split 再利用による cross-fitting 化
+- [x] **P1-6**: `v2/primary/run_rq3_causal_map.py` の Primary を情動特異的因果マップ ($C_V(l), C_A(l)$) に刷新し、zero ablation を Secondary 化
+- [x] **P1-7, P1-8**: `v1/primary/run_phase_c.py` E4 に same-task 統制を追加し、確認ペア不足時の危険な fallback を削除
+- [x] **P1-9**: `v2/primary/run_rq4_recovery_patching.py` の Procrustes 分割を seeded / group split 化
+- [x] **P1-10, P1-11**: `src/affective_empathy_eval/manifests.py` の検証項目拡充と実キャッシュ接続、モデルリビジョン管理
+- [x] **P2-1**: Behavioral のデフォルトパスを `behavioral/results/raw/` と `behavioral/results/derived/` に統一
+- [x] **P2-2**: V2 README の不存在スクリプト整理（`run_confirmatory_analysis.py` 新規実装）
+- [x] **P2-3**: Confirmatory の Family キーと表示名の分離
+- [x] **テスト検証**: `tests/test_confirmatory_pipeline.py` 新規作成および全 CPU テスト 100% パス確認（78 passed）

@@ -122,6 +122,7 @@ def create_run_manifest(
     candidate_space: str = DEFAULT_CANDIDATE_SPACE,
     seed: int = 42,
     intervention_version: str = DEFAULT_INTERVENTION_VERSION,
+    model_revision: str = "main",
 ) -> RunManifest:
     from datetime import datetime, timezone
     import subprocess
@@ -149,7 +150,7 @@ def create_run_manifest(
         git_commit=git_sha,
         config_hash=cfg_hash,
         dataset_hash=ds_hash,
-        model_revision="main",
+        model_revision=model_revision,
         tokenizer_revision="main",
         prompt_version=prompt_version,
         candidate_space=candidate_space,
@@ -165,10 +166,14 @@ def is_manifest_matching(
     expected_intervention_version: Optional[str] = DEFAULT_INTERVENTION_VERSION,
     expected_candidate_space: Optional[str] = None,
     expected_prompt_version: Optional[str] = None,
+    expected_config_hash: Optional[str] = None,
+    expected_dataset_hash: Optional[str] = None,
+    expected_code_version: Optional[str] = None,
+    expected_model_revision: Optional[str] = None,
 ) -> bool:
     """
     キャッシュの有効性を検証する。
-    特に旧 replacement（あるいはバージョン未指定）のキャッシュと新 additive injection キャッシュが混在するのを防止。
+    旧設定・旧コード・旧データセットや旧 replacement のキャッシュと新パイプライン成果物の混在を防止。
     """
     if not os.path.exists(manifest_path):
         return False
@@ -187,6 +192,18 @@ def is_manifest_matching(
             return False
 
         if expected_prompt_version and data.get("prompt_version") != expected_prompt_version:
+            return False
+
+        if expected_config_hash and data.get("config_hash") != expected_config_hash:
+            return False
+
+        if expected_dataset_hash and data.get("dataset_hash") != expected_dataset_hash:
+            return False
+
+        if expected_code_version and data.get("code_version") != expected_code_version:
+            return False
+
+        if expected_model_revision and data.get("model_revision") != expected_model_revision:
             return False
 
         return True

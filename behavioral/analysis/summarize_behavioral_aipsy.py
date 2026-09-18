@@ -39,6 +39,18 @@ EMOTIONS = [
 ]
 
 
+EXPECTED_DIRECTION = {
+    "grief": {"V": -1},
+    "terror": {"V": -1, "A": +1},
+    "rage": {"V": -1, "A": +1},
+    "loathing": {"V": -1},
+    "ecstasy": {"V": +1, "A": +1},
+    "admiration": {"V": +1},
+    "amazement": {"A": +1},
+    "vigilance": {"A": +1},
+}
+
+
 def resolve_alignment(model_name: str) -> str:
     """model_name から instruct または base を判定"""
     lower = model_name.lower()
@@ -63,7 +75,7 @@ def analyze_model_aipsy(csv_path: str):
     alignment = resolve_alignment(model_name)
     splits = set(df["split"].dropna().unique())
 
-    # 1. RQ1: Sensitivity (Clinical vs Neutral matched by pair_id)
+    # 1. RQ1: Sensitivity (Clinical vs Neutral matched by pair_id, direction-aligned)
     rq1_rows = []
     merged_cn = None
     if "clinical" in splits and "neutral" in splits:
@@ -81,39 +93,77 @@ def analyze_model_aipsy(csv_path: str):
 
         if merged_cn is not None and len(merged_cn) > 0:
             for dim in ["v", "a", "d"]:
+                dim_u = dim.upper()
                 for task in ["w", "r", "s"]:
                     c_col = f"{task}_e{dim}_clin"
                     n_col = f"{task}_e{dim}_neut"
                     if c_col in merged_cn.columns and n_col in merged_cn.columns:
                         c_vals = merged_cn[c_col].values
                         n_vals = merged_cn[n_col].values
-                        diff = c_vals - n_vals
-                        dz = compute_d_z(diff)
-                        t_stat, p_val = ttest_rel(c_vals, n_vals)
+                        raw_diff = c_vals - n_vals
 
-                        # Bootstrap 95% CI for paired mean diff and Cohen's dz
-                        _, diff_ci_low, diff_ci_high = compute_bootstrap_ci(diff, statistic_fn=np.mean)
-                        _, dz_ci_low, dz_ci_high = compute_bootstrap_ci(diff, statistic_fn=compute_d_z)
+                        # Direction-aligned difference to prevent positive/negative emotion cancellation
+                        aligned_diffs = []
+                        for _, row_cn in merged_cn.iterrows():
+                            emo = str(row_cn.get("emotion_clin", row_cn.get("emotion", ""))).lower().strip()
+                            sign = EXPECTED_DIRECTION.get(emo, {}).get(dim_u, None)
+                            if sign is not None:
+                                aligned_diffs.append(sign * (row_cn[c_col] - row_cn[n_col]))
+
+                        aligned_arr = np.array(aligned_diffs) if aligned_diffs else np.array([])
+                        n_defined = len(aligned_arr)
+
+                        if n_defined > 2:
+                            align_mean = float(np.mean(aligned_arr))
+                            align_dz = compute_d_z(aligned_arr)
+                            t_stat_a, p_val_a = ttest_1samp(aligned_arr, popmean=0.0)
+                            _, align_ci_low, align_ci_high = compute_bootstrap_ci(aligned_arr, statistic_fn=np.mean)
+                            _, align_dz_low, align_dz_high = compute_bootstrap_ci(aligned_arr, statistic_fn=compute_d_z)
+                        else:
+                            align_mean, align_dz = float(np.mean(raw_diff)), compute_d_z(raw_diff)
+                            t_stat_a, p_val_a = ttest_rel(c_vals, n_vals)
+                            align_ci_low, align_ci_high = np.nan, np.nan
+                            align_dz_low, align_dz_high = np.nan, np.nan
+
+                        raw_dz = compute_d_z(raw_diff)
+                        t_stat_raw, p_val_raw = ttest_rel(c_vals, n_vals)
+                        _, raw_ci_low, raw_ci_high = compute_bootstrap_ci(raw_diff, statistic_fn=np.mean)
+                        _, raw_dz_low, raw_dz_high = compute_bootstrap_ci(raw_diff, statistic_fn=compute_d_z)
 
                         rq1_rows.append(
                             {
                                 "model": model_name,
                                 "alignment": alignment,
                                 "task": task,
-                                "dimension": dim.upper(),
-                                "n_pairs": len(diff),
-                                "mean_diff": float(np.mean(diff)),
-                                "mean_diff_ci_low": float(diff_ci_low),
-                                "mean_diff_ci_high": float(diff_ci_high),
-                                "d_z": float(dz),
-                                "dz_ci_low": float(dz_ci_low),
-                                "dz_ci_high": float(dz_ci_high),
-                                "t_stat": float(t_stat),
-                                "p_value": float(p_val),
+                                "dimension": dim_u,
+                                "n_pairs": len(raw_diff),
+                                "n_direction_defined": n_defined,
+                                "direction_aligned_mean_diff": align_mean,  # PRIMARY METRIC
+                                "aligned_ci_low": float(align_ci_low),
+                                "aligned_ci_high": float(align_ci_high),
+                                "aligned_d_z": float(align_dz),
+                                "aligned_dz_ci_low": float(align_dz_low),
+                                "aligned_dz_ci_high": float(align_dz_high),
+                                "aligned_t_stat": float(t_stat_a),
+                                "aligned_p_value": float(p_val_a),
+                                "raw_mean_diff": float(np.mean(raw_diff)),
+                                "raw_ci_low": float(raw_ci_low),
+                                "raw_ci_high": float(raw_ci_high),
+                                "raw_d_z": float(raw_dz),
+                                "raw_t_stat": float(t_stat_raw),
+                                "raw_p_value": float(p_val_raw),
+                                # Backward compatible aliases
+                                "mean_diff": float(np.mean(raw_diff)),
+                                "mean_diff_ci_low": float(raw_ci_low),
+                                "mean_diff_ci_high": float(raw_ci_high),
+                                "d_z": float(raw_dz),
+                                "dz_ci_low": float(raw_dz_low),
+                                "dz_ci_high": float(raw_dz_high),
+                                "p_value": float(p_val_raw),
                             }
                         )
 
-    # 2. RQ2: Dose-Response (Repeated-measures within-triplet linear slope)
+    # 2. RQ2: Dose-Response (Step-1 Moderate vs Neutral, Step-2 Clinical vs Moderate, Monotonicity)
     rq2_rows = []
     if {"neutral", "moderate", "clinical"}.issubset(splits):
         mod_df = df[df["split"] == "moderate"]
@@ -128,6 +178,7 @@ def analyze_model_aipsy(csv_path: str):
 
         if trip_merged is not None and len(trip_merged) > 0:
             for dim in ["v", "a", "d"]:
+                dim_u = dim.upper()
                 for task in ["w", "r", "s"]:
                     n_col = f"{task}_e{dim}_neut"
                     m_col = f"{task}_e{dim}_mod"
@@ -137,68 +188,123 @@ def analyze_model_aipsy(csv_path: str):
                         m_arr = trip_merged[m_col].values
                         c_arr = trip_merged[c_col].values
 
-                        # Primary: triplet-level linear contrast slope b_i = (c_i - n_i) / 2.0
-                        # Dose levels are [0, 1, 2], centered x = [-1, 0, 1], denominator sum(x^2)=2
-                        slopes = (c_arr - n_arr) / 2.0
-                        mean_slope = float(np.mean(slopes))
-                        t_stat, p_val = ttest_1samp(slopes, popmean=0.0)
+                        # Step-1 (Moderate - Neutral) and Step-2 (Clinical - Moderate)
+                        aligned_s1 = []
+                        aligned_s2 = []
+                        midpoint_devs = []
 
-                        # Triplet-level bootstrap CI for slope
-                        _, slope_low, slope_high = compute_bootstrap_ci(slopes, statistic_fn=np.mean)
+                        for _, row_tr in trip_merged.iterrows():
+                            emo = str(row_tr.get("emotion_clin", row_tr.get("emotion", ""))).lower().strip()
+                            sign = EXPECTED_DIRECTION.get(emo, {}).get(dim_u, None)
+                            s1 = row_tr[m_col] - row_tr[n_col]
+                            s2 = row_tr[c_col] - row_tr[m_col]
+                            midpoint_devs.append(row_tr[m_col] - (row_tr[n_col] + row_tr[c_col]) / 2.0)
+                            if sign is not None:
+                                aligned_s1.append(sign * s1)
+                                aligned_s2.append(sign * s2)
 
-                        # Secondary: across-triplet concatenated rank correlation (for legacy reference)
-                        all_doses = np.repeat([0, 1, 2], len(n_arr))
-                        all_vals = np.concatenate([n_arr, m_arr, c_arr])
-                        sec_rho, sec_p = spearmanr(all_doses, all_vals)
+                        aligned_s1_arr = np.array(aligned_s1) if aligned_s1 else np.array([])
+                        aligned_s2_arr = np.array(aligned_s2) if aligned_s2 else np.array([])
+
+                        if len(aligned_s1_arr) > 2:
+                            mean_step_1 = float(np.mean(aligned_s1_arr))
+                            mean_step_2 = float(np.mean(aligned_s2_arr))
+                            monotonic = (aligned_s1_arr > 0) & (aligned_s2_arr > 0)
+                            monotonicity_rate = float(np.mean(monotonic))
+                            _, s1_low, s1_high = compute_bootstrap_ci(aligned_s1_arr, statistic_fn=np.mean)
+                            _, s2_low, s2_high = compute_bootstrap_ci(aligned_s2_arr, statistic_fn=np.mean)
+                            t_s1, p_s1 = ttest_1samp(aligned_s1_arr, popmean=0.0)
+                            t_s2, p_s2 = ttest_1samp(aligned_s2_arr, popmean=0.0)
+                        else:
+                            mean_step_1, mean_step_2, monotonicity_rate = 0.0, 0.0, 0.0
+                            s1_low, s1_high = 0.0, 0.0
+                            s2_low, s2_high = 0.0, 0.0
+                            t_s1, p_s1 = 0.0, 1.0
+                            t_s2, p_s2 = 0.0, 1.0
+
+                        midpoint_deviation = float(np.mean(midpoint_devs)) if midpoint_devs else 0.0
+
+                        # Secondary: raw slope (clinical - neutral) / 2.0
+                        sec_slopes = (c_arr - n_arr) / 2.0
+                        sec_mean_slope = float(np.mean(sec_slopes))
+                        sec_t, sec_p = ttest_1samp(sec_slopes, popmean=0.0)
 
                         rq2_rows.append(
                             {
                                 "model": model_name,
                                 "alignment": alignment,
                                 "task": task,
-                                "dimension": dim.upper(),
+                                "dimension": dim_u,
                                 "n_triplets": len(trip_merged),
-                                "mean_slope": mean_slope,
-                                "slope_ci_low": float(slope_low),
-                                "slope_ci_high": float(slope_high),
-                                "t_stat": float(t_stat),
-                                "p_value": float(p_val),
+                                "n_direction_defined": len(aligned_s1_arr),
+                                "mean_step_1_aligned": mean_step_1,  # PRIMARY: Moderate - Neutral
+                                "step_1_ci_low": float(s1_low),
+                                "step_1_ci_high": float(s1_high),
+                                "step_1_p_value": float(p_s1),
+                                "mean_step_2_aligned": mean_step_2,  # PRIMARY: Clinical - Moderate
+                                "step_2_ci_low": float(s2_low),
+                                "step_2_ci_high": float(s2_high),
+                                "step_2_p_value": float(p_s2),
+                                "monotonicity_rate": monotonicity_rate,  # PRIMARY: Step1 > 0 and Step2 > 0
+                                "midpoint_deviation": midpoint_deviation,
+                                "mean_slope": sec_mean_slope,  # Backward compatible alias
+                                "slope_ci_low": float(s1_low + s2_low) / 2.0 if len(aligned_s1_arr) > 0 else 0.0,
+                                "slope_ci_high": float(s1_high + s2_high) / 2.0 if len(aligned_s1_arr) > 0 else 0.0,
+                                "p_value": float(sec_p),
+                                "secondary_mean_slope": sec_mean_slope,
+                                "secondary_slope_p": float(sec_p),
                                 "mean_neutral": float(np.mean(n_arr)),
                                 "mean_moderate": float(np.mean(m_arr)),
                                 "mean_clinical": float(np.mean(c_arr)),
-                                "secondary_spearman_rho": float(sec_rho),
-                                "secondary_spearman_p": float(sec_p),
                             }
                         )
 
-    # 3. RQ3: Specificity (Clinical vs Complex Neutral)
+    # 3. RQ3: Specificity (Affective Displacement vs Complex Neutral)
     rq3_rows = []
     if "clinical" in splits and "complex_neutral" in splits:
         clin_df = df[df["split"] == "clinical"]
         cneu_df = df[df["split"] == "complex_neutral"]
+        neut_df = df[df["split"] == "neutral"] if "neutral" in splits else cneu_df
+
         for dim in ["v", "a", "d"]:
+            dim_u = dim.upper()
             for task in ["w", "r", "s"]:
                 c_col = f"{task}_e{dim}"
                 if c_col in clin_df.columns and c_col in cneu_df.columns:
                     c_vals = clin_df[c_col].dropna().values
                     cn_vals = cneu_df[c_col].dropna().values
+                    neut_baseline = float(np.mean(neut_df[c_col].dropna().values)) if c_col in neut_df.columns and len(neut_df[c_col].dropna()) > 0 else 5.0
+
                     if len(c_vals) > 2 and len(cn_vals) > 2:
+                        # Primary: Affective Displacement D(x) = |E(x) - mu_neutral|
+                        # Prevents valence cancellation between positive and negative emotions
+                        disp_c = np.abs(c_vals - neut_baseline)
+                        disp_cn = np.abs(cn_vals - neut_baseline)
+
                         from scipy.stats import ttest_ind
-                        t_stat, p_val = ttest_ind(c_vals, cn_vals, equal_var=False)
-                        pooled_std = np.sqrt((np.var(c_vals, ddof=1) + np.var(cn_vals, ddof=1)) / 2.0)
-                        d_val = float((np.mean(c_vals) - np.mean(cn_vals)) / (pooled_std + 1e-12))
+                        t_stat_disp, p_val_disp = ttest_ind(disp_c, disp_cn, equal_var=False)
+                        pooled_std_disp = np.sqrt((np.var(disp_c, ddof=1) + np.var(disp_cn, ddof=1)) / 2.0)
+                        d_disp = float((np.mean(disp_c) - np.mean(disp_cn)) / (pooled_std_disp + 1e-12))
+
+                        # Secondary: raw signed mean diff
+                        t_stat_raw, p_val_raw = ttest_ind(c_vals, cn_vals, equal_var=False)
+
                         rq3_rows.append(
                             {
                                 "model": model_name,
                                 "alignment": alignment,
                                 "task": task,
-                                "dimension": dim.upper(),
+                                "dimension": dim_u,
                                 "n_clinical": len(c_vals),
                                 "n_complex_neutral": len(cn_vals),
-                                "mean_diff": float(np.mean(c_vals) - np.mean(cn_vals)),
-                                "cohen_d": d_val,
-                                "t_stat": float(t_stat),
-                                "p_value": float(p_val),
+                                "mean_clinical_displacement": float(np.mean(disp_c)),  # PRIMARY METRIC
+                                "mean_complex_neutral_displacement": float(np.mean(disp_cn)),
+                                "displacement_diff": float(np.mean(disp_c) - np.mean(disp_cn)),
+                                "displacement_cohen_d": d_disp,
+                                "displacement_t_stat": float(t_stat_disp),
+                                "displacement_p_value": float(p_val_disp),
+                                "secondary_raw_mean_diff": float(np.mean(c_vals) - np.mean(cn_vals)),
+                                "secondary_raw_p_value": float(p_val_raw),
                             }
                         )
 
@@ -270,7 +376,7 @@ def main():
     parser.add_argument(
         "--input-dir",
         type=str,
-        default="behavioral/results/aipsy_4split",
+        default="behavioral/results/raw/aipsy_4split",
         help="Directory containing *_aipsy_4split.csv files",
     )
     parser.add_argument(

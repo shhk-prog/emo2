@@ -13,6 +13,8 @@
 
 統合 CLI は RQ1 が完全一致の `GO` のときだけ後続へ進む。
 
+データは AIPsy 192 pair。81 VA。ゲートは完全一致の `GO` のみ後続へ進む。
+
 ```bash
-python -m affective_empathy_eval.run --stage v3 --model-set primary_small
+python -m affective_empathy_eval.run --stage v3 --model-set primary_small --device cuda:0
 ```

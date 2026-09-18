@@ -60,6 +60,8 @@ Phase C  因果
 - **モデル正本**: `configs/models.yaml` の `primary_small`。
   - Qwen 2.5 1.5B / Llama 3.2 1B / Gemma 3 1B / OLMo 2 1B × Base / Instruct
 - **単独実行のモデル指定**: `--model-id` または `--family` が必須。Qwen ID への暗黙 default は禁止。
+- **データ役割**: EmoBank test1k は連続 VA ラベル（Phase A）。AIPsy は条件ラベルと matched-neutral（Phase A / C / E4）。Phase B は専用統制 CSV。V3 と同じ AIPsy ファイルを使っても、V1 は Reader↔Self の内部比較であり、V3 の状態誘導ゲートとは指標を混ぜない。
+- **出力先**: `v1/results/derived/`。raw を上書きせず、`{prefix}` ごとに分ける。
 
 ---
 
@@ -265,6 +267,19 @@ v1/
 ```
 
 `{prefix}` は `qwen_base`, `llama_instruct` など。manifest に model_id, 相対深度, seed, commit を残す。
+
+### 7.1 Phase ごとの主な成果物
+
+| Phase | 典型ファイル | 内容 |
+|---|---|---|
+| A | `e1_*_decodability.csv`, `e2_*_geometry.csv`, `phase_a_summary.md` | 層別 $R^2$ / AUC、ピーク相対深度、cross-decoding / RSA / Procrustes |
+| B | `e5_1_lexical_audit.csv`, `e5_semantic_controls_results.csv`, `e5_semantic_summary.md` | 語彙監査と rule-based 統制後の decodability |
+| C E3 | `e3_causal_map.csv` | 層別 magnitude / direction / 相対深度 |
+| C E4 | `e4_interchangeability_results.csv` | matched / random / same-task の効果 |
+| C E6 | `e6_specialization_trials.csv`, `e6_lmm_results.json` | Confirmation 試行と交互作用。No-Go なら `status: no_distinct_sites_identified` |
+| 横断 | `v1_phase_c_summary/` | 8 条件の要約 |
+
+E6 は E3 Discovery CSV を読む。無いときは heuristic 層へ落とさずエラーにする。distinct site が取れなければ Negative Result として正常終了する。
 
 ---
 

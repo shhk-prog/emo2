@@ -102,14 +102,22 @@ $$
 
 ## 4. 共通設計
 
-- Prompt-end normalized（トークン境界のずれを防ぐ）
-- 相対深度でファミリー横断
-- 形式統制: `native`（Instruct は chat）と `matched_plain`（両方 plain）
+設定正本は `configs/v2_experiments.yaml`。
+
+- Prompt-end normalized（`add_special_tokens=False`）
+- 相対深度 $d=l/(L-1)$ でファミリー横断
+- 形式統制: `native`（Base は plain、Instruct は chat）と `matched_plain`（両方 plain）。後者で差が消えるなら template 交絡を疑う
+- ラベル既定: 人間 `reader_V`, `reader_A`。モデル自己報告を主ラベルにしない
+- train/test は `pair_id` があれば Group split
+- held-out Ridge（`ridge_alpha: 1.0`）。幾何は PCA 後に Procrustes
+- RQ3 の $C(l)$ は実介入。プローブ係数の大きさで代用しない
+- RQ4 は Instruct 分布を Base へ近づける recovery。中立文脈へ感情を入れる操作ではない
 - Bootstrap 95% CI（既定 $n=1000$）
 - 対比較は family 内 Base vs Instruct（paired）
-- 確証的統合: `v2/primary/run_confirmatory_analysis.py`（LMM, FDR）
-- データ既定: `v1/data/processed/stimuli_vad_3way_test1k.csv`。件数はロード時にログする。固定の「1,000 件」は書かない。V3 の AIPsy matched-neutral 192 pair とは別データである。
-- Sequence-Likelihood は 81 VA。Behavioral / V1 の 729 VAD 期待値と直接比較しない。
+- 確証的統合: `v2/primary/run_confirmatory_analysis.py`（LMM, FDR）。Primary 4 family と Mistral 7B を同じ主表に混ぜない
+- データ既定: `v1/data/processed/stimuli_vad_3way_test1k.csv`。件数はロード時にログする。固定の「1,000 件」は書かない。V3 の AIPsy matched-neutral とは別データである
+- Sequence-Likelihood は 81 VA。Behavioral / V1 の 729 VAD 期待値と直接比較しない
+- `--dry-run` は固定 fixture の VA ラベルを使う。乱数でラベルを作らない
 
 ---
 

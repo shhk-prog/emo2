@@ -2,9 +2,50 @@
 
 Behavioral の正式実行面。設計・指標・解釈の本文は親の [`behavioral/README.md`](../README.md) を正本とする。
 
-| ファイル | 内容 |
-|---|---|
-| `run_behavioral_emobank.py` | EmoBank 3-Way。Writer / Reader / Self の独立セッション |
-| `run_behavioral_aipsy.py` | AIPsy 4-Split。Sensitivity / dose-response / specificity / coupling |
+中心の問い: **Do Reader and Self covary?**  
+候補空間: 729 VAD。V2 / V3 の 81 VA 期待値と直接比較しない。
 
-候補空間は 729 VAD。集計は `behavioral/analysis/`。V3 は同じ AIPsy CSV から clinical–neutral pair だけを wide 化するが、Behavioral の 4-split 集計とは別指標である。
+## スクリプト
+
+| ファイル | データ既定 | 独立セッション | 主な指標 |
+|---|---|---|---|
+| `run_behavioral_emobank.py` | `v1/data/processed/stimuli_vad_3way.csv` | Writer / Reader / Self | 人間 VAD との $r$, $\rho$, MAE。$(5,5,5)$ 率は補助 |
+| `run_behavioral_aipsy.py` | `v1/data/processed/aipsy_4split_all.csv` | 同上 | Sensitivity, dose-response, specificity, $R$–$S$ coupling |
+
+集計:
+
+| ファイル | 入力 | 出力 |
+|---|---|---|
+| `behavioral/analysis/summarize_behavioral_emobank.py` | `behavioral/results/emobank_3way/` | `emobank_3way_summary/` |
+| `behavioral/analysis/summarize_behavioral_aipsy.py` | `behavioral/results/aipsy_4split/` | `aipsy_4split_summary/` |
+
+## 引数
+
+両スクリプト共通の要点:
+
+- `--model`: `configs/models.yaml` の ID と一致させる。暗黙 Qwen default は無い
+- `--tag`: 出力接頭辞（例: `qwen_instruct`）
+- Instruct は EmoBank が `--is_instruct`、AIPsy が `--is-instruct`（ハイフンの有無が違う）
+- `--device`: 本番は `cuda:0`
+- `--limit`: 確認用。本番では付けない
+- `--stimuli-path` / `--out-dir`: 既定は上表
+
+統合 CLI は `--model` / `--tag` を registry から埋める。bash `run_production_behavioral.sh` は `.venv` を有効化し、device 既定 `cuda:0`、ログを `results/logs/` に残す。
+
+## 実行
+
+```bash
+bash scripts/run_production_behavioral.sh cuda:0
+
+python -m affective_empathy_eval.run --stage behavioral --model-set primary_small --device cuda:0
+
+python behavioral/primary/run_behavioral_emobank.py \
+    --model Qwen/Qwen2.5-1.5B-Instruct \
+    --is_instruct --tag qwen_instruct --device cuda:0
+
+python behavioral/primary/run_behavioral_aipsy.py \
+    --model Qwen/Qwen2.5-1.5B-Instruct \
+    --is-instruct --tag qwen_instruct --device cuda:0
+```
+
+V3 は同じ AIPsy CSV から clinical–neutral pair だけを使う。Behavioral の 4-split 表を V3 指標の代わりにしない。

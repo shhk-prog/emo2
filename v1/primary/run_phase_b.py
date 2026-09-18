@@ -235,6 +235,12 @@ def main():
         action="store_true",
         help="Mock dry-run mode for quick pipeline smoke testing",
     )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=0,
+        help="Sample limit (0 for full dataset)",
+    )
     add_model_selection_args(parser)
     args = parser.parse_args()
     args.model_id, args.model_prefix = resolve_single_model_from_args(args)
@@ -303,6 +309,9 @@ def main():
         return
 
     df = pd.read_csv(data_file)
+    if args.limit and args.limit > 0:
+        df = df.head(args.limit).copy().reset_index(drop=True)
+        print(f"Limiting Phase B evaluation to first {len(df)} samples (--limit {args.limit})")
     n_pairs = len(df)
     print(describe_loaded_frame(df, "V1 Phase B semantic controls", str(data_file)))
 

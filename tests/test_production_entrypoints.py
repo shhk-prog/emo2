@@ -94,3 +94,65 @@ def test_production_dry_run_dispatch(monkeypatch):
 
     # Ensure commands were actually constructed and checked
     assert len(executed_cmds) > 0, "No commands were dispatched during dry-run integration test"
+
+
+def test_all_dispatched_commands_argparse_compatibility(monkeypatch):
+    """
+    Verify that every command line constructed by affective_empathy_eval.run with
+    --dry-run and --max-samples 2 has its options recognized in the target script's parser.
+    Catches errors where a dispatched option (e.g. --limit, --is-instruct) is missing in a sub-script.
+    """
+    import argparse
+    import subprocess
+    import affective_empathy_eval.run as runner
+
+    executed_cmds = []
+
+    def capture_cmd(cmd):
+        executed_cmds.append(cmd)
+
+    monkeypatch.setattr(runner, "run_command", capture_cmd)
+    monkeypatch.setattr(runner, "v3_gate_allows_continuation", lambda **kwargs: True)
+
+    for stage in PRODUCTION_STAGE_ORDER:
+        args = argparse.Namespace(
+            stage=stage,
+            model_set="primary_small",
+            family="qwen",
+            base_model=None,
+            instruct_model=None,
+            models_config="configs/models.yaml",
+            device="cpu",
+            dry_run=True,
+            force_after_no_go=True,
+            max_samples=2,
+        )
+        if stage == "behavioral":
+            runner.run_behavioral(args, sys.executable)
+        elif stage == "v1":
+            runner.run_v1(args, sys.executable)
+        elif stage == "v2":
+            runner.run_v2(args, sys.executable)
+        elif stage == "v3":
+            runner.run_v3(args, sys.executable)
+
+    # Check each dispatched script's parser against all passed flags
+    for cmd in executed_cmds:
+        if len(cmd) < 2 or not cmd[1].endswith(".py"):
+            continue
+        script_path = cmd[1]
+        res = subprocess.run(
+            [sys.executable, script_path, "--help"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        assert res.returncode == 0, f"Failed to run --help on {script_path}: {res.stderr}"
+        help_text = res.stdout
+
+        flags = [arg for arg in cmd[2:] if isinstance(arg, str) and arg.startswith("--")]
+        for flag in flags:
+            assert flag in help_text, (
+                f"Dispatched flag '{flag}' is not recognized in {script_path}'s argument parser!\n"
+                f"Full command: {' '.join(cmd)}"
+            )

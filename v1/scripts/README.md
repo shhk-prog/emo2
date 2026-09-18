@@ -12,6 +12,8 @@
 | `v1/primary/phase_c/run_e6_specialization.py` | Task-Specific Causal Specialization。distinct site が無ければ No-Go |
 | `v1/primary/phase_c/summarize_phase_c.py` | Phase C 横断要約 |
 
+`--model-id` または `--family` が必須。比較軸は Reader ↔ Self。Base/Instruct 差の解釈は V2。
+
 ```bash
-python -m affective_empathy_eval.run --stage v1 --model-set primary_small
+python -m affective_empathy_eval.run --stage v1 --model-set primary_small --device cuda:0
 ```

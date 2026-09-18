@@ -56,7 +56,62 @@ Behavioral  →  V1  →  V2  →  V3
 
 ---
 
-## 2. 環境構築とセットアップ
+## 2. 統一実験枠組み
+
+全 Stage で共有する規則である。詳細は [`AGENTS.md`](AGENTS.md) と各 Stage README。
+
+### 2.1 測定対象
+
+測るのはプロンプトへのモデル出力と、その隠れ状態・介入応答である。主観的感情の有無は仮説にしない。
+
+| 用語 | 意味 | 使わない読み |
+|---|---|---|
+| Reader | 平均的読者の VA を推定する認識課題 | 認知的共感 |
+| Self | 刺激提示後の自己報告 / 反応性課題 | 情動的共感、主観的感情 |
+| Writer | 書き手状態の推定（Behavioral 補助） | 作者共感 |
+
+認識と反応は独立セッションである。同一会話に baseline / recognition / post を並べない。認識出力を post 自己報告の代替にしない。
+
+### 2.2 Sequence-Likelihood
+
+主測定は自由生成ではなく、候補 JSON の条件付き対数尤度と Softmax 期待値である。
+
+- Behavioral / V1: $9^3=729$ VAD。JSON は `{"valence": int, "arousal": int, "dominance": int}`
+- V2 / V3: $9^2=81$ VA。JSON は `{"valence": int, "arousal": int}`
+- Valence / Arousal が主対象。Dominance は Behavioral / V1 の補助次元
+- 両空間の $E[V], E[A]$ を同一尺度として比較しない
+
+### 2.3 層と介入位置
+
+- 相対深度 $d = l/(L-1)$（0-based）。論文・横断表は層番号ではなく $d$ で比較する
+- V1 / V2 の標準介入位置は prompt-end（`add_special_tokens=False`、`prompt_end = len(prompt_ids)-1`）
+- V3 RQ2 の生成段階は joint sequence 上の token。`prompt_end` に丸めない
+- Phase B / V3 RQ1 の既定層は $d=0.5$ から $l=\operatorname{round}(d(L-1))$。Qwen 14 層固定ではない
+
+### 2.4 モデル正本
+
+ID の正本は [`configs/models.yaml`](configs/models.yaml) のみ。コードへ model ID をハードコードしない。未知 family は Qwen へ落とさず `KeyError` にする。`--model-id` / `--family` が必要な単独スクリプトで Qwen default は使わない。
+
+### 2.5 データ
+
+件数は README に固定せず、実行時に実 CSV を読んでログする。
+
+| データ | 既定パス | 使う Stage |
+|---|---|---|
+| EmoBank 3-way（本番 Behavioral） | `v1/data/processed/stimuli_vad_3way.csv` | Behavioral |
+| EmoBank 3-way test1k | `v1/data/processed/stimuli_vad_3way_test1k.csv` | V1 Phase A、V2 |
+| AIPsy 4-split | `v1/data/processed/aipsy_4split_all.csv` | Behavioral、V1、V3 |
+| Phase B 統制 | `v1/data/processed/v1_e5_semantic_controls.csv` | V1 Phase B |
+
+V3 は AIPsy の clinical–neutral 192 pair だけを wide 化する。EmoBank 3-way は `pair_id` / matched-neutral が無いため V3 Primary に使わない。原データは読み取り専用。
+
+### 2.6 結果
+
+`**/results/raw/**` と `**/results/derived/**` は追記専用で Git 管理しない（`.gitkeep` のみ残す）。再実行は別 `run_id`。失敗・拒否・パース不能は削除せず理由とともに残す。
+
+---
+
+## 3. 環境構築とセットアップ
 
 AGENTS.md の規定に従い、必ずプロジェクト専用の仮想環境（`.venv`）を構築して実行してください。
 
@@ -76,7 +131,7 @@ uv pip install -e ".[dev]"
 
 ---
 
-## 3. テストの実行
+## 4. テストの実行
 
 仮想環境を有効化（または `.venv/bin/pytest` を直接指定）してテストを実行します：
 
@@ -86,39 +141,62 @@ uv pip install -e ".[dev]"
 
 ---
 
-## 4. 統合実験実行 CLI (Quick Start)
+## 5. 実行方法
 
-共通パッケージ `affective_empathy_eval` の統合ランナーから、全ステージを統一コマンドで実行できます：
+所要時間は未計測。本番は **stage 分割** を推奨する。`run_production_all.sh` より、Behavioral → V1 を完走してから V2 → V3 の方が障害切り分けと resume が容易である。
+
+### 5.1 production bash と統合 CLI の違い
+
+| 項目 | `scripts/run_production_*.sh` | `python -m affective_empathy_eval.run` |
+|---|---|---|
+| 仮想環境 | `.venv` を activate する | 呼ばれた python をそのまま使う |
+| device 既定 | `cuda:0`（第1引数） | `cpu` |
+| ログ | `results/logs/production_<stage>_TIMESTAMP.log` に tee | 標準出力のみ |
+| モデル集合 | `primary_small` 固定 | `--model-set` で切替 |
+| `--family` / `--max-samples` | 基本なし | あり |
+| V3 ゲート継続 | 第2/第3引数に `--force-after-no-go` | `--force-after-no-go` |
+
+本番 GPU では bash script を使う。確認や 1 family だけなら統合 CLI。
+
+### 5.2 本番（4 family）
 
 ```bash
-# 本番は stage 分割を推奨する（V1/V2/V3 が重いため、障害切り分けと resume が容易）。
-# まず Behavioral → V1 を完走し、問題なければ V2 → V3。
+source .venv/bin/activate
 bash scripts/run_production_behavioral.sh cuda:0
 bash scripts/run_production_v1.sh cuda:0
 bash scripts/run_production_v2.sh cuda:0
 bash scripts/run_production_v3.sh cuda:0
-
-# 統合 CLI。--stage all も Behavioral → V1 → V2 → V3 の順。所要時間は未計測。
-python -m affective_empathy_eval.run --stage behavioral --model-set primary_small
-python -m affective_empathy_eval.run --stage v1 --model-set primary_small
-python -m affective_empathy_eval.run --stage v2 --model-set primary_small
-python -m affective_empathy_eval.run --stage v3 --model-set primary_small
-python -m affective_empathy_eval.run --stage all --model-set primary_small
-
-
-# Supplementary 7B 外部スケール検証 (Mistral 7B)
-python -m affective_empathy_eval.run --stage v2 --model-set scale_validation
-
-# Dry-run による高速動作検証（モデル重み不要。transformers 未導入でも Primary は起動する）
-python -m affective_empathy_eval.run --stage v3 --model-set primary_small --dry-run
-
-# V3 だけ、RQ1 が GO でない場合に明示的に継続するとき
-# python -m affective_empathy_eval.run --stage v3 --model-set primary_small --force-after-no-go
 ```
+
+V3 の RQ1 が完全一致の `GO` でないと RQ2 以降は走らない。明示継続だけ:
+
+```bash
+bash scripts/run_production_v3.sh cuda:0 --force-after-no-go
+```
+
+### 5.3 統合 CLI
+
+`--stage all` も Behavioral → V1 → V2 → V3 の順（`PRODUCTION_STAGE_ORDER`）。
+
+```bash
+python -m affective_empathy_eval.run --stage behavioral --model-set primary_small --device cuda:0
+python -m affective_empathy_eval.run --stage v1 --model-set primary_small --device cuda:0
+python -m affective_empathy_eval.run --stage v2 --model-set primary_small --device cuda:0
+python -m affective_empathy_eval.run --stage v3 --model-set primary_small --device cuda:0
+
+python -m affective_empathy_eval.run --stage v2 --model-set scale_validation --device cuda:0
+python -m affective_empathy_eval.run --stage v3 --model-set primary_small --dry-run
+```
+
+`--dry-run` はモデル重みを載せない。transformers 未導入でも Primary は起動する。
+
+### 5.4 論文
+
+現行 README 群が設計の正本である。`iclr2027/iclr2027_conference.tex` はテンプレート、`iclr2027_conference2.tex` は旧稿である。構成メモは [`docs/v3_prerun_five_fixes/paper_outline.md`](docs/v3_prerun_five_fixes/paper_outline.md)。再実行前の数値を本文に入れない。
 
 ---
 
-## 5. ディレクトリ構成
+## 6. ディレクトリ構成
 
 ```text
 ├── README.md                      # 本ドキュメント
@@ -137,3 +215,5 @@ python -m affective_empathy_eval.run --stage v3 --model-set primary_small --dry-
 ├── v3/                            # V3 時空間ダイナミクス・媒介分析実験 (Primary: v3/primary/)
 └── docs/                          # 実験記録・仕様書・決定ログ
 ```
+
+各 Stage の本文は `behavioral/README.md`, `v1/README.md`, `v2/README.md`, `v3/README.md`。実行面の短い案内はそれぞれの `primary/README.md`。モデル ID は `configs/models.yaml` のみ。決定の記録は `docs/decision_log.md`。

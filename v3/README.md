@@ -18,7 +18,14 @@ Behavioral  →  V1  →  V2  →  V3
 - V2: Base ↔ Instruct の再編
 - V3: Instruct（主に target family）で、状態誘導 → 時空間 map → 部分空間遮断による減衰 → 他 family での確認
 
-Target family の既定は `configs/v3_experiments.yaml` の `target_family: qwen`。ID は `configs/models.yaml` から解決する。registry に無い family は Qwen 文字列へ落とさず `KeyError` にする。
+Target family の既定は `configs/v3_experiments.yaml` の `target_family: qwen`（Instruct）。ID は `configs/models.yaml` から解決する。registry に無い family は Qwen 文字列へ落とさず `KeyError` にする。
+
+| 役割 | Family | スクリプト |
+|---|---|---|
+| Discovery / ゲート | Qwen 2.5 1.5B Instruct | RQ1 → RQ2 → RQ3 |
+| Confirmation | Llama 3.2 / Gemma 3 / OLMo 2 Instruct | `run_confirmatory_replication.py` |
+
+Base は V3 Primary に入れない。Base↔Instruct 差は V2 の軸である。
 
 ---
 
@@ -52,7 +59,7 @@ v3/
 
 ### 3.1 手順
 
-1. pair_id Group split。方向は人間 VA があればそれを使い、AIPsy 既定では train のモデル自己報告を使う。
+1. pair_id Group split。方向は人間 VA があればそれを使い、AIPsy 既定では同じ刺激に対するモデルの感情認識予測値（Reader Prediction）への回帰 $H_{\mathrm{Self}} \rightarrow (V_R, A_R)$ から Primary 情動方向 $d_V^R, d_A^R$ を推定する。モデル自己報告自身から同定する方向は Secondary analysis として保持し、方向アライメント $\cos(d^R, d^S)$ を記録する。
 2. 中立平均 $\mu_{\mathrm{neu}}$ と necessity baseline は、同一 `pair_id` の matched-neutral 文を通した自己報告から取る。固定 $5.0$ も人工中立文も使わない。
 3. QR で 2D 情動部分空間 $Q$ を作る。
 4. test で次を測る。
@@ -95,7 +102,7 @@ Primary は **4-Map × 2軸（V, A）** を同じ格子で出す。旧称のま�
 
 | Map | 記号 | 定義 |
 |---|---|---|
-| Decodability | $D_V, D_A$ | held-out Ridge $R^2$ |
+| Decodability | $D_V, D_A$ | held-out Ridge $R^2$（Primary は Reader Prediction、Secondary は Self-report） |
 | Partial association | $\beta_V, \beta_A$ | 刺激共変量を統制した internal score → report の偏回帰 |
 | Interventional slope | $\gamma_V, \gamma_A$ | $\alpha$ sweep による因果応答の傾き |
 | Causal displacement | $C_V, C_A$ | 介入による自己報告分布の変位 |
@@ -119,7 +126,7 @@ $\beta$ は符号付き偏回帰係数を Primary に残し、`abs_beta_*` を�
 
 記述上の見込み（仮説であり結果ではない）: 刺激提示時の $D$ は中間層、生成時の $C$ は後期の pre-value トークンに寄る。これを時空間ピーク解離と呼ぶ。
 
-RQ2 は Discovery であり、出力に `analysis_role: discovery` を付ける。マップ用サンプル数 `n_map_samples` と実介入サンプル数 `n_intervene_samples`（既定は $\min(5,N)$）は別記録する。
+RQ2 は全マップの探索的導出（Discovery）であり、出力に `analysis_role: discovery` を付ける。マップ用サンプル数 `n_map_samples` と実因果介入サンプル数 `n_intervene_samples` / `n_causal_intervention_samples`（設定 `spatiotemporal.n_causal_samples: 15` に連動、既定は $\min(15,N)$）は別記録する。なお、RQ2 の時空間マップ全体は Discovery であり、最終的な因果推論は独立した Confirmation 評価で行う。
 
 本番は全層探索。`--subsample` は確認用。
 
@@ -175,13 +182,39 @@ Target（Qwen）で立てた 4 仮説を、Llama 3.2 / Gemma 3 / OLMo 2 の Inst
 
 | 項目 | 値 |
 |---|---|
-| データ | `v1/data/processed/aipsy_4split_all.csv` の clinical–neutral 192 pair（wide 化して `neutral_text` を付ける）。EmoBank 3-way は pair が無いため使わない。 |
+| データ | `v1/data/processed/aipsy_4split_all.csv`。ローダー `load_v3_matched_pair_table` が clinical–neutral 192 pair を wide 化し、`neutral_text` を付ける |
+| 除外 | EmoBank 3-way（`pair_id` なし）。AIPsy の `moderate` / `complex_neutral`（対が揃わない行） |
+| 禁止 | 人工中立文 `"This is a neutral and ordinary statement."`、固定 $5.0$ fallback |
 | 候補空間 | 81 VA。729 VAD の期待値と直接比較しない |
 | 実験設定 | `configs/v3_experiments.yaml` |
-| モデル | `configs/models.yaml` |
+| モデル | `configs/models.yaml`。target 既定 `qwen` Instruct |
+| 層（RQ1） | `--layer` が無ければ $d=0.5$ から $l=\operatorname{round}(d(L-1))$ |
 | $\alpha$ grid（RQ1） | $-1.0,-0.5,0.0,0.5,1.0$ |
-| $\alpha$ sweep（RQ2） | $-2.0$ から $2.0$ |
+| $\alpha$ sweep（RQ2） | $-2.0,-1.0,-0.5,0.0,0.5,1.0,2.0$ |
+| 因果介入件数（RQ2） | `spatiotemporal.n_causal_samples: 15`（マップ件数 `N` とは別） |
+| ゲート | specificity 差 $0.05$、necessity $0.05$、Topic TVD $0.15$、bootstrap $n=1000$ |
 | Confirmatory families | `llama`, `gemma`, `olmo` |
+
+### 7.1 方向推定（RQ1）
+
+隠れ状態は Self プロンプトの prompt-end から取る。回帰ターゲットは次の優先順である。
+
+1. **Primary**: 人間 `reader_V`, `reader_A` があればそれを使う。AIPsy 既定には無いので、同じ刺激に対するモデルの Reader Prediction（`TaskType.READER` の 81 VA 期待値）を使う
+2. **Secondary**: モデル Self-report から同定した $d_V^S, d_A^S$。$\cos(d^R, d^S)$ を記録するだけであり、ゲートの主方向には使わない
+
+介入は Primary 方向で行う。$d_V$ と $d_A$ は別 sweep する。
+
+### 7.2 生成段階の位置（RQ2）
+
+1. `prepare_joint_sequence_with_boundary` で prompt + candidate を joint tokenize する
+2. candidate 内オフセットは `get_generation_stage_tokens`（`pre_V`, `V_value` など）
+3. 絶対位置は `resolve_joint_stage_index = cand_start + offset`
+4. `prompt_end` への `min` はしない。範囲外はエラー
+5. 尤度計算は `generation_patch` で同じ絶対位置に hook する
+
+### 7.3 ゲートファイル
+
+`v3/results/derived/v3_gate_decision.json` の `decision` が完全一致の `GO` のときだけ `run.py` が RQ2 以降を呼ぶ。`NO_GO` / `GO (Valence-only)` / `GO (Arousal-only)` は終了コード 2。`--force-after-no-go` のみ継続。
 
 ---
 

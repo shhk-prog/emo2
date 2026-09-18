@@ -104,7 +104,9 @@ AIPsy の Clinical と Neutral のペア差分。Cohen's $d_z$、対応 $t$ 検�
 
 ### 3.4 Reader–Self Coupling（認識–自己報告連動）
 
-刺激ごとの $\mathrm{Corr}(R, S)$。高い相関は「刺激間での共変動」であり、「認識が自己報告へ因果伝播した」証拠ではない。因果は V1 Phase C 以降で別測定する。
+刺激ごとの $\mathrm{Corr}(R, S)$、および AIPsy では Clinical−Neutral の $\Delta R$ と $\Delta S$ の相関。高い相関は「刺激間での共変動」であり、「認識が自己報告へ因果伝播した」証拠ではない。因果は V1 Phase C 以降で別測定する。
+
+集計は `behavioral/analysis/summarize_behavioral_aipsy.py` が Sensitivity（対応 $t$、Cohen's $d_z$、Bootstrap CI、BH-FDR）、dose-response、specificity、coupling を出す。EmoBank 側は `summarize_behavioral_emobank.py` が課題×次元の $r$, $\rho$, MAE を出す。
 
 ---
 
@@ -114,8 +116,22 @@ AIPsy の Clinical と Neutral のペア差分。Cohen's $d_z$、対応 $t$ 検�
 
 | データ | 既定パス | 役割 |
 |---|---|---|
-| EmoBank 3-Way VAD | `v1/data/processed/stimuli_vad_3way.csv` | Writer / Reader 人間評定付きテキスト。3課題 correspondence |
-| AIPsy-Affect 4-Split | `v1/data/processed/aipsy_4split_all.csv` | `neutral` / `moderate` / `clinical` / `complex_neutral`。Sensitivity, dose-response, specificity, coupling |
+| EmoBank 3-Way VAD | `v1/data/processed/stimuli_vad_3way.csv` | Writer / Reader 人間評定付きテキスト。3課題 correspondence。本番 Behavioral の既定 |
+| EmoBank test1k | `v1/data/processed/stimuli_vad_3way_test1k.csv` | V1 Phase A / V2 の既定。Behavioral 本番では使わない |
+| AIPsy-Affect 4-Split | `v1/data/processed/aipsy_4split_all.csv` | `neutral` / `moderate` / `clinical` / `complex_neutral` |
+
+### 4.1 AIPsy 4-split の意味
+
+| `split` | 役割 | `pair_id` |
+|---|---|---|
+| `clinical` | 情動ピーク文 | 対応する neutral と同じ pair |
+| `neutral` | 内容を揃えた中立文 | clinical と対 |
+| `moderate` | 中程度の情動文 | 多くの行で欠ける。dose-response 用 |
+| `complex_neutral` | 難解だが感情を含まない統制 | 多くの行で欠ける。specificity 用 |
+
+感情カテゴリの例: grief, terror, rage, loathing, ecstasy, admiration, amazement, vigilance。列は `id`, `emotion`, `intensity`, `domain`, `text`, `split`, `pair_id` など。人間 VA 列は無い。
+
+V3 は同じ CSV から **clinical–neutral で `pair_id` が揃う対だけ** を wide 化する（192 pair）。moderate / complex_neutral は V3 Primary に入れない。Behavioral の 4-split 集計と V3 の matched-neutral 指標は別物である。
 
 原データ `data/raw/` は読み取り専用。加工は `data/processed/` または `v1/data/processed/` へ新規出力する。
 
@@ -215,12 +231,14 @@ python behavioral/analysis/summarize_behavioral_aipsy.py \
 
 | 出力 | 内容 |
 |---|---|
-| `{tag}_3way_vad.csv` | 刺激ごと $E[V], E[A], E[D]$、greedy argmax、人間参照 |
+| `{tag}_3way_vad.csv` | 刺激ごと、課題 $W/R/S$ の $E[V],E[A],E[D]$、greedy argmax、人間参照 |
 | `{tag}_3way_vad_summary.json` | 課題×次元の相関、$(5,5,5)$ 率、manifest |
-| `{tag}_aipsy_4split.csv` | split 付き刺激ごとの期待値 |
+| `{tag}_aipsy_4split.csv` | `split` 付き。列例: `{w,r,s}_e{v,a,d}` |
 | `behavioral_*_summary.csv` | 4 軸のモデル横断表 |
 
-生応答は CSV に埋め込みすぎず、manifest（`run_id`、model_id、commit、設定）を残す。失敗・パース不能は削除せず理由コードとともに保存する。
+`{tag}` は `qwen_instruct` のように family と variant を表す。生応答は CSV に埋め込みすぎず、manifest（`run_id`、model_id、commit、設定）を残す。失敗・パース不能は削除せず理由コードとともに保存する。
+
+本番 bash は `.venv` を有効化し、`results/logs/production_behavioral_TIMESTAMP.log` に tee する。統合 CLI の `--device` 既定は `cpu`。`--model` と `--tag` は単独実行で必須。`--limit` は確認用。
 
 ---
 

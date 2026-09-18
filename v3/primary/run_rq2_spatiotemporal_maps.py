@@ -33,6 +33,7 @@ from affective_empathy_eval.likelihood import (
     compute_expected_va,
     compute_sequence_likelihoods_for_candidates,
 )
+from affective_empathy_eval.manifests import create_run_manifest
 from affective_empathy_eval.data import describe_loaded_frame
 from affective_empathy_eval.models.registry import (
     add_model_selection_args,
@@ -443,9 +444,32 @@ def main():
             )
 
         results["dry_run"] = bool(args.dry_run)
+        results["n_dataset_total"] = int(len(df))
+        results["n_intervention_samples"] = int(args.subsample if args.subsample and args.subsample > 0 else len(df))
+
         with open(out_raw, "w", encoding="utf-8") as f:
             json.dump(results, f, indent=2)
         logger.info(f"Saved discovery spatiotemporal 4-maps to {out_raw}")
+
+    # Save manifest with explicit intervention sample count
+    manifest = create_run_manifest(
+        run_type="v3_rq2_discovery_spatiotemporal_maps",
+        model_name=target_model_id,
+        config={
+            "family": fam_key,
+            "semantic_stages": normalized_stages,
+            "alpha_sweep": alpha_sweep,
+            "subsample": args.subsample,
+            "dry_run": bool(args.dry_run),
+        },
+        metadata={
+            "n_dataset_total": int(len(df)),
+            "n_intervention_samples": int(results.get("n_intervention_samples", len(df))),
+            "dissociation_summary": results["dissociation_summary"],
+        },
+    )
+    manifest.save(raw_dir / f"manifest_rq2_{fam_key}.json")
+    logger.info(f"Saved RQ2 manifest to {raw_dir / f'manifest_rq2_{fam_key}.json'}")
 
     out_summary = derived_dir / "v3_spatiotemporal_summary.json"
     with open(out_summary, "w", encoding="utf-8") as f:

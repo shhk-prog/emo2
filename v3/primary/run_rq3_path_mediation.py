@@ -35,6 +35,7 @@ from affective_empathy_eval.likelihood import (
     compute_expected_va,
     compute_sequence_likelihoods_for_candidates,
 )
+from affective_empathy_eval.manifests import create_run_manifest
 from affective_empathy_eval.models.adapters import get_model_adapter
 from affective_empathy_eval.data import describe_loaded_frame
 from affective_empathy_eval.models.registry import (
@@ -543,17 +544,42 @@ def main():
                 bootstrap_n=bootstrap_n,
             )
 
+        n_intervention = int(args.subsample if args.subsample and args.subsample > 0 else len(df))
         full_output = {
             "model_id": target_model_id,
             "family": fam_key,
             "num_layers": num_layers,
             "dry_run": bool(args.dry_run),
+            "n_dataset_total": int(len(df)),
+            "n_intervention_samples": n_intervention,
             "discovery": discovery_res,
             "confirmation": confirmation_res,
         }
         with open(out_raw, "w", encoding="utf-8") as f:
             json.dump(full_output, f, indent=2)
         logger.info(f"Saved path mediation raw results to {out_raw}")
+
+    # Save manifest with explicit intervention sample count
+    n_intervention_manifest = int(full_output.get("n_intervention_samples", len(df)))
+    manifest = create_run_manifest(
+        run_type="v3_rq3_path_mediation",
+        model_name=target_model_id,
+        config={
+            "family": fam_key,
+            "subsample": args.subsample,
+            "bootstrap_n": bootstrap_n,
+            "dry_run": bool(args.dry_run),
+        },
+        metadata={
+            "n_dataset_total": int(len(df)),
+            "n_intervention_samples": n_intervention_manifest,
+            "mediator_layer": confirmation_res["mediator_layer"],
+            "valence_attenuation_ratio": confirmation_res["valence"]["attenuation_ratio"]["mean"],
+            "arousal_attenuation_ratio": confirmation_res["arousal"]["attenuation_ratio"]["mean"],
+        },
+    )
+    manifest.save(raw_dir / f"manifest_rq3_{fam_key}.json")
+    logger.info(f"Saved RQ3 manifest to {raw_dir / f'manifest_rq3_{fam_key}.json'}")
 
     out_summary = derived_dir / "v3_path_mediation_summary.json"
     summary_output = {

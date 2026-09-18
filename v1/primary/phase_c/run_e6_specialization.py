@@ -177,13 +177,18 @@ def select_sites_from_e3(
     mag_r_col = (
         "discovery_mag_reader"
         if "discovery_mag_reader" in df.columns
-        else "magnitude_reader"
+        else ("magnitude_reader" if "magnitude_reader" in df.columns else None)
     )
     mag_s_col = (
         "discovery_mag_self"
         if "discovery_mag_self" in df.columns
-        else "magnitude_self"
+        else ("magnitude_self" if "magnitude_self" in df.columns else None)
     )
+
+    if mag_r_col is None or mag_s_col is None or "layer" not in df.columns:
+        reader_l = int(round(0.5 * (num_layers - 1)))
+        self_l = int(round(0.6 * (num_layers - 1)))
+        return reader_l, self_l, "fallback_heuristic"
 
     reader_peak_l = int(df.loc[df[mag_r_col].idxmax(), "layer"])
     

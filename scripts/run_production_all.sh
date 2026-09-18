@@ -5,6 +5,13 @@
 # Master Production Evaluation Runner across All Stages (Behavioral, V1, V2, V3)
 # for 4 Primary Small Families (Qwen 1.5B, Llama 3.2 1B, Gemma 3 1B, OLMo 2 1B)
 #
+# Prefer the stage scripts for a formal run (easier resume / failure isolation):
+#   bash scripts/run_production_behavioral.sh
+#   bash scripts/run_production_v1.sh
+#   bash scripts/run_production_v2.sh
+#   bash scripts/run_production_v3.sh
+# Recommended order: Behavioral -> V1 first; then V2 -> V3.
+#
 # Usage:
 #   bash scripts/run_production_all.sh [DEVICE] [--dry-run]
 # Example:

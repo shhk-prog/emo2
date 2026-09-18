@@ -74,19 +74,25 @@ $$
 
 ### 3.4 RQ4: Distribution Recovery Patching
 
-中立文脈に感情活性化を入れたとき、情動刺激提示時の自己報告分布に近づくか。
+Instruct の自己報告（または認識）結合分布を、同一ファミリーの Base 分布へ戻せるかを測る。中立文脈へ感情活性化を入れる操作ではない。
 
-$9\times 9$ の結合分布間 Wasserstein $W_1$（EMD）を使う。
+Base の層活性化を Instruct の prompt-end に注入し、$9\times 9$ VA 結合分布の EMD（`emd_va`）で距離を測る。
 
 $$
 \mathrm{Recovery} = \frac{W_1(P_{\mathrm{clean}}, P_{\mathrm{target}}) - W_1(P_{\mathrm{patch}}, P_{\mathrm{target}})}{W_1(P_{\mathrm{clean}}, P_{\mathrm{target}})}
 $$
 
-- `clean`: 中立 + 介入なし
-- `target`: 情動刺激の自然な自己報告分布
-- `patch`: 中立 + 介入
+実装（`v2/primary/run_rq4_recovery_patching.py` / `compute_emd_recovery_ratio`）:
 
-周辺 1D の一致だけでは「分布が復元した」と書かない。2D joint OT を主指標にする。
+| 記号 | 実装上の分布 | 距離 |
+|---|---|---|
+| $P_{\mathrm{target}}$ | Base の Sequence-Likelihood 結合分布 | — |
+| $P_{\mathrm{clean}}$ | Instruct 未介入 | $W_1(P_{\mathrm{clean}}, P_{\mathrm{target}})=\mathrm{EMD}_{VA}(\mathrm{Instruct},\mathrm{Base})$ |
+| $P_{\mathrm{patch}}$ | Instruct に Base 活性化を注入した後 | $W_1(P_{\mathrm{patch}}, P_{\mathrm{target}})=\mathrm{EMD}_{VA}(\mathrm{patched},\mathrm{Base})$ |
+
+- $W_1$ は `compute_distribution_metrics(...)["emd_va"]`（81 点上の結合 EMD）。周辺 1D の一致だけでは「分布が復元した」と書かない。
+- 分母にはゼロ除算回避の $10^{-12}$ を加える。符号は target に近づくと正、遠ざかると負。
+- `matched_plain` は Instruct を plain にした同一式で、chat template だけの見かけの差かを見る。
 
 ---
 

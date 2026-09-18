@@ -35,8 +35,8 @@ Phase A  存在と形式
   E2 Shared Geometry
         │
         ▼
-Phase B  意味的妥当性
-  Semantic vs Lexical Controls
+Phase B  Semantic / contextual validity controls
+  rule-based controlled perturbation
         │
         ▼
 Phase C  因果
@@ -109,20 +109,29 @@ Secondary はモデル自身の $E[V], E[A]$ への回帰であり、主結論�
 
 ---
 
-## 5. Phase B: 意味的妥当性
+## 5. Phase B: Semantic / contextual validity controls
 
 正本: `v1/primary/run_phase_b.py`  
-データ: `v1/data/processed/v1_e5_semantic_controls.csv`（実件数はログ）
+データ: `v1/data/processed/v1_e5_semantic_controls.csv`（実件数はログ）  
+生成: `v1/primary/prepare_v1_phase_b_controls.py`
 
-**問い**: Phase A で読めた表現は、語彙ショートカットではなく文脈意味に追従するか。
+**問い**: Phase A で読めた表現は、語彙ショートカットではなく文脈・構成に追従するか。
 
-統制:
+統制は **rule-based controlled perturbation** である。LLM による言い換えや大規模な意味空間摂動（semantic perturbation）ではない。論文では後者の語を使わない。
 
 1. Lexical confound audit（Jaccard, Levenshtein, 語長、感情語重複）
 2. Lexically matched minimal pairs
-3. Outcome reversal（語彙・状況を保ち極性だけ反転）
-4. Paraphrase invariance（意味を保ち語彙を変える）
+3. Outcome reversal（規則置換で極性を反転。置換が当たらない場合は固定文を追記する fallback）
+4. Paraphrase invariance（事前に固定した表層置換。当たらなければ文頭に定型句を付ける）
 5. Word shuffle（語彙を保ち語順を壊す。精度低下を確認）
+
+Outcome Reversal の fallback
+
+```text
+Fortunately, everything was completely resolved without any harm.
+```
+
+は語彙追加量が大きい。これを Outcome Reversal の強い証拠として過大解釈しない。該当ペアは補助記録に留める。
 
 ### 層選択（論文に明記すること）
 

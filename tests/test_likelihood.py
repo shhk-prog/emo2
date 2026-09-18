@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import pytest
 
 from affective_empathy_eval.likelihood import (
@@ -260,6 +261,63 @@ def test_offset_based_generation_stage_tokens():
     assert cand_tokens[stages["A_value"]] == ord('3')
     assert stages["pre_V"] < stages["V_value"]
     assert stages["pre_A"] < stages["A_value"]
+
+
+def _one_hot_va(valence: int, arousal: int) -> np.ndarray:
+    p = np.zeros(81, dtype=np.float64)
+    p[(valence - 1) * 9 + (arousal - 1)] = 1.0
+    return p
+
+
+def test_emd_recovery_ratio_matches_readme_formula():
+    from affective_empathy_eval.likelihood import (
+        RECOVERY_RATIO_EPS,
+        compute_emd_recovery_ratio,
+        compute_distribution_metrics,
+    )
+
+    p_target = _one_hot_va(5, 5)
+    p_clean = _one_hot_va(1, 1)
+    p_patch_mid = _one_hot_va(3, 3)
+    p_patch_full = _one_hot_va(5, 5)
+
+    d_clean = compute_distribution_metrics(p_clean, p_target)["emd_va"]
+    d_mid = compute_distribution_metrics(p_patch_mid, p_target)["emd_va"]
+    d_full = compute_distribution_metrics(p_patch_full, p_target)["emd_va"]
+
+    ratio_mid = compute_emd_recovery_ratio(d_clean, d_mid)
+    expected_mid = (d_clean - d_mid) / (d_clean + RECOVERY_RATIO_EPS)
+    assert pytest.approx(ratio_mid, abs=1e-12) == expected_mid
+    assert 0.0 < ratio_mid < 1.0
+
+    ratio_none = compute_emd_recovery_ratio(d_clean, d_clean)
+    assert pytest.approx(ratio_none, abs=1e-12) == 0.0
+
+    ratio_full = compute_emd_recovery_ratio(d_clean, d_full)
+    assert pytest.approx(ratio_full, abs=1e-9) == d_clean / (d_clean + RECOVERY_RATIO_EPS)
+    assert ratio_full > 0.999
+
+    # より遠い patch は負の recovery（clean を target 近傍にする）
+    p_clean_near = _one_hot_va(4, 5)
+    d_clean_near = compute_distribution_metrics(p_clean_near, p_target)["emd_va"]
+    p_farther = _one_hot_va(1, 1)
+    d_far = compute_distribution_metrics(p_farther, p_target)["emd_va"]
+    assert d_far > d_clean_near
+    assert compute_emd_recovery_ratio(d_clean_near, d_far) < 0.0
+
+
+def test_dry_run_va_label_vector_is_deterministic_fixture():
+    from affective_empathy_eval.data import dry_run_va_label_vector
+
+    df_missing = pd.DataFrame({"text": ["a", "b", "c", "d"]})
+    v1 = dry_run_va_label_vector(df_missing, "reader_V", 4)
+    v2 = dry_run_va_label_vector(df_missing, "reader_V", 4)
+    assert np.allclose(v1, np.linspace(1.0, 9.0, 4))
+    assert np.allclose(v1, v2)
+
+    df_present = pd.DataFrame({"reader_V": [2.0, 4.0, 6.0]})
+    got = dry_run_va_label_vector(df_present, "reader_V", 3)
+    assert np.allclose(got, [2.0, 4.0, 6.0])
 
 
 

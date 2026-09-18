@@ -41,7 +41,11 @@ from sklearn.model_selection import (
 from sklearn.preprocessing import StandardScaler
 import torch
 from tqdm import tqdm
-from transformers import AutoModelForCausalLM, AutoTokenizer
+try:
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+except ImportError:  # --dry-run は transformers 未導入環境でも起動できるようにする
+    AutoModelForCausalLM = None  # type: ignore[misc, assignment]
+    AutoTokenizer = None  # type: ignore[misc, assignment]
 
 from affective_empathy_eval.manifests import create_run_manifest
 from affective_empathy_eval.models.registry import (

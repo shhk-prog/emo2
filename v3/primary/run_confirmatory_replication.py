@@ -17,7 +17,11 @@ import numpy as np
 import pandas as pd
 import torch
 import yaml
-from transformers import AutoModelForCausalLM, AutoTokenizer
+try:
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+except ImportError:  # --dry-run は transformers 未導入環境でも起動できるようにする
+    AutoModelForCausalLM = None  # type: ignore[misc, assignment]
+    AutoTokenizer = None  # type: ignore[misc, assignment]
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import GroupKFold, KFold
 
@@ -112,6 +116,7 @@ def simulate_model_confirmatory(
     return {
         "family": family,
         "is_simulation": True,
+        "dry_run": True,
         "num_layers": num_layers,
         "h1_dissociation": {
             "d_peak_D": dissoc_v["d_peak_D"],
@@ -550,6 +555,7 @@ def main():
 
         family_results[fam] = res
 
+        res["dry_run"] = bool(args.dry_run)
         out_raw = raw_dir / f"v3_confirmatory_{fam.lower()}.json"
         with open(out_raw, "w", encoding="utf-8") as f:
             json.dump(res, f, indent=2)

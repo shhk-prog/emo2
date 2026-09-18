@@ -85,7 +85,18 @@ Self は正規化 VA shift、Topic は分類確率の TVD である。どちら�
 
 正本: `v3/primary/run_rq2_spatiotemporal_maps.py`
 
-**問い**: デコード可能性 $D$ と因果力 $C$ は、層 × 意味段階の格子上でどこにピークを持つか。
+**問い**: デコード可能性と因果応答は、層 × 意味段階の格子上でどこにピークを持つか。
+
+Primary は **4-Map × 2軸（V, A）** を同じ格子で出す。旧称のまま 4-Map を使う。本文のピーク解離は主に $D$ と $C$ を読む。
+
+| Map | 記号 | 定義 |
+|---|---|---|
+| Decodability | $D_V, D_A$ | held-out Ridge $R^2$ |
+| Partial association | $\beta_V, \beta_A$ | 刺激共変量を統制した internal score → report の偏回帰 |
+| Interventional slope | $\gamma_V, \gamma_A$ | $\alpha$ sweep による因果応答の傾き |
+| Causal displacement | $C_V, C_A$ | 介入による自己報告分布の変位 |
+
+出力キーは `D_V`, `D_A`, `beta_V`, `beta_A`, `gamma_V`, `gamma_A`, `C_V`, `C_A`。$D$ と $C$ だけを走らせる縮小版ではない。
 
 意味段階（JSON 自己報告）:
 
@@ -96,7 +107,7 @@ Self は正規化 VA shift、Topic は分類確率の TVD である。どちら�
 5. `A_value`
 6. `response_end`
 
-$C(l,t)$ は実介入の $\alpha$ sweep から測る。プローブ係数で代用しない。
+$C(l,t)$ と $\gamma(l,t)$ は実介入の $\alpha$ sweep から測る。プローブ係数で代用しない。
 
 記述上の見込み（仮説であり結果ではない）: 刺激提示時の $D$ は中間層、生成時の $C$ は後期の pre-value トークンに寄る。これを時空間ピーク解離と呼ぶ。
 

@@ -4,6 +4,25 @@ import pandas as pd
 import numpy as np
 
 
+DRY_RUN_VA_LABEL_LOW = 1.0
+DRY_RUN_VA_LABEL_HIGH = 9.0
+
+
+def dry_run_va_label_vector(
+    df: pd.DataFrame,
+    column: str,
+    n: int,
+    low: float = DRY_RUN_VA_LABEL_LOW,
+    high: float = DRY_RUN_VA_LABEL_HIGH,
+) -> np.ndarray:
+    """dry-run 専用の決定論的 VA ラベル。列があればそれを使い、無ければ 1..9 の等間隔 fixture。"""
+    if column in df.columns:
+        return np.asarray(df[column].to_numpy(), dtype=np.float64)
+    if n <= 1:
+        return np.full(max(n, 0), 0.5 * (low + high), dtype=np.float64)
+    return np.linspace(low, high, n, dtype=np.float64)
+
+
 def describe_loaded_frame(df: pd.DataFrame, name: str, path: Optional[str] = None) -> str:
     """実ロード件数をログ用に整形する。固定件数文字列の代替。"""
     parts = [f"{name}: n_rows={len(df)}"]

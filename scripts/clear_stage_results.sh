@@ -3,7 +3,8 @@
 # clear_stage_results.sh
 #
 # Clear generated results under stage directories before a formal re-run.
-# Keeps .gitkeep. Does not touch data/raw, configs, or results/logs.
+# Keeps .gitkeep files and recreates raw/derived placeholders.
+# Does not touch data/, configs/, or source.
 #
 # Usage:
 #   bash scripts/clear_stage_results.sh
@@ -29,12 +30,17 @@ for dir in "${TARGETS[@]}"; do
         continue
     fi
     echo "--- ${dir} ---"
-    find "${dir}" -mindepth 1 ! -name '.gitkeep' -print
-    # トップレベル項目だけ削除すれば配下も消える（find -delete のディレクトリ競合を避ける）
-    for item in "${dir}"/* "${dir}"/.[!.]*; do
-        [ -e "${item}" ] || continue
-        [ "$(basename "${item}")" = ".gitkeep" ] && continue
-        rm -rf "${item}"
-    done
+    # Delete generated files; keep any .gitkeep in the tree.
+    find "${dir}" -type f ! -name '.gitkeep' -print -delete
+    # Drop empty nested directories left after file deletion.
+    find "${dir}" -depth -type d -empty -delete
+    mkdir -p "${dir}/raw" "${dir}/derived"
+    touch "${dir}/.gitkeep" "${dir}/raw/.gitkeep" "${dir}/derived/.gitkeep"
 done
-echo "Done. Stage result directories now contain only .gitkeep."
+
+if [ -d "results/logs" ]; then
+    echo "--- results/logs ---"
+    find results/logs -type f -name '*.log' -print -delete || true
+fi
+
+echo "Done. Stage result directories now contain only .gitkeep placeholders."

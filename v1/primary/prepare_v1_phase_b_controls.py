@@ -2,13 +2,14 @@
 """
 v1/primary/prepare_v1_phase_b_controls.py
 
-Deterministic Preprocessing for V1 Phase B Semantic vs. Lexical Controls.
+Deterministic Preprocessing for V1 Phase B Semantic / contextual validity controls.
 Extracts matched clinical (affective) and neutral pairs from AIPsy-Affect (aipsy_4split_all.csv)
-and applies deterministic semantic transformations:
+and applies deterministic rule-based controlled perturbations (not LLM paraphrases):
   - Original Minimal Pair (Affective vs. Matched Neutral)
-  - Paraphrase Invariance (Surface altered, situational meaning preserved)
+  - Paraphrase Invariance (fixed surface substitutions; fallback prefix if none match)
   - Word Shuffle (Syntax destroyed, 100% lexical tokens preserved)
-  - Outcome Reversal (Context preserved, affective resolution inverted)
+  - Outcome Reversal (rule-based polarity inversion; fallback sentence adds substantial vocabulary
+    and must not be over-interpreted as strong reversal evidence)
 
 Output:
   v1/data/processed/v1_e5_semantic_controls.csv

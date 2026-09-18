@@ -19,7 +19,11 @@ import numpy as np
 import pandas as pd
 import torch
 import yaml
-from transformers import AutoModelForCausalLM, AutoTokenizer
+try:
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+except ImportError:  # --dry-run は transformers 未導入環境でも起動できるようにする
+    AutoModelForCausalLM = None  # type: ignore[misc, assignment]
+    AutoTokenizer = None  # type: ignore[misc, assignment]
 from sklearn.linear_model import Ridge
 
 from affective_empathy_eval.interventions import (
@@ -86,6 +90,7 @@ def simulate_path_mediation_discovery(
         "mediator_depth": relative_depths[gen_peak_layer],
         "d_stim_profile": [float(x) for x in d_stim],
         "c_gen_profile": [float(x) for x in c_gen],
+        "dry_run": True,
     }
 
 
@@ -136,6 +141,7 @@ def simulate_path_mediation_confirmation(
             "mediated_attenuation": {"mean": atten_a_mean, "ci_lower": atten_a_low, "ci_upper": atten_a_high},
             "attenuation_ratio": {"mean": ratio_a_mean, "ci_lower": ratio_a_low, "ci_upper": ratio_a_high},
         },
+        "dry_run": True,
     }
 
 
@@ -541,6 +547,7 @@ def main():
             "model_id": target_model_id,
             "family": fam_key,
             "num_layers": num_layers,
+            "dry_run": bool(args.dry_run),
             "discovery": discovery_res,
             "confirmation": confirmation_res,
         }

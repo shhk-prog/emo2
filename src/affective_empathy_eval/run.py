@@ -38,7 +38,7 @@ PRODUCTION_STAGE_ORDER = ("behavioral", "v1", "v2", "v3")
 PRODUCTION_DATASET_INVENTORY = (
     ("EmoBank 3-way", "v1/data/processed/stimuli_vad_3way_test1k.csv"),
     ("AIPsy 4-split", "v1/data/processed/aipsy_4split_all.csv"),
-    ("V1 Phase B semantic controls", "v1/data/processed/v1_e5_semantic_controls.csv"),
+    ("V1 Phase B rule-based controls", "v1/data/processed/v1_e5_semantic_controls.csv"),
 )
 
 

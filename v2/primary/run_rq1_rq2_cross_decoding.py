@@ -16,9 +16,13 @@ import numpy as np
 import pandas as pd
 import torch
 import yaml
-from transformers import AutoModelForCausalLM, AutoTokenizer
+try:
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+except ImportError:  # --dry-run は transformers 未導入環境でも起動できるようにする
+    AutoModelForCausalLM = None  # type: ignore[misc, assignment]
+    AutoTokenizer = None  # type: ignore[misc, assignment]
 
-from affective_empathy_eval.data import describe_loaded_frame
+from affective_empathy_eval.data import describe_loaded_frame, dry_run_va_label_vector
 from affective_empathy_eval.geometry import (
     compute_center_of_mass,
     compute_peak_depth,
@@ -108,7 +112,7 @@ def extract_activations_for_model(
     if is_dry_run:
         # モック活性化（Valence / Arousal と相関を持たせた合成表現）
         rng = np.random.default_rng(42)
-        v_vals = df["reader_V"].values if "reader_V" in df else np.random.uniform(1, 9, N)
+        v_vals = dry_run_va_label_vector(df, "reader_V", N)
         activations = {}
         for l in range(num_layers):
             rel_d = l / max(1, num_layers - 1)

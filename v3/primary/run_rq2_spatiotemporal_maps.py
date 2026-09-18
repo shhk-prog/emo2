@@ -19,7 +19,11 @@ import numpy as np
 import pandas as pd
 import torch
 import yaml
-from transformers import AutoModelForCausalLM, AutoTokenizer
+try:
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+except ImportError:  # --dry-run は transformers 未導入環境でも起動できるようにする
+    AutoModelForCausalLM = None  # type: ignore[misc, assignment]
+    AutoTokenizer = None  # type: ignore[misc, assignment]
 from sklearn.linear_model import Ridge, LinearRegression
 
 from affective_empathy_eval.geometry import compute_layer_dissociation
@@ -145,7 +149,8 @@ def simulate_spatiotemporal_maps(
         "dissociation_summary": {
             "valence": dissoc_v,
             "arousal": dissoc_a,
-        }
+        },
+        "dry_run": True,
     }
 
 
@@ -437,6 +442,7 @@ def main():
                 subsample=args.subsample,
             )
 
+        results["dry_run"] = bool(args.dry_run)
         with open(out_raw, "w", encoding="utf-8") as f:
             json.dump(results, f, indent=2)
         logger.info(f"Saved discovery spatiotemporal 4-maps to {out_raw}")

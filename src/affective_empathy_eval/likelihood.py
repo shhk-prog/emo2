@@ -245,6 +245,26 @@ def compute_distribution_metrics(
     }
 
 
+RECOVERY_RATIO_EPS = 1e-12
+
+
+def compute_emd_recovery_ratio(
+    d_clean_to_target: float,
+    d_patch_to_target: float,
+    eps: float = RECOVERY_RATIO_EPS,
+) -> float:
+    """V2 RQ4 Recovery 比。
+
+    Recovery = (W1(P_clean, P_target) - W1(P_patch, P_target)) / W1(P_clean, P_target)
+
+    正の値は、未介入分布よりパッチ後分布の方が target に近いことを意味する。
+    分母はゼロ除算回避のため eps を加える。
+    """
+    return (float(d_clean_to_target) - float(d_patch_to_target)) / (
+        float(d_clean_to_target) + float(eps)
+    )
+
+
 def prepare_joint_sequence_with_boundary(
     prompt: str,
     candidate: str,

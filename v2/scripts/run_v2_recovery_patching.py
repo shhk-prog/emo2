@@ -14,6 +14,7 @@ from affective_empathy_eval.geometry import compute_relative_depth
 from affective_empathy_eval.likelihood import (
     build_va_candidates,
     compute_distribution_metrics,
+    compute_emd_recovery_ratio,
     compute_sequence_likelihoods_for_candidates,
 )
 from affective_empathy_eval.models.adapters import get_model_adapter
@@ -218,7 +219,7 @@ def run_recovery_patching_for_task(
 
             # サンプル単位の EMD と回復率
             p_emd = compute_distribution_metrics(probs_patched, base_probs_list[i])["emd_va"]
-            ratio = (sample_initial_emds[i] - p_emd) / (sample_initial_emds[i] + 1e-12)
+            ratio = compute_emd_recovery_ratio(sample_initial_emds[i], p_emd)
             sample_patched_emds.append(p_emd)
             sample_ratios.append(ratio)
 
@@ -238,7 +239,7 @@ def run_recovery_patching_for_task(
                     model=model_inst, tokenizer=tok_inst, prompt=p_inst_plain, candidates=candidates, device=device
                 )
             p_emd_plain = compute_distribution_metrics(probs_patched_plain, base_probs_list[i])["emd_va"]
-            ratio_plain = (sample_initial_emds[i] - p_emd_plain) / (sample_initial_emds[i] + 1e-12)
+            ratio_plain = compute_emd_recovery_ratio(sample_initial_emds[i], p_emd_plain)
             sample_ratios_plain.append(ratio_plain)
 
         mean_emd = float(np.mean(sample_patched_emds))

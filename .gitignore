@@ -42,3 +42,9 @@ Thumbs.db
 **/results/mock_simulation_archive/
 scratch/
 archive/
+
+# Experimental raw/derived outputs (formal re-runs must not mix old artifacts)
+**/results/raw/**
+**/results/derived/**
+!**/results/raw/.gitkeep
+!**/results/derived/.gitkeep

@@ -203,7 +203,7 @@ $$
 
 不成立でも「完全に別系統」とは書かない。「直接の cross-task interchangeability は確認されない」と書く。off-manifold 化の余地を残す。
 
-### 6.3 E6 Double Dissociation
+### 6.3 E6 Task-Specific Causal Specialization
 
 **問い**: Reader-site と Self-site に課題特異的な因果があるか。
 

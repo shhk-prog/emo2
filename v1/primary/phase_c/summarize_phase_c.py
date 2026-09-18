@@ -6,7 +6,7 @@ Comprehensive cross-model summary report generator for V1 Phase C.
 Aggregates:
   - E3: Prompt-End Causal Map (Peak layers, relative depths, 2D directional cosine)
   - E4: Causal Interchangeability (Matched difference patching, specificity, Cohen's d_z)
-  - E6: Double Dissociation (Targeted ablation, LMM interaction test)
+  - E6: Task-Specific Causal Specialization (Targeted ablation, LMM interaction test)
 """
 
 import argparse
@@ -138,6 +138,7 @@ def main():
                 row["e4_mean_dz_V"] = float(df_a1["cohen_dz_V"].mean())
 
         if dict_e6 is not None:
+            row["e6_status"] = dict_e6.get("status", "completed")
             row["e6_p_interaction"] = dict_e6.get("p_interaction", np.nan)
             row["e6_has_crossover"] = dict_e6.get("has_crossover", False)
 

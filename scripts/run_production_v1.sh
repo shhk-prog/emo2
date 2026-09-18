@@ -8,7 +8,7 @@
 #   1. Phase A: Representation Probing & Geometry (full CSVs; counts logged at load)
 #   2. Phase B: Semantic vs Lexical Matched Controls (d = 0.5 a priori; counts logged)
 #   3. Phase C: Causal Mapping (E3) & Interchangeability (E4)
-#   4. Phase C E6: Double Dissociation & LMM
+#   4. Phase C E6: Task-Specific Causal Specialization & LMM
 #   5. Summarize Phase C Results
 # Wall-clock time: unmeasured until a Qwen-family benchmark is recorded.
 # ==============================================================================

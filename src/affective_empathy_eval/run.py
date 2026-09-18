@@ -190,7 +190,7 @@ def run_v1(args, python_bin: str):
             # 3. Phase C: Causal Interventions (E3/E4)
             run_command([python_bin, "v1/primary/run_phase_c.py"] + common_flags)
 
-            # 4. Phase C E6: Double Dissociation & LMM
+            # 4. Phase C E6: Task-Specific Causal Specialization & LMM
             run_command([python_bin, "v1/primary/phase_c/run_e6_specialization.py"] + common_flags)
 
     # 5. Summarize Phase C

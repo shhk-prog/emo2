@@ -444,6 +444,7 @@ def main():
             )
 
         results["dry_run"] = bool(args.dry_run)
+        results["analysis_role"] = "discovery"
         results["n_dataset_total"] = int(len(df))
         results["n_intervention_samples"] = int(args.subsample if args.subsample and args.subsample > 0 else len(df))
 
@@ -456,6 +457,7 @@ def main():
         run_type="v3_rq2_discovery_spatiotemporal_maps",
         model_name=target_model_id,
         config={
+            "analysis_role": "discovery",
             "family": fam_key,
             "semantic_stages": normalized_stages,
             "alpha_sweep": alpha_sweep,
@@ -463,6 +465,7 @@ def main():
             "dry_run": bool(args.dry_run),
         },
         metadata={
+            "analysis_role": "discovery",
             "n_dataset_total": int(len(df)),
             "n_intervention_samples": int(results.get("n_intervention_samples", len(df))),
             "dissociation_summary": results["dissociation_summary"],
@@ -472,8 +475,12 @@ def main():
     logger.info(f"Saved RQ2 manifest to {raw_dir / f'manifest_rq2_{fam_key}.json'}")
 
     out_summary = derived_dir / "v3_spatiotemporal_summary.json"
+    summary_payload = {
+        "analysis_role": "discovery",
+        **results["dissociation_summary"],
+    }
     with open(out_summary, "w", encoding="utf-8") as f:
-        json.dump(results["dissociation_summary"], f, indent=2)
+        json.dump(summary_payload, f, indent=2)
     logger.info(f"Saved dissociation summary to {out_summary}")
 
     logger.info(f"Valence Dissociation Delta Peak: {results['dissociation_summary']['valence']['delta_d_peak']:.3f}")

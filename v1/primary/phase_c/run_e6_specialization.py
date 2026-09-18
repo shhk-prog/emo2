@@ -164,14 +164,22 @@ def run_lmm_interaction_test(df_long: pd.DataFrame) -> Dict[str, Any]:
 
 def select_sites_from_e3(
     e3_csv_path: str, num_layers: int
-) -> Tuple[int, int, str]:
+) -> Tuple[Optional[int], Optional[int], str, Dict[str, Any]]:
     """
-    Select Reader-site and Self-site layers deterministically from E3 Discovery results.
+    Select Reader-selective and Self-selective sites deterministically from E3 Discovery results
+    based on task selectivity contrast:
+      S_R(l) = C_R(l) - C_S(l)
+      S_S(l) = C_S(l) - C_R(l)
+
+    If distinct task-selective sites are not identified (e.g., max selectivity <= 0,
+    or reader_layer == self_layer), returns (None, None, "no_distinct_sites_identified", info).
     """
     if not os.path.exists(e3_csv_path):
-        reader_l = int(round(0.5 * (num_layers - 1)))
-        self_l = int(round(0.6 * (num_layers - 1)))
-        return reader_l, self_l, "fallback_heuristic"
+        raise FileNotFoundError(
+            f"E3 Discovery results not found at '{e3_csv_path}'. "
+            "E6 requires valid E3 Discovery causal map CSV to select task-selective sites. "
+            "Heuristic fallback is strictly prohibited."
+        )
 
     df = pd.read_csv(e3_csv_path)
     mag_r_col = (
@@ -186,20 +194,36 @@ def select_sites_from_e3(
     )
 
     if mag_r_col is None or mag_s_col is None or "layer" not in df.columns:
-        reader_l = int(round(0.5 * (num_layers - 1)))
-        self_l = int(round(0.6 * (num_layers - 1)))
-        return reader_l, self_l, "fallback_heuristic"
+        raise ValueError(
+            f"E3 CSV at '{e3_csv_path}' is missing required magnitude columns "
+            f"('{mag_r_col}', '{mag_s_col}') or 'layer' column."
+        )
 
-    reader_peak_l = int(df.loc[df[mag_r_col].idxmax(), "layer"])
-    
-    # Self peak layer selection
-    sorted_s = df.sort_values(by=mag_s_col, ascending=False)
-    self_peak_l = int(sorted_s.iloc[0]["layer"])
-    # If both peaks happen to coincide, choose the runner-up for Self to allow 2x2 contrast
-    if self_peak_l == reader_peak_l and len(sorted_s) > 1:
-        self_peak_l = int(sorted_s.iloc[1]["layer"])
+    # Task selectivity contrast
+    selectivity_r = df[mag_r_col] - df[mag_s_col]
+    selectivity_s = df[mag_s_col] - df[mag_r_col]
 
-    return reader_peak_l, self_peak_l, "e3_discovery_peak"
+    reader_peak_idx = selectivity_r.idxmax()
+    self_peak_idx = selectivity_s.idxmax()
+
+    reader_peak_l = int(df.loc[reader_peak_idx, "layer"])
+    self_peak_l = int(df.loc[self_peak_idx, "layer"])
+
+    max_sel_r = float(selectivity_r.max())
+    max_sel_s = float(selectivity_s.max())
+
+    info = {
+        "max_selectivity_reader": max_sel_r,
+        "max_selectivity_self": max_sel_s,
+        "reader_selective_layer": reader_peak_l,
+        "self_selective_layer": self_peak_l,
+    }
+
+    # 科学的判定: 同一レイヤーまたは選択性が正でない場合は No-Go
+    if reader_peak_l == self_peak_l or max_sel_r <= 0.0 or max_sel_s <= 0.0:
+        return None, None, "no_distinct_sites_identified", info
+
+    return reader_peak_l, self_peak_l, "task_selectivity_contrast", info
 
 
 def main():
@@ -285,8 +309,52 @@ def main():
     # 動的レイヤー決定 (E3 Discovery 結果または指定)
     e3_csv_path = args.e3_csv or os.path.join(model_dir, "e3_causal_map.csv")
     site_selection_method = "manual"
+    selectivity_info: Dict[str, Any] = {}
+
     if args.reader_layer is None or args.self_layer is None:
-        r_l, s_l, site_selection_method = select_sites_from_e3(e3_csv_path, num_layers)
+        if args.dry_run and not os.path.exists(e3_csv_path):
+            # Standalone dry-run mock sites when E3 CSV does not exist yet
+            r_l, s_l = 0, min(14, num_layers - 1)
+            site_selection_method = "dry_run_mock"
+            selectivity_info = {"mock": True}
+        else:
+            r_l, s_l, site_selection_method, selectivity_info = select_sites_from_e3(
+                e3_csv_path, num_layers
+            )
+
+        if site_selection_method == "no_distinct_sites_identified":
+            print(
+                f"=== V1 Phase C E6: No distinct task-selective sites identified for {args.model_id} ==="
+            )
+            print(f"Selectivity Info: {selectivity_info}")
+            print("Scientific Decision: Negative Result (No-Go for targeted ablation). Skipping ablation.")
+            negative_result = {
+                "status": "negative_result_no_distinct_sites",
+                "distinct_sites_found": False,
+                "site_selection_method": "task_selectivity_contrast",
+                "reason": "Task selectivity contrast did not identify distinct sites for Reader and Self.",
+                "selectivity_info": selectivity_info,
+                "p_value_interaction": None,
+                "coef_interaction": None,
+                "has_crossover": False,
+            }
+            with open(os.path.join(model_dir, "e6_lmm_results.json"), "w") as f:
+                json.dump(negative_result, f, indent=2)
+            manifest = create_run_manifest(
+                run_type="v1_phase_c_e6_specialization",
+                model_name=args.model_id,
+                config={
+                    "model_prefix": args.model_prefix,
+                    "site_selection_method": site_selection_method,
+                    "split_eval": args.split_eval,
+                    "dry_run": args.dry_run,
+                },
+                metadata=negative_result,
+            )
+            manifest.save(os.path.join(model_dir, "manifest_e6.json"))
+            print(f"Recorded negative result to {model_dir}/e6_lmm_results.json and manifest_e6.json")
+            return
+
         if args.reader_layer is None:
             args.reader_layer = r_l
         if args.self_layer is None:
@@ -567,6 +635,7 @@ def main():
     }
     stat_results["has_crossover"] = bool(has_crossover)
     stat_results["site_selection_method"] = site_selection_method
+    stat_results["selectivity_info"] = selectivity_info
     stat_results["reader_layer"] = args.reader_layer
     stat_results["self_layer"] = args.self_layer
     stat_results["split_eval"] = args.split_eval

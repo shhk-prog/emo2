@@ -523,15 +523,22 @@ def main():
     results = None
 
     out_raw = raw_dir / f"v3_discovery_spatiotemporal_maps_{fam_key}.json"
+    manifest_path = raw_dir / f"manifest_rq2_{fam_key}.json"
     if out_raw.exists() and not args.dry_run:
         try:
             with open(out_raw, "r", encoding="utf-8") as f:
                 cached = json.load(f)
             if cached and "maps" in cached:
-                logger.info(f"Loaded existing discovery 4-maps from {out_raw}. Skipping computation.")
-                results = cached
-        except Exception:
-            pass
+                if not cached.get("dry_run", False) and is_manifest_matching(
+                    str(manifest_path),
+                    expected_model_name=target_model_id,
+                    expected_dry_run=False,
+                ):
+                    logger.info(f"Loaded existing discovery 4-maps from {out_raw}. Skipping computation.")
+                    results = cached
+        except Exception as e:
+            logger.warning(f"Cache check failed for {out_raw}: {e}")
+
 
     if results is None:
         if args.dry_run:
@@ -584,7 +591,9 @@ def main():
             "n_causal_intervention_samples": int(results.get("n_causal_intervention_samples", min(5, len(df)))),
             "dissociation_summary": results["dissociation_summary"],
         },
+        dry_run=bool(args.dry_run),
     )
+
     manifest.save(raw_dir / f"manifest_rq2_{fam_key}.json")
     logger.info(f"Saved RQ2 manifest to {raw_dir / f'manifest_rq2_{fam_key}.json'}")
 

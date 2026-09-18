@@ -118,33 +118,55 @@ def simulate_mock_intervention_responses(
     pt_sv, sv_low, sv_high = compute_bootstrap_ci(sample_slopes_v)
     pt_sa, sa_low, sa_high = compute_bootstrap_ci(sample_slopes_a)
 
-    # 2. Specificity: 情動方向 vs ランダム方向 vs 直交方向 (3条件実測)
-    sample_spec_diff = []
-    sample_spec_rand = []
-    sample_spec_perp = []
+    # 2. Specificity: 情動方向 vs ランダム方向 vs 直交方向 (VA両軸独立)
+    sample_spec_diff_v = []
+    sample_spec_rand_v = []
+    sample_spec_perp_v = []
+    sample_spec_diff_a = []
+    sample_spec_rand_a = []
+    sample_spec_perp_a = []
     for i in range(N):
-        eff_aff = float(0.85 + rng.normal(0, 0.04))
-        eff_rand = float(0.10 + rng.normal(0, 0.03))
-        eff_perp = float(0.12 + rng.normal(0, 0.03))
-        sample_spec_diff.append(eff_aff - max(eff_rand, eff_perp))
-        sample_spec_rand.append(eff_aff - eff_rand)
-        sample_spec_perp.append(eff_aff - eff_perp)
-    pt_spec, spec_low, spec_high = compute_bootstrap_ci(sample_spec_diff)
-    pt_spec_r, spec_r_low, spec_r_high = compute_bootstrap_ci(sample_spec_rand)
-    pt_spec_p, spec_p_low, spec_p_high = compute_bootstrap_ci(sample_spec_perp)
+        eff_aff_v = float(0.85 + rng.normal(0, 0.04))
+        eff_rand_v = float(0.10 + rng.normal(0, 0.03))
+        eff_perp_v = float(0.12 + rng.normal(0, 0.03))
+        sample_spec_diff_v.append(eff_aff_v - max(eff_rand_v, eff_perp_v))
+        sample_spec_rand_v.append(eff_aff_v - eff_rand_v)
+        sample_spec_perp_v.append(eff_aff_v - eff_perp_v)
 
-    # 3. Necessity: Centered projection removal による自然変位の減衰 (h' = h - Q Q^T (h - mu_neu))
-    natural_shift = float(np.std(v_clean))
-    sample_att = [float(np.clip(0.42 + rng.normal(0, 0.05), 0.0, 1.0)) for _ in range(N)]
-    pt_att, att_low, att_high = compute_bootstrap_ci(sample_att)
-    attenuated_shift = natural_shift * (1.0 - pt_att)
+        eff_aff_a = float(0.70 + rng.normal(0, 0.04))
+        eff_rand_a = float(0.09 + rng.normal(0, 0.03))
+        eff_perp_a = float(0.11 + rng.normal(0, 0.03))
+        sample_spec_diff_a.append(eff_aff_a - max(eff_rand_a, eff_perp_a))
+        sample_spec_rand_a.append(eff_aff_a - eff_rand_a)
+        sample_spec_perp_a.append(eff_aff_a - eff_perp_a)
 
-    # 4. Topic control: Topic 課題への非特異的摂動 (TVD) が小さいことを確認する統制。
-    # Self VA shift と Topic TVD はどちらも [0, 1] だが同一の構成概念ではない。
-    sample_topic_tvd = [float(np.clip(0.05 + rng.normal(0, 0.01), 0.0, 1.0)) for _ in range(N)]
-    pt_topic, topic_low, topic_high = compute_bootstrap_ci(sample_topic_tvd)
-    sample_sel_diff = [float(0.73 / 4.0 - t) for t in sample_topic_tvd]
-    pt_sel, sel_low, sel_high = compute_bootstrap_ci(sample_sel_diff)
+    pt_spec_v, spec_v_low, spec_v_high = compute_bootstrap_ci(sample_spec_diff_v)
+    pt_spec_rand_v, spec_rand_v_low, spec_rand_v_high = compute_bootstrap_ci(sample_spec_rand_v)
+    pt_spec_perp_v, spec_perp_v_low, spec_perp_v_high = compute_bootstrap_ci(sample_spec_perp_v)
+
+    pt_spec_a, spec_a_low, spec_a_high = compute_bootstrap_ci(sample_spec_diff_a)
+    pt_spec_rand_a, spec_rand_a_low, spec_rand_a_high = compute_bootstrap_ci(sample_spec_rand_a)
+    pt_spec_perp_a, spec_perp_a_low, spec_perp_a_high = compute_bootstrap_ci(sample_spec_perp_a)
+
+    # 3. Necessity: Centered projection removal による自然変位の減衰 (VA両軸独立)
+    natural_shift_v = float(np.std(v_clean))
+    natural_shift_a = float(np.std(a_clean))
+    sample_att_v = [float(0.42 + rng.normal(0, 0.05)) for _ in range(N)]
+    sample_att_a = [float(0.38 + rng.normal(0, 0.05)) for _ in range(N)]
+    pt_att_v, att_v_low, att_v_high = compute_bootstrap_ci(sample_att_v)
+    pt_att_a, att_a_low, att_a_high = compute_bootstrap_ci(sample_att_a)
+    attenuated_shift_v = natural_shift_v * (1.0 - pt_att_v)
+    attenuated_shift_a = natural_shift_a * (1.0 - pt_att_a)
+
+    # 4. Topic control: Topic 課題への非特異的摂動 (TVD) が小さいことを確認する統制 (VA両軸独立)
+    sample_topic_tvd_v = [float(np.clip(0.05 + rng.normal(0, 0.01), 0.0, 1.0)) for _ in range(N)]
+    sample_topic_tvd_a = [float(np.clip(0.04 + rng.normal(0, 0.01), 0.0, 1.0)) for _ in range(N)]
+    pt_topic_v, topic_v_low, topic_v_high = compute_bootstrap_ci(sample_topic_tvd_v)
+    pt_topic_a, topic_a_low, topic_a_high = compute_bootstrap_ci(sample_topic_tvd_a)
+    sample_sel_diff_v = [float(0.73 / 4.0 - t) for t in sample_topic_tvd_v]
+    sample_sel_diff_a = [float(0.65 / 4.0 - t) for t in sample_topic_tvd_a]
+    pt_sel_v, sel_v_low, sel_v_high = compute_bootstrap_ci(sample_sel_diff_v)
+    pt_sel_a, sel_a_low, sel_a_high = compute_bootstrap_ci(sample_sel_diff_a)
 
     return {
         "affect_direction_grounding": "reader_prediction (simulated)",
@@ -159,28 +181,46 @@ def simulate_mock_intervention_responses(
         "slope_a": slope_a,
         "slope_v_ci": {"point": pt_sv, "ci_lower": sv_low, "ci_upper": sv_high},
         "slope_a_ci": {"point": pt_sa, "ci_lower": sa_low, "ci_upper": sa_high},
-        "specificity_diff": float(pt_spec),
-        "specificity_diff_ci": {"point": pt_spec, "ci_lower": spec_low, "ci_upper": spec_high},
-        "specificity_vs_random_ci": {"point": pt_spec_r, "ci_lower": spec_r_low, "ci_upper": spec_r_high},
-        "specificity_vs_orthogonal_ci": {"point": pt_spec_p, "ci_lower": spec_p_low, "ci_upper": spec_p_high},
-        "natural_shift": float(natural_shift),
-        "attenuated_shift": float(attenuated_shift),
-        "attenuation_ratio": float(pt_att),
-        "attenuation_ratio_ci": {"point": pt_att, "ci_lower": att_low, "ci_upper": att_high},
+        # Specificity
+        "specificity_v": float(pt_spec_v),
+        "specificity_a": float(pt_spec_a),
+        "specificity_v_ci": {"point": pt_spec_v, "ci_lower": spec_v_low, "ci_upper": spec_v_high},
+        "specificity_a_ci": {"point": pt_spec_a, "ci_lower": spec_a_low, "ci_upper": spec_a_high},
+        "specificity_diff": float(pt_spec_v),  # 互換用
+        "specificity_diff_ci": {"point": pt_spec_v, "ci_lower": spec_v_low, "ci_upper": spec_v_high},
+        "specificity_vs_random_ci": {"point": pt_spec_rand_v, "ci_lower": spec_rand_v_low, "ci_upper": spec_rand_v_high},
+        "specificity_vs_orthogonal_ci": {"point": pt_spec_perp_v, "ci_lower": spec_perp_v_low, "ci_upper": spec_perp_v_high},
+        # Necessity
+        "natural_shift": float(natural_shift_v),
+        "attenuated_shift": float(attenuated_shift_v),
+        "natural_shift_v": float(natural_shift_v),
+        "natural_shift_a": float(natural_shift_a),
+        "attenuation_ratio_v": float(pt_att_v),
+        "attenuation_ratio_a": float(pt_att_a),
+        "attenuation_ratio_v_ci": {"point": pt_att_v, "ci_lower": att_v_low, "ci_upper": att_v_high},
+        "attenuation_ratio_a_ci": {"point": pt_att_a, "ci_lower": att_a_low, "ci_upper": att_a_high},
+        "attenuation_ratio": float(pt_att_v),  # 互換用
+        "attenuation_ratio_ci": {"point": pt_att_v, "ci_lower": att_v_low, "ci_upper": att_v_high},
+        # Topic control / Task selectivity
+        "topic_tvd_v": float(pt_topic_v),
+        "topic_tvd_a": float(pt_topic_a),
+        "topic_tvd_v_ci": {"point": pt_topic_v, "ci_lower": topic_v_low, "ci_upper": topic_v_high},
+        "topic_tvd_a_ci": {"point": pt_topic_a, "ci_lower": topic_a_low, "ci_upper": topic_a_high},
         "task_selectivity": {
             "effect_self": 0.85 / 4.0,
             "effect_reader": 0.72 / 4.0,
-            "effect_control": float(pt_topic),
-            "topic_tvd": float(pt_topic),
-            "topic_tvd_ci": {"point": pt_topic, "ci_lower": topic_low, "ci_upper": topic_high},
-            "self_minus_control_ci": {"point": pt_sel, "ci_lower": sel_low, "ci_upper": sel_high},
+            "effect_control": float(pt_topic_v),
+            "topic_tvd": float(pt_topic_v),
+            "topic_tvd_ci": {"point": pt_topic_v, "ci_lower": topic_v_low, "ci_upper": topic_v_high},
+            "self_minus_control_ci": {"point": pt_sel_v, "ci_lower": sel_v_low, "ci_upper": sel_v_high},
             "note": (
                 "Topic TVD is a non-specific perturbation control, not a same-construct "
                 "effect size comparable to Self VA shift. Primary check: topic_tvd remains small."
             ),
             "pattern": "nonspecific_perturbation_small",
-        }
+        },
     }
+
 
 
 def run_real_state_induction(
@@ -309,10 +349,9 @@ def run_real_state_induction(
     alignment_a = float(np.dot(d_a, d_a_self) / (norm_a_p * norm_a_s + 1e-6)) if norm_a_p > 0 and norm_a_s > 0 else 0.0
     logger.info(f"Reader-Grounded vs Self-Derived Direction Alignment: cos_V={alignment_v:.3f}, cos_A={alignment_a:.3f}")
 
-    Q_sub = compute_orthonormal_subspace([d_v, d_a])  # (D, 2)
-    controls = generate_control_directions(d_v, num_controls=1, seed=42)
-    d_rand = controls["random_directions"][0]
-    d_perp = controls["orthogonal_directions"][0]
+    Q_sub, _ = compute_orthonormal_subspace(d_v, d_a)  # (D, 2)
+    d_rand_v, d_perp_v = generate_control_directions(d_v, seed=42)
+    d_rand_a, d_perp_a = generate_control_directions(d_a, seed=43)
 
     h_std_v = float(np.std(H_train @ d_v)) or 1.0
     h_std_a = float(np.std(H_train @ d_a)) or 1.0
@@ -353,12 +392,18 @@ def run_real_state_induction(
 
     sample_slopes_v = []
     sample_slopes_a = []
-    sample_spec_diff = []
-    sample_spec_rand = []
-    sample_spec_perp = []
-    sample_att_ratios = []
-    sample_self_eff = []
-    sample_ctrl_eff = []
+    sample_spec_diff_v = []
+    sample_spec_rand_v = []
+    sample_spec_perp_v = []
+    sample_spec_diff_a = []
+    sample_spec_rand_a = []
+    sample_spec_perp_a = []
+    sample_att_ratios_v = []
+    sample_att_ratios_a = []
+    sample_self_eff_v = []
+    sample_self_eff_a = []
+    sample_ctrl_eff_v = []
+    sample_ctrl_eff_a = []
 
     dose_curves_v = {alpha: [] for alpha in alpha_grid}
     dose_curves_a = {alpha: [] for alpha in alpha_grid}
@@ -408,43 +453,81 @@ def run_real_state_induction(
             sample_slopes_v.append(estimate_interventional_slope(alpha_grid, alpha_shifts_v))
             sample_slopes_a.append(estimate_interventional_slope(alpha_grid, alpha_shifts_a))
 
-            # c. Specificity (d_V vs d_rand vs d_perp at alpha = 1.0)
+            # c. Specificity (Valence: d_V vs d_rand_v vs d_perp_v at alpha = 1.0)
             with ActivationHookManager(adapter) as hook_mgr:
                 hook_mgr.register_direction_intervention_hook(
                     layer_idx=target_layer,
-                    direction=d_rand,
+                    direction=d_rand_v,
                     alpha=1.0,
                     hidden_std=h_std_v,
                     token_indices=patch_pos_self,
                     hook_point=HookPoint.POST_MLP_RESID,
                     mode="inject",
                 )
-                _, probs_rand = compute_sequence_likelihoods_for_candidates(
+                _, probs_rand_v = compute_sequence_likelihoods_for_candidates(
                     model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
                 )
-            ev_rand, _ = compute_expected_va(probs_rand, candidates)
+            ev_rand_v, _ = compute_expected_va(probs_rand_v, candidates)
 
             with ActivationHookManager(adapter) as hook_mgr:
                 hook_mgr.register_direction_intervention_hook(
                     layer_idx=target_layer,
-                    direction=d_perp,
+                    direction=d_perp_v,
                     alpha=1.0,
                     hidden_std=h_std_v,
                     token_indices=patch_pos_self,
                     hook_point=HookPoint.POST_MLP_RESID,
                     mode="inject",
                 )
-                _, probs_perp = compute_sequence_likelihoods_for_candidates(
+                _, probs_perp_v = compute_sequence_likelihoods_for_candidates(
                     model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
                 )
-            ev_perp, _ = compute_expected_va(probs_perp, candidates)
+            ev_perp_v, _ = compute_expected_va(probs_perp_v, candidates)
 
-            eff_affect = abs(alpha_shifts_v[-1])  # alpha = 1.0
-            eff_rand = abs(ev_rand - ev_clean)
-            eff_perp = abs(ev_perp - ev_clean)
-            sample_spec_diff.append(eff_affect - max(eff_rand, eff_perp))
-            sample_spec_rand.append(eff_affect - eff_rand)
-            sample_spec_perp.append(eff_affect - eff_perp)
+            eff_affect_v = abs(alpha_shifts_v[-1])  # alpha = 1.0
+            eff_rand_v = abs(ev_rand_v - ev_clean)
+            eff_perp_v = abs(ev_perp_v - ev_clean)
+            sample_spec_diff_v.append(eff_affect_v - max(eff_rand_v, eff_perp_v))
+            sample_spec_rand_v.append(eff_affect_v - eff_rand_v)
+            sample_spec_perp_v.append(eff_affect_v - eff_perp_v)
+
+            # Specificity (Arousal: d_A vs d_rand_a vs d_perp_a at alpha = 1.0)
+            with ActivationHookManager(adapter) as hook_mgr:
+                hook_mgr.register_direction_intervention_hook(
+                    layer_idx=target_layer,
+                    direction=d_rand_a,
+                    alpha=1.0,
+                    hidden_std=h_std_a,
+                    token_indices=patch_pos_self,
+                    hook_point=HookPoint.POST_MLP_RESID,
+                    mode="inject",
+                )
+                _, probs_rand_a = compute_sequence_likelihoods_for_candidates(
+                    model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
+                )
+            _, ea_rand_a = compute_expected_va(probs_rand_a, candidates)
+
+            with ActivationHookManager(adapter) as hook_mgr:
+                hook_mgr.register_direction_intervention_hook(
+                    layer_idx=target_layer,
+                    direction=d_perp_a,
+                    alpha=1.0,
+                    hidden_std=h_std_a,
+                    token_indices=patch_pos_self,
+                    hook_point=HookPoint.POST_MLP_RESID,
+                    mode="inject",
+                )
+                _, probs_perp_a = compute_sequence_likelihoods_for_candidates(
+                    model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
+                )
+            _, ea_perp_a = compute_expected_va(probs_perp_a, candidates)
+
+            eff_affect_a = abs(alpha_shifts_a[-1])  # alpha = 1.0
+            eff_rand_a = abs(ea_rand_a - ea_clean)
+            eff_perp_a = abs(ea_perp_a - ea_clean)
+            sample_spec_diff_a.append(eff_affect_a - max(eff_rand_a, eff_perp_a))
+            sample_spec_rand_a.append(eff_affect_a - eff_rand_a)
+            sample_spec_perp_a.append(eff_affect_a - eff_perp_a)
 
             # d. Centered projection removal (Necessity: h' = h - Q Q^T (h - mu_neu))
             with ActivationHookManager(adapter) as hook_mgr:
@@ -472,7 +555,7 @@ def run_real_state_induction(
                 _, probs_abl = compute_sequence_likelihoods_for_candidates(
                     model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
                 )
-            ev_abl, _ = compute_expected_va(probs_abl, candidates)
+            ev_abl, ea_abl = compute_expected_va(probs_abl, candidates)
 
             # Necessity: matched-neutral 自己報告を実測して baseline にする
             neu_text = resolve_matched_neutral_text(row, df)
@@ -480,25 +563,32 @@ def run_real_state_induction(
             _, probs_neu_base = compute_sequence_likelihoods_for_candidates(
                 model=model, tokenizer=tokenizer, prompt=p_neu_base, candidates=candidates, device=device, batch_size=batch_size
             )
-            neutral_base, _ = compute_expected_va(probs_neu_base, candidates)
-            nat_dev = abs(ev_clean - neutral_base)
-            abl_dev = abs(ev_abl - neutral_base)
-            att_ratio = (nat_dev - abl_dev) / (nat_dev + 1e-6) if nat_dev > 0.05 else 0.0
-            sample_att_ratios.append(float(np.clip(att_ratio, 0.0, 1.0)))
+            neutral_base_v, neutral_base_a = compute_expected_va(probs_neu_base, candidates)
 
-            # e. Topic control (非特異的摂動の確認統制)
-            # Self は正規化 VA shift、Topic は TVD。どちらも [0, 1] だが同一構成概念ではない。
-            # 主効果量は Self − Control ではなく、Topic 課題への非特異的摂動が小さいことの確認。
-            self_norm_eff = eff_affect / 4.0
-            sample_self_eff.append(self_norm_eff)
+            nat_dev_v = abs(ev_clean - neutral_base_v)
+            abl_dev_v = abs(ev_abl - neutral_base_v)
+            att_ratio_v = (nat_dev_v - abl_dev_v) / (nat_dev_v + 1e-6) if nat_dev_v > 0.05 else 0.0
+            sample_att_ratios_v.append(float(att_ratio_v))
 
-            # Topic control: sequence-likelihood Total Variation Distance (TVD) in [0, 1]
+            nat_dev_a = abs(ea_clean - neutral_base_a)
+            abl_dev_a = abs(ea_abl - neutral_base_a)
+            att_ratio_a = (nat_dev_a - abl_dev_a) / (nat_dev_a + 1e-6) if nat_dev_a > 0.05 else 0.0
+            sample_att_ratios_a.append(float(att_ratio_a))
+
+            # e. Topic control (非特異的摂動の確認統制: VA両軸)
+            self_norm_eff_v = eff_affect_v / 4.0
+            self_norm_eff_a = eff_affect_a / 4.0
+            sample_self_eff_v.append(self_norm_eff_v)
+            sample_self_eff_a.append(self_norm_eff_a)
+
             enc_ctrl = encode_prompt_canonical(tokenizer, prompt_ctrl, device=device)
             anchors_ctrl = find_semantic_anchors(enc_ctrl["input_ids"][0].tolist(), tokenizer, text)
             patch_pos_ctrl = anchors_ctrl["prompt_end"]
             _, probs_ctrl_clean = compute_sequence_likelihoods_for_candidates(
                 model=model, tokenizer=tokenizer, prompt=prompt_ctrl, candidates=topic_candidates, device=device, batch_size=batch_size
             )
+
+            # Topic control with d_V
             with ActivationHookManager(adapter) as hook_mgr:
                 hook_mgr.register_direction_intervention_hook(
                     layer_idx=target_layer,
@@ -509,24 +599,49 @@ def run_real_state_induction(
                     hook_point=HookPoint.POST_MLP_RESID,
                     mode="inject",
                 )
-                _, probs_ctrl_patch = compute_sequence_likelihoods_for_candidates(
+                _, probs_ctrl_patch_v = compute_sequence_likelihoods_for_candidates(
                     model=model, tokenizer=tokenizer, prompt=prompt_ctrl, candidates=topic_candidates, device=device, batch_size=batch_size
                 )
+            topic_tvd_v = 0.5 * float(np.sum(np.abs(np.array(probs_ctrl_patch_v) - np.array(probs_ctrl_clean))))
+            sample_ctrl_eff_v.append(topic_tvd_v)
 
-            topic_tvd = 0.5 * float(np.sum(np.abs(np.array(probs_ctrl_patch) - np.array(probs_ctrl_clean))))
-            sample_ctrl_eff.append(topic_tvd)
+            # Topic control with d_A
+            with ActivationHookManager(adapter) as hook_mgr:
+                hook_mgr.register_direction_intervention_hook(
+                    layer_idx=target_layer,
+                    direction=d_a,
+                    alpha=1.0,
+                    hidden_std=h_std_a,
+                    token_indices=patch_pos_ctrl,
+                    hook_point=HookPoint.POST_MLP_RESID,
+                    mode="inject",
+                )
+                _, probs_ctrl_patch_a = compute_sequence_likelihoods_for_candidates(
+                    model=model, tokenizer=tokenizer, prompt=prompt_ctrl, candidates=topic_candidates, device=device, batch_size=batch_size
+                )
+            topic_tvd_a = 0.5 * float(np.sum(np.abs(np.array(probs_ctrl_patch_a) - np.array(probs_ctrl_clean))))
+            sample_ctrl_eff_a.append(topic_tvd_a)
 
-    # 4. Bootstrap CI の算出
+    # 4. Bootstrap CI の算出 (VA両軸独立)
     pt_sv, sv_low, sv_high = compute_bootstrap_ci(sample_slopes_v)
     pt_sa, sa_low, sa_high = compute_bootstrap_ci(sample_slopes_a)
-    pt_spec, spec_low, spec_high = compute_bootstrap_ci(sample_spec_diff)
-    pt_spec_r, spec_r_low, spec_r_high = compute_bootstrap_ci(sample_spec_rand)
-    pt_spec_p, spec_p_low, spec_p_high = compute_bootstrap_ci(sample_spec_perp)
-    pt_att, att_low, att_high = compute_bootstrap_ci(sample_att_ratios)
 
-    self_minus_ctrl = [s - c for s, c in zip(sample_self_eff, sample_ctrl_eff)]
-    pt_sel, sel_low, sel_high = compute_bootstrap_ci(self_minus_ctrl)
-    pt_topic, topic_low, topic_high = compute_bootstrap_ci(sample_ctrl_eff)
+    pt_spec_v, spec_v_low, spec_v_high = compute_bootstrap_ci(sample_spec_diff_v)
+    pt_spec_rand_v, spec_rand_v_low, spec_rand_v_high = compute_bootstrap_ci(sample_spec_rand_v)
+    pt_spec_perp_v, spec_perp_v_low, spec_perp_v_high = compute_bootstrap_ci(sample_spec_perp_v)
+
+    pt_spec_a, spec_a_low, spec_a_high = compute_bootstrap_ci(sample_spec_diff_a)
+    pt_spec_rand_a, spec_rand_a_low, spec_rand_a_high = compute_bootstrap_ci(sample_spec_rand_a)
+    pt_spec_perp_a, spec_perp_a_low, spec_perp_a_high = compute_bootstrap_ci(sample_spec_perp_a)
+
+    pt_att_v, att_v_low, att_v_high = compute_bootstrap_ci(sample_att_ratios_v)
+    pt_att_a, att_a_low, att_a_high = compute_bootstrap_ci(sample_att_ratios_a)
+
+    pt_topic_v, topic_v_low, topic_v_high = compute_bootstrap_ci(sample_ctrl_eff_v)
+    pt_topic_a, topic_a_low, topic_a_high = compute_bootstrap_ci(sample_ctrl_eff_a)
+
+    self_minus_ctrl_v = [s - c for s, c in zip(sample_self_eff_v, sample_ctrl_eff_v)]
+    pt_sel_v, sel_v_low, sel_v_high = compute_bootstrap_ci(self_minus_ctrl_v)
 
     mean_dose_v = [float(np.mean(dose_curves_v[a])) for a in alpha_grid]
     mean_dose_a = [float(np.mean(dose_curves_a[a])) for a in alpha_grid]
@@ -544,24 +659,39 @@ def run_real_state_induction(
         "slope_a": float(pt_sa),
         "slope_v_ci": {"point": pt_sv, "ci_lower": sv_low, "ci_upper": sv_high},
         "slope_a_ci": {"point": pt_sa, "ci_lower": sa_low, "ci_upper": sa_high},
-        "specificity_diff": float(pt_spec),
-        "specificity_diff_ci": {"point": pt_spec, "ci_lower": spec_low, "ci_upper": spec_high},
-        "specificity_vs_random_ci": {"point": pt_spec_r, "ci_lower": spec_r_low, "ci_upper": spec_r_high},
-        "specificity_vs_orthogonal_ci": {"point": pt_spec_p, "ci_lower": spec_p_low, "ci_upper": spec_p_high},
-        "attenuation_ratio": float(pt_att),
-        "attenuation_ratio_ci": {"point": pt_att, "ci_lower": att_low, "ci_upper": att_high},
+        # Specificity
+        "specificity_v": float(pt_spec_v),
+        "specificity_a": float(pt_spec_a),
+        "specificity_v_ci": {"point": pt_spec_v, "ci_lower": spec_v_low, "ci_upper": spec_v_high},
+        "specificity_a_ci": {"point": pt_spec_a, "ci_lower": spec_a_low, "ci_upper": spec_a_high},
+        "specificity_diff": float(pt_spec_v),  # 互換用
+        "specificity_diff_ci": {"point": pt_spec_v, "ci_lower": spec_v_low, "ci_upper": spec_v_high},
+        "specificity_vs_random_ci": {"point": pt_spec_rand_v, "ci_lower": spec_rand_v_low, "ci_upper": spec_rand_v_high},
+        "specificity_vs_orthogonal_ci": {"point": pt_spec_perp_v, "ci_lower": spec_perp_v_low, "ci_upper": spec_perp_v_high},
+        # Necessity
+        "attenuation_ratio_v": float(pt_att_v),
+        "attenuation_ratio_a": float(pt_att_a),
+        "attenuation_ratio_v_ci": {"point": pt_att_v, "ci_lower": att_v_low, "ci_upper": att_v_high},
+        "attenuation_ratio_a_ci": {"point": pt_att_a, "ci_lower": att_a_low, "ci_upper": att_a_high},
+        "attenuation_ratio": float(pt_att_v),  # 互換用
+        "attenuation_ratio_ci": {"point": pt_att_v, "ci_lower": att_v_low, "ci_upper": att_v_high},
+        # Topic control / Task selectivity
+        "topic_tvd_v": float(pt_topic_v),
+        "topic_tvd_a": float(pt_topic_a),
+        "topic_tvd_v_ci": {"point": pt_topic_v, "ci_lower": topic_v_low, "ci_upper": topic_v_high},
+        "topic_tvd_a_ci": {"point": pt_topic_a, "ci_lower": topic_a_low, "ci_upper": topic_a_high},
         "task_selectivity": {
-            "effect_self": float(np.mean(sample_self_eff)),
-            "effect_control": float(np.mean(sample_ctrl_eff)),
-            "topic_tvd": float(pt_topic),
-            "topic_tvd_ci": {"point": pt_topic, "ci_lower": topic_low, "ci_upper": topic_high},
-            "self_minus_control_ci": {"point": pt_sel, "ci_lower": sel_low, "ci_upper": sel_high},
+            "effect_self": float(np.mean(sample_self_eff_v)),
+            "effect_control": float(np.mean(sample_ctrl_eff_v)),
+            "topic_tvd": float(pt_topic_v),
+            "topic_tvd_ci": {"point": pt_topic_v, "ci_lower": topic_v_low, "ci_upper": topic_v_high},
+            "self_minus_control_ci": {"point": pt_sel_v, "ci_lower": sel_v_low, "ci_upper": sel_v_high},
             "note": (
                 "Topic TVD is a non-specific perturbation control, not a same-construct "
                 "effect size comparable to Self VA shift."
             ),
-            "pattern": "nonspecific_perturbation_small" if float(np.mean(sample_ctrl_eff)) < 0.15 else "nonspecific_perturbation_large",
-        }
+            "pattern": "nonspecific_perturbation_small" if float(np.mean(sample_ctrl_eff_v)) < 0.15 else "nonspecific_perturbation_large",
+        },
     }
 
 
@@ -570,44 +700,48 @@ def evaluate_go_no_go_gate(
     gate_cfg: Dict[str, Any],
 ) -> Dict[str, Any]:
     """
-    Bootstrap 95% 信頼区間 (CI) の下限に基づく厳密な Go/No-Go 判定ゲート
+    Bootstrap 95% 信頼区間 (CI) の下限に基づく厳密な Go/No-Go 判定ゲート (Valence / Arousal 完全軸別化)
     """
     min_spec = gate_cfg.get("min_specificity_diff", 0.05)
     min_nec = gate_cfg.get("min_necessity_attenuation", 0.05)
+    max_topic_tvd = gate_cfg.get("max_topic_tvd", 0.15)
 
-    # 1. Specificity 判定: 95% CI 下限が閾値を超えること
-    spec_ci = results.get("specificity_diff_ci", {})
-    spec_lower = spec_ci.get("ci_lower", results["specificity_diff"])
-    spec_pass = bool(spec_lower > min_spec)
-
-    # 2. Necessity 判定: 射影除去による減衰率の 95% CI 下限が閾値を超えること
-    nec_ci = results.get("attenuation_ratio_ci", {})
-    nec_lower = nec_ci.get("ci_lower", results["attenuation_ratio"])
-    nec_pass = bool(nec_lower > min_nec)
-
-    # 3. Dose-response 判定: 傾き slope の 95% CI 下限が正であること (Valence / Arousal 独立判定)
+    # 1. Dose-response: 傾き slope の 95% CI 下限が 0.1 超
     slope_v_ci = results.get("slope_v_ci", {})
     slope_a_ci = results.get("slope_a_ci", {})
-    sv_lower = slope_v_ci.get("ci_lower", results["slope_v"])
-    sa_lower = slope_a_ci.get("ci_lower", results["slope_a"])
-    dose_pass_v = bool(sv_lower > 0.1)
-    dose_pass_a = bool(sa_lower > 0.1)
-    dose_pass_both = bool(dose_pass_v and dose_pass_a)
+    sv_lower = slope_v_ci.get("ci_lower", results.get("slope_v", 0.0))
+    sa_lower = slope_a_ci.get("ci_lower", results.get("slope_a", 0.0))
+    dose_v_pass = bool(sv_lower > 0.1)
+    dose_a_pass = bool(sa_lower > 0.1)
 
-    # 4. Topic control 判定: Topic 課題 TVD の 95% CI 上限が小さいこと（非特異的摂動の確認）
-    # Self − Control は補助記録であり、主効果量としては用いない。
-    ts = results["task_selectivity"]
-    max_topic_tvd = gate_cfg.get("max_topic_tvd", 0.15)
-    topic_ci = ts.get("topic_tvd_ci", {})
-    topic_upper = topic_ci.get("ci_upper", ts.get("topic_tvd", ts.get("effect_control", 1.0)))
-    topic_control_pass = bool(topic_upper < max_topic_tvd)
-    sel_ci = ts.get("self_minus_control_ci", {})
-    sel_lower = sel_ci.get("ci_lower", ts["effect_self"] - ts.get("effect_control", 0.0))
-    non_specific = bool(not topic_control_pass)
-    selectivity_pass = topic_control_pass
+    # 2. Specificity: 95% CI 下限が閾値超 (VA独立)
+    spec_v_ci = results.get("specificity_v_ci", results.get("specificity_diff_ci", {}))
+    spec_a_ci = results.get("specificity_a_ci", {})
+    spec_v_lower = spec_v_ci.get("ci_lower", results.get("specificity_v", results.get("specificity_diff", 0.0)))
+    spec_a_lower = spec_a_ci.get("ci_lower", results.get("specificity_a", 0.0))
+    specificity_v_pass = bool(spec_v_lower > min_spec)
+    specificity_a_pass = bool(spec_a_lower > min_spec)
 
-    decision_v = "GO" if (spec_pass and nec_pass and dose_pass_v and selectivity_pass) else "NO_GO"
-    decision_a = "GO" if (spec_pass and nec_pass and dose_pass_a and selectivity_pass) else "NO_GO"
+    # 3. Necessity: 射影除去減衰率 95% CI 下限が閾値超 (VA独立)
+    nec_v_ci = results.get("attenuation_ratio_v_ci", results.get("attenuation_ratio_ci", {}))
+    nec_a_ci = results.get("attenuation_ratio_a_ci", {})
+    nec_v_lower = nec_v_ci.get("ci_lower", results.get("attenuation_ratio_v", results.get("attenuation_ratio", 0.0)))
+    nec_a_lower = nec_a_ci.get("ci_lower", results.get("attenuation_ratio_a", 0.0))
+    necessity_v_pass = bool(nec_v_lower > min_nec)
+    necessity_a_pass = bool(nec_a_lower > min_nec)
+
+    # 4. Topic control: Topic 課題 TVD の 95% CI 上限が小さいこと (VA独立)
+    topic_v_ci = results.get("topic_tvd_v_ci", results.get("task_selectivity", {}).get("topic_tvd_ci", {}))
+    topic_a_ci = results.get("topic_tvd_a_ci", {})
+    topic_v_upper = topic_v_ci.get("ci_upper", results.get("topic_tvd_v", 0.0))
+    topic_a_upper = topic_a_ci.get("ci_upper", results.get("topic_tvd_a", 0.0))
+    topic_v_pass = bool(topic_v_upper < max_topic_tvd)
+    topic_a_pass = bool(topic_a_upper < max_topic_tvd)
+
+    # 軸別 Gate 判定
+    decision_v = "GO" if (dose_v_pass and specificity_v_pass and necessity_v_pass and topic_v_pass) else "NO_GO"
+    decision_a = "GO" if (dose_a_pass and specificity_a_pass and necessity_a_pass and topic_a_pass) else "NO_GO"
+
     if decision_v == "GO" and decision_a == "GO":
         decision = "GO"
     elif decision_v == "GO":
@@ -618,25 +752,32 @@ def evaluate_go_no_go_gate(
         decision = "NO_GO"
 
     checklist = {
-        "specificity_pass": spec_pass,
-        "specificity_ci_lower": float(spec_lower),
-        "necessity_pass": nec_pass,
-        "necessity_ci_lower": float(nec_lower),
-        "dose_response_pass": dose_pass_both,
-        "dose_response_v_pass": dose_pass_v,
-        "dose_response_a_pass": dose_pass_a,
+        "dose_response_v_pass": dose_v_pass,
+        "dose_response_a_pass": dose_a_pass,
+        "dose_response_pass": bool(dose_v_pass and dose_a_pass),
         "slope_v_ci_lower": float(sv_lower),
         "slope_a_ci_lower": float(sa_lower),
-        "selectivity_pass": selectivity_pass,
-        "topic_control_pass": topic_control_pass,
-        "topic_tvd_ci_upper": float(topic_upper),
-        "self_minus_control_ci_lower_aux": float(sel_lower),
-        "non_specific_detected": non_specific,
+        "specificity_v_pass": specificity_v_pass,
+        "specificity_a_pass": specificity_a_pass,
+        "specificity_pass": bool(specificity_v_pass and specificity_a_pass),
+        "specificity_v_ci_lower": float(spec_v_lower),
+        "specificity_a_ci_lower": float(spec_a_lower),
+        "necessity_v_pass": necessity_v_pass,
+        "necessity_a_pass": necessity_a_pass,
+        "necessity_pass": bool(necessity_v_pass and necessity_a_pass),
+        "necessity_v_ci_lower": float(nec_v_lower),
+        "necessity_a_ci_lower": float(nec_a_lower),
+        "topic_v_pass": topic_v_pass,
+        "topic_a_pass": topic_a_pass,
+        "topic_control_pass": bool(topic_v_pass and topic_a_pass),
+        "topic_tvd_v_ci_upper": float(topic_v_upper),
+        "topic_tvd_a_ci_upper": float(topic_a_upper),
         "decision_valence": decision_v,
         "decision_arousal": decision_a,
         "decision": decision,
     }
     return checklist
+
 
 
 def main():

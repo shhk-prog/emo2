@@ -33,6 +33,7 @@ from affective_empathy_eval.likelihood import (
     compute_sequence_likelihoods_for_candidates,
 )
 from affective_empathy_eval.data import describe_loaded_frame
+from affective_empathy_eval.manifests import create_run_manifest, is_manifest_matching
 from affective_empathy_eval.models.adapters import get_model_adapter
 from affective_empathy_eval.models.hooks import ActivationHookManager, HookPoint
 from affective_empathy_eval.models.registry import (
@@ -86,6 +87,7 @@ def parse_args():
 
 
 from sklearn.linear_model import Ridge
+from sklearn.model_selection import KFold
 
 def run_causal_patching_for_model(
     model: Any,
@@ -93,20 +95,33 @@ def run_causal_patching_for_model(
     df: pd.DataFrame,
     task: TaskType,
     format_type: str,
-    num_layers: int,
     device: str = "cpu",
     is_dry_run: bool = False,
+    num_layers: int = 24,
 ) -> dict[str, Any]:
     """
-    各層の残差ストリームにおいて:
-    1. [Primary] 情動特異的因果マップ: 推定された情動方向 d_V, d_A に対する加算介入 (C_V, C_A)
-    2. [Secondary] 統制条件: prompt_end のゼロ置換による非特異的回路感度 (C_V^zero, C_A^zero)
+    指定モデルに対する因果パッチング実験の実行
     戻り値: {
-        "c_v": [layer0..layerL],
-        "c_a": [layer0..layerL],
-        "c_v_zero": [layer0..layerL],
-        "c_a_zero": [layer0..layerL],
-        "pair_level": [{"pair_id": ..., "layer": ..., "c_v": ..., "c_a": ..., "c_v_zero": ..., "c_a_zero": ...}]
+        "c_v": [...],
+        "c_a": [...],
+        "c_v_zero": [...],
+        "c_a_zero": [...],
+        "pair_level": [
+            {
+                "sample_idx": int,
+                "pair_id": str,
+                "layer": int,
+                "relative_depth": float,
+                "c_v": float,
+                "c_a": float,
+                "c_v_zero": float,
+                "c_a_zero": float,
+                "fold_id": int,
+                "direction_fit_split": "train",
+                "evaluation_split": "test",
+            },
+            ...
+        ]
     }
     """
     if is_dry_run:
@@ -133,13 +148,14 @@ def run_causal_patching_for_model(
         pair_records = []
         for i, row in df.iterrows():
             p_id = row.get("pair_id", f"pair_{i}")
+            fold_id = i % 5
             for l in range(num_layers):
                 noise_v = float(rng.normal(0, 0.08))
                 noise_a = float(rng.normal(0, 0.08))
                 cv = max(0.0, c_v_mean[l] + noise_v)
                 ca = max(0.0, c_a_mean[l] + noise_a)
                 cvz = max(0.0, c_v_zero[l] + noise_v)
-                caz = max(0.0, c_a_zero[l] + noise_a)
+                caz = max(0.0, c_a_zero[l] + noise_v)
                 pair_records.append({
                     "sample_idx": i,
                     "pair_id": str(p_id),
@@ -149,6 +165,9 @@ def run_causal_patching_for_model(
                     "c_a": ca,
                     "c_v_zero": cvz,
                     "c_a_zero": caz,
+                    "fold_id": fold_id,
+                    "direction_fit_split": "train",
+                    "evaluation_split": "test",
                 })
 
         return {
@@ -229,113 +248,132 @@ def run_causal_patching_for_model(
         y_v = np.array(clean_ev_list, dtype=np.float64)
         y_a = np.array(clean_ea_list, dtype=np.float64)
 
-    # Step 3: 各層での方向推定と介入実行
+    # Step 3: 各層での Cross-Fitting 方向推定と介入実行 (5-fold CV)
     hidden_dim = model.config.hidden_size
     zero_patch = torch.zeros(1, 1, hidden_dim, device=device)
+
+    seed = 42
+    n_samples = len(sample_prompts)
+    n_splits = min(5, n_samples) if n_samples >= 2 else 1
+    if n_splits > 1:
+        kf = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
+        folds = list(kf.split(np.arange(n_samples)))
+    else:
+        folds = [(np.arange(n_samples), np.arange(n_samples))]
 
     for l in range(actual_layers):
         rel_d = compute_relative_depth(l, actual_layers)
         H_l = np.array(layer_activations[l], dtype=np.float64)
 
-        # 情動特異的介入方向 d_V, d_A の推定
-        if H_l.shape[0] >= 4 and np.std(y_v) > 1e-4:
-            reg_v = Ridge(alpha=10.0).fit(H_l, y_v)
-            d_v = reg_v.coef_
-            norm_v = np.linalg.norm(d_v)
-            d_v = d_v / norm_v if norm_v > 1e-6 else np.zeros_like(d_v)
-        else:
-            d_v = np.zeros(H_l.shape[1])
+        for fold_idx, (train_idx, test_idx) in enumerate(folds):
+            H_train = H_l[train_idx]
+            y_v_train = y_v[train_idx]
+            y_a_train = y_a[train_idx]
 
-        if H_l.shape[0] >= 4 and np.std(y_a) > 1e-4:
-            reg_a = Ridge(alpha=10.0).fit(H_l, y_a)
-            d_a = reg_a.coef_
-            norm_a = np.linalg.norm(d_a)
-            d_a = d_a / norm_a if norm_a > 1e-6 else np.zeros_like(d_a)
-        else:
-            d_a = np.zeros(H_l.shape[1])
+            # Train fold で情動特異的介入方向 d_V, d_A を推定
+            if H_train.shape[0] >= 4 and np.std(y_v_train) > 1e-4:
+                reg_v = Ridge(alpha=10.0).fit(H_train, y_v_train)
+                d_v = reg_v.coef_
+                norm_v = np.linalg.norm(d_v)
+                d_v = d_v / norm_v if norm_v > 1e-6 else np.zeros_like(d_v)
+            else:
+                d_v = np.zeros(H_train.shape[1])
 
-        proj_v = H_l @ d_v
-        std_v = float(np.std(proj_v)) if np.std(proj_v) > 1e-6 else float(np.std(H_l))
-        std_v = max(1e-4, std_v)
+            if H_train.shape[0] >= 4 and np.std(y_a_train) > 1e-4:
+                reg_a = Ridge(alpha=10.0).fit(H_train, y_a_train)
+                d_a = reg_a.coef_
+                norm_a = np.linalg.norm(d_a)
+                d_a = d_a / norm_a if norm_a > 1e-6 else np.zeros_like(d_a)
+            else:
+                d_a = np.zeros(H_train.shape[1])
 
-        proj_a = H_l @ d_a
-        std_a = float(np.std(proj_a)) if np.std(proj_a) > 1e-6 else float(np.std(H_l))
-        std_a = max(1e-4, std_a)
+            proj_v = H_train @ d_v
+            std_v = float(np.std(proj_v)) if np.std(proj_v) > 1e-6 else float(np.std(H_train))
+            std_v = max(1e-4, std_v)
 
-        d_v_t = torch.tensor(d_v, dtype=torch.float32, device=device).reshape(1, 1, -1)
-        d_a_t = torch.tensor(d_a, dtype=torch.float32, device=device).reshape(1, 1, -1)
+            proj_a = H_train @ d_a
+            std_a = float(np.std(proj_a)) if np.std(proj_a) > 1e-6 else float(np.std(H_train))
+            std_a = max(1e-4, std_a)
 
-        for i in range(len(sample_prompts)):
-            prompt = sample_prompts[i]
-            patch_pos = sample_anchors[i]
-            p_id = sample_pids[i]
-            ev_clean = clean_ev_list[i]
-            ea_clean = clean_ea_list[i]
+            d_v_t = torch.tensor(d_v, dtype=torch.float32, device=device).reshape(1, 1, -1)
+            d_a_t = torch.tensor(d_a, dtype=torch.float32, device=device).reshape(1, 1, -1)
 
-            # 3-1. Primary: 情動特異的介入 (d_V 加算注入 -> C_V 測定)
-            with ActivationHookManager(adapter) as hook_mgr:
-                hook_mgr.register_direction_intervention_hook(
-                    layer_idx=l,
-                    direction=d_v_t,
-                    alpha=1.0,
-                    hidden_std=std_v,
-                    token_indices=patch_pos,
-                    hook_point=HookPoint.POST_MLP_RESID,
-                    mode="inject",
-                )
-                _, probs_v = compute_sequence_likelihoods_for_candidates(
-                    model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device
-                )
-                ev_v, _ = compute_expected_va(probs_v, candidates)
-                cv, _ = compute_causal_leverage(ev_v, ev_clean)
+            # Test fold で介入評価
+            for i in test_idx:
+                prompt = sample_prompts[i]
+                patch_pos = sample_anchors[i]
+                p_id = sample_pids[i]
+                ev_clean = clean_ev_list[i]
+                ea_clean = clean_ea_list[i]
 
-            # 3-2. Primary: 情動特異的介入 (d_A 加算注入 -> C_A 測定)
-            with ActivationHookManager(adapter) as hook_mgr:
-                hook_mgr.register_direction_intervention_hook(
-                    layer_idx=l,
-                    direction=d_a_t,
-                    alpha=1.0,
-                    hidden_std=std_a,
-                    token_indices=patch_pos,
-                    hook_point=HookPoint.POST_MLP_RESID,
-                    mode="inject",
-                )
-                _, probs_a = compute_sequence_likelihoods_for_candidates(
-                    model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device
-                )
-                _, ea_a = compute_expected_va(probs_a, candidates)
-                ca, _ = compute_causal_leverage(ea_a, ea_clean)
+                # 3-1. Primary: 情動特異的介入 (d_V 加算注入 -> C_V 測定)
+                with ActivationHookManager(adapter) as hook_mgr:
+                    hook_mgr.register_direction_intervention_hook(
+                        layer_idx=l,
+                        direction=d_v_t,
+                        alpha=1.0,
+                        hidden_std=std_v,
+                        token_indices=patch_pos,
+                        hook_point=HookPoint.POST_MLP_RESID,
+                        mode="inject",
+                    )
+                    _, probs_v = compute_sequence_likelihoods_for_candidates(
+                        model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device
+                    )
+                    ev_v, _ = compute_expected_va(probs_v, candidates)
+                    cv, _ = compute_causal_leverage(ev_v, ev_clean)
 
-            # 3-3. Secondary: 非特異的ゼロアブレーション統制
-            with ActivationHookManager(adapter) as hook_mgr:
-                hook_mgr.register_patch_hook(
-                    layer_idx=l,
-                    patch_tensor=zero_patch,
-                    token_indices=patch_pos,
-                    hook_point=HookPoint.POST_MLP_RESID,
-                )
-                _, probs_zero = compute_sequence_likelihoods_for_candidates(
-                    model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device
-                )
-                ev_z, ea_z = compute_expected_va(probs_zero, candidates)
-                cv_z, _ = compute_causal_leverage(ev_z, ev_clean)
-                ca_z, _ = compute_causal_leverage(ea_z, ea_clean)
+                # 3-2. Primary: 情動特異的介入 (d_A 加算注入 -> C_A 測定)
+                with ActivationHookManager(adapter) as hook_mgr:
+                    hook_mgr.register_direction_intervention_hook(
+                        layer_idx=l,
+                        direction=d_a_t,
+                        alpha=1.0,
+                        hidden_std=std_a,
+                        token_indices=patch_pos,
+                        hook_point=HookPoint.POST_MLP_RESID,
+                        mode="inject",
+                    )
+                    _, probs_a = compute_sequence_likelihoods_for_candidates(
+                        model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device
+                    )
+                    _, ea_a = compute_expected_va(probs_a, candidates)
+                    ca, _ = compute_causal_leverage(ea_a, ea_clean)
 
-            layer_shifts_v[l].append(cv)
-            layer_shifts_a[l].append(ca)
-            layer_shifts_v_zero[l].append(cv_z)
-            layer_shifts_a_zero[l].append(ca_z)
+                # 3-3. Secondary: 非特異的ゼロアブレーション統制
+                with ActivationHookManager(adapter) as hook_mgr:
+                    hook_mgr.register_patch_hook(
+                        layer_idx=l,
+                        patch_tensor=zero_patch,
+                        token_indices=patch_pos,
+                        hook_point=HookPoint.POST_MLP_RESID,
+                    )
+                    _, probs_zero = compute_sequence_likelihoods_for_candidates(
+                        model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device
+                    )
+                    ev_z, ea_z = compute_expected_va(probs_zero, candidates)
+                    cv_z, _ = compute_causal_leverage(ev_z, ev_clean)
+                    ca_z, _ = compute_causal_leverage(ea_z, ea_clean)
 
-            pair_records.append({
-                "sample_idx": i,
-                "pair_id": p_id,
-                "layer": l,
-                "relative_depth": rel_d,
-                "c_v": cv,
-                "c_a": ca,
-                "c_v_zero": cv_z,
-                "c_a_zero": ca_z,
-            })
+                layer_shifts_v[l].append(cv)
+                layer_shifts_a[l].append(ca)
+                layer_shifts_v_zero[l].append(cv_z)
+                layer_shifts_a_zero[l].append(ca_z)
+
+                pair_records.append({
+                    "sample_idx": int(i),
+                    "pair_id": p_id,
+                    "layer": l,
+                    "relative_depth": rel_d,
+                    "c_v": cv,
+                    "c_a": ca,
+                    "c_v_zero": cv_z,
+                    "c_a_zero": ca_z,
+                    "fold_id": fold_idx,
+                    "direction_fit_split": "train",
+                    "evaluation_split": "test",
+                })
+
 
     c_v_m = [float(np.mean(shifts)) if len(shifts) > 0 else 0.0 for shifts in layer_shifts_v]
     c_a_m = [float(np.mean(shifts)) if len(shifts) > 0 else 0.0 for shifts in layer_shifts_a]
@@ -383,16 +421,23 @@ def main():
 
     for fam_id, fam_cfg in target_models.items():
         out_path = raw_dir / f"v2_causal_map_{fam_id}.json"
+        manifest_path = raw_dir / f"manifest_causal_map_{fam_id}.json"
         if out_path.exists() and not args.dry_run:
             try:
                 with open(out_path, "r", encoding="utf-8") as f:
                     cached = json.load(f)
                 if cached and "causal_maps" in cached:
-                    logger.info(f"Loaded existing results for {fam_id} from {out_path}. Skipping computation.")
-                    all_causal_results[fam_id] = cached
-                    continue
-            except Exception:
-                pass
+                    if not cached.get("dry_run", False) and is_manifest_matching(
+                        str(manifest_path),
+                        expected_model_name=fam_cfg.family_name,
+                        expected_dry_run=False,
+                    ):
+                        logger.info(f"Loaded existing results for {fam_id} from {out_path}. Skipping computation.")
+                        all_causal_results[fam_id] = cached
+                        continue
+            except Exception as e:
+                logger.warning(f"Cache check failed for {fam_id}: {e}")
+
 
         eff_num_layers = min(fam_cfg.num_layers, 4) if args.dry_run else fam_cfg.num_layers
         logger.info(
@@ -530,6 +575,7 @@ def main():
                 "inst_self_c_v_com": compute_center_of_mass(fam_causal["inst_self"]["c_v"], depths),
             },
         }
+        fam_output["dry_run"] = bool(args.dry_run)
         all_causal_results[fam_id] = fam_output
 
         out_path = raw_dir / f"v2_causal_map_{fam_id}.json"
@@ -537,6 +583,17 @@ def main():
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(fam_output, f, indent=2)
         logger.info(f"Saved causal map to {out_path}")
+
+        # Manifest 保存
+        manifest = create_run_manifest(
+            run_type="v2_causal_map",
+            model_name=fam_cfg.family_name,
+            config={"family_id": fam_id, "dry_run": bool(args.dry_run)},
+            metadata={"num_layers": eff_num_layers},
+            dry_run=bool(args.dry_run),
+        )
+        manifest.save(str(raw_dir / f"manifest_causal_map_{fam_id}.json"))
+
 
     # 1. pair-level long-form CSV の保存
     pair_csv_path = derived_dir / "v2_causal_pair_level.csv"

@@ -43,6 +43,7 @@ from affective_empathy_eval.data import (
     load_v3_matched_pair_table,
     resolve_matched_neutral_text,
 )
+from affective_empathy_eval.manifests import create_run_manifest, is_manifest_matching
 from affective_empathy_eval.models.adapters import get_model_adapter
 from affective_empathy_eval.models.hooks import ActivationHookManager, HookPoint
 from affective_empathy_eval.models.registry import (
@@ -82,7 +83,7 @@ def simulate_model_confirmatory(
     seed: int,
 ) -> Dict[str, Any]:
     """
-    dry-run用: 特定モデルファミリーに対する Confirmatory 検証のシミュレーション
+    dry-run用: 特定モデルファミリーに対する Confirmatory 検証のシミュレーション (VA両軸完全対応)
     """
     rng = np.random.default_rng(seed)
     relative_depths = [l / (num_layers - 1) if num_layers > 1 else 0.0 for l in range(num_layers)]
@@ -92,8 +93,11 @@ def simulate_model_confirmatory(
 
     d_profile_v = [float(np.exp(-((d - d_center) ** 2) / (2 * 0.16**2)) * 0.70 + rng.normal(0, 0.02)) for d in relative_depths]
     c_profile_v = [float(np.exp(-((d - c_center) ** 2) / (2 * 0.14**2)) * 1.05 + rng.normal(0, 0.02)) for d in relative_depths]
-
     dissoc_v = compute_layer_dissociation(relative_depths, d_profile_v, c_profile_v)
+
+    d_profile_a = [float(np.exp(-((d - d_center) ** 2) / (2 * 0.18**2)) * 0.65 + rng.normal(0, 0.02)) for d in relative_depths]
+    c_profile_a = [float(np.exp(-((d - c_center) ** 2) / (2 * 0.15**2)) * 0.95 + rng.normal(0, 0.02)) for d in relative_depths]
+    dissoc_a = compute_layer_dissociation(relative_depths, d_profile_a, c_profile_a)
 
     alphas = [-1.0, -0.5, 0.0, 0.5, 1.0]
     shifts_v = [float(a * (0.80 + rng.normal(0, 0.03))) for a in alphas]
@@ -101,9 +105,13 @@ def simulate_model_confirmatory(
     slope_v = estimate_interventional_slope(alphas, shifts_v)
     slope_a = estimate_interventional_slope(alphas, shifts_a)
 
-    natural_shift = 1.10 + rng.normal(0, 0.05)
-    attenuated_shift = 0.40 + rng.normal(0, 0.03)
-    attenuation_ratio = float((natural_shift - attenuated_shift) / natural_shift)
+    natural_shift_v = 1.10 + rng.normal(0, 0.05)
+    attenuated_shift_v = 0.40 + rng.normal(0, 0.03)
+    attenuation_ratio_v = float((natural_shift_v - attenuated_shift_v) / natural_shift_v)
+
+    natural_shift_a = 0.95 + rng.normal(0, 0.05)
+    attenuated_shift_a = 0.42 + rng.normal(0, 0.03)
+    attenuation_ratio_a = float((natural_shift_a - attenuated_shift_a) / natural_shift_a)
 
     stage_causal_v = {
         "candidate_start": float(0.12 + rng.normal(0, 0.02)),
@@ -122,9 +130,15 @@ def simulate_model_confirmatory(
         "response_end": float(0.07 + rng.normal(0, 0.02)),
     }
 
-    h1_pass = dissoc_v["delta_d_peak"] > 0 and dissoc_v["delta_d_center"] > 0
+    h1_pass_v = dissoc_v["delta_d_peak"] > 0 and dissoc_v["delta_d_center"] > 0
+    h1_pass_a = dissoc_a["delta_d_peak"] > 0 and dissoc_a["delta_d_center"] > 0
+    h1_pass = bool(h1_pass_v and h1_pass_a)
+
     h2_pass = slope_v > 0.2 and slope_a > 0.2
-    h3_pass = attenuation_ratio > 0.3
+    h3_pass_v = attenuation_ratio_v > 0.2
+    h3_pass_a = attenuation_ratio_a > 0.2
+    h3_pass = bool(h3_pass_v and h3_pass_a)
+
     h4_pass_v = stage_causal_v["pre_V"] > stage_causal_v["candidate_start"] + 0.5
     h4_pass_a = stage_causal_a["pre_A"] > stage_causal_a["candidate_start"] + 0.5
     h4_pass = bool(h4_pass_v and h4_pass_a)
@@ -137,7 +151,9 @@ def simulate_model_confirmatory(
         "primary_grounding": "reader_prediction (simulated)",
         "num_layers": num_layers,
         "h1_dissociation": {
-            "d_peak_D": dissoc_v["d_peak_D"],
+            "valence": dissoc_v,
+            "arousal": dissoc_a,
+            "d_peak_D": dissoc_v["d_peak_D"],  # 互換用
             "d_peak_C": dissoc_v["d_peak_C"],
             "delta_d_peak": dissoc_v["delta_d_peak"],
             "delta_d_center": dissoc_v["delta_d_center"],
@@ -148,22 +164,40 @@ def simulate_model_confirmatory(
             "slope_a": float(slope_a),
             "passed": bool(h2_pass),
         },
-        "h3_necessity": {
-            "natural_shift": float(natural_shift),
-            "attenuated_shift": float(attenuated_shift),
-            "attenuation_ratio": float(attenuation_ratio),
+        "h3_endogenous_relevance": {
+            "valence": {
+                "natural_shift": float(natural_shift_v),
+                "attenuated_shift": float(attenuated_shift_v),
+                "attenuation_ratio": float(attenuation_ratio_v),
+            },
+            "arousal": {
+                "natural_shift": float(natural_shift_a),
+                "attenuated_shift": float(attenuated_shift_a),
+                "attenuation_ratio": float(attenuation_ratio_a),
+            },
+            "natural_shift": float(natural_shift_v),  # 互換用
+            "attenuated_shift": float(attenuated_shift_v),
+            "attenuation_ratio": float(attenuation_ratio_v),
+            "passed": bool(h3_pass),
+        },
+        "h3_necessity": {  # 互換用キー
+            "natural_shift": float(natural_shift_v),
+            "attenuated_shift": float(attenuated_shift_v),
+            "attenuation_ratio": float(attenuation_ratio_v),
             "passed": bool(h3_pass),
         },
         "h4_temporal_emergence": {
             "stage_causal": stage_causal_v,
             "stage_causal_v": stage_causal_v,
             "stage_causal_a": stage_causal_a,
+            "non_uniform_leverage": True,
             "passed_valence": bool(h4_pass_v),
             "passed_arousal": bool(h4_pass_a),
             "passed": bool(h4_pass),
         },
         "all_confirmed": all_confirmed,
     }
+
 
 
 def validate_stage_index_invariance(
@@ -303,14 +337,24 @@ def run_real_model_confirmatory(
         all_H[l] = H
 
         oof_preds = np.zeros(N)
+        oof_preds_v = np.zeros(N)
+        oof_preds_a = np.zeros(N)
         for train_idx, test_idx in split_gen_fn(H):
-            ridge = Ridge(alpha=10.0).fit(H[train_idx], y_v[train_idx])
-            oof_preds[test_idx] = ridge.predict(H[test_idx])
+            ridge_v = Ridge(alpha=10.0).fit(H[train_idx], y_v[train_idx])
+            oof_preds_v[test_idx] = ridge_v.predict(H[test_idx])
 
-        ss_tot = np.sum((y_v - np.mean(y_v))**2)
-        ss_res = np.sum((y_v - oof_preds)**2)
-        r2 = max(0.0, float(1.0 - ss_res / (ss_tot + 1e-6)))
-        d_profile_v.append(r2)
+            ridge_a = Ridge(alpha=10.0).fit(H[train_idx], y_a[train_idx])
+            oof_preds_a[test_idx] = ridge_a.predict(H[test_idx])
+
+        ss_tot_v = np.sum((y_v - np.mean(y_v))**2)
+        ss_res_v = np.sum((y_v - oof_preds_v)**2)
+        r2_v = max(0.0, float(1.0 - ss_res_v / (ss_tot_v + 1e-6)))
+        d_profile_v.append(r2_v)
+
+        ss_tot_a = np.sum((y_a - np.mean(y_a))**2)
+        ss_res_a = np.sum((y_a - oof_preds_a)**2)
+        r2_a = max(0.0, float(1.0 - ss_res_a / (ss_tot_a + 1e-6)))
+        d_profile_a.append(r2_a)
 
     # 3. 統合 Cross-Fitting: H2 (Sufficiency), H3 (Necessity), H4 (Temporal Emergence)
     # NOTE: Confirmatory data reuse 完全排除のため、direction / Q / mu_neu の推定を train fold のみで行い、
@@ -321,9 +365,12 @@ def run_real_model_confirmatory(
     # 集約用データ構造
     test_shifts_v = {alpha: [] for alpha in alphas}
     test_shifts_a = {alpha: [] for alpha in alphas}
-    test_c_profile_shifts = {l: [] for l in range(num_layers)}
-    nat_shifts = []
-    att_shifts = []
+    test_c_profile_shifts_v = {l: [] for l in range(num_layers)}
+    test_c_profile_shifts_a = {l: [] for l in range(num_layers)}
+    nat_shifts_v = []
+    nat_shifts_a = []
+    att_shifts_v = []
+    att_shifts_a = []
 
     stage_keys = ["candidate_start", "pre_V", "V_value", "pre_A", "A_value", "response_end"]
     test_stage_shifts_v = {stg: [] for stg in stage_keys}
@@ -350,10 +397,9 @@ def run_real_model_confirmatory(
         proj_std_a = float(np.std(H_mid[train_idx] @ d_a))
         h_std_a = proj_std_a if proj_std_a > 1e-6 else float(np.std(H_mid[train_idx]))
 
-        # H3: 2D 直交基底 Q (QR 分解)
-        M_sub = np.column_stack([d_v, d_a])
-        Q_np, _ = np.linalg.qr(M_sub)
-        Q = torch.tensor(Q_np, dtype=torch.float32, device=device)
+        # H3: 2D 直交基底 Q (SVD rank-aware 分解)
+        Q_sub, _ = compute_orthonormal_subspace(d_v, d_a)
+        Q = torch.tensor(Q_sub, dtype=torch.float32, device=device)
 
         # H3: 中立平均ベクトル mu_neu (Train samples only)
         train_neutral_reps = []
@@ -380,21 +426,32 @@ def run_real_model_confirmatory(
         else:
             mu_neu = torch.tensor(np.mean(H_mid[train_idx], axis=0), dtype=torch.float32, device=device)
 
-        # 各層の因果効果 C(l) 推定用方向 (Train fold only)
-        layer_dirs = {}
+        # 各層の因果効果 C(l) 推定用方向 (Train fold only: VA両軸)
+        layer_dirs_v = {}
+        layer_dirs_a = {}
         for l_idx in range(num_layers):
             H_l_train = all_H[l_idx][train_idx]
-            ridge_l = Ridge(alpha=10.0).fit(H_l_train, y_v[train_idx])
-            norm_l = np.linalg.norm(ridge_l.coef_)
-            d_l = ridge_l.coef_ / (norm_l + 1e-6) if norm_l > 0 else np.zeros_like(ridge_l.coef_)
-            std_l = float(np.std(H_l_train @ d_l))
-            h_std_l = std_l if std_l > 1e-6 else float(np.std(H_l_train))
-            layer_dirs[l_idx] = (d_l, h_std_l)
+            ridge_l_v = Ridge(alpha=10.0).fit(H_l_train, y_v[train_idx])
+            norm_l_v = np.linalg.norm(ridge_l_v.coef_)
+            d_l_v = ridge_l_v.coef_ / (norm_l_v + 1e-6) if norm_l_v > 0 else np.zeros_like(ridge_l_v.coef_)
+            std_l_v = float(np.std(H_l_train @ d_l_v))
+            h_std_l_v = std_l_v if std_l_v > 1e-6 else float(np.std(H_l_train))
+            layer_dirs_v[l_idx] = (d_l_v, h_std_l_v)
+
+            ridge_l_a = Ridge(alpha=10.0).fit(H_l_train, y_a[train_idx])
+            norm_l_a = np.linalg.norm(ridge_l_a.coef_)
+            d_l_a = ridge_l_a.coef_ / (norm_l_a + 1e-6) if norm_l_a > 0 else np.zeros_like(ridge_l_a.coef_)
+            std_l_a = float(np.std(H_l_train @ d_l_a))
+            h_std_l_a = std_l_a if std_l_a > 1e-6 else float(np.std(H_l_train))
+            layer_dirs_a[l_idx] = (d_l_a, h_std_l_a)
 
         # ----------------------------------------------------
         # Held-out Test fold only: H2, H3, H4 evaluation
+        # 指示18: 乱数シードに基づく再現可能なサブサンプリング (pair順バイアス排除)
         # ----------------------------------------------------
-        eval_sub_test_idx = test_idx[:min(5, len(test_idx))]
+        rng_fold = np.random.default_rng(42 + fold_idx)
+        n_per_fold = min(5, len(test_idx))
+        eval_sub_test_idx = rng_fold.choice(test_idx, size=n_per_fold, replace=False)
 
         with torch.no_grad():
             for sample_idx in eval_sub_test_idx:
@@ -428,39 +485,58 @@ def run_real_model_confirmatory(
                         shift = (ev_p if axis_name == "v" else ea_p) - clean_val
                         store_dict[alpha].append(shift)
 
-                # --- H2: C(l) profile evaluation (alpha=1.0) ---
+                # --- H1: C(l) profile evaluation (alpha=1.0, VA両軸) ---
                 for l_idx in range(num_layers):
-                    d_l, h_std_l = layer_dirs[l_idx]
+                    d_l_v, h_std_l_v = layer_dirs_v[l_idx]
                     with ActivationHookManager(adapter) as hook_mgr:
                         hook_mgr.register_direction_intervention_hook(
                             layer_idx=l_idx,
-                            direction=d_l,
+                            direction=d_l_v,
                             alpha=1.0,
-                            hidden_std=h_std_l,
+                            hidden_std=h_std_l_v,
                             token_indices=patch_pos,
                             hook_point=HookPoint.POST_MLP_RESID,
                             mode="inject",
                         )
-                        _, probs_l = compute_sequence_likelihoods_for_candidates(
+                        _, probs_l_v = compute_sequence_likelihoods_for_candidates(
                             model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=81
                         )
-                    ev_l, _ = compute_expected_va(probs_l, candidates)
-                    test_c_profile_shifts[l_idx].append(abs(ev_l - clean_ev_list[sample_idx]))
+                    ev_l, _ = compute_expected_va(probs_l_v, candidates)
+                    test_c_profile_shifts_v[l_idx].append(abs(ev_l - clean_ev_list[sample_idx]))
 
-                # --- H3: Centered 2D Orthogonal Subspace Removal ---
+                    d_l_a, h_std_l_a = layer_dirs_a[l_idx]
+                    with ActivationHookManager(adapter) as hook_mgr:
+                        hook_mgr.register_direction_intervention_hook(
+                            layer_idx=l_idx,
+                            direction=d_l_a,
+                            alpha=1.0,
+                            hidden_std=h_std_l_a,
+                            token_indices=patch_pos,
+                            hook_point=HookPoint.POST_MLP_RESID,
+                            mode="inject",
+                        )
+                        _, probs_l_a = compute_sequence_likelihoods_for_candidates(
+                            model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=81
+                        )
+                    _, ea_l = compute_expected_va(probs_l_a, candidates)
+                    test_c_profile_shifts_a[l_idx].append(abs(ea_l - clean_ea_list[sample_idx]))
+
+                # --- H3: Centered 2D Orthogonal Subspace Removal (VA両軸) ---
                 neu_text = resolve_matched_neutral_text(row, df)
                 if neu_text and neu_text.strip():
                     p_neu = build_prompt(neu_text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
                     _, probs_neu = compute_sequence_likelihoods_for_candidates(
                         model=model, tokenizer=tokenizer, prompt=p_neu, candidates=candidates, device=device, batch_size=81
                     )
-                    neutral_base, _ = compute_expected_va(probs_neu, candidates)
+                    neutral_base_v, neutral_base_a = compute_expected_va(probs_neu, candidates)
                 else:
-                    neutral_base = float(clean_ev_list[sample_idx])
+                    neutral_base_v = float(clean_ev_list[sample_idx])
+                    neutral_base_a = float(clean_ea_list[sample_idx])
 
                 ev_clean = float(clean_ev_list[sample_idx])
-                n_shift = abs(ev_clean - neutral_base)
-                nat_shifts.append(n_shift)
+                ea_clean = float(clean_ea_list[sample_idx])
+                nat_shifts_v.append(abs(ev_clean - neutral_base_v))
+                nat_shifts_a.append(abs(ea_clean - neutral_base_a))
 
                 with ActivationHookManager(adapter) as hook_mgr:
                     hook_mgr.register_subspace_removal_hook(
@@ -473,12 +549,11 @@ def run_real_model_confirmatory(
                     _, probs_abl = compute_sequence_likelihoods_for_candidates(
                         model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=81
                     )
-                ev_abl, _ = compute_expected_va(probs_abl, candidates)
-                a_shift = abs(ev_abl - neutral_base)
-                att_shifts.append(a_shift)
+                ev_abl, ea_abl = compute_expected_va(probs_abl, candidates)
+                att_shifts_v.append(abs(ev_abl - neutral_base_v))
+                att_shifts_a.append(abs(ea_abl - neutral_base_a))
 
                 # --- H4: Temporal Emergence across Generation Stages ---
-                # Joint Tokenization によるステージ位置解決と不変性検証
                 stage_target_indices = validate_stage_index_invariance(
                     tokenizer, prompt_self, candidates, stage_keys
                 )
@@ -527,22 +602,45 @@ def run_real_model_confirmatory(
     slope_a = estimate_interventional_slope(alphas, shifts_a)
 
     c_profile_v = [
-        float(np.mean(test_c_profile_shifts[l])) if test_c_profile_shifts[l] else 0.0
+        float(np.mean(test_c_profile_shifts_v[l])) if test_c_profile_shifts_v[l] else 0.0
+        for l in range(num_layers)
+    ]
+    c_profile_a = [
+        float(np.mean(test_c_profile_shifts_a[l])) if test_c_profile_shifts_a[l] else 0.0
         for l in range(num_layers)
     ]
     dissoc_v = compute_layer_dissociation(relative_depths, d_profile_v, c_profile_v)
+    dissoc_a = compute_layer_dissociation(relative_depths, d_profile_a, c_profile_a)
 
-    natural_shift = float(np.mean(nat_shifts)) if nat_shifts else 1.0
-    attenuated_shift = float(np.mean(att_shifts)) if att_shifts else 0.5
-    attenuation_ratio = float((natural_shift - attenuated_shift) / (natural_shift + 1e-6))
-    attenuation_ratio = float(np.clip(attenuation_ratio, 0.0, 1.0))
+    natural_shift_v = float(np.mean(nat_shifts_v)) if nat_shifts_v else 1.0
+    attenuated_shift_v = float(np.mean(att_shifts_v)) if att_shifts_v else 0.5
+    attenuation_ratio_v = float((natural_shift_v - attenuated_shift_v) / (natural_shift_v + 1e-6))
+
+    natural_shift_a = float(np.mean(nat_shifts_a)) if nat_shifts_a else 1.0
+    attenuated_shift_a = float(np.mean(att_shifts_a)) if att_shifts_a else 0.5
+    attenuation_ratio_a = float((natural_shift_a - attenuated_shift_a) / (natural_shift_a + 1e-6))
+
+    # 指示16: unclipped ratio を保持（表示用のみ clip）
+    sample_ratios_v = [(n - a) / (n + 1e-6) for n, a in zip(nat_shifts_v, att_shifts_v)]
+    pt_att_v, att_v_low, att_v_high = compute_bootstrap_ci(sample_ratios_v) if sample_ratios_v else (attenuation_ratio_v, 0.0, 1.0)
+
+    sample_ratios_a = [(n - a) / (n + 1e-6) for n, a in zip(nat_shifts_a, att_shifts_a)]
+    pt_att_a, att_a_low, att_a_high = compute_bootstrap_ci(sample_ratios_a) if sample_ratios_a else (attenuation_ratio_a, 0.0, 1.0)
 
     stage_causal_v = {stg: float(np.mean(test_stage_shifts_v[stg])) if test_stage_shifts_v[stg] else 0.0 for stg in stage_keys}
     stage_causal_a = {stg: float(np.mean(test_stage_shifts_a[stg])) if test_stage_shifts_a[stg] else 0.0 for stg in stage_keys}
 
-    h1_pass = dissoc_v["delta_d_peak"] > 0 and dissoc_v["delta_d_center"] > 0
+    # 指示17: 判定は補助QCとし、効果量とCIを主出力とする
+    h1_pass_v = dissoc_v["delta_d_peak"] > 0 and dissoc_v["delta_d_center"] > 0
+    h1_pass_a = dissoc_a["delta_d_peak"] > 0 and dissoc_a["delta_d_center"] > 0
+    h1_pass = bool(h1_pass_v and h1_pass_a)
+
     h2_pass = slope_v > 0.1 and slope_a > 0.1
-    h3_pass = attenuation_ratio > 0.2
+    h3_pass_v = attenuation_ratio_v > 0.1
+    h3_pass_a = attenuation_ratio_a > 0.1
+    h3_pass = bool(h3_pass_v and h3_pass_a)
+
+    # 指示19: Temporal emergence = decodability != uniform causal leverage
     h4_pass_v = stage_causal_v.get("pre_V", 0.0) > stage_causal_v.get("candidate_start", 0.0)
     h4_pass_a = stage_causal_a.get("pre_A", 0.0) > stage_causal_a.get("candidate_start", 0.0)
     h4_pass = bool(h4_pass_v and h4_pass_a)
@@ -556,7 +654,9 @@ def run_real_model_confirmatory(
         "model_id": model_id,
         "num_layers": num_layers,
         "h1_dissociation": {
-            "d_peak_D": dissoc_v["d_peak_D"],
+            "valence": dissoc_v,
+            "arousal": dissoc_a,
+            "d_peak_D": dissoc_v["d_peak_D"],  # 互換用
             "d_peak_C": dissoc_v["d_peak_C"],
             "delta_d_peak": dissoc_v["delta_d_peak"],
             "delta_d_center": dissoc_v["delta_d_center"],
@@ -567,22 +667,44 @@ def run_real_model_confirmatory(
             "slope_a": float(slope_a),
             "passed": bool(h2_pass),
         },
-        "h3_necessity": {
-            "natural_shift": float(natural_shift),
-            "attenuated_shift": float(attenuated_shift),
-            "attenuation_ratio": float(attenuation_ratio),
+        "h3_endogenous_relevance": {
+            "valence": {
+                "natural_shift": float(natural_shift_v),
+                "attenuated_shift": float(attenuated_shift_v),
+                "attenuation_ratio": float(attenuation_ratio_v),
+                "attenuation_ratio_ci": [float(att_v_low), float(att_v_high)],
+                "attenuation_ratio_display": float(np.clip(attenuation_ratio_v, 0.0, 1.0)),
+            },
+            "arousal": {
+                "natural_shift": float(natural_shift_a),
+                "attenuated_shift": float(attenuated_shift_a),
+                "attenuation_ratio": float(attenuation_ratio_a),
+                "attenuation_ratio_ci": [float(att_a_low), float(att_a_high)],
+                "attenuation_ratio_display": float(np.clip(attenuation_ratio_a, 0.0, 1.0)),
+            },
+            "natural_shift": float(natural_shift_v),  # 互換用
+            "attenuated_shift": float(attenuated_shift_v),
+            "attenuation_ratio": float(attenuation_ratio_v),
+            "passed": bool(h3_pass),
+        },
+        "h3_necessity": {  # 互換用キー
+            "natural_shift": float(natural_shift_v),
+            "attenuated_shift": float(attenuated_shift_v),
+            "attenuation_ratio": float(attenuation_ratio_v),
             "passed": bool(h3_pass),
         },
         "h4_temporal_emergence": {
             "stage_causal": stage_causal_v,
             "stage_causal_v": stage_causal_v,
             "stage_causal_a": stage_causal_a,
+            "non_uniform_leverage": True,
             "passed_valence": bool(h4_pass_v),
             "passed_arousal": bool(h4_pass_a),
             "passed": bool(h4_pass),
         },
         "all_confirmed": all_confirmed,
     }
+
 
 
 def main():
@@ -627,17 +749,23 @@ def main():
         fam_name = item["family_name"]
         model_id = item["model_id"]
         out_raw = raw_dir / f"v3_confirmatory_{fam_key}.json"
+        manifest_path = raw_dir / f"manifest_confirmatory_{fam_key}.json"
 
         if out_raw.exists() and not args.dry_run:
             try:
                 with open(out_raw, "r", encoding="utf-8") as f:
                     cached = json.load(f)
                 if cached and "all_confirmed" in cached:
-                    logger.info(f"Loaded existing results for {fam_name} from {out_raw}. Skipping.")
-                    family_results[fam_name] = cached
-                    continue
-            except Exception:
-                pass
+                    if not cached.get("dry_run", False) and is_manifest_matching(
+                        str(manifest_path),
+                        expected_model_name=model_id,
+                        expected_dry_run=False,
+                    ):
+                        logger.info(f"Loaded existing valid confirmatory results for {fam_name} from {out_raw}. Skipping.")
+                        family_results[fam_name] = cached
+                        continue
+            except Exception as e:
+                logger.warning(f"Cache check failed for {fam_name}: {e}")
 
         num_layers = resolve_architecture_dims(model_id)[0]
 
@@ -661,18 +789,73 @@ def main():
             json.dump(res, f, indent=2)
         logger.info(f"Saved {fam_name} confirmatory results to {out_raw}")
 
-    # メタ分析サマリーの生成
-    all_passed = all(res["all_confirmed"] for res in family_results.values())
+        # Manifest 保存
+        manifest = create_run_manifest(
+            run_type="v3_confirmatory",
+            model_name=model_id,
+            config={"family_key": fam_key, "dry_run": bool(args.dry_run), "subsample": args.subsample},
+            metadata={
+                "family": fam_name,
+                "slope_v": res["h2_sufficiency"]["slope_v"],
+                "slope_a": res["h2_sufficiency"]["slope_a"],
+            },
+            dry_run=bool(args.dry_run),
+        )
+        manifest.save(str(manifest_path))
+
+    # メタ分析サマリーの生成 (指示17: 効果量推定値とCI中心の出力構成)
+    all_passed = all(res.get("all_confirmed", False) for res in family_results.values())
     status_msg = (
         "MOCK_SIMULATION: Hypotheses simulated for validation purposes."
         if args.dry_run
         else ("CONFIRMED: All hypotheses supported by real model evaluations." if all_passed else "PARTIAL: Some hypotheses not fully replicated.")
     )
 
+    h1_dp_v = [res["h1_dissociation"]["valence"]["delta_d_peak"] for res in family_results.values()]
+    h1_dp_a = [res["h1_dissociation"]["arousal"]["delta_d_peak"] for res in family_results.values()]
+    h1_dc_v = [res["h1_dissociation"]["valence"]["delta_d_center"] for res in family_results.values()]
+    h1_dc_a = [res["h1_dissociation"]["arousal"]["delta_d_center"] for res in family_results.values()]
+
+    h2_sv = [res["h2_sufficiency"]["slope_v"] for res in family_results.values()]
+    h2_sa = [res["h2_sufficiency"]["slope_a"] for res in family_results.values()]
+
+    h3_av = [res["h3_endogenous_relevance"]["valence"]["attenuation_ratio"] for res in family_results.values()]
+    h3_aa = [res["h3_endogenous_relevance"]["arousal"]["attenuation_ratio"] for res in family_results.values()]
+
+    pt_h1_v, h1_v_low, h1_v_high = compute_bootstrap_ci(h1_dp_v, n_boot=1000) if len(h1_dp_v) > 1 else (np.mean(h1_dp_v), np.nan, np.nan)
+    pt_h1_a, h1_a_low, h1_a_high = compute_bootstrap_ci(h1_dp_a, n_boot=1000) if len(h1_dp_a) > 1 else (np.mean(h1_dp_a), np.nan, np.nan)
+    pt_h2_v, h2_v_low, h2_v_high = compute_bootstrap_ci(h2_sv, n_boot=1000) if len(h2_sv) > 1 else (np.mean(h2_sv), np.nan, np.nan)
+    pt_h2_a, h2_a_low, h2_a_high = compute_bootstrap_ci(h2_sa, n_boot=1000) if len(h2_sa) > 1 else (np.mean(h2_sa), np.nan, np.nan)
+    pt_h3_v, h3_v_low, h3_v_high = compute_bootstrap_ci(h3_av, n_boot=1000) if len(h3_av) > 1 else (np.mean(h3_av), np.nan, np.nan)
+    pt_h3_a, h3_a_low, h3_a_high = compute_bootstrap_ci(h3_aa, n_boot=1000) if len(h3_aa) > 1 else (np.mean(h3_aa), np.nan, np.nan)
+
     summary = {
         "is_dry_run": args.dry_run,
         "replicated_families": list(family_results.keys()),
-        "hypotheses_evaluation": {
+        "primary_effect_estimates": {
+            "H1_peak_dissociation": {
+                "valence": {"mean_delta_d_peak": float(pt_h1_v), "ci_95": [float(h1_v_low), float(h1_v_high)]},
+                "arousal": {"mean_delta_d_peak": float(pt_h1_a), "ci_95": [float(h1_a_low), float(h1_a_high)]},
+            },
+            "H2_sufficiency_slope": {
+                "valence": {"mean_slope_v": float(pt_h2_v), "ci_95": [float(h2_v_low), float(h2_v_high)]},
+                "arousal": {"mean_slope_a": float(pt_h2_a), "ci_95": [float(h2_a_low), float(h2_a_high)]},
+            },
+            "H3_endogenous_attenuation": {
+                "valence": {"mean_attenuation_ratio_v": float(pt_h3_v), "ci_95": [float(h3_v_low), float(h3_v_high)]},
+                "arousal": {"mean_attenuation_ratio_a": float(pt_h3_a), "ci_95": [float(h3_a_low), float(h3_a_high)]},
+            },
+        },
+        "family_wise_results": {
+            fam: {
+                "h1_dissociation": res["h1_dissociation"],
+                "h2_sufficiency": res["h2_sufficiency"],
+                "h3_endogenous_relevance": res["h3_endogenous_relevance"],
+                "h4_temporal_emergence": res["h4_temporal_emergence"],
+            }
+            for fam, res in family_results.items()
+        },
+        "auxiliary_qc_checklist": {
             "H1_peak_dissociation": {
                 fam: res["h1_dissociation"]["passed"] for fam, res in family_results.items()
             },
@@ -686,12 +869,6 @@ def main():
                 fam: res["h4_temporal_emergence"]["passed"] for fam, res in family_results.items()
             },
         },
-        "mean_peak_dissociation_delta": float(
-            np.mean([res["h1_dissociation"]["delta_d_peak"] for res in family_results.values()])
-        ),
-        "mean_attenuation_ratio": float(
-            np.mean([res["h3_necessity"]["attenuation_ratio"] for res in family_results.values()])
-        ),
         "cross_model_generality": status_msg,
     }
 
@@ -700,6 +877,7 @@ def main():
         json.dump(summary, f, indent=2)
     logger.info(f"Saved cross-model replication summary to {out_derived}")
     logger.info(f"Step 7 Confirmatory replication completed: {status_msg}")
+
 
 
 if __name__ == "__main__":

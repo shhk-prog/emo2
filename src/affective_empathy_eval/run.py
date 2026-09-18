@@ -135,6 +135,13 @@ def run_v2(args, python_bin: str):
     run_command([python_bin, "v2/primary/run_rq3_causal_map.py"] + common_flags)
     # 3. RQ4: Distribution Recovery Patching
     run_command([python_bin, "v2/primary/run_rq4_recovery_patching.py"] + common_flags)
+    # 4. Confirmatory Statistical Analysis across families
+    if not args.family and not args.base_model and not args.instruct_model:
+        conf_flags = []
+        if args.dry_run:
+            conf_flags.append("--dry-run")
+        run_command([python_bin, "v2/primary/run_confirmatory_analysis.py"] + conf_flags)
+
 
 
 def v3_gate_allows_continuation(

@@ -120,8 +120,10 @@ def analyze_model_aipsy(csv_path: str):
                             _, align_ci_low, align_ci_high = compute_bootstrap_ci(aligned_arr, statistic_fn=np.mean)
                             _, align_dz_low, align_dz_high = compute_bootstrap_ci(aligned_arr, statistic_fn=compute_d_z)
                         else:
-                            align_mean, align_dz = float(np.mean(raw_diff)), compute_d_z(raw_diff)
-                            t_stat_a, p_val_a = ttest_rel(c_vals, n_vals)
+                            align_mean = np.nan
+                            align_dz = np.nan
+                            t_stat_a = np.nan
+                            p_val_a = np.nan
                             align_ci_low, align_ci_high = np.nan, np.nan
                             align_dz_low, align_dz_high = np.nan, np.nan
 
@@ -129,6 +131,7 @@ def analyze_model_aipsy(csv_path: str):
                         t_stat_raw, p_val_raw = ttest_rel(c_vals, n_vals)
                         _, raw_ci_low, raw_ci_high = compute_bootstrap_ci(raw_diff, statistic_fn=np.mean)
                         _, raw_dz_low, raw_dz_high = compute_bootstrap_ci(raw_diff, statistic_fn=compute_d_z)
+
 
                         rq1_rows.append(
                             {
@@ -213,14 +216,15 @@ def analyze_model_aipsy(csv_path: str):
                             monotonicity_rate = float(np.mean(monotonic))
                             _, s1_low, s1_high = compute_bootstrap_ci(aligned_s1_arr, statistic_fn=np.mean)
                             _, s2_low, s2_high = compute_bootstrap_ci(aligned_s2_arr, statistic_fn=np.mean)
-                            t_s1, p_s1 = ttest_1samp(aligned_s1_arr, popmean=0.0)
-                            t_s2, p_s2 = ttest_1samp(aligned_s2_arr, popmean=0.0)
+                            _, p_s1 = ttest_1samp(aligned_s1_arr, popmean=0.0, alternative="greater")
+                            _, p_s2 = ttest_1samp(aligned_s2_arr, popmean=0.0, alternative="greater")
+                            p_monotonic_iut = float(max(p_s1, p_s2))
                         else:
-                            mean_step_1, mean_step_2, monotonicity_rate = 0.0, 0.0, 0.0
-                            s1_low, s1_high = 0.0, 0.0
-                            s2_low, s2_high = 0.0, 0.0
-                            t_s1, p_s1 = 0.0, 1.0
-                            t_s2, p_s2 = 0.0, 1.0
+                            mean_step_1, mean_step_2, monotonicity_rate = np.nan, np.nan, np.nan
+                            s1_low, s1_high = np.nan, np.nan
+                            s2_low, s2_high = np.nan, np.nan
+                            p_s1, p_s2 = np.nan, np.nan
+                            p_monotonic_iut = np.nan
 
                         midpoint_deviation = float(np.mean(midpoint_devs)) if midpoint_devs else 0.0
 
@@ -228,6 +232,7 @@ def analyze_model_aipsy(csv_path: str):
                         sec_slopes = (c_arr - n_arr) / 2.0
                         sec_mean_slope = float(np.mean(sec_slopes))
                         sec_t, sec_p = ttest_1samp(sec_slopes, popmean=0.0)
+                        _, sec_low, sec_high = compute_bootstrap_ci(sec_slopes, statistic_fn=np.mean)
 
                         rq2_rows.append(
                             {
@@ -245,19 +250,21 @@ def analyze_model_aipsy(csv_path: str):
                                 "step_2_ci_low": float(s2_low),
                                 "step_2_ci_high": float(s2_high),
                                 "step_2_p_value": float(p_s2),
-                                "monotonicity_rate": monotonicity_rate,  # PRIMARY: Step1 > 0 and Step2 > 0
+                                "dose_response_p_value": float(p_monotonic_iut),  # PRIMARY IUT p-value
+                                "monotonicity_rate": monotonicity_rate,  # Effect description
                                 "midpoint_deviation": midpoint_deviation,
-                                "mean_slope": sec_mean_slope,  # Backward compatible alias
-                                "slope_ci_low": float(s1_low + s2_low) / 2.0 if len(aligned_s1_arr) > 0 else 0.0,
-                                "slope_ci_high": float(s1_high + s2_high) / 2.0 if len(aligned_s1_arr) > 0 else 0.0,
-                                "p_value": float(sec_p),
                                 "secondary_mean_slope": sec_mean_slope,
                                 "secondary_slope_p": float(sec_p),
+                                "mean_slope": sec_mean_slope,  # Backward compatible alias
+                                "slope_ci_low": float(sec_low),  # Valid bootstrap CI for secondary slope
+                                "slope_ci_high": float(sec_high),
+                                "p_value": float(p_monotonic_iut),  # Primary monotonic p-value for compatibility
                                 "mean_neutral": float(np.mean(n_arr)),
                                 "mean_moderate": float(np.mean(m_arr)),
                                 "mean_clinical": float(np.mean(c_arr)),
                             }
                         )
+
 
     # 3. RQ3: Specificity (Affective Displacement vs Complex Neutral)
     rq3_rows = []
@@ -424,35 +431,73 @@ def main():
     res_rq4 = pd.concat(all_rq4, ignore_index=True) if all_rq4 else pd.DataFrame()
 
     if not res_rq1.empty:
-        # 1 family for Sensitivity tests across models/tasks/dims
-        res_rq1["p_fdr"] = apply_benjamini_hochberg(res_rq1["p_value"].values)
+        # Primary inferential family: task in ['r', 's'] & dimension in ['V', 'A']
+        primary_mask = (
+            res_rq1["task"].isin(["r", "s"])
+            & res_rq1["dimension"].isin(["V", "A"])
+            & (res_rq1["n_direction_defined"] > 0)
+            & res_rq1["aligned_p_value"].notna()
+        )
+        res_rq1["primary_p_value"] = res_rq1["aligned_p_value"]
+        res_rq1["p_fdr"] = np.nan
+        if primary_mask.any():
+            res_rq1.loc[primary_mask, "p_fdr"] = apply_benjamini_hochberg(
+                res_rq1.loc[primary_mask, "primary_p_value"].values
+            )
         rq1_path = os.path.join(args.out_dir, "behavioral_aipsy_sensitivity_rq1.csv")
         res_rq1.to_csv(rq1_path, index=False)
         print(f"Saved RQ1 Sensitivity to {rq1_path}")
 
     if not res_rq2.empty:
-        # 1 family for Repeated-measures Dose-Response tests
-        res_rq2["p_fdr"] = apply_benjamini_hochberg(res_rq2["p_value"].values)
+        # Primary inferential family: task in ['r', 's'] & dimension in ['V', 'A'] with valid IUT p-value
+        primary_mask = (
+            res_rq2["task"].isin(["r", "s"])
+            & res_rq2["dimension"].isin(["V", "A"])
+            & res_rq2["dose_response_p_value"].notna()
+        )
+        res_rq2["primary_p_value"] = res_rq2["dose_response_p_value"]
+        res_rq2["p_fdr"] = np.nan
+        if primary_mask.any():
+            res_rq2.loc[primary_mask, "p_fdr"] = apply_benjamini_hochberg(
+                res_rq2.loc[primary_mask, "primary_p_value"].values
+            )
         rq2_path = os.path.join(args.out_dir, "behavioral_aipsy_dose_response_rq2.csv")
         res_rq2.to_csv(rq2_path, index=False)
         print(f"Saved RQ2 Dose-Response to {rq2_path}")
 
     if not res_rq3.empty:
-        # 1 family for Specificity controls
-        res_rq3["p_fdr"] = apply_benjamini_hochberg(res_rq3["p_value"].values)
+        # Primary inferential family: task in ['r', 's'] & dimension in ['V', 'A'] with valid displacement p-value
+        primary_mask = (
+            res_rq3["task"].isin(["r", "s"])
+            & res_rq3["dimension"].isin(["V", "A"])
+            & res_rq3["displacement_p_value"].notna()
+        )
+        res_rq3["primary_p_value"] = res_rq3["displacement_p_value"]
+        res_rq3["p_fdr"] = np.nan
+        if primary_mask.any():
+            res_rq3.loc[primary_mask, "p_fdr"] = apply_benjamini_hochberg(
+                res_rq3.loc[primary_mask, "primary_p_value"].values
+            )
         rq3_path = os.path.join(args.out_dir, "behavioral_aipsy_specificity_rq3.csv")
         res_rq3.to_csv(rq3_path, index=False)
         print(f"Saved RQ3 Specificity to {rq3_path}")
 
     if not res_rq4.empty:
-        # Primary delta_coupling tests form 1 family for FDR correction
-        delta_mask = res_rq4["correlation_type"] == "delta_coupling"
+        # Primary delta_coupling tests form 1 family for FDR correction (V / A dimensions)
+        delta_mask = (
+            (res_rq4["correlation_type"] == "delta_coupling")
+            & res_rq4["dimension"].isin(["V", "A"])
+            & res_rq4["p_value"].notna()
+        )
         res_rq4["p_fdr"] = np.nan
         if delta_mask.any():
-            res_rq4.loc[delta_mask, "p_fdr"] = apply_benjamini_hochberg(res_rq4.loc[delta_mask, "p_value"].values)
+            res_rq4.loc[delta_mask, "p_fdr"] = apply_benjamini_hochberg(
+                res_rq4.loc[delta_mask, "p_value"].values
+            )
         rq4_path = os.path.join(args.out_dir, "behavioral_aipsy_coupling_rq4.csv")
         res_rq4.to_csv(rq4_path, index=False)
         print(f"Saved RQ4 Coupling to {rq4_path}")
+
 
 
 if __name__ == "__main__":

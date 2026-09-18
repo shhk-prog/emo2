@@ -79,13 +79,73 @@ def run_confirmatory_analysis(
     }
 
     # =========================================================================
+    # H1: Post-training-Associated Reorganization of Affect Decodability Peak
+    # =========================================================================
+    h1_shifts = []
+    if is_dry_run:
+        # モックH1データ: 指示学習に伴う表現ピークの後期層シフト (観察的関連付け)
+        h1_shifts = [0.12, 0.08, 0.15, 0.10]
+    else:
+        geom_files = list(raw_dir.glob("v2_geometry_*.json"))
+        if len(geom_files) < 2:
+            raise FileNotFoundError(f"Required geometry files not found in {raw_dir} (found {len(geom_files)})")
+        for gf in geom_files:
+            try:
+                with open(gf, "r", encoding="utf-8") as f:
+                    gdata = json.load(f)
+                # peak_depth shift (inst - base)
+                base_peak = gdata.get("base", {}).get("peak_relative_depth", np.nan)
+                inst_peak = gdata.get("inst", {}).get("peak_relative_depth", np.nan)
+                if not np.isnan(base_peak) and not np.isnan(inst_peak):
+                    h1_shifts.append(inst_peak - base_peak)
+            except Exception as e:
+                logger.warning(f"Failed to parse {gf} for H1: {e}")
+        if len(h1_shifts) < 2:
+            raise RuntimeError(f"Insufficient valid geometry files for H1 in {raw_dir}: {len(h1_shifts)}")
+
+    pt_h1, h1_low, h1_high = compute_bootstrap_ci(h1_shifts, n_boot=1000)
+    confirmatory_report["hypotheses"]["H1_decodability_peak_reorganization"] = {
+        "interpretation": "post-training-associated reorganization of decodability peak",
+        "mean_shift_inst_minus_base": float(pt_h1),
+        "bootstrap_ci_95": [float(h1_low), float(h1_high)],
+        "shift_supported": bool(h1_low > 0.0),
+    }
+
+    # =========================================================================
+    # H2: Post-training-Associated Alteration of Reader-Self Representation Sharing
+    # =========================================================================
+    h2_diffs = []
+    if is_dry_run:
+        # モックH2データ: Base vs Inst における Reader-Self sharing 変化
+        h2_diffs = [-0.08, -0.12, -0.05, -0.09]
+    else:
+        for gf in geom_files:
+            try:
+                with open(gf, "r", encoding="utf-8") as f:
+                    gdata = json.load(f)
+                base_share = gdata.get("base", {}).get("reader_self_sharing", np.nan)
+                inst_share = gdata.get("inst", {}).get("reader_self_sharing", np.nan)
+                if not np.isnan(base_share) and not np.isnan(inst_share):
+                    h2_diffs.append(inst_share - base_share)
+            except Exception as e:
+                logger.warning(f"Failed to parse {gf} for H2: {e}")
+        if len(h2_diffs) < 2:
+            raise RuntimeError(f"Insufficient valid geometry files for H2 in {raw_dir}: {len(h2_diffs)}")
+
+    pt_h2, h2_low, h2_high = compute_bootstrap_ci(h2_diffs, n_boot=1000)
+    confirmatory_report["hypotheses"]["H2_representation_sharing_reorganization"] = {
+        "interpretation": "post-training-associated reorganization of Reader-Self representation sharing",
+        "mean_diff_inst_minus_base": float(pt_h2),
+        "bootstrap_ci_95": [float(h2_low), float(h2_high)],
+        "sharing_alteration_supported": bool(h2_high < 0.0 or h2_low > 0.0),
+    }
+
+    # =========================================================================
     # H3: Causal Dissociation LMM (from v2_causal_pair_level.csv)
     # =========================================================================
     pair_csv_path = derived_dir / "v2_causal_pair_level.csv"
-    if pair_csv_path.exists() and not is_dry_run:
-        df_pair = pd.read_csv(pair_csv_path)
-    else:
-        # Mock pair-level data for dry run or when not yet generated
+    if is_dry_run:
+        # Mock pair-level data for dry run only
         rng = np.random.default_rng(42)
         mock_rows = []
         for fam in families:
@@ -110,6 +170,10 @@ def run_confirmatory_analysis(
                                 "c_a_zero": ca * 1.2,
                             })
         df_pair = pd.DataFrame(mock_rows)
+    else:
+        if not pair_csv_path.exists():
+            raise FileNotFoundError(f"Required result not found for real run: {pair_csv_path}")
+        df_pair = pd.read_csv(pair_csv_path)
 
     logger.info(f"Fitting Confirmatory LMM on {len(df_pair)} observations...")
     lmm_results: Dict[str, Any] = {}
@@ -164,6 +228,7 @@ def run_confirmatory_analysis(
         fdr_map = {}
 
     confirmatory_report["hypotheses"]["H3_causal_dissociation_lmm"] = {
+        "interpretation": "post-training-associated causal-profile organization difference",
         "models": lmm_results,
         "fdr_adjusted_p_values": fdr_map,
     }
@@ -171,27 +236,33 @@ def run_confirmatory_analysis(
     # =========================================================================
     # H4: Distribution Recovery Comparison (Self vs. Reader)
     # =========================================================================
-    recovery_files = list(raw_dir.glob("v2_recovery_*.json"))
-    self_ratios = []
-    reader_ratios = []
-    for rf in recovery_files:
-        try:
-            with open(rf, "r", encoding="utf-8") as f:
-                rdata = json.load(f)
-            if "self" in rdata and "reader" in rdata:
-                self_ratios.append(rdata["self"]["max_recovery_ratio"])
-                reader_ratios.append(rdata["reader"]["max_recovery_ratio"])
-        except Exception:
-            pass
-
-    if len(self_ratios) < 2 or is_dry_run:
+    if is_dry_run:
         self_ratios = [0.72, 0.81, 0.69, 0.77]
         reader_ratios = [0.55, 0.62, 0.58, 0.60]
+    else:
+        recovery_files = list(raw_dir.glob("v2_recovery_*.json"))
+        self_ratios = []
+        reader_ratios = []
+        for rf in recovery_files:
+            try:
+                with open(rf, "r", encoding="utf-8") as f:
+                    rdata = json.load(f)
+                if "self" in rdata and "reader" in rdata:
+                    self_ratios.append(rdata["self"]["max_recovery_ratio"])
+                    reader_ratios.append(rdata["reader"]["max_recovery_ratio"])
+            except Exception as e:
+                logger.warning(f"Failed to parse recovery file {rf}: {e}")
+        if len(self_ratios) < 2:
+            raise RuntimeError(
+                f"Insufficient valid recovery files found in {raw_dir} (found {len(self_ratios)}). "
+                "Real runs require valid recovery artifacts."
+            )
 
     diffs = np.array(self_ratios) - np.array(reader_ratios)
     pt_diff, ci_low, ci_high = compute_bootstrap_ci(diffs.tolist(), n_boot=1000)
 
     confirmatory_report["hypotheses"]["H4_recovery_asymmetry"] = {
+        "interpretation": "post-training-associated distribution recovery asymmetry",
         "self_max_recovery_mean": float(np.mean(self_ratios)),
         "reader_max_recovery_mean": float(np.mean(reader_ratios)),
         "diff_self_minus_reader_mean": float(pt_diff),

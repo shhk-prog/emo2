@@ -63,9 +63,18 @@ def compute_orthonormal_subspace(
         raise ValueError("At least one direction vector required for compute_orthonormal_subspace.")
 
     B = np.column_stack(dir_list)  # (D, K)
-    Q, _ = np.linalg.qr(B)  # Q is (D, K)
-    P = Q @ Q.T  # (D, D)
+    U, S, _ = np.linalg.svd(B, full_matrices=False)
+
+    tol = max(B.shape) * np.finfo(float).eps * S[0]
+    keep = S > tol
+
+    if not np.any(keep):
+        raise ValueError("Affect subspace has rank 0.")
+
+    Q = U[:, keep]
+    P = Q @ Q.T
     return Q, P
+
 
 
 def generate_control_directions(

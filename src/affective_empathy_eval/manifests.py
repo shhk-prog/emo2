@@ -102,6 +102,7 @@ class RunManifest:
     seed: int = 42
     code_version: str = DEFAULT_CODE_VERSION
     intervention_version: str = DEFAULT_INTERVENTION_VERSION
+    dry_run: bool = False
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -123,6 +124,7 @@ def create_run_manifest(
     seed: int = 42,
     intervention_version: str = DEFAULT_INTERVENTION_VERSION,
     model_revision: str = "main",
+    dry_run: bool = False,
 ) -> RunManifest:
     from datetime import datetime, timezone
     import subprocess
@@ -157,6 +159,7 @@ def create_run_manifest(
         seed=seed,
         code_version=DEFAULT_CODE_VERSION,
         intervention_version=intervention_version,
+        dry_run=dry_run,
     )
 
 
@@ -170,10 +173,11 @@ def is_manifest_matching(
     expected_dataset_hash: Optional[str] = None,
     expected_code_version: Optional[str] = None,
     expected_model_revision: Optional[str] = None,
+    expected_dry_run: Optional[bool] = None,
 ) -> bool:
     """
     キャッシュの有効性を検証する。
-    旧設定・旧コード・旧データセットや旧 replacement のキャッシュと新パイプライン成果物の混在を防止。
+    旧設定・旧コード・旧データセット・dry-run結果のキャッシュと新パイプライン成果物の混在を防止。
     """
     if not os.path.exists(manifest_path):
         return False
@@ -181,6 +185,9 @@ def is_manifest_matching(
     try:
         with open(manifest_path, "r", encoding="utf-8") as f:
             data = json.load(f)
+
+        if expected_dry_run is not None and data.get("dry_run", False) != expected_dry_run:
+            return False
 
         if expected_model_name and data.get("model_name") != expected_model_name:
             return False
@@ -209,5 +216,6 @@ def is_manifest_matching(
         return True
     except Exception:
         return False
+
 
 

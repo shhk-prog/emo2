@@ -48,7 +48,7 @@ ignore = []
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 norecursedirs = ["scratch", "archive", "v2/scripts", "v3/scripts", ".venv", ".git"]
 filterwarnings = [
     "ignore::DeprecationWarning",

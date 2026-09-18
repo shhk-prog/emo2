@@ -24,6 +24,8 @@ from affective_empathy_eval.likelihood import (
 from affective_empathy_eval.models.adapters import get_model_adapter
 from affective_empathy_eval.models.hooks import ActivationHookManager, HookPoint
 from affective_empathy_eval.data import describe_loaded_frame
+from affective_empathy_eval.manifests import create_run_manifest, is_manifest_matching
+
 from affective_empathy_eval.models.registry import (
     add_model_selection_args,
     get_registry,
@@ -513,16 +515,22 @@ def main():
 
     for fam_id, fam_cfg in target_models.items():
         out_path = raw_dir / f"v2_recovery_{fam_id}.json"
+        manifest_path = raw_dir / f"manifest_recovery_{fam_id}.json"
         if out_path.exists() and not args.dry_run:
             try:
                 with open(out_path, "r", encoding="utf-8") as f:
                     cached = json.load(f)
                 if cached and "self" in cached and "reader" in cached:
-                    logger.info(f"Loaded existing results for {fam_id} from {out_path}. Skipping computation.")
-                    all_recovery_results[fam_id] = cached
-                    continue
-            except Exception:
-                pass
+                    if not cached.get("dry_run", False) and is_manifest_matching(
+                        str(manifest_path),
+                        expected_model_name=fam_cfg.family_name,
+                        expected_dry_run=False,
+                    ):
+                        logger.info(f"Loaded existing results for {fam_id} from {out_path}. Skipping computation.")
+                        all_recovery_results[fam_id] = cached
+                        continue
+            except Exception as e:
+                logger.warning(f"Cache check failed for {fam_id}: {e}")
 
         logger.info(f"--- Running Recovery Patching for Family: {fam_id} ---")
         res = run_recovery_patching_for_family(
@@ -534,6 +542,7 @@ def main():
             n_boot=n_boot,
             seed=v2_config.get("seed", 42),
         )
+        res["dry_run"] = bool(args.dry_run)
         all_recovery_results[fam_id] = res
 
         out_path = raw_dir / f"v2_recovery_{fam_id}.json"
@@ -541,6 +550,17 @@ def main():
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(res, f, indent=2)
         logger.info(f"Saved family recovery result to {out_path}")
+
+        # Manifest 保存
+        manifest = create_run_manifest(
+            run_type="v2_recovery",
+            model_name=fam_cfg.family_name,
+            config={"family_id": fam_id, "dry_run": bool(args.dry_run)},
+            metadata={"best_self_layer": res["self"]["best_recovery_layer"]},
+            dry_run=bool(args.dry_run),
+        )
+        manifest.save(str(raw_dir / f"manifest_recovery_{fam_id}.json"))
+
         logger.info(
             f"  [Self] Best Recovery: Layer {res['self']['best_recovery_layer']} (d={res['self']['best_recovery_depth']:.2f}) -> {res['self']['max_recovery_ratio']*100:.1f}%"
         )

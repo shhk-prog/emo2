@@ -359,7 +359,8 @@ def run_real_path_mediation(
 
     H_med = np.array(h_med_disc)
     dirs = extract_conditional_directions(H_med, y_v_disc, y_a_disc, alpha=1.0)
-    Q_sub = compute_orthonormal_subspace([dirs["direction_v"], dirs["direction_a"]])  # (D, 2)
+    Q_sub, _ = compute_orthonormal_subspace(dirs["direction_v"], dirs["direction_a"])  # (D, 2)
+
 
     # matched-neutral 表現の抽出 (Discovery split)
     disc_neu_hiddens = []
@@ -521,24 +522,26 @@ def main():
     full_output = None
 
     out_raw = raw_dir / f"v3_path_mediation_{fam_key}.json"
+    manifest_path = raw_dir / f"manifest_rq3_{fam_key}.json"
+
     if out_raw.exists() and not args.dry_run:
         try:
             with open(out_raw, "r", encoding="utf-8") as f:
                 cached = json.load(f)
             if cached and "confirmation" in cached:
-                cached_manifest = cached.get("manifest", {})
-                if is_manifest_matching(
-                    cached_manifest,
-                    target_model_id,
+                if not cached.get("dry_run", False) and is_manifest_matching(
+                    str(manifest_path),
+                    expected_model_name=target_model_id,
                     expected_intervention_version="v3_additive_injection_v2",
-                    expected_candidate_space="81_va",
+                    expected_dry_run=False,
                 ):
                     logger.info(f"Loaded existing results from {out_raw}. Skipping computation.")
                     full_output = cached
                     discovery_res = cached["discovery"]
                     confirmation_res = cached["confirmation"]
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Cache check failed for {out_raw}: {e}")
+
 
     if full_output is None or discovery_res is None or confirmation_res is None:
         if args.dry_run:
@@ -567,6 +570,7 @@ def main():
             "dry_run": bool(args.dry_run),
             "n_dataset_total": int(len(df)),
             "n_intervention_samples": n_intervention,
+            "dry_run": bool(args.dry_run),
             "discovery": discovery_res,
             "confirmation": confirmation_res,
         }
@@ -592,7 +596,9 @@ def main():
             "valence_attenuation_ratio": confirmation_res["valence"]["attenuation_ratio"]["mean"],
             "arousal_attenuation_ratio": confirmation_res["arousal"]["attenuation_ratio"]["mean"],
         },
+        dry_run=bool(args.dry_run),
     )
+
     manifest.save(raw_dir / f"manifest_rq3_{fam_key}.json")
     logger.info(f"Saved RQ3 manifest to {raw_dir / f'manifest_rq3_{fam_key}.json'}")
 

@@ -8,8 +8,6 @@
 
 ## 1. 中心リサーチクエスチョン (Central RQ)
 
-## 1. 中心リサーチクエスチョン (Central RQ)
-
 > **Central RQ**:  
 > **How are affect-relevant internal representations coupled to LLM self-reports, and how does this relationship vary across tasks, post-training, and stages of computation?**  
 > （LLMの情動関連内部表現は自己報告とどのように結びついており、その関係はタスク、事後学習（post-training）、および計算過程を通じてどのように変化するのか。）
@@ -37,12 +35,12 @@ Covariation  →  Representation & Overlap  →  Reorganization  →  Causal Lev
 |---|---|---|---|---|
 | **Behavioral** | **Covariation** (相関・導入現象) | §3. Behavioral Characterization: Alignment and Coupling between Reader and Self Perspectives | *Do Reader and Self covary in their responses to controlled affective changes?* | 制御された情動変化に対する出力レベルの連動（$\Delta$ カップリング） |
 | **V1** | **Representation & Overlap** (表現・因果重複) | §4. Shared Representation and Causal Overlap in Base Models | *What do Reader and Self share internally?* | 同一基底モデル内における因果関連表現と介入感受性サイトの部分的重複 |
-| **V2** | **Reorganization** (事後学習関連再編) | §5. Post-training-Associated Reorganization of Affect-Relevant Computations | *How does post-training associate with computational reorganization?* | 同一ファミリーの Base ↔ Instruct 幾何・共有性・分布回復（非因果的再編） |
+| **V2** | **Reorganization** (事後学習関連再編) | §5. Post-training-Associated Reorganization of Affect-Relevant Computations | *How does post-training associate with computational reorganization?* | 同一ファミリーの Base ↔ Instruct 幾何・共有性・分布回復（モデル内は活性化因果介入、モデル間は観察的再編） |
 | **V3** | **Causal Leverage** (因果的利用可能性と必然性) | §6. From Decodability to Causal Leverage: Sufficiency, Specificity, and Spatiotemporal Dynamics | *Where does affect-relevant information exert measurable causal leverage over self-report?* | Instruct 側の層 × 生成段階（十分性・特異性・内生関連性の局在） |
 
 - **Behavioral** (`behavioral/`): EmoBank 3-Way と AIPsy 4-Split。4軸は correspondence, Sensitivity, Dose-response / Specificity, Reader–Self coupling（刺激変化に対する $\Delta$ カップリング $\text{corr}(\Delta_R, \Delta_S)$ を Primary 化）。[`behavioral/README.md`](behavioral/README.md)
 - **V1** (`v1/`): decodability / 幾何（E1/E2）、意味統制感度（Phase B）、因果マップと交換可能性（E3/E4）、課題特異化（E6）。同一モデル内での部分的重複（partially overlapping causally relevant representations and intervention-sensitive sites）を検証。[`v1/README.md`](v1/README.md)
-- **V2** (`v2/`): 幾何再編、ピーク解離、2D OT 分布回復（RQ1〜RQ4。直交 Procrustes アラインメント統制）。Base–Instruct 条件間の差異を「post-training-associated reorganization」として客観的に記述。[`v2/README.md`](v2/README.md)
+- **V2** (`v2/`): 幾何再編、ピーク解離、2D OT 分布回復（RQ1〜RQ4。直交 Procrustes アラインメント統制）。各モデル内部の活性化操作（RQ3/RQ4）は**モデル内因果介入（within-model causal characterization）**として同定し、Base と Instruct のモデル間比較は**事後学習に伴う再編（post-training-associated reorganization）**として観察的に帰属（訓練過程そのものへの直接的因果介入ではないため過大主張を避ける）。[`v2/README.md`](v2/README.md)
 - **V3** (`v3/`): AIPsy matched-neutral 192 pair での状態誘導ゲート、時空間 4-Map、mediated attenuation、確証的再現。
   - **Direction Injection**: 加算注入（$h + \alpha \sigma_h \hat{d}$）による十分性と因果的影響力（*sufficiency / causal leverage*）
   - **Subspace Removal**: 部分空間除去による内生的な関連性（*necessity / endogenous relevance*）

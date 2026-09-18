@@ -1,8 +1,9 @@
 # V2 Stage: 事後学習に伴う幾何・因果の再編
 ## 論文対応: Section 5. Post-training-Associated Reorganization of Affect-Relevant Computations
 
-> **重要な解釈規約 (Non-Causal Interpretation of Post-Training)**:  
-> 本ステージにおける Base と Instruct の比較は、モデルファミリー間の事前学習後アーティファクト比較（observational comparison across model artifacts）であり、直接的な訓練介入実験ではありません。したがって、post-training の影響を「因果効果 (causal effect)」と過大解釈・表現してはならず、**「事後学習に伴う再編 (post-training-associated reorganization)」** として記述します。
+> **重要な解釈規約 (Within-Model Causality vs. Across-Model Reorganization)**:  
+> 1. **モデル内因果介入 (Within-Model Causal Intervention)**: RQ3（方向介入）および RQ4（分布復元パッチング）における隠れ状態の直接操作は、固定された個々のモデル内部における**純粋な因果的特徴づけ（causal characterization）**です。プローブ係数等の観察量のみに依存せず、実介入に対するモデル応答の変化を測定します。  
+> 2. **モデル間比較の観察的帰属 (Across-Model Observational Attribution)**: Base と Instruct のモデル間比較は、事前学習後アーティファクト間の比較（observational comparison across model artifacts）であり、直接的な訓練介入（training ablation）ではありません。したがって、モデル間の差分を「事後学習の因果効果 (causal effect of post-training)」と過大解釈・表現してはならず、**「事後学習に伴う再編 (post-training-associated reorganization)」** として客観的に記述します。
 
 V2 は、**同一ファミリーの Base と Instruct** を対にして、情動情報の表現幾何と因果回路が事後学習（post-training）に伴ってどう再編されるかを測る。
 
@@ -76,9 +77,9 @@ $$
 \Delta d_{\mathrm{peak}} = d_C - d_D
 $$
 
-因果力 $C(l)$ は実介入（活性化の差し替え / 差分注入）で測る。プローブ係数の大きさで代用しない。
-
-条件は Family × (Base, Instruct) × (Reader, Self)。matched-plain 形式も走らせ、chat template だけの見かけの差かを見る。
+- **モデル内因果介入**: 各モデル内での因果力 $C(l)$ は、情動方向活性化の実介入（差分注入：$\hat{d}_V, \hat{d}_A$ および直交・直交ランダム統制方向の加算注入）に対する出力変位で測る。プローブ回帰係数の大きさ等、受動的観察量で代用しない。
+- **モデル間比較**: Base と Instruct の間で $d_C$ や $\Delta d_{\mathrm{peak}}$ を比較し、事後学習に伴う因果回路の再編（post-training-associated reorganization of causal peak）を評価する。
+- 条件は Family × (Base, Instruct) × (Reader, Self)。matched-plain 形式も走らせ、chat template だけの見かけの差かを見る。
 
 ### 3.4 RQ4: Distribution Recovery Patching
 

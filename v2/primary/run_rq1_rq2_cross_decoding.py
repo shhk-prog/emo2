@@ -23,6 +23,7 @@ except ImportError:  # --dry-run は transformers 未導入環境でも起動で
     AutoTokenizer = None  # type: ignore[misc, assignment]
 
 from affective_empathy_eval.data import describe_loaded_frame, dry_run_va_label_vector
+from affective_empathy_eval.manifests import create_run_manifest, is_manifest_matching
 from affective_empathy_eval.geometry import (
     compute_center_of_mass,
     compute_peak_depth,
@@ -409,16 +410,23 @@ def main():
 
     for fam_id, fam_cfg in target_models.items():
         fam_out_path = raw_dir / f"v2_geometry_{fam_id}.json"
+        manifest_path = raw_dir / f"manifest_geometry_{fam_id}.json"
         if fam_out_path.exists() and not args.dry_run:
             try:
                 with open(fam_out_path, "r", encoding="utf-8") as f:
                     cached_res = json.load(f)
                 if cached_res and "relative_depths" in cached_res:
-                    logger.info(f"Loaded existing results for {fam_id} from {fam_out_path}. Skipping computation.")
-                    all_family_results[fam_id] = cached_res
-                    continue
-            except Exception:
-                pass
+                    if not cached_res.get("dry_run", False) and is_manifest_matching(
+                        str(manifest_path),
+                        expected_model_name=fam_cfg.family_name,
+                        expected_dry_run=False,
+                    ):
+                        logger.info(f"Loaded existing results for {fam_id} from {fam_out_path}. Skipping computation.")
+                        all_family_results[fam_id] = cached_res
+                        continue
+            except Exception as e:
+                logger.warning(f"Cache check failed for {fam_id}: {e}")
+
 
         eff_num_layers = min(fam_cfg.num_layers, 4) if args.dry_run else fam_cfg.num_layers
         eff_hidden_dim = min(fam_cfg.hidden_dim, 64) if args.dry_run else fam_cfg.hidden_dim
@@ -497,6 +505,7 @@ def main():
             num_layers=eff_num_layers,
             ridge_alpha=v2_config["decoding"]["ridge_alpha"],
         )
+        fam_res["dry_run"] = bool(args.dry_run)
         all_family_results[fam_id] = fam_res
 
         # 各ファミリーごとの結果保存
@@ -505,6 +514,17 @@ def main():
         with open(fam_out_path, "w", encoding="utf-8") as f:
             json.dump(fam_res, f, indent=2)
         logger.info(f"Saved family results to {fam_out_path}")
+
+        # Manifest 保存
+        manifest = create_run_manifest(
+            run_type="v2_geometry",
+            model_name=fam_cfg.family_name,
+            config={"family_id": fam_id, "dry_run": bool(args.dry_run)},
+            metadata={"num_layers": eff_num_layers},
+            dry_run=bool(args.dry_run),
+        )
+        manifest.save(str(raw_dir / f"manifest_geometry_{fam_id}.json"))
+
 
     # 4ファミリー統合要約（Bootstrap CI & Paired comparison）
     summary_path = derived_dir / "v2_cross_family_summary.json"

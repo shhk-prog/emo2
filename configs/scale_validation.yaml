@@ -1,0 +1,28 @@
+# 外部スケール検証・アブレーション実験設定ファイル (Mistral 7B)
+# 本設定は Primary 1-1.5B コホートから完全に分離された Ablation / Supplementary 用です。
+
+description: "Scale validation and ablation: 7B regime (Base vs. Instruct)"
+
+model:
+  family: "mistral"
+  family_name: "Mistral"
+  scale: "7B"
+  base: "mistralai/Mistral-7B-v0.3"
+  instruct: "mistralai/Mistral-7B-Instruct-v0.3"
+  adapter: "mistral"
+  role: "scale_validation"
+  enabled: true
+
+dataset:
+  path: "data/processed/stimuli_matched_clean.csv"
+  train_ratio: 0.7
+
+decoding:
+  ridge_alpha: 1.0
+
+statistics:
+  n_boot: 1000
+
+output:
+  raw_dir: "results/ablation/scale_validation/raw"
+  derived_dir: "results/ablation/scale_validation/derived"

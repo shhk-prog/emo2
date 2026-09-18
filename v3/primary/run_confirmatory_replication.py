@@ -32,9 +32,12 @@ from affective_empathy_eval.likelihood import (
     compute_expected_va,
     compute_sequence_likelihoods_for_candidates,
 )
-from affective_empathy_eval.models.adapters import get_model_adapter
-from affective_empathy_eval.models.hooks import ActivationHookManager, HookPoint
-from affective_empathy_eval.models.registry import get_registry
+from affective_empathy_eval.models.registry import (
+    add_model_selection_args,
+    get_registry,
+    resolve_architecture_dims,
+    resolve_models_from_args,
+)
 from affective_empathy_eval.prompts import (
     TaskType,
     build_prompt,
@@ -49,12 +52,13 @@ logger = logging.getLogger(__name__)
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run V3 Confirmatory Replication across Llama, Gemma, Mistral")
+    parser = argparse.ArgumentParser(description="Run V3 Confirmatory Replication across families")
     parser.add_argument("--config", type=str, default="configs/v3_experiments.yaml", help="Path to V3 config")
     parser.add_argument("--models-config", type=str, default="configs/models.yaml", help="Path to models config")
     parser.add_argument("--dry-run", action="store_true", help="Run in mock/dry-run mode")
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu", help="Device to use")
     parser.add_argument("--subsample", type=int, default=20, help="Number of pairs per model for confirmatory evaluation")
+    add_model_selection_args(parser)
     return parser.parse_args()
 
 
@@ -488,14 +492,12 @@ def main():
     derived_dir.mkdir(parents=True, exist_ok=True)
 
     family_results = {}
-    seeds = {"Llama": 301, "Gemma": 302, "Mistral": 303}
+    seeds = {"Llama": 301, "Gemma": 302, "OLMo": 303, "Mistral": 304}
 
     for item in conf_models:
         fam = item["family"]
         model_id = item["model_id"]
-        families_dict = models_cfg.get("families", models_cfg.get("models", {}))
-        model_meta = families_dict.get(fam, {})
-        num_layers = model_meta.get("num_layers", model_meta.get("num_hidden_layers", 28))
+        num_layers = resolve_architecture_dims(model_id)[0]
 
         if args.dry_run:
             logger.info(f"Simulating confirmatory replication for {fam} (--dry-run)...")

@@ -1,61 +1,55 @@
-# 4モデルファミリー定義設定ファイル
-families:
-  Qwen:
-    family_name: "Qwen 2.5"
-    scale: "1.5B"
-    num_layers: 28
-    hidden_dim: 1536
-    models:
-      base:
-        model_id: "Qwen/Qwen2.5-1.5B"
-        format: "plain"
-      instruct:
-        model_id: "Qwen/Qwen2.5-1.5B-Instruct"
-        format: "chat"
-    architecture: "qwen2"
-    role: "primary_exploration"
+# 共通モデル定義設定ファイル
+# 本ファイルがリポジトリ全体の唯一のモデル定義の正本です。
+# コード側への MODEL_IDS のハードコードは禁止されています。
 
-  Llama:
-    family_name: "Llama 3.2"
-    scale: "1B"
-    num_layers: 16
-    hidden_dim: 2048
-    models:
-      base:
-        model_id: "meta-llama/Llama-3.2-1B"
-        format: "plain"
-      instruct:
-        model_id: "meta-llama/Llama-3.2-1B-Instruct"
-        format: "chat"
-    architecture: "llama"
-    role: "replication"
+model_sets:
+  primary_small:
+    description: "Primary 1-1.5B cross-family cohort"
+    qwen:
+      family: "qwen"
+      family_name: "Qwen 2.5"
+      scale: "1.5B"
+      base: "Qwen/Qwen2.5-1.5B"
+      instruct: "Qwen/Qwen2.5-1.5B-Instruct"
+      adapter: "qwen"
+      role: "primary_exploration"
+      enabled: true
+    llama:
+      family: "llama"
+      family_name: "Llama 3.2"
+      scale: "1.23B"
+      base: "meta-llama/Llama-3.2-1B"
+      instruct: "meta-llama/Llama-3.2-1B-Instruct"
+      adapter: "llama"
+      role: "replication"
+      enabled: true
+    gemma:
+      family: "gemma"
+      family_name: "Gemma 3"
+      scale: "1B"
+      base: "google/gemma-3-1b-pt"
+      instruct: "google/gemma-3-1b-it"
+      adapter: "gemma3"
+      role: "replication"
+      enabled: true
+    olmo:
+      family: "olmo"
+      family_name: "OLMo 2"
+      scale: "1B"
+      base: "allenai/OLMo-2-0425-1B"
+      instruct: "allenai/OLMo-2-0425-1B-Instruct"
+      adapter: "olmo2"
+      role: "replication"
+      enabled: true
 
-  Gemma:
-    family_name: "Gemma 2"
-    scale: "2B"
-    num_layers: 26
-    hidden_dim: 2304
-    models:
-      base:
-        model_id: "google/gemma-2-2b"
-        format: "plain"
-      instruct:
-        model_id: "google/gemma-2-2b-it"
-        format: "chat"
-    architecture: "gemma2"
-    role: "replication"
-
-  Mistral:
-    family_name: "Mistral"
-    scale: "7B"
-    num_layers: 32
-    hidden_dim: 4096
-    models:
-      base:
-        model_id: "mistralai/Mistral-7B-v0.1"
-        format: "plain"
-      instruct:
-        model_id: "mistralai/Mistral-7B-Instruct-v0.2"
-        format: "chat"
-    architecture: "mistral"
-    role: "replication"
+  scale_validation:
+    description: "Larger-scale robustness replication (Supplementary)"
+    mistral:
+      family: "mistral"
+      family_name: "Mistral"
+      scale: "7B"
+      base: "mistralai/Mistral-7B-v0.3"
+      instruct: "mistralai/Mistral-7B-Instruct-v0.3"
+      adapter: "mistral"
+      role: "scale_validation"
+      enabled: true

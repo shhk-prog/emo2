@@ -55,8 +55,6 @@ def test_qr_orthonormalization_and_centered_projection():
 
 def test_generation_stage_tokens_ordering():
     """Verifies that get_generation_stage_tokens resolves valid semantic stages in strict monotonic order."""
-    from transformers import AutoTokenizer
-
     class MockTokenizer:
         def encode(self, text, add_special_tokens=False):
             # Simple space / char-based mock tokenization

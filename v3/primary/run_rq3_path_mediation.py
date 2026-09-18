@@ -32,8 +32,12 @@ from affective_empathy_eval.likelihood import (
     compute_sequence_likelihoods_for_candidates,
 )
 from affective_empathy_eval.models.adapters import get_model_adapter
-from affective_empathy_eval.models.hooks import ActivationHookManager, HookPoint
-from affective_empathy_eval.models.registry import get_registry
+from affective_empathy_eval.models.registry import (
+    add_model_selection_args,
+    get_registry,
+    resolve_architecture_dims,
+    resolve_models_from_args,
+)
 from affective_empathy_eval.prompts import (
     TaskType,
     build_prompt,
@@ -48,12 +52,13 @@ logger = logging.getLogger(__name__)
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run V3 Path Mediation Analysis (Qwen)")
+    parser = argparse.ArgumentParser(description="Run V3 Path Mediation Analysis")
     parser.add_argument("--config", type=str, default="configs/v3_experiments.yaml", help="Path to V3 config")
     parser.add_argument("--models-config", type=str, default="configs/models.yaml", help="Path to models config")
     parser.add_argument("--dry-run", action="store_true", help="Run in mock/dry-run mode")
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu", help="Device to use")
     parser.add_argument("--subsample", type=int, default=40, help="Number of pairs per split for evaluation")
+    add_model_selection_args(parser)
     return parser.parse_args()
 
 
@@ -119,12 +124,22 @@ def simulate_path_mediation_confirmation(
     return {
         "mediator_layer": mediator_layer,
         "valence": {
+            "total_affective_shift": {"mean": te_v_mean, "ci_lower": te_v_low, "ci_upper": te_v_high},
+            "residual_shift_after_blocking": {"mean": nde_v_mean, "ci_lower": nde_v_low, "ci_upper": nde_v_high},
+            "mediated_attenuation": {"mean": nie_v_mean, "ci_lower": nie_v_low, "ci_upper": nie_v_high},
+            "attenuation_ratio": {"mean": ratio_v_mean, "ci_lower": ratio_v_low, "ci_upper": ratio_v_high},
+            # Backward compatibility aliases
             "total_effect": {"mean": te_v_mean, "ci_lower": te_v_low, "ci_upper": te_v_high},
             "natural_direct_effect": {"mean": nde_v_mean, "ci_lower": nde_v_low, "ci_upper": nde_v_high},
             "natural_indirect_effect": {"mean": nie_v_mean, "ci_lower": nie_v_low, "ci_upper": nie_v_high},
             "mediation_ratio": {"mean": ratio_v_mean, "ci_lower": ratio_v_low, "ci_upper": ratio_v_high},
         },
         "arousal": {
+            "total_affective_shift": {"mean": te_a_mean, "ci_lower": te_a_low, "ci_upper": te_a_high},
+            "residual_shift_after_blocking": {"mean": nde_a_mean, "ci_lower": nde_a_low, "ci_upper": nde_a_high},
+            "mediated_attenuation": {"mean": nie_a_mean, "ci_lower": nie_a_low, "ci_upper": nie_a_high},
+            "attenuation_ratio": {"mean": ratio_a_mean, "ci_lower": ratio_a_low, "ci_upper": ratio_a_high},
+            # Backward compatibility aliases
             "total_effect": {"mean": te_a_mean, "ci_lower": te_a_low, "ci_upper": te_a_high},
             "natural_direct_effect": {"mean": nde_a_mean, "ci_lower": nde_a_low, "ci_upper": nde_a_high},
             "natural_indirect_effect": {"mean": nie_a_mean, "ci_lower": nie_a_low, "ci_upper": nie_a_high},
@@ -164,18 +179,30 @@ def run_real_path_mediation(
     num_layers = fam_cfg.num_layers
     relative_depths = [l / (num_layers - 1) if num_layers > 1 else 0.0 for l in range(num_layers)]
 
-    # 1. 厳格な 50/50 Data Splitting (seed 42)
-    rng = np.random.default_rng(42)
-    indices = np.arange(len(df))
-    rng.shuffle(indices)
-    half = len(df) // 2
-    disc_df = df.iloc[indices[:half]].head(subsample).copy().reset_index(drop=True)
-    conf_df = df.iloc[indices[half:]].head(subsample).copy().reset_index(drop=True)
+    # 1. 厳格な 50/50 Data Splitting (seed 42, pair_id に基づく Group split)
+    seed = 42
+    rng = np.random.RandomState(seed)
+    if "pair_id" in df.columns and df["pair_id"].nunique() > 1:
+        unique_pairs = df["pair_id"].unique()
+        rng.shuffle(unique_pairs)
+        half_pairs = len(unique_pairs) // 2
+        disc_pairs = set(unique_pairs[:half_pairs])
+        disc_df = df[df["pair_id"].isin(disc_pairs)].head(subsample).copy().reset_index(drop=True)
+        conf_df = df[~df["pair_id"].isin(disc_pairs)].head(subsample).copy().reset_index(drop=True)
+        logger.info(f"Group split on pair_id: {len(disc_pairs)} pairs Discovery ({len(disc_df)} samples), {len(unique_pairs) - half_pairs} pairs Confirmation ({len(conf_df)} samples)")
+    else:
+        indices = rng.permutation(len(df))
+        half = len(df) // 2
+        disc_df = df.iloc[indices[:half]].head(subsample).copy().reset_index(drop=True)
+        conf_df = df.iloc[indices[half:]].head(subsample).copy().reset_index(drop=True)
+        logger.info(f"Index split: {len(disc_df)} samples Discovery, {len(conf_df)} samples Confirmation")
 
     candidates = build_va_candidates()
 
-    # 2. Discovery: ピーク層および Mediator 層の自動同定
-    logger.info(f"Running Discovery stage on {len(disc_df)} samples across {num_layers} layers...")
+    # 2. Discovery: ピーク層および Mediator 層の自動同定（探索的 site selection）
+    # 注: Discovery サブセット内での方向推定と評価は候補層スクリーニングであり、
+    # 最終的な媒介推論は完全に独立した Confirmation サブセットで実行されます。
+    logger.info(f"Running Discovery stage (exploratory site selection) on {len(disc_df)} samples across {num_layers} layers...")
     d_stim_profile = []
     c_gen_profile = []
 
@@ -216,8 +243,7 @@ def run_real_path_mediation(
             r2 = 0.0
         d_stim_profile.append(r2)
 
-        # 実 activation intervention による因果的変位 C(l) = |Delta Report(l)| の実測
-        # Discovery subset の代表サンプルに対して層 l でステアリング介入 (alpha=1.0) を実行
+        # 実 activation intervention による因果的変位 C(l) = |Delta Report(l)| の実測 (探索的スクリーニング)
         eval_k = min(8, len(disc_texts))
         delta_reports = []
         if H_s.shape[0] >= 2 and np.std(y_v_disc) > 1e-4:
@@ -304,9 +330,41 @@ def run_real_path_mediation(
     H_med = np.array(h_med_disc)
     dirs = extract_conditional_directions(H_med, disc_df["reader_V"].values, disc_df["reader_A"].values, alpha=1.0)
     Q_sub = compute_orthonormal_subspace([dirs["direction_v"], dirs["direction_a"]])  # (D, 2)
-    h_med_mean = np.mean(H_med, axis=0)
 
-    # Confirmation セットで自然効果 (TE) と Mediator 遮断効果 (NDE) を実測
+    # matched-neutral 表現の抽出 (Discovery split)
+    disc_neu_hiddens = []
+    with torch.no_grad():
+        for _, row in disc_df.iterrows():
+            neu_text = None
+            if "neutral_text" in row and str(row["neutral_text"]).strip():
+                neu_text = str(row["neutral_text"])
+            elif "text_neutral" in row and str(row["text_neutral"]).strip():
+                neu_text = str(row["text_neutral"])
+            elif "pair_id" in disc_df.columns:
+                pair_matches = df[(df["pair_id"] == row["pair_id"]) & (df.get("condition", pd.Series()) == "neutral")]
+                if len(pair_matches) > 0:
+                    neu_text = str(pair_matches.iloc[0]["text"])
+            if neu_text is None and row.get("condition") == "neutral":
+                neu_text = str(row["text"])
+            if neu_text is not None and len(neu_text.strip()) > 0:
+                p_neu = build_prompt(neu_text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
+                enc_neu = encode_prompt_canonical(tokenizer, p_neu, device=device)
+                anchors_neu = find_semantic_anchors(enc_neu["input_ids"][0].tolist(), tokenizer, neu_text)
+                with ActivationHookManager(adapter) as hook_mgr:
+                    hook_mgr.register_capture_hook(
+                        layer_idx=mediator_layer,
+                        hook_point=HookPoint.POST_MLP_RESID,
+                        token_indices=anchors_neu["prompt_end"],
+                        key="h_med_neu",
+                    )
+                    _ = model(**enc_neu)
+                    disc_neu_hiddens.append(hook_mgr.captured_activations["h_med_neu"].cpu().float().numpy().ravel())
+    if len(disc_neu_hiddens) > 0:
+        mu_neu = np.mean(disc_neu_hiddens, axis=0)
+    else:
+        mu_neu = np.mean(H_med, axis=0)
+
+    # Confirmation セットで自然な情動変位 (Total affective shift) と Mediator 遮断後の残差変位 (Residual shift) を実測
     te_v_list, te_a_list = [], []
     nde_v_list, nde_a_list = [], []
 
@@ -339,7 +397,7 @@ def run_real_path_mediation(
                 # neutral baseline がない場合はエラーを送出（Primaryでは固定5.0へのサイレントfallbackは禁止）
                 raise ValueError(f"Missing matched-neutral baseline for stimulus: {row.get('stimulus_id', row.get('id', 'unknown'))}")
 
-            # a. Clean baseline (TE: 自己報告の情動変位 |ev_clean - ev_neu|)
+            # a. Clean baseline (Total affective shift: 自己報告の情動変位 |ev_clean - ev_neu|)
             _, probs_clean = compute_sequence_likelihoods_for_candidates(
                 model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device, batch_size=81
             )
@@ -349,7 +407,8 @@ def run_real_path_mediation(
             te_v_list.append(te_v)
             te_a_list.append(te_a)
 
-            # b. Mediator 遮断 (NDE: 情動部分空間除去下の変位 |ev_abl - ev_neu|)
+            # b. Mediator 遮断 (Residual shift after mediator blocking: 情動部分空間除去下の変位 |ev_abl - ev_neu|)
+            # h' = h - Q Q^T (h - mu_neu)
             with ActivationHookManager(adapter) as hook_mgr:
                 hook_mgr.register_capture_hook(
                     layer_idx=mediator_layer,
@@ -360,7 +419,7 @@ def run_real_path_mediation(
                 _ = model(**enc)
                 h_conf = hook_mgr.captured_activations["h_conf"].cpu().float().numpy().ravel()
 
-            h_centered = h_conf - h_med_mean
+            h_centered = h_conf - mu_neu
             proj = (h_centered @ Q_sub) @ Q_sub.T
             h_abl = h_conf - proj
             patch_tensor = torch.tensor(h_abl, dtype=torch.float32, device=device)
@@ -405,12 +464,22 @@ def run_real_path_mediation(
     confirmation_res = {
         "mediator_layer": mediator_layer,
         "valence": {
+            "total_affective_shift": {"mean": te_v_mean, "ci_lower": te_v_low, "ci_upper": te_v_high},
+            "residual_shift_after_blocking": {"mean": nde_v_mean, "ci_lower": nde_v_low, "ci_upper": nde_v_high},
+            "mediated_attenuation": {"mean": nie_v_mean, "ci_lower": nie_v_low, "ci_upper": nie_v_high},
+            "attenuation_ratio": {"mean": ratio_v_mean, "ci_lower": ratio_v_low, "ci_upper": ratio_v_high},
+            # Backward compatibility aliases
             "total_effect": {"mean": te_v_mean, "ci_lower": te_v_low, "ci_upper": te_v_high},
             "natural_direct_effect": {"mean": nde_v_mean, "ci_lower": nde_v_low, "ci_upper": nde_v_high},
             "natural_indirect_effect": {"mean": nie_v_mean, "ci_lower": nie_v_low, "ci_upper": nie_v_high},
             "mediation_ratio": {"mean": ratio_v_mean, "ci_lower": ratio_v_low, "ci_upper": ratio_v_high},
         },
         "arousal": {
+            "total_affective_shift": {"mean": te_a_mean, "ci_lower": te_a_low, "ci_upper": te_a_high},
+            "residual_shift_after_blocking": {"mean": nde_a_mean, "ci_lower": nde_a_low, "ci_upper": nde_a_high},
+            "mediated_attenuation": {"mean": nie_a_mean, "ci_lower": nie_a_low, "ci_upper": nie_a_high},
+            "attenuation_ratio": {"mean": ratio_a_mean, "ci_lower": ratio_a_low, "ci_upper": ratio_a_high},
+            # Backward compatibility aliases
             "total_effect": {"mean": te_a_mean, "ci_lower": te_a_low, "ci_upper": te_a_high},
             "natural_direct_effect": {"mean": nde_a_mean, "ci_lower": nde_a_low, "ci_upper": nde_a_high},
             "natural_indirect_effect": {"mean": nie_a_mean, "ci_lower": nie_a_low, "ci_upper": nie_a_high},
@@ -437,9 +506,21 @@ def main():
 
     bootstrap_n = v3_cfg.get("path_mediation", {}).get("eval_bootstrap_n", 1000)
 
+    target_models = resolve_models_from_args(args, Path(args.models_config))
+    if args.family and args.family.lower() in target_models:
+        fam_key = args.family.lower()
+        target_model_id = target_models[fam_key].instruct_model.model_id
+    elif list(target_models.values()):
+        fam_key = list(target_models.keys())[0]
+        target_model_id = list(target_models.values())[0].instruct_model.model_id
+    else:
+        fam_key = "qwen"
+        target_model_id = v3_cfg.get("target_model", "Qwen/Qwen2.5-1.5B-Instruct")
+
+    num_layers = resolve_architecture_dims(target_model_id)[0]
+
     if args.dry_run:
         logger.info("Executing mock path mediation analysis (--dry-run specified)...")
-        num_layers = 28
         discovery_res = simulate_path_mediation_discovery(df.head(len(df) // 2), num_layers)
         confirmation_res = simulate_path_mediation_confirmation(
             df.tail(len(df) // 2),
@@ -447,18 +528,20 @@ def main():
             bootstrap_n=bootstrap_n,
         )
     else:
-        logger.info(f"Executing REAL path mediation analysis on {v3_cfg['target_model']}...")
+        logger.info(f"Executing REAL path mediation analysis on {target_model_id}...")
         discovery_res, confirmation_res = run_real_path_mediation(
             df=df,
-            model_id=v3_cfg["target_model"],
+            model_id=target_model_id,
             device=args.device,
             subsample=args.subsample,
             bootstrap_n=bootstrap_n,
         )
 
-
-    out_raw = raw_dir / "v3_path_mediation_qwen.json"
+    out_raw = raw_dir / f"v3_path_mediation_{fam_key}.json"
     full_output = {
+        "model_id": target_model_id,
+        "family": fam_key,
+        "num_layers": num_layers,
         "discovery": discovery_res,
         "confirmation": confirmation_res,
     }

@@ -13,6 +13,16 @@
 - **V2 Stage (`v2/`)**: 4モデルファミリー横断（Base ↔ Instruct）幾何・因果結合マッピング、Matched-plain 統制、EMD 分布回復パッチング（RQ1〜RQ4）
 - **V3 Stage (`v3/`)**: 時空間ダイナミクス、実モデル情動状態誘導、共変量統制偏回帰 $\beta(l,t)$、媒介分析（Path Mediation）、確証的再現性（Confirmatory Replication）
 
+### 対象モデル構成（コホート設計）
+モデルサイズ差交絡を排除し、事後学習（Post-training）による幾何・因果再編を純粋に検証するため、狭い 1〜1.5B パラメータ帯の 4 大ファミリーを Primary コホートとしています：
+- **Primary 1–1.5B Cohort (`primary_small`)**:
+  - **Qwen 2.5 (1.5B)**: `Qwen/Qwen2.5-1.5B` $\leftrightarrow$ `Qwen/Qwen2.5-1.5B-Instruct`
+  - **Llama 3.2 (1.23B)**: `meta-llama/Llama-3.2-1B` $\leftrightarrow$ `meta-llama/Llama-3.2-1B-Instruct`
+  - **Gemma 3 (1B)**: `google/gemma-3-1b-pt` $\leftrightarrow$ `google/gemma-3-1b-it`
+  - **OLMo 2 (1B)**: `allenai/OLMo-2-0425-1B` $\leftrightarrow$ `allenai/OLMo-2-0425-1B-Instruct`
+- **Supplementary Scale Validation (`scale_validation`)**:
+  - **Mistral (7B)**: `mistralai/Mistral-7B-v0.3` $\leftrightarrow$ `mistralai/Mistral-7B-Instruct-v0.3`（大規模モデルでの頑健性・再現性検証）
+
 ---
 
 ## 2. 環境構築とセットアップ
@@ -45,7 +55,27 @@ uv pip install -e ".[dev]"
 
 ---
 
-## 4. ディレクトリ構成
+## 4. 統合実験実行 CLI (Quick Start)
+
+共通パッケージ `affective_empathy_eval` の統合ランナーから、全ステージを統一コマンドで実行できます：
+
+```bash
+# Primary 1-1.5B コホートで各ステージを実行
+python -m affective_empathy_eval.run --stage behavioral --model-set primary_small
+python -m affective_empathy_eval.run --stage v1 --model-set primary_small
+python -m affective_empathy_eval.run --stage v2 --model-set primary_small
+python -m affective_empathy_eval.run --stage v3 --model-set primary_small
+
+# Supplementary 7B 外部スケール検証 (Mistral 7B)
+python -m affective_empathy_eval.run --stage v2 --model-set scale_validation
+
+# Dry-run による高速動作検証
+python -m affective_empathy_eval.run --stage v3 --model-set primary_small --dry-run
+```
+
+---
+
+## 5. ディレクトリ構成
 
 ```text
 ├── README.md                      # 本ドキュメント
@@ -53,8 +83,11 @@ uv pip install -e ".[dev]"
 ├── setup_env.sh                   # 仮想環境自動構築スクリプト
 ├── src/
 │   └── affective_empathy_eval/    # 共通基盤ライブラリ (唯一の正本パッケージ)
-├── tests/                         # 共通テストスイート (40/40 100% pass)
-├── configs/                       # 共通設定ファイル (models.yaml, v2/v3 experiments)
+│       ├── run.py                 # 統合実験実行 CLI
+│       ├── models/                # 共通 ModelRegistry & ModelAdapters
+│       └── ...
+├── tests/                         # 共通テストスイート (All tests should pass)
+├── configs/                       # 共通設定ファイル (models.yaml: 唯一のモデル定義正本)
 ├── behavioral/                    # 行動実験 Primary パイプライン & 分析
 ├── v1/                            # V1 表現幾何・Prompt-End 因果パッチング実験
 ├── v2/                            # V2 幾何・因果結合・分布回復実験 (Primary: v2/primary/)

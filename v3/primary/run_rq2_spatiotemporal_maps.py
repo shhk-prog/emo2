@@ -29,9 +29,12 @@ from affective_empathy_eval.likelihood import (
     compute_expected_va,
     compute_sequence_likelihoods_for_candidates,
 )
-from affective_empathy_eval.models.adapters import get_model_adapter
-from affective_empathy_eval.models.hooks import ActivationHookManager, HookPoint
-from affective_empathy_eval.models.registry import get_registry
+from affective_empathy_eval.models.registry import (
+    add_model_selection_args,
+    get_registry,
+    resolve_architecture_dims,
+    resolve_models_from_args,
+)
 from affective_empathy_eval.prompts import (
     TaskType,
     build_prompt,
@@ -45,12 +48,13 @@ logger = logging.getLogger(__name__)
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run V3 Spatiotemporal 4-Map Analysis (Qwen)")
+    parser = argparse.ArgumentParser(description="Run V3 Spatiotemporal 4-Map Analysis")
     parser.add_argument("--config", type=str, default="configs/v3_experiments.yaml", help="Path to V3 config")
     parser.add_argument("--models-config", type=str, default="configs/models.yaml", help="Path to models config")
     parser.add_argument("--dry-run", action="store_true", help="Run in mock/dry-run mode")
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu", help="Device to use")
-    parser.add_argument("--subsample", type=int, default=30, help="Number of pairs to evaluate across 28 layers x 6 stages")
+    parser.add_argument("--subsample", type=int, default=30, help="Number of pairs to evaluate across layers x stages")
+    add_model_selection_args(parser)
     return parser.parse_args()
 
 
@@ -391,22 +395,34 @@ def main():
     # 命名の正規化 ("response_start" -> "candidate_start")
     normalized_stages = [s if s != "response_start" else "candidate_start" for s in semantic_stages]
 
+    target_models = resolve_models_from_args(args, Path(args.models_config))
+    if args.family and args.family.lower() in target_models:
+        fam_key = args.family.lower()
+        target_model_id = target_models[fam_key].instruct_model.model_id
+    elif list(target_models.values()):
+        fam_key = list(target_models.keys())[0]
+        target_model_id = list(target_models.values())[0].instruct_model.model_id
+    else:
+        fam_key = "qwen"
+        target_model_id = v3_cfg.get("target_model", "Qwen/Qwen2.5-1.5B-Instruct")
+
+    num_layers = resolve_architecture_dims(target_model_id)[0]
+
     if args.dry_run:
         logger.info("Executing mock spatiotemporal 4-map generation (--dry-run specified)...")
-        num_layers = 28
         results = simulate_spatiotemporal_maps(num_layers, normalized_stages, alpha_sweep)
     else:
-        logger.info(f"Executing REAL spatiotemporal 4-map calculation on {v3_cfg['target_model']}...")
+        logger.info(f"Executing REAL spatiotemporal 4-map calculation on {target_model_id}...")
         results = run_real_spatiotemporal_maps(
             df=df,
-            model_id=v3_cfg["target_model"],
+            model_id=target_model_id,
             semantic_stages=normalized_stages,
             alpha_sweep=alpha_sweep,
             device=args.device,
             subsample=args.subsample,
         )
 
-    out_raw = raw_dir / "v3_spatiotemporal_maps_qwen.json"
+    out_raw = raw_dir / f"v3_spatiotemporal_maps_{fam_key}.json"
     with open(out_raw, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
     logger.info(f"Saved spatiotemporal 4-maps to {out_raw}")

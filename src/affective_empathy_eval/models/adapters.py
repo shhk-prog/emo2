@@ -1,12 +1,15 @@
 from abc import ABC, abstractmethod
+import logging
 from typing import Any, Dict, List, Optional, Tuple
 import torch
 import torch.nn as nn
 
+logger = logging.getLogger(__name__)
+
 
 class ModelAdapter(ABC):
     """
-    アーキテクチャ間の差異（Qwen, Llama, Gemma, Mistral）を吸収する共通アダプター
+    アーキテクチャ間の差異（Qwen, Llama, Gemma, OLMo, Mistral）を吸収する共通アダプター
     """
 
     def __init__(self, model: nn.Module):
@@ -48,7 +51,11 @@ class ModelAdapter(ABC):
           - 'attn': Self-Attention モジュール
           - 'mlp': MLP モジュール
         """
-        layer = self.get_layers()[layer_idx]
+        layers = self.get_layers()
+        if layer_idx < 0 or layer_idx >= len(layers):
+            raise IndexError(f"Layer index {layer_idx} out of range [0, {len(layers) - 1}]")
+
+        layer = layers[layer_idx]
         if hook_point == "layer":
             return layer
         elif hook_point == "attn":
@@ -64,7 +71,6 @@ class LlamaFamilyAdapter(ModelAdapter):
 
     def __init__(self, model: nn.Module):
         super().__init__(model)
-        # model.model または model が基盤トランスフォーマー
         if hasattr(model, "model"):
             self.transformer = model.model
         elif hasattr(model, "transformer"):
@@ -73,23 +79,47 @@ class LlamaFamilyAdapter(ModelAdapter):
             self.transformer = model
 
     def get_layers(self) -> nn.ModuleList:
-        return self.transformer.layers
+        if hasattr(self.transformer, "layers"):
+            return self.transformer.layers
+        elif hasattr(self.transformer, "h"):
+            return self.transformer.h
+        raise AttributeError("Cannot locate layers in LlamaFamily model.")
 
     def get_attn_module(self, layer_idx: int) -> nn.Module:
-        return self.get_layers()[layer_idx].self_attn
+        layer = self.get_layers()[layer_idx]
+        if hasattr(layer, "self_attn"):
+            return layer.self_attn
+        elif hasattr(layer, "attn"):
+            return layer.attn
+        raise AttributeError(f"Cannot locate self_attn in layer {layer_idx}")
 
     def get_mlp_module(self, layer_idx: int) -> nn.Module:
-        return self.get_layers()[layer_idx].mlp
+        layer = self.get_layers()[layer_idx]
+        if hasattr(layer, "mlp"):
+            return layer.mlp
+        elif hasattr(layer, "feed_forward"):
+            return layer.feed_forward
+        raise AttributeError(f"Cannot locate mlp in layer {layer_idx}")
 
     def get_final_norm(self) -> nn.Module:
-        return self.transformer.norm
+        if hasattr(self.transformer, "norm"):
+            return self.transformer.norm
+        elif hasattr(self.transformer, "final_layernorm"):
+            return self.transformer.final_layernorm
+        elif hasattr(self.transformer, "ln_f"):
+            return self.transformer.ln_f
+        raise AttributeError("Cannot locate final norm in LlamaFamily model.")
 
     def get_lm_head(self) -> nn.Module:
-        return self.model.lm_head
+        if hasattr(self.model, "lm_head"):
+            return self.model.lm_head
+        elif hasattr(self.transformer, "lm_head"):
+            return self.transformer.lm_head
+        raise AttributeError("Cannot locate lm_head in LlamaFamily model.")
 
 
-class Gemma2Adapter(ModelAdapter):
-    """Gemma 2 アダプター（Gemma2ForCausalLM）"""
+class GemmaAdapter(ModelAdapter):
+    """Gemma 2 & Gemma 3 アダプター（Gemma2ForCausalLM, Gemma3ForCausalLM）"""
 
     def __init__(self, model: nn.Module):
         super().__init__(model)
@@ -102,27 +132,96 @@ class Gemma2Adapter(ModelAdapter):
         return self.transformer.layers
 
     def get_attn_module(self, layer_idx: int) -> nn.Module:
-        return self.get_layers()[layer_idx].self_attn
+        layer = self.get_layers()[layer_idx]
+        return getattr(layer, "self_attn", getattr(layer, "attn", None))
 
     def get_mlp_module(self, layer_idx: int) -> nn.Module:
-        return self.get_layers()[layer_idx].mlp
+        layer = self.get_layers()[layer_idx]
+        return getattr(layer, "mlp", getattr(layer, "feed_forward", None))
 
     def get_final_norm(self) -> nn.Module:
-        return self.transformer.norm
+        return getattr(self.transformer, "norm", getattr(self.transformer, "final_layernorm", None))
 
     def get_lm_head(self) -> nn.Module:
         return self.model.lm_head
 
 
-def get_model_adapter(model: nn.Module) -> ModelAdapter:
-    """モデルクラスに応じて適切な ModelAdapter を返すファクトリ関数"""
+class Olmo2Adapter(ModelAdapter):
+    """OLMo 2 アダプター（OLMo2ForCausalLM / OLMoForCausalLM）"""
+
+    def __init__(self, model: nn.Module):
+        super().__init__(model)
+        if hasattr(model, "model"):
+            self.transformer = model.model
+        elif hasattr(model, "transformer"):
+            self.transformer = model.transformer
+        else:
+            self.transformer = model
+
+    def get_layers(self) -> nn.ModuleList:
+        if hasattr(self.transformer, "layers"):
+            return self.transformer.layers
+        elif hasattr(self.transformer, "blocks"):
+            return self.transformer.blocks
+        raise AttributeError("Cannot locate layers in OLMo model.")
+
+    def get_attn_module(self, layer_idx: int) -> nn.Module:
+        layer = self.get_layers()[layer_idx]
+        if hasattr(layer, "self_attn"):
+            return layer.self_attn
+        elif hasattr(layer, "att_proj"):
+            return layer.att_proj
+        elif hasattr(layer, "attn"):
+            return layer.attn
+        raise AttributeError(f"Cannot locate attention module in OLMo layer {layer_idx}")
+
+    def get_mlp_module(self, layer_idx: int) -> nn.Module:
+        layer = self.get_layers()[layer_idx]
+        if hasattr(layer, "mlp"):
+            return layer.mlp
+        elif hasattr(layer, "ff_proj"):
+            return layer.ff_proj
+        raise AttributeError(f"Cannot locate MLP module in OLMo layer {layer_idx}")
+
+    def get_final_norm(self) -> nn.Module:
+        if hasattr(self.transformer, "norm"):
+            return self.transformer.norm
+        elif hasattr(self.transformer, "ln_f"):
+            return self.transformer.ln_f
+        raise AttributeError("Cannot locate final norm in OLMo model.")
+
+    def get_lm_head(self) -> nn.Module:
+        if hasattr(self.model, "lm_head"):
+            return self.model.lm_head
+        elif hasattr(self.transformer, "ff_out"):
+            return self.transformer.ff_out
+        raise AttributeError("Cannot locate lm_head in OLMo model.")
+
+
+def get_model_adapter(model: nn.Module, adapter_name: Optional[str] = None) -> ModelAdapter:
+    """
+    モデルインスタンスおよびオプショナルな adapter_name から適切な ModelAdapter を生成する。
+    """
+    if adapter_name:
+        adapter_key = adapter_name.lower()
+        if "gemma" in adapter_key:
+            return GemmaAdapter(model)
+        elif "olmo" in adapter_key:
+            return Olmo2Adapter(model)
+        elif any(k in adapter_key for k in ("llama", "qwen", "mistral")):
+            return LlamaFamilyAdapter(model)
+
     cls_name = model.__class__.__name__.lower()
-    if "gemma2" in cls_name:
-        return Gemma2Adapter(model)
-    elif any(arch in cls_name for arch in ("llama", "qwen2", "mistral")):
+    if "gemma" in cls_name:
+        return GemmaAdapter(model)
+    elif "olmo" in cls_name:
+        return Olmo2Adapter(model)
+    elif any(arch in cls_name for arch in ("llama", "qwen", "mistral")):
         return LlamaFamilyAdapter(model)
     else:
-        # フォールバックとして一般的な Transformer 構造を試みる
+        # フォールバックとして構造検査
         if hasattr(model, "model") and hasattr(model.model, "layers"):
+            return LlamaFamilyAdapter(model)
+        if hasattr(model, "transformer") and hasattr(model.transformer, "layers"):
             return LlamaFamilyAdapter(model)
         raise NotImplementedError(f"No adapter available for model class {model.__class__.__name__}")

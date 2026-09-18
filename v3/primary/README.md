@@ -11,6 +11,7 @@
    - 状態ベクトルはタスク中立な情動部分空間（Affective Subspace）に直交射影可能か？
 2. **V3-RQ2: Spatiotemporal 4-Maps & Peak Dissociation (4-Map 時空間マッピングとピーク解離)**
    - 表現のデコーダビリティ（$D_V, D_A$）と介入因果力（$C_V, C_A$）は、層（Layer）× 意味論的トークンステージ（Semantic Stage: `stimulus_end`, `task_desc`, `format_inst`, `pre_json`, `pre_val`）の 2D 格子上でどのように変移するか？
+   - **二段階検証構造**: 全層・全トークン位置の全格子探索（default subsample=30）を探索的 **Discovery マッピング**として位置づけ、そこで同定された候補ウィンドウ（Causal Peak Window）について、独立分割の拡大サンプル（Confirmation）で確証的再検証を行う設計を採用。
    - 刺激提示時は中間層でデコードピーク、生成時は後期層プレトークン位置で因果ピークという「時空間ピーク解離」を同定。
 3. **V3-RQ3: Causal Mediation & Circuit Mechanism (因果媒介と回路メカニズム)**
    - 刺激受容層（Stimulus Encoding Layer）から出力決定層（Output Generation Layer）への因果的情報伝播において、中間層の情動状態は真の媒介変数（Mediator）として機能しているか？

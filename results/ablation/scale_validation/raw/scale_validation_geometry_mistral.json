@@ -1,0 +1,10 @@
+{
+  "model_base": "mistralai/Mistral-7B-v0.3",
+  "model_instruct": "mistralai/Mistral-7B-Instruct-v0.3",
+  "num_layers": 32,
+  "status": "dry_run_simulation",
+  "delta_sharing_peak": 0.62,
+  "mean_delta_sharing": 0.38,
+  "reader_distortion_com": 0.45,
+  "self_distortion_com": 0.48
+}

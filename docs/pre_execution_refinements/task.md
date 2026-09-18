@@ -1,0 +1,40 @@
+# タスクリスト: 全再実行に向けた重要修正・堅牢化 (Pre-execution Refinements)
+
+- [ ] **1. V3 RQ1 Centered Projection Removal の中心点修正**
+  - [ ] `v3/primary/run_rq1_state_induction.py` (および `v3/scripts/run_v3_state_induction.py`, `v3/primary/run_confirmatory_replication.py`) の中心化を train全体平均 `h_mean` から matched-neutral 平均 `\mu_{\text{neu}} = E[h_{\text{neutral}}]` へ変更
+  - [ ] dry-run / simulation 関数にも neutral baseline 中心化を反映
+- [ ] **2. V3 RQ1 Orthogonal Control の実測と Specificity 評価の拡張**
+  - [ ] `d_perp` (orthogonal norm-matched direction) による介入測定をパイプラインに追加
+  - [ ] Specificity 指標を affect vs random / perp の 3 条件実測にし、$\text{Effect}_{\text{affect}} > \max(\text{Effect}_{\text{random}}, \text{Effect}_{\perp})$ および個別差分として評価
+- [ ] **3. V3 RQ1 Topic Control 指標の正規化・比較可能性の改善**
+  - [ ] 従来の raw logits 差分ノルムから、Topic 分類確率シフト (Total Variation distance / Top topic probability shift) または正規化タスク指標へ変更
+  - [ ] Self-report 変位と整合する尺度で Task Selectivity を算出
+- [ ] **4. V3 RQ1 Go/No-Go ゲートの Valence / Arousal 独立判定**
+  - [ ] Dose-response 判定において Valence GO と Arousal GO を独立評価し、総合判定を柔軟化
+- [ ] **5. V3 Path Mediation の Discovery/Confirmation を pair_id Group Split 化**
+  - [ ] 単純な行シャッフルから `pair_id` 単位の Group Split に変更し、AIPsy matched pairs の情報漏洩を防止
+- [ ] **6. V3 Path Mediation の因果媒介用語 (NDE/NIE) の緩和**
+  - [ ] Pearl流の NDE/NIE から、Total affective shift, Residual shift after mediator blocking, Mediated attenuation, Attenuation ratio へ用語・辞書キーを更新
+- [ ] **7. V3 Path Mediation の Discovery causal direction 探索的性格の明示**
+  - [ ] Discovery 内での方向推定・介入評価が探索的 site selection である旨を明記し、Confirmation 側の完全独立性を保護
+- [ ] **8. Mistral Instruct checkpoint の全 Stage 統一**
+  - [ ] `configs/v3_experiments.yaml` の Mistral Instruct を `v0.3` から `v0.2` に統一
+  - [ ] `v1/primary/phase_c/summarize_phase_c.py` のモデル一覧ハードコードを撤去し、`configs/models.yaml` から動的取得に変更
+- [ ] **9. V1 Phase C Summary の表記修正**
+  - [ ] 旧「Response-Onset」表記を「Prompt-End」に修正
+- [ ] **10. V1 Phase B / E5 README と Primary 実装の整合**
+  - [ ] S-BERT, VADER, PPL 等の実装外の記載を削り、Jaccard, Levenshtein, および摂動統制 (Original, Paraphrase, Word shuffle, Polarity reversal) に正確に合わせる
+- [ ] **11. V2 Primary 構造の正本化と sys.path.insert の排除**
+  - [ ] `v2/scripts/run_v2_2x2_cross_decoding.py` の実装本体を `v2/primary/run_rq1_rq2_cross_decoding.py` へ移動し正本化
+  - [ ] 不要な `sys.path.insert()` 転送ラッパーを排除
+- [ ] **12. V2 README の UTF-8 再保存 & 旧 Neutralization ストーリーの撤去**
+  - [ ] `v2/README.md` の文字コード異常を解消し UTF-8 で再保存
+  - [ ] 旧「抑制・中立化」ストーリーを撤去し、Post-training reorganization (RQ1〜RQ4) を中心に再編
+- [ ] **13. リポジトリ全体のクリーンアップ & ドキュメント微修正**
+  - [ ] `__pycache__` および `*.pyc` を完全削除
+  - [ ] root `README.md` の「40/40 100% pass」固定数を「All tests should pass」等に修正
+  - [ ] `v3/README.md` 等に Spatiotemporal 全マップ探索が Discovery 用途である旨を明記
+  - [ ] `tests/test_phase_c_tokenization_and_anchors.py` で `pytest.importorskip("transformers")` を適用し、transformers 非依存テストの堅牢性を担保
+- [ ] **14. テスト・検証**
+  - [ ] pytest スイートの実行確認
+  - [ ] V1, V2, V3 の dry-run 実行確認

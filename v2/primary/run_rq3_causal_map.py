@@ -30,7 +30,11 @@ from affective_empathy_eval.likelihood import (
 )
 from affective_empathy_eval.models.adapters import get_model_adapter
 from affective_empathy_eval.models.hooks import ActivationHookManager, HookPoint
-from affective_empathy_eval.models.registry import get_registry
+from affective_empathy_eval.models.registry import (
+    add_model_selection_args,
+    get_registry,
+    resolve_models_from_args,
+)
 from affective_empathy_eval.prompts import (
     TaskType,
     build_prompt,
@@ -72,9 +76,7 @@ def parse_args():
     parser.add_argument(
         "--max-samples", type=int, default=None, help="Limit number of samples"
     )
-    parser.add_argument(
-        "--family", type=str, default=None, help="Target specific family (e.g. Qwen)"
-    )
+    add_model_selection_args(parser)
     return parser.parse_args()
 
 
@@ -218,7 +220,7 @@ def main():
     with open(args.config, "r", encoding="utf-8") as f:
         v2_config = yaml.safe_load(f)
 
-    registry = get_registry(Path(args.models_config))
+    target_models = resolve_models_from_args(args, Path(args.models_config))
     raw_dir = Path(v2_config["output"]["raw_dir"])
     derived_dir = Path(v2_config["output"]["derived_dir"])
     raw_dir.mkdir(parents=True, exist_ok=True)
@@ -229,12 +231,10 @@ def main():
     if args.max_samples is not None:
         df = df.iloc[: args.max_samples].copy()
 
-    target_families = [args.family] if args.family else v2_config["families"]
     all_causal_results = {}
     all_pair_level_records = []
 
-    for fam_id in target_families:
-        fam_cfg = registry.get_family(fam_id)
+    for fam_id, fam_cfg in target_models.items():
         logger.info(
             f"--- Running Causal Maps for Family: {fam_id} ({fam_cfg.num_layers} layers) ---"
         )
@@ -369,6 +369,7 @@ def main():
         all_causal_results[fam_id] = fam_output
 
         out_path = raw_dir / f"v2_causal_map_{fam_id}.json"
+        out_path.parent.mkdir(parents=True, exist_ok=True)
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(fam_output, f, indent=2)
         logger.info(f"Saved causal map to {out_path}")

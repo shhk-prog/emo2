@@ -19,7 +19,7 @@ v3では、設定ファイル `configs/v3_experiments.yaml` および ICLR 投�
 【V3-RQ2 & RQ3: 時空間全探索とパス仲介分析 (Spatiotemporal 4-Map & Path Mediation)】
   問い: 情動情報は、推論プロンプト時および生成プロセスのどの層・どの意味段階を経て出力へ伝播するか？
         中間層の特定コンポーネントが、最終出力への直接経路・間接経路として機能しているか？
-  手法: 28層 × 6意味段階の時空間パッチング, Discovery / Confirmation 分割パス仲介分析
+  手法: 28層 × 6意味段階の時空間パッチング（探索的 Discovery マッピング: 全層・全位置探索後、主要候補ウィンドウを Confirmation 拡大サンプルで再検証）, Discovery / Confirmation 分割パス仲介分析
 
 【発展課題 1: 気分一致因果実験 (Mood Congruency Causal Experiment)】
   問い: 内部感情状態（Induced Mood）のステアリングは、感情認識（他者予測）を因果的に歪めるか？
@@ -55,7 +55,7 @@ v3/
 │   ├── run_v3_state_induction.py      # V3-RQ1: 内部情動状態誘導と Go/No-Go ゲート判定
 │   ├── run_v3_spatiotemporal_maps.py  # V3-RQ2: 時空間 4-Map (全層 × 6生成ステージ)
 │   ├── run_v3_path_mediation.py       # V3-RQ3: パス仲介分析 (Discovery/Confirmation)
-│   ├── run_v3_confirmatory_replication.py # 他3モデル (Llama, Gemma, Mistral) 確証的再現
+│   ├── run_v3_confirmatory_replication.py # 他3モデル (Llama, Gemma, OLMo: Primary 1-1.5B コホート) 確証的再現
 │   ├── run_v2_v3_full_pipeline.sh     # V2 & V3 統合パイプライン実行シェルスクリプト
 │   │
 │   ├── # --- 気分一致因果実験 (Mood Congruency) ---

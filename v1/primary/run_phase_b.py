@@ -5,7 +5,7 @@ v1/primary/run_phase_b.py
 V1 Phase B Primary Script: Semantic vs. Lexical Controls Audit
 Evaluates whether affective decodability reflects compositional semantic understanding
 or mere surface-level lexical shortcuts through:
-  - Lexical Confound Audit (Jaccard, Levenshtein, S-BERT/Embedding Sim, Lexicon Overlap)
+  - Lexical Confound Audit (Jaccard similarity, Levenshtein distance)
   - Minimal Pair Contrast
   - Outcome Reversal (Context preserved, polarity flipped)
   - Surface Perturbation / Paraphrase Invariance (Meaning preserved, vocabulary altered)

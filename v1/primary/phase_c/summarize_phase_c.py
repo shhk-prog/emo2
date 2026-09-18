@@ -4,7 +4,7 @@ v1/primary/phase_c/summarize_phase_c.py
 
 Comprehensive cross-model summary report generator for V1 Phase C.
 Aggregates:
-  - E3: Response-Onset Causal Map (Peak layers, relative depths, 2D directional cosine)
+  - E3: Prompt-End Causal Map (Peak layers, relative depths, 2D directional cosine)
   - E4: Causal Interchangeability (Matched difference patching, specificity, Cohen's d_z)
   - E6: Double Dissociation (Targeted ablation, LMM interaction test)
 """
@@ -14,49 +14,41 @@ import glob
 import json
 import os
 from pathlib import Path
+from typing import List, Tuple
 import numpy as np
 import pandas as pd
+import yaml
 
-MODELS = [
-    ("Qwen/Qwen2.5-1.5B", "qwen2.5_1.5b_base", "Qwen 2.5 1.5B", "Base", 28),
-    (
-        "Qwen/Qwen2.5-1.5B-Instruct",
-        "qwen2.5_1.5b_instruct",
-        "Qwen 2.5 1.5B",
-        "Instruct",
-        28,
-    ),
-    ("meta-llama/Llama-3.2-1B", "llama3.2_1b_base", "Llama 3.2 1B", "Base", 16),
-    (
-        "meta-llama/Llama-3.2-1B-Instruct",
-        "llama3.2_1b_instruct",
-        "Llama 3.2 1B",
-        "Instruct",
-        16,
-    ),
-    ("google/gemma-2-2b", "gemma2_2b_base", "Gemma 2 2B", "Base", 26),
-    (
-        "google/gemma-2-2b-it",
-        "gemma2_2b_instruct",
-        "Gemma 2 2B",
-        "Instruct",
-        26,
-    ),
-    (
-        "mistralai/Mistral-7B-v0.1",
-        "mistral7b_v0.1_base",
-        "Mistral 7B",
-        "Base",
-        32,
-    ),
-    (
-        "mistralai/Mistral-7B-Instruct-v0.1",
-        "mistral7b_v0.1_instruct",
-        "Mistral 7B",
-        "Instruct",
-        32,
-    ),
-]
+from affective_empathy_eval.models.registry import load_model_set
+
+
+def get_models_from_config(models_yaml_path: str, model_set: str = "primary_small") -> List[Tuple[str, str, str, str, int]]:
+    """
+    configs/models.yaml から load_model_set を用いて対象モデル一覧を動的に構築
+    Returns: List of (model_id, prefix, display_name, variant, num_layers)
+    """
+    families = load_model_set(Path(models_yaml_path), model_set=model_set)
+
+    models_list = []
+    seen_fids = set()
+    for fam_cfg in families.values():
+        if fam_cfg.family_id in seen_fids:
+            continue
+        seen_fids.add(fam_cfg.family_id)
+
+        display_name = f"{fam_cfg.family_name} {fam_cfg.scale}".strip()
+        num_layers = fam_cfg.num_layers
+
+        for variant_key, spec, m_type in [
+            ("base", fam_cfg.base_model, "Base"),
+            ("instruct", fam_cfg.instruct_model, "Instruct"),
+        ]:
+            model_id = spec.model_id
+            clean_id = model_id.split("/")[-1].lower().replace("-", "_").replace(".", "_")
+            prefix = f"{fam_cfg.family_id}_{variant_key}"
+            models_list.append((model_id, prefix, display_name, m_type, num_layers))
+
+    return models_list
 
 
 def load_model_data(base_dir: str, prefix: str):
@@ -92,12 +84,20 @@ def main():
         type=str,
         default="v1/results/derived/v1_phase_c_summary",
     )
+    parser.add_argument(
+        "--models-config",
+        type=str,
+        default="configs/models.yaml",
+        help="Path to models config",
+    )
     args = parser.parse_args()
 
     os.makedirs(args.out_dir, exist_ok=True)
     summary_rows = []
 
-    for full_name, prefix, display_name, m_type, total_layers in MODELS:
+    models = get_models_from_config(args.models_config)
+
+    for full_name, prefix, display_name, m_type, total_layers in models:
         df_e3, df_e4, dict_e6 = load_model_data(args.input_dir, prefix)
         if df_e3 is None and df_e4 is None:
             continue

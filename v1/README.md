@@ -227,8 +227,8 @@ Step 7: E6 Double Dissociation (特異化)
 - **`scripts/run_v1_phase_c_causal_patching.py` [最新実装]**:
   - **E3 (Shared Causal Map)**: 強度（Wasserstein/JSD/ユークリッド変位）＋ 2次元VA方向ベクトルコサイン類似度 $\cos(C^{\text{dir}}_R, C^{\text{dir}}_S)$ による因果サイトの同定。
   - **E4 (Causal Interchangeability)**: 最新設計に基づく Reader $\rightarrow$ Self の同一ペア単位差分パッチング（$\Delta h_{R, i} = h_{R, i}^{\text{aff}} - h_{R, i}^{\text{neutral}}$）の注入、用量反応スイープ（$\alpha \in \{-1, 0, 0.5, 1, 1.5\}$）、および4大コントロール（Matched, Random, Same-Task Reader, Same-Task Self）の特異性算出。
-- **`scripts/run_v1_phase_b_semantic_audit.py` [最新実装]**:
-  - **E5 (Semantic Validity)**: 語彙交絡監査（Jaccard, Levenshtein, S-BERT/Embedding, VADER, PPL）および4段階統制実験（Minimal pair, Outcome reversal, Paraphrase, Word shuffle）による意味的妥当性の検証。
+- **`v1/primary/run_phase_b.py` [Primary 実装]**:
+  - **E5 (Semantic Validity)**: 語彙交絡監査（Jaccard係数、Levenshtein編集距離）および4段階統制実験（Original, Minimal pair / Outcome reversal, Paraphrase, Word shuffle）による意味的妥当性の検証。不要な語彙ショートカット（語彙重複や文字一致）を排し、真の感情意味構成性を復元しているかを厳格に評価。
 - **`scripts/run_v1_phase_c_targeted_ablation.py` [最新実装]**:
   - **E6 (Double Dissociation)**: Reader-site / Self-site の標的消去と、線形混合効果モデル（LMM: $\text{Outcome} \sim \text{Task} \times \text{SiteType} + (1 \mid \text{pair})$）による因果的特異化／部分解離の交互作用検定。
 

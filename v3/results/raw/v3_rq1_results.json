@@ -1,0 +1,92 @@
+{
+  "pilot": false,
+  "dry_run": true,
+  "sample_size": 1000,
+  "target_layer": 14,
+  "results": {
+    "alpha_grid": [
+      -1.0,
+      -0.5,
+      0.0,
+      0.5,
+      1.0
+    ],
+    "dose_response_v": [
+      -0.8514445775497973,
+      -0.4233149397598847,
+      -0.001067874073797897,
+      0.42572560982351765,
+      0.8508759565927241
+    ],
+    "dose_response_a": [
+      -0.7040689177374697,
+      -0.35007295075210015,
+      0.0024571125805129715,
+      0.34785758113828075,
+      0.6979280620310085
+    ],
+    "slope_v": 0.8507363235736889,
+    "slope_a": 0.7003848982854675,
+    "slope_v_ci": {
+      "point": 0.8497498572121032,
+      "ci_lower": 0.8478745581348621,
+      "ci_upper": 0.8516720566774397
+    },
+    "slope_a_ci": {
+      "point": 0.7023151305873608,
+      "ci_lower": 0.7004910571440338,
+      "ci_upper": 0.7043992994770537
+    },
+    "specificity_diff": 0.7209667196214224,
+    "specificity_diff_ci": {
+      "point": 0.7209667196214224,
+      "ci_lower": 0.7180017942947147,
+      "ci_upper": 0.7238173499255438
+    },
+    "specificity_vs_random_ci": {
+      "point": 0.7496179475701527,
+      "ci_lower": 0.7465081140208407,
+      "ci_upper": 0.7526904633042438
+    },
+    "specificity_vs_orthogonal_ci": {
+      "point": 0.72925869875151,
+      "ci_lower": 0.7261423211785981,
+      "ci_upper": 0.7323692624118237
+    },
+    "natural_shift": 0.42823937231412995,
+    "attenuated_shift": 0.24666150720267443,
+    "attenuation_ratio": 0.4240102074926946,
+    "attenuation_ratio_ci": {
+      "point": 0.4240102074926946,
+      "ci_lower": 0.42077389260584064,
+      "ci_upper": 0.42697629950304367
+    },
+    "task_selectivity": {
+      "effect_self": 0.2125,
+      "effect_reader": 0.18,
+      "effect_control": 0.05,
+      "self_minus_control_ci": {
+        "point": 0.13325491136374976,
+        "ci_lower": 0.13206174687671174,
+        "ci_upper": 0.13456463791459308
+      },
+      "pattern": "Shared + Selective"
+    }
+  },
+  "gate_decision": {
+    "specificity_pass": true,
+    "specificity_ci_lower": 0.7180017942947147,
+    "necessity_pass": true,
+    "necessity_ci_lower": 0.42077389260584064,
+    "dose_response_pass": true,
+    "dose_response_v_pass": true,
+    "dose_response_a_pass": true,
+    "slope_v_ci_lower": 0.8478745581348621,
+    "slope_a_ci_lower": 0.7004910571440338,
+    "selectivity_pass": true,
+    "non_specific_detected": false,
+    "decision_valence": "GO",
+    "decision_arousal": "GO",
+    "decision": "GO"
+  }
+}

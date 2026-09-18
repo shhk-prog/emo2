@@ -91,22 +91,30 @@ def simulate_mock_intervention_responses(
     pt_sv, sv_low, sv_high = compute_bootstrap_ci(sample_slopes_v)
     pt_sa, sa_low, sa_high = compute_bootstrap_ci(sample_slopes_a)
 
-    # 2. Specificity: 情動方向 vs ランダム方向 vs 直交方向
+    # 2. Specificity: 情動方向 vs ランダム方向 vs 直交方向 (3条件実測)
     sample_spec_diff = []
+    sample_spec_rand = []
+    sample_spec_perp = []
     for i in range(N):
         eff_aff = float(0.85 + rng.normal(0, 0.04))
         eff_rand = float(0.10 + rng.normal(0, 0.03))
-        sample_spec_diff.append(eff_aff - eff_rand)
+        eff_perp = float(0.12 + rng.normal(0, 0.03))
+        sample_spec_diff.append(eff_aff - max(eff_rand, eff_perp))
+        sample_spec_rand.append(eff_aff - eff_rand)
+        sample_spec_perp.append(eff_aff - eff_perp)
     pt_spec, spec_low, spec_high = compute_bootstrap_ci(sample_spec_diff)
+    pt_spec_r, spec_r_low, spec_r_high = compute_bootstrap_ci(sample_spec_rand)
+    pt_spec_p, spec_p_low, spec_p_high = compute_bootstrap_ci(sample_spec_perp)
 
-    # 3. Necessity: Centered projection removal による自然変位の減衰
+    # 3. Necessity: Centered projection removal による自然変位の減衰 (h' = h - Q Q^T (h - mu_neu))
     natural_shift = float(np.std(v_clean))
     sample_att = [float(np.clip(0.42 + rng.normal(0, 0.05), 0.0, 1.0)) for _ in range(N)]
     pt_att, att_low, att_high = compute_bootstrap_ci(sample_att)
     attenuated_shift = natural_shift * (1.0 - pt_att)
 
-    # 4. Task Selectivity: Self vs Reader vs Control (Topic)
-    sample_sel_diff = [float(0.73 + rng.normal(0, 0.04)) for _ in range(N)]
+    # 4. Task Selectivity: Self vs Topic Control (共に [0, 1] 正規化確率・変位指標)
+    # Self: |Delta E[V]| / 4.0 in [0, 1], Topic: TVD in [0, 1]
+    sample_sel_diff = [float(0.73 / 4.0 - 0.05 + rng.normal(0, 0.02)) for _ in range(N)]
     pt_sel, sel_low, sel_high = compute_bootstrap_ci(sample_sel_diff)
 
     return {
@@ -119,16 +127,18 @@ def simulate_mock_intervention_responses(
         "slope_a_ci": {"point": pt_sa, "ci_lower": sa_low, "ci_upper": sa_high},
         "specificity_diff": float(pt_spec),
         "specificity_diff_ci": {"point": pt_spec, "ci_lower": spec_low, "ci_upper": spec_high},
+        "specificity_vs_random_ci": {"point": pt_spec_r, "ci_lower": spec_r_low, "ci_upper": spec_r_high},
+        "specificity_vs_orthogonal_ci": {"point": pt_spec_p, "ci_lower": spec_p_low, "ci_upper": spec_p_high},
         "natural_shift": float(natural_shift),
         "attenuated_shift": float(attenuated_shift),
         "attenuation_ratio": float(pt_att),
         "attenuation_ratio_ci": {"point": pt_att, "ci_lower": att_low, "ci_upper": att_high},
         "task_selectivity": {
-            "effect_self": 0.85,
-            "effect_reader": 0.72,
-            "effect_control": 0.12,
+            "effect_self": 0.85 / 4.0,
+            "effect_reader": 0.72 / 4.0,
+            "effect_control": 0.05,
             "self_minus_control_ci": {"point": pt_sel, "ci_lower": sel_low, "ci_upper": sel_high},
-            "pattern": "Shared + Amplification",
+            "pattern": "Shared + Selective",
         }
     }
 
@@ -220,15 +230,68 @@ def run_real_state_induction(
     d_perp = controls["orthogonal_directions"][0]
 
     h_std_v = float(np.std(H_train @ d_v))
-    h_mean = np.mean(H_train, axis=0)  # (D,)
+
+    # train split から matched-neutral 表現を抽出し mu_neu を算出
+    logger.info(f"Extracting target layer {target_layer} matched-neutral representations on train split...")
+    train_neutral_hiddens = []
+    with torch.no_grad():
+        for _, row in train_df.iterrows():
+            neu_text = None
+            if "neutral_text" in row and str(row["neutral_text"]).strip():
+                neu_text = str(row["neutral_text"])
+            elif "text_neutral" in row and str(row["text_neutral"]).strip():
+                neu_text = str(row["text_neutral"])
+            elif "pair_id" in train_df.columns:
+                pair_matches = df[(df["pair_id"] == row["pair_id"]) & (df.get("condition", pd.Series()) == "neutral")]
+                if len(pair_matches) > 0:
+                    neu_text = str(pair_matches.iloc[0]["text"])
+
+            if neu_text is None and row.get("condition") == "neutral":
+                neu_text = str(row["text"])
+
+            if neu_text is not None and len(neu_text.strip()) > 0:
+                p_neu = build_prompt(neu_text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
+                enc_neu = encode_prompt_canonical(tokenizer, p_neu, device=device)
+                anchors_neu = find_semantic_anchors(enc_neu["input_ids"][0].tolist(), tokenizer, neu_text)
+                with ActivationHookManager(adapter) as hook_mgr:
+                    hook_mgr.register_capture_hook(
+                        layer_idx=target_layer,
+                        hook_point=HookPoint.POST_MLP_RESID,
+                        token_indices=anchors_neu["prompt_end"],
+                        key="train_h_neu",
+                    )
+                    _ = model(**enc_neu)
+                    train_neutral_hiddens.append(hook_mgr.captured_activations["train_h_neu"].cpu().float().numpy().ravel())
+
+    if len(train_neutral_hiddens) > 0:
+        mu_neu = np.mean(train_neutral_hiddens, axis=0)  # (D,)
+        logger.info(f"Computed mu_neu from {len(train_neutral_hiddens)} matched-neutral train samples")
+    else:
+        logger.warning("No matched-neutral stimuli found in train split; extracting from standard neutral prompt")
+        p_neu = build_prompt("This is a neutral and ordinary statement.", task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
+        enc_neu = encode_prompt_canonical(tokenizer, p_neu, device=device)
+        anchors_neu = find_semantic_anchors(enc_neu["input_ids"][0].tolist(), tokenizer, "This is a neutral and ordinary statement.")
+        with ActivationHookManager(adapter) as hook_mgr:
+            hook_mgr.register_capture_hook(
+                layer_idx=target_layer,
+                hook_point=HookPoint.POST_MLP_RESID,
+                token_indices=anchors_neu["prompt_end"],
+                key="train_h_neu_fallback",
+            )
+            _ = model(**enc_neu)
+            mu_neu = hook_mgr.captured_activations["train_h_neu_fallback"].cpu().float().numpy().ravel()
 
     # 3. Held-out test split における実介入実験
     logger.info(f"Running causal state induction interventions on {len(test_df)} test samples...")
     candidates = build_va_candidates()
+    from affective_empathy_eval.prompts import TOPIC_OPTIONS
+    topic_candidates = [f'{{"topic": "{opt}"}}' for opt in TOPIC_OPTIONS]
 
     sample_slopes_v = []
     sample_slopes_a = []
     sample_spec_diff = []
+    sample_spec_rand = []
+    sample_spec_perp = []
     sample_att_ratios = []
     sample_self_eff = []
     sample_ctrl_eff = []
@@ -278,7 +341,7 @@ def run_real_state_induction(
             sample_slopes_v.append(estimate_interventional_slope(alpha_grid, alpha_shifts_v))
             sample_slopes_a.append(estimate_interventional_slope(alpha_grid, alpha_shifts_a))
 
-            # c. Specificity (d_V vs d_rand at alpha = 1.0)
+            # c. Specificity (d_V vs d_rand vs d_perp at alpha = 1.0)
             patch_rand = torch.tensor(1.0 * h_std_v * d_rand, dtype=torch.float32, device=device)
             with ActivationHookManager(adapter) as hook_mgr:
                 hook_mgr.register_patch_hook(
@@ -291,12 +354,28 @@ def run_real_state_induction(
                     model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
                 )
             ev_rand, _ = compute_expected_va(probs_rand, candidates)
+
+            patch_perp = torch.tensor(1.0 * h_std_v * d_perp, dtype=torch.float32, device=device)
+            with ActivationHookManager(adapter) as hook_mgr:
+                hook_mgr.register_patch_hook(
+                    layer_idx=target_layer,
+                    patch_tensor=patch_perp,
+                    token_indices=patch_pos_self,
+                    hook_point=HookPoint.POST_MLP_RESID,
+                )
+                _, probs_perp = compute_sequence_likelihoods_for_candidates(
+                    model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
+                )
+            ev_perp, _ = compute_expected_va(probs_perp, candidates)
+
             eff_affect = abs(alpha_shifts_v[-1])  # alpha = 1.0
             eff_rand = abs(ev_rand - ev_clean)
-            sample_spec_diff.append(eff_affect - eff_rand)
+            eff_perp = abs(ev_perp - ev_clean)
+            sample_spec_diff.append(eff_affect - max(eff_rand, eff_perp))
+            sample_spec_rand.append(eff_affect - eff_rand)
+            sample_spec_perp.append(eff_affect - eff_perp)
 
-            # d. Centered projection removal (Necessity)
-            # 活性化 h から情動部分空間 Q_sub を除去: h' = h - (h - mu) Q Q^T
+            # d. Centered projection removal (Necessity: h' = h - Q Q^T (h - mu_neu))
             with ActivationHookManager(adapter) as hook_mgr:
                 hook_mgr.register_capture_hook(
                     layer_idx=target_layer,
@@ -307,7 +386,7 @@ def run_real_state_induction(
                 _ = model(**enc_self)
                 h_orig = hook_mgr.captured_activations["h_orig"].cpu().float().numpy().ravel()
 
-            h_centered = h_orig - h_mean
+            h_centered = h_orig - mu_neu
             proj = (h_centered @ Q_sub) @ Q_sub.T
             h_ablated = h_orig - proj
             patch_abl = torch.tensor(h_ablated, dtype=torch.float32, device=device)
@@ -323,8 +402,8 @@ def run_real_state_induction(
                     model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
                 )
             ev_abl, _ = compute_expected_va(probs_abl, candidates)
+
             # Necessity: matched-neutral baseline shift vs after projection removal
-            # Primary: matched neutral baseline deviation |E[V]_aff - E[V]_neutral|
             if "neutral_expected_v" in row and not pd.isna(row["neutral_expected_v"]):
                 neutral_base = float(row["neutral_expected_v"])
             elif "reader_V_neutral" in row and not pd.isna(row["reader_V_neutral"]):
@@ -340,13 +419,19 @@ def run_real_state_induction(
             sample_att_ratios.append(float(np.clip(att_ratio, 0.0, 1.0)))
 
             # e. Task selectivity (Self vs Topic Control)
-            sample_self_eff.append(eff_affect)
-            # Topic control への d_V 注入
+            # Self: |Delta E[V]| / 4.0 in [0, 1]
+            self_norm_eff = eff_affect / 4.0
+            sample_self_eff.append(self_norm_eff)
+
+            # Topic control: sequence likelihood based Total Variation Distance in [0, 1]
             enc_ctrl = encode_prompt_canonical(tokenizer, prompt_ctrl, device=device)
             anchors_ctrl = find_semantic_anchors(enc_ctrl["input_ids"][0].tolist(), tokenizer, text)
             patch_pos_ctrl = anchors_ctrl["prompt_end"]
             patch_v_top = torch.tensor(1.0 * h_std_v * d_v, dtype=torch.float32, device=device)
-            out_base_c = model(**enc_ctrl).logits[:, -1, :]
+
+            _, probs_ctrl_clean = compute_sequence_likelihoods_for_candidates(
+                model=model, tokenizer=tokenizer, prompt=prompt_ctrl, candidates=topic_candidates, device=device, batch_size=batch_size
+            )
             with ActivationHookManager(adapter) as hook_mgr:
                 hook_mgr.register_patch_hook(
                     layer_idx=target_layer,
@@ -354,15 +439,18 @@ def run_real_state_induction(
                     token_indices=patch_pos_ctrl,
                     hook_point=HookPoint.POST_MLP_RESID,
                 )
-                # Topic control の変位（ここでは logits 出力の差分ノルムで測定）
-                out_patch_c = model(**enc_ctrl).logits[:, -1, :]
-            ctrl_eff = float(torch.norm(out_patch_c - out_base_c).item())
-            sample_ctrl_eff.append(ctrl_eff)
+                _, probs_ctrl_patch = compute_sequence_likelihoods_for_candidates(
+                    model=model, tokenizer=tokenizer, prompt=prompt_ctrl, candidates=topic_candidates, device=device, batch_size=batch_size
+                )
+            topic_tvd = 0.5 * float(np.sum(np.abs(np.array(probs_ctrl_patch) - np.array(probs_ctrl_clean))))
+            sample_ctrl_eff.append(topic_tvd)
 
     # 4. Bootstrap CI の算出
     pt_sv, sv_low, sv_high = compute_bootstrap_ci(sample_slopes_v)
     pt_sa, sa_low, sa_high = compute_bootstrap_ci(sample_slopes_a)
     pt_spec, spec_low, spec_high = compute_bootstrap_ci(sample_spec_diff)
+    pt_spec_r, spec_r_low, spec_r_high = compute_bootstrap_ci(sample_spec_rand)
+    pt_spec_p, spec_p_low, spec_p_high = compute_bootstrap_ci(sample_spec_perp)
     pt_att, att_low, att_high = compute_bootstrap_ci(sample_att_ratios)
 
     self_minus_ctrl = [s - c for s, c in zip(sample_self_eff, sample_ctrl_eff)]
@@ -381,13 +469,15 @@ def run_real_state_induction(
         "slope_a_ci": {"point": pt_sa, "ci_lower": sa_low, "ci_upper": sa_high},
         "specificity_diff": float(pt_spec),
         "specificity_diff_ci": {"point": pt_spec, "ci_lower": spec_low, "ci_upper": spec_high},
+        "specificity_vs_random_ci": {"point": pt_spec_r, "ci_lower": spec_r_low, "ci_upper": spec_r_high},
+        "specificity_vs_orthogonal_ci": {"point": pt_spec_p, "ci_lower": spec_p_low, "ci_upper": spec_p_high},
         "attenuation_ratio": float(pt_att),
         "attenuation_ratio_ci": {"point": pt_att, "ci_lower": att_low, "ci_upper": att_high},
         "task_selectivity": {
             "effect_self": float(np.mean(sample_self_eff)),
             "effect_control": float(np.mean(sample_ctrl_eff)),
             "self_minus_control_ci": {"point": pt_sel, "ci_lower": sel_low, "ci_upper": sel_high},
-            "pattern": "Shared + Selective" if pt_sel > 0.2 else "Non-specific",
+            "pattern": "Shared + Selective" if pt_sel > 0.1 else "Non-specific",
         }
     }
 
@@ -412,33 +502,47 @@ def evaluate_go_no_go_gate(
     nec_lower = nec_ci.get("ci_lower", results["attenuation_ratio"])
     nec_pass = bool(nec_lower > min_nec)
 
-    # 3. Dose-response 判定: 傾き slope の 95% CI 下限が正であること
+    # 3. Dose-response 判定: 傾き slope の 95% CI 下限が正であること (Valence / Arousal 独立判定)
     slope_v_ci = results.get("slope_v_ci", {})
     slope_a_ci = results.get("slope_a_ci", {})
     sv_lower = slope_v_ci.get("ci_lower", results["slope_v"])
     sa_lower = slope_a_ci.get("ci_lower", results["slope_a"])
-    dose_pass = bool(sv_lower > 0.1 and sa_lower > 0.1)
+    dose_pass_v = bool(sv_lower > 0.1)
+    dose_pass_a = bool(sa_lower > 0.1)
+    dose_pass_both = bool(dose_pass_v and dose_pass_a)
 
     # 4. Task Selectivity 判定: Self - Control の 95% CI 下限が正であること
     ts = results["task_selectivity"]
     sel_ci = ts.get("self_minus_control_ci", {})
     sel_lower = sel_ci.get("ci_lower", ts["effect_self"] - ts.get("effect_control", 0.0))
-    non_specific = bool(sel_lower <= 0.05)
-    selectivity_pass = bool(not non_specific and sel_lower > 0.1)
+    non_specific = bool(sel_lower <= 0.02)
+    selectivity_pass = bool(not non_specific and sel_lower > 0.05)
 
-    all_pass = bool(spec_pass and nec_pass and dose_pass and selectivity_pass)
-    decision = "GO" if all_pass else "NO_GO"
+    decision_v = "GO" if (spec_pass and nec_pass and dose_pass_v and selectivity_pass) else "NO_GO"
+    decision_a = "GO" if (spec_pass and nec_pass and dose_pass_a and selectivity_pass) else "NO_GO"
+    if decision_v == "GO" and decision_a == "GO":
+        decision = "GO"
+    elif decision_v == "GO":
+        decision = "GO (Valence-only)"
+    elif decision_a == "GO":
+        decision = "GO (Arousal-only)"
+    else:
+        decision = "NO_GO"
 
     checklist = {
         "specificity_pass": spec_pass,
         "specificity_ci_lower": float(spec_lower),
         "necessity_pass": nec_pass,
         "necessity_ci_lower": float(nec_lower),
-        "dose_response_pass": dose_pass,
+        "dose_response_pass": dose_pass_both,
+        "dose_response_v_pass": dose_pass_v,
+        "dose_response_a_pass": dose_pass_a,
         "slope_v_ci_lower": float(sv_lower),
         "slope_a_ci_lower": float(sa_lower),
         "selectivity_pass": selectivity_pass,
         "non_specific_detected": non_specific,
+        "decision_valence": decision_v,
+        "decision_arousal": decision_a,
         "decision": decision,
     }
     return checklist

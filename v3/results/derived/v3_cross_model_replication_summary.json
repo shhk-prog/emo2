@@ -1,0 +1,33 @@
+{
+  "is_dry_run": true,
+  "replicated_families": [
+    "Llama",
+    "Gemma",
+    "OLMo"
+  ],
+  "hypotheses_evaluation": {
+    "H1_peak_dissociation": {
+      "Llama": true,
+      "Gemma": true,
+      "OLMo": true
+    },
+    "H2_sufficiency": {
+      "Llama": true,
+      "Gemma": true,
+      "OLMo": true
+    },
+    "H3_necessity": {
+      "Llama": true,
+      "Gemma": true,
+      "OLMo": true
+    },
+    "H4_temporal_emergence": {
+      "Llama": true,
+      "Gemma": true,
+      "OLMo": true
+    }
+  },
+  "mean_peak_dissociation_delta": 0.19999999999999996,
+  "mean_attenuation_ratio": 0.6137078789219087,
+  "cross_model_generality": "MOCK_SIMULATION: Hypotheses simulated for validation purposes."
+}

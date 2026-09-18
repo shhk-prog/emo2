@@ -19,7 +19,7 @@ import torch
 import yaml
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from sklearn.linear_model import Ridge
-from sklearn.model_selection import KFold
+from sklearn.model_selection import GroupKFold, KFold
 
 from affective_empathy_eval.geometry import compute_layer_dissociation
 from affective_empathy_eval.interventions import (
@@ -163,7 +163,7 @@ def run_real_model_confirmatory(
     model.eval()
 
     registry = get_registry()
-    fam_cfg = registry.get_family(model_id)
+    fam_cfg = registry.get_family_by_model_id(model_id)
     adapter = get_model_adapter(model, fam_cfg)
     num_layers = fam_cfg.num_layers
     relative_depths = [l / (num_layers - 1) if num_layers > 1 else 0.0 for l in range(num_layers)]
@@ -194,9 +194,14 @@ def run_real_model_confirmatory(
 
     # 2. 全層の刺激提示時デコード能 D(l) (Held-out R^2 via 5-Fold Cross-Validation)
     d_profile_v = []
-    all_H = {}
-    n_splits = min(5, max(2, N))
-    kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
+    if "pair_id" in eval_df.columns and eval_df["pair_id"].nunique() >= 2:
+        n_splits = min(5, eval_df["pair_id"].nunique())
+        splitter = GroupKFold(n_splits=n_splits)
+        split_gen_fn = lambda data: splitter.split(data, y_v, groups=eval_df["pair_id"].values)
+    else:
+        n_splits = min(5, max(2, N))
+        splitter = KFold(n_splits=n_splits, shuffle=True, random_state=42)
+        split_gen_fn = lambda data: splitter.split(data)
 
     for l in range(num_layers):
         h_l = []
@@ -218,9 +223,9 @@ def run_real_model_confirmatory(
         H = np.array(h_l)
         all_H[l] = H
 
-        # Compute held-out predictions out-of-fold
+        # Compute held-out predictions out-of-fold (pair-aware if pair_id present)
         oof_preds = np.zeros(N)
-        for train_idx, test_idx in kf.split(H):
+        for train_idx, test_idx in split_gen_fn(H):
             ridge = Ridge(alpha=10.0).fit(H[train_idx], y_v[train_idx])
             oof_preds[test_idx] = ridge.predict(H[test_idx])
 
@@ -515,6 +520,19 @@ def main():
     for item in conf_models:
         fam = item["family"]
         model_id = item["model_id"]
+        out_raw = raw_dir / f"v3_confirmatory_{fam.lower()}.json"
+
+        if out_raw.exists() and not args.dry_run:
+            try:
+                with open(out_raw, "r", encoding="utf-8") as f:
+                    cached = json.load(f)
+                if cached and "all_confirmed" in cached:
+                    logger.info(f"Loaded existing results for {fam} from {out_raw}. Skipping.")
+                    family_results[fam] = cached
+                    continue
+            except Exception:
+                pass
+
         num_layers = resolve_architecture_dims(model_id)[0]
 
         if args.dry_run:

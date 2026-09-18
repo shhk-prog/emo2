@@ -331,6 +331,31 @@ class ModelRegistry:
     def _load(self):
         self.families = load_model_set(self.config_path, model_set=self.model_set)
 
+    def get_family_by_model_id(self, model_id: str) -> ModelFamilyConfig:
+        """
+        HuggingFace model ID (例: 'Qwen/Qwen2.5-1.5B-Instruct') から ModelFamilyConfig を逆引きする。
+        """
+        # 1. 完全一致
+        for cfg in self.families.values():
+            if (cfg.instruct_model and cfg.instruct_model.model_id == model_id) or \
+               (cfg.base_model and cfg.base_model.model_id == model_id):
+                return cfg
+
+        # 2. 小文字・部分一致
+        clean_target = model_id.lower().strip()
+        for cfg in self.families.values():
+            inst_id = (cfg.instruct_model.model_id or "").lower()
+            base_id = (cfg.base_model.model_id or "").lower()
+            if clean_target == inst_id or clean_target == base_id:
+                return cfg
+            if clean_target in inst_id or clean_target in base_id:
+                return cfg
+
+        raise KeyError(
+            f"No family found matching model_id '{model_id}' in set '{self.model_set}'. "
+            f"Available families: {self.list_families()}"
+        )
+
     def get_family(self, family_id: str) -> ModelFamilyConfig:
         if family_id in self.families:
             return self.families[family_id]
@@ -338,7 +363,14 @@ class ModelRegistry:
             return self.families[family_id.lower()]
         if family_id.capitalize() in self.families:
             return self.families[family_id.capitalize()]
-        raise KeyError(f"Family '{family_id}' not found in set '{self.model_set}'. Available: {self.list_families()}")
+
+        # model_id による逆引きフォールバック
+        try:
+            return self.get_family_by_model_id(family_id)
+        except KeyError:
+            pass
+
+        raise KeyError(f"Family or model ID '{family_id}' not found in set '{self.model_set}'. Available: {self.list_families()}")
 
     def list_families(self) -> List[str]:
         # 重複（小文字／大文字エイリアス）を除外してユニークな family_id を返す

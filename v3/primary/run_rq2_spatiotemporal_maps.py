@@ -178,7 +178,7 @@ def run_real_spatiotemporal_maps(
     model.eval()
 
     registry = get_registry()
-    fam_cfg = registry.get_family(model_id)
+    fam_cfg = registry.get_family_by_model_id(model_id)
     adapter = get_model_adapter(model, fam_cfg)
     num_layers = fam_cfg.num_layers
     relative_depths = [l / (num_layers - 1) if num_layers > 1 else 0.0 for l in range(num_layers)]
@@ -363,6 +363,8 @@ def run_real_spatiotemporal_maps(
         "num_layers": num_layers,
         "semantic_stages": semantic_stages,
         "relative_depths": relative_depths,
+        "n_total_samples": len(df),
+        "n_intervene_samples": N,
         "maps": {
             "D_V": D_V.tolist(),
             "D_A": D_A.tolist(),
@@ -407,25 +409,37 @@ def main():
     )
 
     num_layers = resolve_architecture_dims(target_model_id)[0]
+    results = None
 
-    if args.dry_run:
-        logger.info("Executing mock spatiotemporal 4-map generation (--dry-run specified)...")
-        results = simulate_spatiotemporal_maps(num_layers, normalized_stages, alpha_sweep)
-    else:
-        logger.info(f"Executing REAL spatiotemporal 4-map calculation on {target_model_id}...")
-        results = run_real_spatiotemporal_maps(
-            df=df,
-            model_id=target_model_id,
-            semantic_stages=normalized_stages,
-            alpha_sweep=alpha_sweep,
-            device=args.device,
-            subsample=args.subsample,
-        )
+    out_raw = raw_dir / f"v3_discovery_spatiotemporal_maps_{fam_key}.json"
+    if out_raw.exists() and not args.dry_run:
+        try:
+            with open(out_raw, "r", encoding="utf-8") as f:
+                cached = json.load(f)
+            if cached and "maps" in cached:
+                logger.info(f"Loaded existing discovery 4-maps from {out_raw}. Skipping computation.")
+                results = cached
+        except Exception:
+            pass
 
-    out_raw = raw_dir / f"v3_spatiotemporal_maps_{fam_key}.json"
-    with open(out_raw, "w", encoding="utf-8") as f:
-        json.dump(results, f, indent=2)
-    logger.info(f"Saved spatiotemporal 4-maps to {out_raw}")
+    if results is None:
+        if args.dry_run:
+            logger.info("Executing mock spatiotemporal 4-map generation (--dry-run specified)...")
+            results = simulate_spatiotemporal_maps(num_layers, normalized_stages, alpha_sweep)
+        else:
+            logger.info(f"Executing REAL spatiotemporal 4-map calculation on {target_model_id}...")
+            results = run_real_spatiotemporal_maps(
+                df=df,
+                model_id=target_model_id,
+                semantic_stages=normalized_stages,
+                alpha_sweep=alpha_sweep,
+                device=args.device,
+                subsample=args.subsample,
+            )
+
+        with open(out_raw, "w", encoding="utf-8") as f:
+            json.dump(results, f, indent=2)
+        logger.info(f"Saved discovery spatiotemporal 4-maps to {out_raw}")
 
     out_summary = derived_dir / "v3_spatiotemporal_summary.json"
     with open(out_summary, "w", encoding="utf-8") as f:

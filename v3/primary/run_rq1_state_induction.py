@@ -198,7 +198,7 @@ def run_real_state_induction(
     model.eval()
 
     registry = get_registry()
-    fam_cfg = registry.get_family(model_id)
+    fam_cfg = registry.get_family_by_model_id(model_id)
     adapter = get_model_adapter(model, fam_cfg)
 
     # 1. データを 50/50 Train / Test split に厳格分割 (pair_id に基づく Group split)

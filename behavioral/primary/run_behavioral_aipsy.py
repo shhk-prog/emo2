@@ -85,6 +85,7 @@ def evaluate_aipsy_stimuli(
     is_instruct=False,
     limit=0,
     batch_size=243,
+    checkpoint_path: Optional[str] = None,
 ):
     df = pd.read_csv(stimuli_path)
     if limit > 0:
@@ -94,8 +95,23 @@ def evaluate_aipsy_stimuli(
 
     tasks = ["writer", "reader", "self"]
     results = []
+    processed_ids = set()
+
+    if checkpoint_path and os.path.exists(checkpoint_path):
+        try:
+            ckpt_df = pd.read_csv(checkpoint_path)
+            results = ckpt_df.to_dict("records")
+            if "id" in ckpt_df.columns:
+                processed_ids = set(ckpt_df["id"].tolist())
+            print(f"Resuming from checkpoint: {len(processed_ids)} samples already completed.")
+        except Exception as e:
+            print(f"Warning: Failed to load checkpoint {checkpoint_path}: {e}")
 
     for idx, row in tqdm(df.iterrows(), total=len(df), desc="AIPsy Evaluation"):
+        s_id = row["id"] if "id" in row else idx
+        if s_id in processed_ids:
+            continue
+
         text = row["text"]
         row_dict = row.to_dict()
 
@@ -136,6 +152,14 @@ def evaluate_aipsy_stimuli(
             row_dict[f"{prefix}_p555"] = float(p555)
 
         results.append(row_dict)
+        processed_ids.add(s_id)
+
+        # 逐次保存（10サンプルごと）
+        if checkpoint_path and (len(results) % 10 == 0):
+            try:
+                pd.DataFrame(results).to_csv(checkpoint_path, index=False)
+            except Exception:
+                pass
 
     return pd.DataFrame(results)
 
@@ -204,6 +228,10 @@ def main():
     candidates, vad_triplets = build_candidates()
     print(f"Generated {len(candidates)} VAD candidate triplets in {{1..9}}^3.")
 
+    os.makedirs(args.out_dir, exist_ok=True)
+    out_csv = os.path.join(args.out_dir, f"{args.tag}_aipsy_4split.csv")
+    ckpt_csv = os.path.join(args.out_dir, f"{args.tag}_aipsy_4split_checkpoint.csv")
+
     res_df = evaluate_aipsy_stimuli(
         model,
         tokenizer,
@@ -214,11 +242,15 @@ def main():
         is_instruct=args.is_instruct,
         limit=args.limit,
         batch_size=args.batch_size,
+        checkpoint_path=ckpt_csv,
     )
 
-    os.makedirs(args.out_dir, exist_ok=True)
-    out_csv = os.path.join(args.out_dir, f"{args.tag}_aipsy_4split.csv")
     res_df.to_csv(out_csv, index=False)
+    if os.path.exists(ckpt_csv):
+        try:
+            os.remove(ckpt_csv)
+        except Exception:
+            pass
 
     # Save manifest
     manifest = create_run_manifest(

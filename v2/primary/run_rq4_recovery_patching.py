@@ -385,6 +385,18 @@ def main():
     all_recovery_results = {}
 
     for fam_id, fam_cfg in target_models.items():
+        out_path = raw_dir / f"v2_recovery_{fam_id}.json"
+        if out_path.exists() and not args.dry_run:
+            try:
+                with open(out_path, "r", encoding="utf-8") as f:
+                    cached = json.load(f)
+                if cached and "self" in cached and "reader" in cached:
+                    logger.info(f"Loaded existing results for {fam_id} from {out_path}. Skipping computation.")
+                    all_recovery_results[fam_id] = cached
+                    continue
+            except Exception:
+                pass
+
         logger.info(f"--- Running Recovery Patching for Family: {fam_id} ---")
         res = run_recovery_patching_for_family(
             fam_id=fam_id,

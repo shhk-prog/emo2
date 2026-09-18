@@ -572,6 +572,14 @@ def main():
             geom_v["target"] = "Valence_human"
             e2_emobank_records.append(geom_v)
 
+            # 逐次保存 (レイヤー完了ごと)
+            pd.DataFrame(e1_emobank_records).to_csv(
+                os.path.join(model_dir, "e1_emobank_decodability.csv"), index=False
+            )
+            pd.DataFrame(e2_emobank_records).to_csv(
+                os.path.join(model_dir, "e2_emobank_geometry.csv"), index=False
+            )
+
         df_e1_emo = pd.DataFrame(e1_emobank_records)
         df_e2_emo = pd.DataFrame(e2_emobank_records)
         df_e1_emo.to_csv(

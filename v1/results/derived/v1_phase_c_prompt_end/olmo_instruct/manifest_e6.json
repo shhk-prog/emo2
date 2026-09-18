@@ -1,0 +1,23 @@
+{
+  "run_type": "v1_phase_c_e6",
+  "model_name": "allenai/OLMo-2-0425-1B-Instruct",
+  "config": {
+    "model_prefix": "olmo_instruct",
+    "reader_layer": 8,
+    "self_layer": 9,
+    "dry_run": true
+  },
+  "metadata": {
+    "p_value_interaction": 0.001,
+    "coef_interaction": 0.42,
+    "cell_means": {
+      "Reader_ReaderSite": 0.55,
+      "Self_ReaderSite": 0.2,
+      "Reader_SelfSite": 0.18,
+      "Self_SelfSite": 0.62
+    },
+    "has_crossover": true
+  },
+  "timestamp_utc": "2026-09-18T08:31:44.351885+00:00",
+  "git_commit": "66171a7"
+}

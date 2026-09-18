@@ -165,7 +165,7 @@ def run_real_path_mediation(
     model.eval()
 
     registry = get_registry()
-    fam_cfg = registry.get_family(model_id)
+    fam_cfg = registry.get_family_by_model_id(model_id)
     adapter = get_model_adapter(model, fam_cfg)
     num_layers = fam_cfg.num_layers
     relative_depths = [l / (num_layers - 1) if num_layers > 1 else 0.0 for l in range(num_layers)]
@@ -503,36 +503,50 @@ def main():
     )
 
     num_layers = resolve_architecture_dims(target_model_id)[0]
-
-    if args.dry_run:
-        logger.info("Executing mock path mediation analysis (--dry-run specified)...")
-        discovery_res = simulate_path_mediation_discovery(df.head(len(df) // 2), num_layers)
-        confirmation_res = simulate_path_mediation_confirmation(
-            df.tail(len(df) // 2),
-            mediator_layer=discovery_res["mediator_layer"],
-            bootstrap_n=bootstrap_n,
-        )
-    else:
-        logger.info(f"Executing REAL path mediation analysis on {target_model_id}...")
-        discovery_res, confirmation_res = run_real_path_mediation(
-            df=df,
-            model_id=target_model_id,
-            device=args.device,
-            subsample=args.subsample,
-            bootstrap_n=bootstrap_n,
-        )
+    discovery_res = None
+    confirmation_res = None
 
     out_raw = raw_dir / f"v3_path_mediation_{fam_key}.json"
-    full_output = {
-        "model_id": target_model_id,
-        "family": fam_key,
-        "num_layers": num_layers,
-        "discovery": discovery_res,
-        "confirmation": confirmation_res,
-    }
-    with open(out_raw, "w", encoding="utf-8") as f:
-        json.dump(full_output, f, indent=2)
-    logger.info(f"Saved path mediation raw results to {out_raw}")
+    if out_raw.exists() and not args.dry_run:
+        try:
+            with open(out_raw, "r", encoding="utf-8") as f:
+                cached = json.load(f)
+            if cached and "confirmation" in cached:
+                logger.info(f"Loaded existing results from {out_raw}. Skipping computation.")
+                discovery_res = cached["discovery"]
+                confirmation_res = cached["confirmation"]
+        except Exception:
+            pass
+
+    if discovery_res is None or confirmation_res is None:
+        if args.dry_run:
+            logger.info("Executing mock path mediation analysis (--dry-run specified)...")
+            discovery_res = simulate_path_mediation_discovery(df.head(len(df) // 2), num_layers)
+            confirmation_res = simulate_path_mediation_confirmation(
+                df.tail(len(df) // 2),
+                mediator_layer=discovery_res["mediator_layer"],
+                bootstrap_n=bootstrap_n,
+            )
+        else:
+            logger.info(f"Executing REAL path mediation analysis on {target_model_id}...")
+            discovery_res, confirmation_res = run_real_path_mediation(
+                df=df,
+                model_id=target_model_id,
+                device=args.device,
+                subsample=args.subsample,
+                bootstrap_n=bootstrap_n,
+            )
+
+        full_output = {
+            "model_id": target_model_id,
+            "family": fam_key,
+            "num_layers": num_layers,
+            "discovery": discovery_res,
+            "confirmation": confirmation_res,
+        }
+        with open(out_raw, "w", encoding="utf-8") as f:
+            json.dump(full_output, f, indent=2)
+        logger.info(f"Saved path mediation raw results to {out_raw}")
 
     out_summary = derived_dir / "v3_path_mediation_summary.json"
     summary_output = {

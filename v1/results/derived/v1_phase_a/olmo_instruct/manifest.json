@@ -1,0 +1,13 @@
+{
+  "run_type": "v1_phase_a",
+  "model_name": "allenai/OLMo-2-0425-1B-Instruct",
+  "config": {
+    "model_prefix": "olmo_instruct",
+    "dataset": "both",
+    "limit": 0,
+    "dry_run": true
+  },
+  "metadata": {},
+  "timestamp_utc": "2026-09-18T08:31:27.523597+00:00",
+  "git_commit": "66171a7"
+}

@@ -238,6 +238,18 @@ def main():
     all_pair_level_records = []
 
     for fam_id, fam_cfg in target_models.items():
+        out_path = raw_dir / f"v2_causal_map_{fam_id}.json"
+        if out_path.exists() and not args.dry_run:
+            try:
+                with open(out_path, "r", encoding="utf-8") as f:
+                    cached = json.load(f)
+                if cached and "causal_maps" in cached:
+                    logger.info(f"Loaded existing results for {fam_id} from {out_path}. Skipping computation.")
+                    all_causal_results[fam_id] = cached
+                    continue
+            except Exception:
+                pass
+
         logger.info(
             f"--- Running Causal Maps for Family: {fam_id} ({fam_cfg.num_layers} layers) ---"
         )

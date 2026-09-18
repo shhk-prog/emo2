@@ -47,6 +47,12 @@ echo "Data Scale: Full production CSVs (actual counts logged by the Python runne
 echo "Runtime   : unmeasured (do not use pre-benchmark hour estimates)" | tee -a "${LOG_FILE}"
 echo "==================================================================" | tee -a "${LOG_FILE}"
 
+# Ensure Phase B semantic controls dataset exists
+if [ ! -f "v1/data/processed/v1_e5_semantic_controls.csv" ]; then
+    echo "[INFO] v1_e5_semantic_controls.csv not found. Auto-generating..." | tee -a "${LOG_FILE}"
+    python v1/primary/prepare_v1_phase_b_controls.py 2>&1 | tee -a "${LOG_FILE}"
+fi
+
 CMD=(python -m affective_empathy_eval.run --stage v1 --model-set primary_small --device "${DEVICE}")
 if [ "${DRY_RUN}" = "--dry-run" ]; then
     CMD+=(--dry-run)

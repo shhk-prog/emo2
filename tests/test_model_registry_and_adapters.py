@@ -208,3 +208,45 @@ def test_adapters():
     assert isinstance(olmo_adapter, Olmo2Adapter)
     assert olmo_adapter.get_num_layers() == 4
     assert olmo_adapter.get_final_norm() is olmo_model.transformer.ln_f
+
+
+def test_registry_get_family_by_model_id():
+    """V3本番経路で渡されるHF model IDから正確にfamily configを逆引きできることを検証"""
+    reg = get_registry(model_set="primary_small")
+    
+    # 4 family x 2 (base & instruct) = 8モデルすべてでテスト
+    test_cases = [
+        ("Qwen/Qwen2.5-1.5B", "qwen"),
+        ("Qwen/Qwen2.5-1.5B-Instruct", "qwen"),
+        ("meta-llama/Llama-3.2-1B", "llama"),
+        ("meta-llama/Llama-3.2-1B-Instruct", "llama"),
+        ("google/gemma-3-1b-pt", "gemma"),
+        ("google/gemma-3-1b-it", "gemma"),
+        ("allenai/OLMo-2-0425-1B", "olmo"),
+        ("allenai/OLMo-2-0425-1B-Instruct", "olmo"),
+    ]
+    for model_id, expected_fam in test_cases:
+        cfg1 = reg.get_family_by_model_id(model_id)
+        assert cfg1.family_id.lower() == expected_fam, f"Failed get_family_by_model_id for {model_id}"
+        cfg2 = reg.get_family(model_id)
+        assert cfg2.family_id.lower() == expected_fam, f"Failed fallback get_family for {model_id}"
+
+    # scale_validation の Mistral 7B も検証
+    reg_scale = get_registry(model_set="scale_validation")
+    cfg_mistral_base = reg_scale.get_family_by_model_id("mistralai/Mistral-7B-v0.3")
+    assert cfg_mistral_base.family_id.lower() == "mistral"
+    cfg_mistral_inst = reg_scale.get_family("mistralai/Mistral-7B-Instruct-v0.3")
+    assert cfg_mistral_inst.family_id.lower() == "mistral"
+
+
+def test_v3_entrypoints_with_mock_model():
+    """V3スクリプトが実モデルIDを受け取った時の初期化・アダプタ取得経路を検証"""
+    reg = get_registry(model_set="primary_small")
+    qwen_id = "Qwen/Qwen2.5-1.5B-Instruct"
+    fam_cfg = reg.get_family_by_model_id(qwen_id)
+    
+    # Mock model でアダプタ解決
+    mock_model = MockLlamaModel()
+    adapter = get_model_adapter(mock_model, fam_cfg)
+    assert adapter is not None
+    assert adapter.get_num_layers() == 4

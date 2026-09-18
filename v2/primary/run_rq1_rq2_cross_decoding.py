@@ -401,6 +401,18 @@ def main():
     all_family_results = {}
 
     for fam_id, fam_cfg in target_models.items():
+        fam_out_path = raw_dir / f"v2_geometry_{fam_id}.json"
+        if fam_out_path.exists() and not args.dry_run:
+            try:
+                with open(fam_out_path, "r", encoding="utf-8") as f:
+                    cached_res = json.load(f)
+                if cached_res and "relative_depths" in cached_res:
+                    logger.info(f"Loaded existing results for {fam_id} from {fam_out_path}. Skipping computation.")
+                    all_family_results[fam_id] = cached_res
+                    continue
+            except Exception:
+                pass
+
         logger.info(f"--- Processing Family: {fam_id} ({fam_cfg.family_name}, {fam_cfg.num_layers} layers) ---")
 
         # 抽出条件: Base/Instruct × Reader/Self

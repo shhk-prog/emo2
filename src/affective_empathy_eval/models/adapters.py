@@ -198,12 +198,18 @@ class Olmo2Adapter(ModelAdapter):
         raise AttributeError("Cannot locate lm_head in OLMo model.")
 
 
-def get_model_adapter(model: nn.Module, adapter_name: Optional[str] = None) -> ModelAdapter:
+def get_model_adapter(model: nn.Module, adapter_name: Any = None) -> ModelAdapter:
     """
-    モデルインスタンスおよびオプショナルな adapter_name から適切な ModelAdapter を生成する。
+    モデルインスタンスおよびオプショナルな adapter_name または ModelFamilyConfig から適切な ModelAdapter を生成する。
     """
-    if adapter_name:
-        adapter_key = adapter_name.lower()
+    if adapter_name is not None:
+        if hasattr(adapter_name, "adapter") and adapter_name.adapter:
+            adapter_key = str(adapter_name.adapter).lower()
+        elif hasattr(adapter_name, "family_id") and adapter_name.family_id:
+            adapter_key = str(adapter_name.family_id).lower()
+        else:
+            adapter_key = str(adapter_name).lower()
+
         if "gemma" in adapter_key:
             return GemmaAdapter(model)
         elif "olmo" in adapter_key:

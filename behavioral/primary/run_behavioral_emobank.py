@@ -113,6 +113,7 @@ def evaluate_model(
     is_instruct,
     limit=None,
     batch_size=243,
+    checkpoint_path: Optional[str] = None,
 ):
     df = pd.read_csv(stimuli_path)
     if limit:
@@ -120,11 +121,23 @@ def evaluate_model(
 
     print(f"Loaded {len(df)} 3-way VAD stimuli from {stimuli_path}.")
     results = []
+    processed_ids = set()
+
+    if checkpoint_path and os.path.exists(checkpoint_path):
+        try:
+            ckpt_df = pd.read_csv(checkpoint_path)
+            results = ckpt_df.to_dict("records")
+            processed_ids = set(ckpt_df["id"].tolist())
+            print(f"Resuming from checkpoint: {len(processed_ids)} samples already completed.")
+        except Exception as e:
+            print(f"Warning: Failed to load checkpoint {checkpoint_path}: {e}")
 
     for idx, row in tqdm(df.iterrows(), total=len(df), desc="3-Way VAD Eval"):
-        text = row["text"]
         s_id = row["id"]
+        if s_id in processed_ids:
+            continue
 
+        text = row["text"]
         writer_v_raw = row["writer_V"]
         writer_a_raw = row["writer_A"]
         writer_d_raw = row["writer_D"]
@@ -204,6 +217,14 @@ def evaluate_model(
                 "s_p555": s_p555,
             }
         )
+        processed_ids.add(s_id)
+
+        # 逐次保存（10サンプルごと）
+        if checkpoint_path and (len(results) % 10 == 0):
+            try:
+                pd.DataFrame(results).to_csv(checkpoint_path, index=False)
+            except Exception:
+                pass
 
     return pd.DataFrame(results)
 
@@ -257,6 +278,10 @@ def main():
     candidates, vad_triplets = build_vad_candidates()
     print(f"Generated {len(candidates)} VAD candidates in {{1..9}}^3.")
 
+    os.makedirs(args.out_dir, exist_ok=True)
+    out_csv = os.path.join(args.out_dir, f"{args.tag}_3way_vad.csv")
+    ckpt_csv = os.path.join(args.out_dir, f"{args.tag}_3way_vad_checkpoint.csv")
+
     res_df = evaluate_model(
         model,
         tokenizer,
@@ -267,11 +292,15 @@ def main():
         is_instruct=args.is_instruct,
         limit=args.limit,
         batch_size=args.batch_size,
+        checkpoint_path=ckpt_csv,
     )
 
-    os.makedirs(args.out_dir, exist_ok=True)
-    out_csv = os.path.join(args.out_dir, f"{args.tag}_3way_vad.csv")
     res_df.to_csv(out_csv, index=False)
+    if os.path.exists(ckpt_csv):
+        try:
+            os.remove(ckpt_csv)
+        except Exception:
+            pass
 
     def calc_r(x, y):
         return float(pearsonr(x, y)[0]) if len(x) > 1 else 0.0

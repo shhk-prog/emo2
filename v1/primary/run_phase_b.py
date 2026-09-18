@@ -28,7 +28,7 @@ from scipy.stats import pearsonr, spearmanr
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LogisticRegression, Ridge
 from sklearn.metrics import balanced_accuracy_score, r2_score, roc_auc_score
-from sklearn.model_selection import KFold, StratifiedKFold
+from sklearn.model_selection import KFold, StratifiedGroupKFold, StratifiedKFold
 from sklearn.preprocessing import StandardScaler
 import torch
 from tqdm import tqdm
@@ -155,11 +155,25 @@ def extract_single_layer_hidden_states(
 
 
 def evaluate_probe_accuracy(
-    X: np.ndarray, y: np.ndarray, cv: int = 5, seed: int = 42
+    X: np.ndarray,
+    y: np.ndarray,
+    groups: Optional[np.ndarray] = None,
+    cv: int = 5,
+    seed: int = 42,
 ) -> float:
-    skf = StratifiedKFold(n_splits=cv, shuffle=True, random_state=seed)
+    """
+    Pair-aware cross-validated linear probing evaluation.
+    If groups (pair_id) are provided, uses StratifiedGroupKFold to strictly prevent pair leakage.
+    """
+    if groups is not None and len(np.unique(groups)) >= cv:
+        splitter = StratifiedGroupKFold(n_splits=cv, shuffle=True, random_state=seed)
+        split_gen = splitter.split(X, y, groups=groups)
+    else:
+        splitter = StratifiedKFold(n_splits=cv, shuffle=True, random_state=seed)
+        split_gen = splitter.split(X, y)
+
     preds = np.zeros_like(y)
-    for train_idx, val_idx in skf.split(X, y):
+    for train_idx, val_idx in split_gen:
         scaler = StandardScaler()
         X_tr = scaler.fit_transform(X[train_idx])
         X_va = scaler.transform(X[val_idx])
@@ -351,12 +365,16 @@ def main():
     )
 
     y_orig = np.array([1] * n_pairs + [0] * n_pairs)
+    pair_ids = df["pair_id"].values if "pair_id" in df.columns else np.arange(n_pairs)
+    groups = np.concatenate([pair_ids, pair_ids], axis=0)
 
-    # Condition 1: Minimal Pair
+    # Condition 1: Minimal Pair (Strict Pair-Aware Cross-Validation via StratifiedGroupKFold)
     X_orig = np.concatenate([H_orig_aff, H_orig_neu], axis=0)
-    acc_orig = evaluate_probe_accuracy(X_orig, y_orig)
+    acc_orig = evaluate_probe_accuracy(X_orig, y_orig, groups=groups)
 
     # Condition 2: Paraphrase / Surface Perturbation
+    # NOTE: This evaluates transformation sensitivity on the boundary established by the original
+    # minimal pairs (not held-out generalization to unseen stimuli pairs).
     scaler = StandardScaler()
     X_orig_scaled = scaler.fit_transform(X_orig)
     clf = LogisticRegression(max_iter=500, random_state=42)
@@ -367,11 +385,12 @@ def main():
     preds_para = clf.predict(X_para_scaled)
     acc_paraphrase = float(balanced_accuracy_score(y_orig, preds_para))
 
-    # Condition 3: Word Shuffle Test
+    # Condition 3: Word Shuffle Test (Pair-Aware Cross-Validation)
     X_shuf = np.concatenate([H_shuf_aff, H_shuf_neu], axis=0)
-    acc_shuffled = evaluate_probe_accuracy(X_shuf, y_orig)
+    acc_shuffled = evaluate_probe_accuracy(X_shuf, y_orig, groups=groups)
 
     # Condition 4: Outcome Reversal Test
+    # NOTE: Evaluates semantic directional sensitivity under identical lexical context.
     X_rev = np.concatenate([H_rev_aff, H_orig_neu], axis=0)
     X_rev_scaled = scaler.transform(X_rev)
     probs_rev_aff = clf.predict_proba(X_rev_scaled[:n_pairs])[:, 1]

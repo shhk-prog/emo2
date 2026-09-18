@@ -154,6 +154,11 @@ def run_v3(args, python_bin: str):
 
 def run_v1(args, python_bin: str):
     logger.info(f"=== Running V1 Stage Pipeline (model-set: {args.model_set}) ===")
+    controls_csv = Path("v1/data/processed/v1_e5_semantic_controls.csv")
+    if not controls_csv.exists():
+        logger.info("v1_e5_semantic_controls.csv not found. Auto-generating via prepare_v1_phase_b_controls.py...")
+        run_command([python_bin, "v1/primary/prepare_v1_phase_b_controls.py"])
+
     models = resolve_models_from_args(args)
 
     for fid, cfg in models.items():

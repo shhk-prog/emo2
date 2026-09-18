@@ -219,13 +219,13 @@ def run_real_path_mediation(
         y_v_disc = disc_df["reader_V"].to_numpy()
         y_a_disc = disc_df["reader_A"].to_numpy() if "reader_A" in disc_df.columns else y_v_disc
     else:
-        logger.info("No human reader_V/A on discovery; using model self-report targets.")
+        logger.info("No human reader_V/A on discovery; using model Reader Predictions (TaskType.READER) as primary affect targets.")
         y_v_list, y_a_list = [], []
         with torch.no_grad():
             for text in disc_texts:
-                p = build_prompt(text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
+                p_reader = build_prompt(text, task=TaskType.READER, format_type="chat", tokenizer=tokenizer)
                 _, probs = compute_sequence_likelihoods_for_candidates(
-                    model=model, tokenizer=tokenizer, prompt=p, candidates=candidates, device=device, batch_size=81
+                    model=model, tokenizer=tokenizer, prompt=p_reader, candidates=candidates, device=device, batch_size=81
                 )
                 ev, ea = compute_expected_va(probs, candidates)
                 y_v_list.append(ev)
@@ -324,8 +324,9 @@ def run_real_path_mediation(
     mediator_layer = int(np.argmax(c_gen_profile))
     logger.info(f"Discovery Result: stim_peak_layer={stim_peak_layer}, mediator_layer={mediator_layer}")
 
-    discovery_res = {
-        "stim_peak_layer": stim_peak_layer,
+    discovery_summary = {
+        "primary_grounding": "reader_prediction",
+        "stimulus_peak_layer": stim_peak_layer,
         "stim_peak_depth": relative_depths[stim_peak_layer],
         "mediator_layer": mediator_layer,
         "mediator_depth": relative_depths[mediator_layer],
@@ -469,6 +470,7 @@ def run_real_path_mediation(
     ratio_a_mean, ratio_a_low, ratio_a_high = compute_bootstrap_ci(ratio_samples_a, n_boot=bootstrap_n)
 
     confirmation_res = {
+        "primary_grounding": "reader_prediction",
         "mediator_layer": mediator_layer,
         "valence": {
             "total_affective_shift": {"mean": te_v_mean, "ci_lower": te_v_low, "ci_upper": te_v_high},

@@ -130,7 +130,7 @@ def simulate_model_confirmatory(
     return {
         "family": family,
         "is_simulation": True,
-        "dry_run": True,
+        "primary_grounding": "reader_prediction (simulated)",
         "num_layers": num_layers,
         "h1_dissociation": {
             "d_peak_D": dissoc_v["d_peak_D"],
@@ -198,12 +198,15 @@ def run_real_model_confirmatory(
     N = len(eval_df)
     candidates = build_va_candidates()
 
-    # 1. Clean Baselines
+    # 1. Clean Baselines & Reader Predictions
     clean_ev_list = []
     clean_ea_list = []
+    reader_ev_list = []
+    reader_ea_list = []
     with torch.no_grad():
         for _, row in eval_df.iterrows():
             text = str(row["text"])
+            # a. Self condition: Clean expected report (baseline for intervention effect)
             prompt = build_prompt(text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
             _, probs = compute_sequence_likelihoods_for_candidates(
                 model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device, batch_size=81
@@ -212,8 +215,21 @@ def run_real_model_confirmatory(
             clean_ev_list.append(ev)
             clean_ea_list.append(ea)
 
-    y_v = np.array(clean_ev_list)
-    y_a = np.array(clean_ea_list)
+            # b. Reader condition: Reader Prediction (objective perception of stimulus emotion)
+            prompt_reader = build_prompt(text, task=TaskType.READER, format_type="chat", tokenizer=tokenizer)
+            _, r_probs = compute_sequence_likelihoods_for_candidates(
+                model=model, tokenizer=tokenizer, prompt=prompt_reader, candidates=candidates, device=device, batch_size=81
+            )
+            r_ev, r_ea = compute_expected_va(r_probs, candidates)
+            reader_ev_list.append(r_ev)
+            reader_ea_list.append(r_ea)
+
+    if "reader_V" in eval_df.columns and "reader_A" in eval_df.columns:
+        y_v = eval_df["reader_V"].to_numpy()
+        y_a = eval_df["reader_A"].to_numpy()
+    else:
+        y_v = np.array(reader_ev_list, dtype=np.float64)
+        y_a = np.array(reader_ea_list, dtype=np.float64)
 
     # 2. 全層の刺激提示時デコード能 D(l) (Held-out R^2 via 5-Fold Cross-Validation)
     d_profile_v = []
@@ -514,6 +530,7 @@ def run_real_model_confirmatory(
     return {
         "family": family,
         "is_simulation": False,
+        "primary_grounding": "reader_prediction",
         "model_id": model_id,
         "num_layers": num_layers,
         "h1_dissociation": {

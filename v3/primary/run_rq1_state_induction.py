@@ -147,6 +147,11 @@ def simulate_mock_intervention_responses(
     pt_sel, sel_low, sel_high = compute_bootstrap_ci(sample_sel_diff)
 
     return {
+        "affect_direction_grounding": "reader_prediction (simulated)",
+        "alignment_reader_vs_self_directions": {
+            "valence": 0.78,
+            "arousal": 0.72,
+        },
         "alpha_grid": alpha_grid,
         "dose_response_v": dose_responses_v,
         "dose_response_a": dose_responses_a,
@@ -231,19 +236,22 @@ def run_real_state_induction(
         logger.info(f"Index split: {len(train_df)} train, {len(test_df)} test")
     logger.info(f"Split dataset: {len(train_df)} train pairs, {len(test_df)} held-out test pairs")
 
-    # 2. Train split による情動方向 d_V, d_A の推定
-    logger.info(f"Extracting target layer {target_layer} representations on train split...")
+    # 2. Train split による情動方向 d_V, d_A の推定 (Reader-grounded Primary / Self-derived Secondary)
+    logger.info(f"Extracting target layer {target_layer} representations and Reader/Self predictions on train split...")
     train_hiddens = []
-    train_ev: List[float] = []
-    train_ea: List[float] = []
+    train_self_ev: List[float] = []
+    train_self_ea: List[float] = []
+    train_reader_ev: List[float] = []
+    train_reader_ea: List[float] = []
     train_candidates = build_va_candidates()
     with torch.no_grad():
         for _, row in train_df.iterrows():
             text = str(row["text"])
-            prompt = build_prompt(text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
-            enc = encode_prompt_canonical(tokenizer, prompt, device=device)
-            anchors = find_semantic_anchors(enc["input_ids"][0].tolist(), tokenizer, text)
-            patch_pos = anchors["prompt_end"]
+            # a. Self condition: capture target_layer representation and evaluate clean self-report
+            prompt_self = build_prompt(text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
+            enc_self = encode_prompt_canonical(tokenizer, prompt_self, device=device)
+            anchors_self = find_semantic_anchors(enc_self["input_ids"][0].tolist(), tokenizer, text)
+            patch_pos = anchors_self["prompt_end"]
 
             with ActivationHookManager(adapter) as hook_mgr:
                 hook_mgr.register_capture_hook(
@@ -252,27 +260,55 @@ def run_real_state_induction(
                     token_indices=patch_pos,
                     key="train_h",
                 )
-                _ = model(**enc)
+                _ = model(**enc_self)
                 train_hiddens.append(hook_mgr.captured_activations["train_h"].cpu().float().numpy().ravel())
-            _, tr_probs = compute_sequence_likelihoods_for_candidates(
-                model=model, tokenizer=tokenizer, prompt=prompt, candidates=train_candidates, device=device, batch_size=batch_size
+            _, tr_self_probs = compute_sequence_likelihoods_for_candidates(
+                model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=train_candidates, device=device, batch_size=batch_size
             )
-            ev_tr, ea_tr = compute_expected_va(tr_probs, train_candidates)
-            train_ev.append(float(ev_tr))
-            train_ea.append(float(ea_tr))
+            ev_s, ea_s = compute_expected_va(tr_self_probs, train_candidates)
+            train_self_ev.append(float(ev_s))
+            train_self_ea.append(float(ea_s))
+
+            # b. Reader condition: evaluate model's objective perception of reader affect (Reader Prediction)
+            prompt_reader = build_prompt(text, task=TaskType.READER, format_type="chat", tokenizer=tokenizer)
+            _, tr_reader_probs = compute_sequence_likelihoods_for_candidates(
+                model=model, tokenizer=tokenizer, prompt=prompt_reader, candidates=train_candidates, device=device, batch_size=batch_size
+            )
+            ev_r, ea_r = compute_expected_va(tr_reader_probs, train_candidates)
+            train_reader_ev.append(float(ev_r))
+            train_reader_ea.append(float(ea_r))
 
     H_train = np.array(train_hiddens)  # (N_train, D)
-    if "reader_V" in train_df.columns and "reader_A" in train_df.columns:
-        y_v_train = train_df["reader_V"].to_numpy()
-        y_a_train = train_df["reader_A"].to_numpy()
-    else:
-        logger.info("No human reader_V/A; using train-set model self-report as direction targets.")
-        y_v_train = np.array(train_ev, dtype=np.float64)
-        y_a_train = np.array(train_ea, dtype=np.float64)
 
-    directions = extract_conditional_directions(H_train, y_v_train, y_a_train, method="ridge", alpha=1.0)
-    d_v = directions["direction_v"]  # (D,)
-    d_a = directions["direction_a"]
+    # Primary: Reader-grounded direction targets (human reader if available, otherwise model Reader prediction)
+    if "reader_V" in train_df.columns and "reader_A" in train_df.columns:
+        logger.info("Using human reader_V/A labels for Primary affect direction targets.")
+        y_v_train_primary = train_df["reader_V"].to_numpy()
+        y_a_train_primary = train_df["reader_A"].to_numpy()
+    else:
+        logger.info("Using train-set model Reader Predictions (TaskType.READER) as Primary affect direction targets.")
+        y_v_train_primary = np.array(train_reader_ev, dtype=np.float64)
+        y_a_train_primary = np.array(train_reader_ea, dtype=np.float64)
+
+    directions_primary = extract_conditional_directions(H_train, y_v_train_primary, y_a_train_primary, method="ridge", alpha=1.0)
+    d_v = directions_primary["direction_v"]  # (D,) Primary Reader-grounded
+    d_a = directions_primary["direction_a"]
+
+    # Secondary: Self-derived direction targets (model self-report)
+    y_v_train_secondary = np.array(train_self_ev, dtype=np.float64)
+    y_a_train_secondary = np.array(train_self_ea, dtype=np.float64)
+    directions_secondary = extract_conditional_directions(H_train, y_v_train_secondary, y_a_train_secondary, method="ridge", alpha=1.0)
+    d_v_self = directions_secondary["direction_v"]
+    d_a_self = directions_secondary["direction_a"]
+
+    norm_v_p = np.linalg.norm(d_v)
+    norm_v_s = np.linalg.norm(d_v_self)
+    norm_a_p = np.linalg.norm(d_a)
+    norm_a_s = np.linalg.norm(d_a_self)
+    alignment_v = float(np.dot(d_v, d_v_self) / (norm_v_p * norm_v_s + 1e-6)) if norm_v_p > 0 and norm_v_s > 0 else 0.0
+    alignment_a = float(np.dot(d_a, d_a_self) / (norm_a_p * norm_a_s + 1e-6)) if norm_a_p > 0 and norm_a_s > 0 else 0.0
+    logger.info(f"Reader-Grounded vs Self-Derived Direction Alignment: cos_V={alignment_v:.3f}, cos_A={alignment_a:.3f}")
+
     Q_sub = compute_orthonormal_subspace([d_v, d_a])  # (D, 2)
     controls = generate_control_directions(d_v, num_controls=1, seed=42)
     d_rand = controls["random_directions"][0]
@@ -488,6 +524,11 @@ def run_real_state_induction(
     mean_dose_a = [float(np.mean(dose_curves_a[a])) for a in alpha_grid]
 
     return {
+        "affect_direction_grounding": "reader_prediction",
+        "alignment_reader_vs_self_directions": {
+            "valence": alignment_v,
+            "arousal": alignment_a,
+        },
         "alpha_grid": alpha_grid,
         "dose_response_v": mean_dose_v,
         "dose_response_a": mean_dose_a,

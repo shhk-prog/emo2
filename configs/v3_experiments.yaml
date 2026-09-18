@@ -12,8 +12,10 @@ dataset:
   text_column: "text"
   id_column: "id"
   pair_id_column: "pair_id"
+  # neutral_text_column は元CSVの列名ではなく、load_v3_matched_pair_table() が
+  # clinical行にpair_id対応のneutralテキストを自動結合して付与するローダー生成列名
   neutral_text_column: "neutral_text"
-  # 人間 VA 列は AIPsy に無い。方向推定はモデル自己報告、β 共変量は domain。
+  # 人間 VA 列は AIPsy に無い。方向推定はモデルの Reader Prediction (Primary) / 自己報告 (Secondary)
   external_labels:
     valence: null
     arousal: null
@@ -48,6 +50,7 @@ gate_criteria:
 # Step 6: 時空間全探索 & Path Mediation 設定
 spatiotemporal:
   layer_sampling: "all"  # 全層探索
+  n_causal_samples: 15   # 因果介入サンプル数 (推奨: 10〜20件)
   semantic_stages:
     - "response_start"
     - "pre_V"

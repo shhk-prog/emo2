@@ -145,6 +145,7 @@ def simulate_spatiotemporal_maps(
         "num_layers": num_layers,
         "semantic_stages": semantic_stages,
         "relative_depths": relative_depths,
+        "primary_grounding": "reader_prediction (simulated)",
         "maps": {
             "D_V": D_V.tolist(),
             "D_A": D_A.tolist(),
@@ -157,14 +158,18 @@ def simulate_spatiotemporal_maps(
             "C_V": C_V.tolist(),
             "C_A": C_A.tolist(),
         },
+        "secondary_maps": {
+            "D_V_self": D_V.tolist(),
+            "D_A_self": D_A.tolist(),
+        },
         "dissociation_summary": {
             "valence": dissoc_v,
             "arousal": dissoc_a,
         },
         "n_total_samples": 32,
         "n_map_samples": 32,
-        "n_intervene_samples": 5,
-        "n_causal_intervention_samples": 5,
+        "n_intervene_samples": 15,
+        "n_causal_intervention_samples": 15,
         "dry_run": True,
     }
 
@@ -176,6 +181,7 @@ def run_real_spatiotemporal_maps(
     alpha_sweep: List[float],
     device: str = "cpu",
     subsample: int = 0,
+    n_causal_samples: int = 15,
 ) -> Dict[str, Any]:
     """
     実モデルを用いた時空間 4-Map 解析 (Layer x Stage Grid)
@@ -183,6 +189,8 @@ def run_real_spatiotemporal_maps(
     2. 全層・全アンカー位置での活性化を抽出
     3. D (Held-out Ridge R^2), beta (刺激共変量を統制した偏回帰係数),
        gamma (介入応答スロープ), C (因果変位量) を算出
+       Primary: Reader Prediction (感情認知予測値) に基づくデコード能および情動方向
+       Secondary: Self-Report (自己報告値) に基づくデコード能
     """
     logger.info(f"Loading model {model_id} for Spatiotemporal 4-Map Analysis on {device}...")
     tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
@@ -209,12 +217,14 @@ def run_real_spatiotemporal_maps(
     else:
         eval_df = df.copy().reset_index(drop=True)
     N = len(eval_df)
-    logger.info(f"Evaluating {N} samples across {num_layers} layers x {num_stages} semantic stages...")
+    logger.info(f"Evaluating {N} samples across {num_layers} layers x {num_stages} semantic stages (n_causal_samples={n_causal_samples})...")
 
     candidates = build_va_candidates()
 
     D_V = np.zeros((num_layers, num_stages))
     D_A = np.zeros((num_layers, num_stages))
+    secondary_D_V = np.zeros((num_layers, num_stages))
+    secondary_D_A = np.zeros((num_layers, num_stages))
     beta_V = np.zeros((num_layers, num_stages))
     beta_A = np.zeros((num_layers, num_stages))
     abs_beta_V = np.zeros((num_layers, num_stages))
@@ -224,9 +234,11 @@ def run_real_spatiotemporal_maps(
     C_V = np.zeros((num_layers, num_stages))
     C_A = np.zeros((num_layers, num_stages))
 
-    # 各サンプルの Clean baseline 自己報告値を取得
+    # 各サンプルの Clean baseline 自己報告値および Reader Prediction を取得
     clean_ev_list = []
     clean_ea_list = []
+    reader_ev_list = []
+    reader_ea_list = []
     sample_prompts: List[str] = []
     sample_joint_meta: List[dict[str, Any]] = []
     template_cand = candidates[40]["json_str"]  # {"valence": 5, "arousal": 5}
@@ -250,6 +262,7 @@ def run_real_spatiotemporal_maps(
                 }
             )
 
+            # a. Self condition: Clean expected report (baseline for causal shifts)
             _, probs = compute_sequence_likelihoods_for_candidates(
                 model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device, batch_size=81
             )
@@ -257,8 +270,27 @@ def run_real_spatiotemporal_maps(
             clean_ev_list.append(ev)
             clean_ea_list.append(ea)
 
-    y_v = np.array(clean_ev_list)
-    y_a = np.array(clean_ea_list)
+            # b. Reader condition: Reader Prediction (stimulus emotion perception)
+            prompt_reader = build_prompt(text, task=TaskType.READER, format_type="chat", tokenizer=tokenizer)
+            _, r_probs = compute_sequence_likelihoods_for_candidates(
+                model=model, tokenizer=tokenizer, prompt=prompt_reader, candidates=candidates, device=device, batch_size=81
+            )
+            r_ev, r_ea = compute_expected_va(r_probs, candidates)
+            reader_ev_list.append(r_ev)
+            reader_ea_list.append(r_ea)
+
+    # Primary targets: Reader Predictions (grounded in emotion recognition)
+    if "reader_V" in eval_df.columns and "reader_A" in eval_df.columns:
+        y_v = eval_df["reader_V"].to_numpy()
+        y_a = eval_df["reader_A"].to_numpy()
+    else:
+        y_v = np.array(reader_ev_list, dtype=np.float64)
+        y_a = np.array(reader_ea_list, dtype=np.float64)
+
+    # Secondary targets: Self-report predictions
+    y_v_self = np.array(clean_ev_list, dtype=np.float64)
+    y_a_self = np.array(clean_ea_list, dtype=np.float64)
+
     covar_v = v3_stimulus_covariate(eval_df, "v", N)
     covar_a = v3_stimulus_covariate(eval_df, "a", N)
 
@@ -308,15 +340,28 @@ def run_real_spatiotemporal_maps(
                 cv_splits = list(KFold(n_splits=min(3, N), shuffle=True, random_state=42).split(H))
 
             preds_v, preds_a = np.zeros(N), np.zeros(N)
+            preds_v_self, preds_a_self = np.zeros(N), np.zeros(N)
             for tr, te in cv_splits:
+                # Primary: fit on Reader Prediction
                 ridge_v = Ridge(alpha=10.0).fit(H[tr], y_v[tr])
                 ridge_a = Ridge(alpha=10.0).fit(H[tr], y_a[tr])
                 preds_v[te] = ridge_v.predict(H[te])
                 preds_a[te] = ridge_a.predict(H[te])
+                # Secondary: fit on Self Report
+                ridge_v_s = Ridge(alpha=10.0).fit(H[tr], y_v_self[tr])
+                ridge_a_s = Ridge(alpha=10.0).fit(H[tr], y_a_self[tr])
+                preds_v_self[te] = ridge_v_s.predict(H[te])
+                preds_a_self[te] = ridge_a_s.predict(H[te])
+
             r2_v = max(0.0, float(1.0 - np.sum((y_v - preds_v)**2) / (np.sum((y_v - np.mean(y_v))**2) + 1e-6)))
             r2_a = max(0.0, float(1.0 - np.sum((y_a - preds_a)**2) / (np.sum((y_a - np.mean(y_a))**2) + 1e-6)))
             D_V[l, s_idx] = r2_v
             D_A[l, s_idx] = r2_a
+
+            r2_v_s = max(0.0, float(1.0 - np.sum((y_v_self - preds_v_self)**2) / (np.sum((y_v_self - np.mean(y_v_self))**2) + 1e-6)))
+            r2_a_s = max(0.0, float(1.0 - np.sum((y_a_self - preds_a_self)**2) / (np.sum((y_a_self - np.mean(y_a_self))**2) + 1e-6)))
+            secondary_D_V[l, s_idx] = r2_v_s
+            secondary_D_A[l, s_idx] = r2_a_s
 
             # 3. 偏回帰係数 beta: 刺激ラベル covar を共変量として統制した内部予測スコアの寄与度
             # y = beta_0 + beta * s_pred + gamma * covar
@@ -343,7 +388,8 @@ def run_real_spatiotemporal_maps(
             h_std_v = float(np.std(H @ d_v)) if np.std(H @ d_v) > 0 else 1.0
             h_std_a = float(np.std(H @ d_a)) if np.std(H @ d_a) > 0 else 1.0
 
-            sub_eval_idx = list(range(min(5, N)))
+            n_causal_intervene = min(n_causal_samples, N)
+            sub_eval_idx = list(range(n_causal_intervene))
             with torch.no_grad():
                 for idx in sub_eval_idx:
                     prompt = sample_prompts[idx]
@@ -407,6 +453,7 @@ def run_real_spatiotemporal_maps(
         "num_layers": num_layers,
         "semantic_stages": semantic_stages,
         "relative_depths": relative_depths,
+        "primary_grounding": "reader_prediction",
         "n_total_samples": len(df),
         "n_map_samples": N,
         "n_intervene_samples": len(sub_eval_idx),
@@ -422,6 +469,10 @@ def run_real_spatiotemporal_maps(
             "gamma_A": gamma_A.tolist(),
             "C_V": C_V.tolist(),
             "C_A": C_A.tolist(),
+        },
+        "secondary_maps": {
+            "D_V_self": secondary_D_V.tolist(),
+            "D_A_self": secondary_D_A.tolist(),
         },
         "dissociation_summary": {
             "valence": dissoc_v,
@@ -446,6 +497,7 @@ def main():
     logger.info(describe_loaded_frame(df, "V3-RQ2 matched-pair table", v3_cfg["dataset"]["path"]))
     semantic_stages = v3_cfg["spatiotemporal"]["semantic_stages"]
     alpha_sweep = v3_cfg["spatiotemporal"]["alpha_sweep"]
+    n_causal_cfg = int(v3_cfg.get("spatiotemporal", {}).get("n_causal_samples", 15))
 
     # 命名の正規化 ("response_start" -> "candidate_start")
     normalized_stages = [s if s != "response_start" else "candidate_start" for s in semantic_stages]
@@ -475,7 +527,7 @@ def main():
             logger.info("Executing mock spatiotemporal 4-map generation (--dry-run specified)...")
             results = simulate_spatiotemporal_maps(num_layers, normalized_stages, alpha_sweep)
         else:
-            logger.info(f"Executing REAL spatiotemporal 4-map calculation on {target_model_id}...")
+            logger.info(f"Executing REAL spatiotemporal 4-map calculation on {target_model_id} (n_causal_samples={n_causal_cfg})...")
             results = run_real_spatiotemporal_maps(
                 df=df,
                 model_id=target_model_id,
@@ -483,11 +535,12 @@ def main():
                 alpha_sweep=alpha_sweep,
                 device=args.device,
                 subsample=args.subsample,
+                n_causal_samples=n_causal_cfg,
             )
 
         n_dataset_total = int(len(df))
         n_map_samples = int(results.get("n_map_samples", (args.subsample if args.subsample and args.subsample > 0 else len(df))))
-        n_causal_intervene = int(results.get("n_causal_intervention_samples", min(5, n_map_samples)))
+        n_causal_intervene = int(results.get("n_causal_intervention_samples", min(n_causal_cfg, n_map_samples)))
 
         results["dry_run"] = bool(args.dry_run)
         results["analysis_role"] = "discovery"

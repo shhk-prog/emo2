@@ -409,7 +409,6 @@ def run_real_spatiotemporal_maps(
                     ):
                         axis_shifts = []
                         for alpha in alpha_sweep:
-                            p_vec = torch.tensor(alpha * h_std * direction, dtype=torch.float32, device=device)
                             _, probs_p = compute_sequence_likelihoods_for_candidates(
                                 model=model,
                                 tokenizer=tokenizer,
@@ -420,11 +419,15 @@ def run_real_spatiotemporal_maps(
                                 generation_patch={
                                     "adapter": adapter,
                                     "layer_idx": l,
-                                    "patch_tensor": p_vec,
+                                    "direction": direction,
+                                    "alpha": alpha,
+                                    "hidden_std": h_std,
                                     "token_index": t_idx,
                                     "hook_point": HookPoint.POST_MLP_RESID,
+                                    "mode": "inject",
                                 },
                             )
+
                             ev_p, ea_p = compute_expected_va(probs_p, candidates)
                             if axis_name == "v":
                                 axis_shifts.append(ev_p - clean_ev_list[idx])

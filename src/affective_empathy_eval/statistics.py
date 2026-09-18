@@ -87,7 +87,52 @@ def compute_bootstrap_ci(
     return point_est, lower, upper
 
 
+def compute_correlation_bootstrap_ci(
+    x: list[float] | np.ndarray,
+    y: list[float] | np.ndarray,
+    method: str = "pearson",
+    n_boot: int = 1000,
+    ci_level: float = 0.95,
+    seed: int = 42,
+) -> tuple[float, float, float]:
+    """
+    ペア単位 (x_i, y_i) の Bootstrap リサンプリングによる相関係数の信頼区間算出
+    戻り値: (point_estimate, ci_lower, ci_upper)
+    """
+    x_arr = np.asarray(x, dtype=np.float64)
+    y_arr = np.asarray(y, dtype=np.float64)
+    mask = ~np.isnan(x_arr) & ~np.isnan(y_arr)
+    x_c, y_c = x_arr[mask], y_arr[mask]
+    n = len(x_c)
+    if n < 3 or np.std(x_c) == 0 or np.std(y_c) == 0:
+        return np.nan, np.nan, np.nan
+
+    from scipy.stats import pearsonr, spearmanr
+    corr_fn = pearsonr if method == "pearson" else spearmanr
+    point_est = float(corr_fn(x_c, y_c)[0])
+
+    rng = np.random.default_rng(seed)
+    boot_stats = []
+    for _ in range(n_boot):
+        idx = rng.choice(n, size=n, replace=True)
+        xs, ys = x_c[idx], y_c[idx]
+        if np.std(xs) == 0 or np.std(ys) == 0:
+            continue
+        r_b = corr_fn(xs, ys)[0]
+        if not np.isnan(r_b):
+            boot_stats.append(r_b)
+
+    if len(boot_stats) < 10:
+        return point_est, np.nan, np.nan
+
+    alpha = 1.0 - ci_level
+    lower = float(np.percentile(boot_stats, 100 * (alpha / 2.0)))
+    upper = float(np.percentile(boot_stats, 100 * (1.0 - alpha / 2.0)))
+    return point_est, lower, upper
+
+
 def paired_family_comparison(
+
     scores_inst: list[float],
     scores_base: list[float],
 ) -> dict[str, Any]:

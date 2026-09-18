@@ -1,18 +1,33 @@
 # Behavioral Stage: 行動レベル情動反応性評価
+## 論文対応: Section 3. Behavioral Characterization: Alignment and Coupling between Reader and Self Perspectives
 
 Behavioral Stage は、内部表現や因果介入の前に、**モデル出力として得られる自己報告 VA（Valence–Arousal）および認識 VA が、人間評定済み刺激に対してどう変位するか**を測定する独立パイプラインである。
 
-中心の問いは **Do Reader and Self covary?** である。
+- **科学的問い (RQ)**: *Do Reader and Self covary in their responses to controlled affective changes?*（制御された刺激の情動変化に対して、読者感情推定 (Reader) とモデル自己報告 (Self) は行動出力レベルで連動するか？）
+- **Primary Metric**:
+  - **RQ4 Coupling**: Matched-pair 変位相関 $\text{corr}(\Delta_{reader}, \Delta_{self})$（$\Delta = \text{clinical} - \text{neutral}$、ペア単位の 95% Bootstrap CI）。静的刺激間の生相関 $\text{corr}(R, S)$ は Secondary/参考指標として分離し、Primary と混在させない。
+  - **RQ2 Dose-Response**: トリップレット内反復測定線形スロープ $b_i = (E[Y_i^{\text{clinical}}] - E[Y_i^{\text{neutral}}]) / 2.0$（Neutral $\to$ Moderate $\to$ Clinical）、対応のある 1 標本 $t$ 検定 ($H_0: \bar{b} = 0$) およびトリプレット単位の 95% Bootstrap CI。
+  - **RQ1 Sensitivity**: Matched-pair 差分 $\Delta = \text{clinical} - \text{neutral}$、Cohen's $d_z$、対応のある $t$ 検定、ペア単位の 95% Bootstrap CI。
+  - **Human-Affect Correspondence**: EmoBank 人間評定とモデル期待値の Pearson $r$ / Spearman $\rho$。
+- **統計単位**:
+  - Coupling / Sensitivity: Matched pair ($N_{\text{pairs}}$)
+  - Dose-Response: Matched triplet ($N_{\text{triplets}}$)
+  - Correspondence: Stimulus ($N_{\text{stimuli}}$)
+- **統制条件**:
+  - 内容整合中立統制文（Clinical vs Neutral matched pairs）
+  - 語彙・統語複雑性統制文（Complex Neutral による特異性検証）
+  - Benjamini-Hochberg FDR 多重比較補正（Family 単位: Sensitivity, Dose-Response, Coupling）
+- **出力成果物**:
+  - `behavioral/results/emobank_3way_summary/`
+  - `behavioral/results/aipsy_4split_summary/` (`behavioral_aipsy_summary.csv`, `aipsy_coupling.csv`, `aipsy_sensitivity.csv`, `aipsy_dose_response.csv`, `aipsy_specificity.csv`)
 
 操作定義:
-
 - **Reader**: 平均的読者の VA を推定する認識課題
 - **Self**: 刺激提示後の自己報告 / 反応性課題
 
 Reader を認知的共感、Self を情動的共感と一対一対応させない。共感概念との関係は Discussion に留める。
 
 本研究は、LLM が主観的な感情を経験していることを検証しない。測定対象は次に限る。
-
 - `self-reported affective state`（自己報告情動状態）
 - `elicited affective response`（刺激誘発性情動反応）
 - `affective reactivity profile`（情動反応プロファイル）

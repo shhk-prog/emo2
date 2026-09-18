@@ -8,13 +8,19 @@
 
 ## 1. 中心リサーチクエスチョン (Central RQ)
 
+## 1. 中心リサーチクエスチョン (Central RQ)
+
 > **Central RQ**:  
 > **How are affect-relevant internal representations coupled to LLM self-reports, and how does this relationship vary across tasks, post-training, and stages of computation?**  
 > （LLMの情動関連内部表現は自己報告とどのように結びついており、その関係はタスク、事後学習（post-training）、および計算過程を通じてどのように変化するのか。）
 
 ### 中心的主張 (Core Thesis)
 
-> **LLMの自己報告は、単なる出力上の模倣でも、内部でデコード可能な情動情報の直接的な読み出しでもない。自己報告は情動関連内部表現と系統的に結びつくが、その結びつきは部分的かつタスク依存であり、post-trainingによって再編され、計算過程の特定の位置で初めて因果的利用可能性を持つ。**
+> **LLM self-reports are systematically related to affect-relevant internal representations, but this relationship is partial and task-dependent. Across Base–Instruct pairs, the representation–report relationship exhibits post-training-associated reorganization, and decodable affect-relevant information is not uniformly causally relevant: measurable causal leverage over self-report is concentrated at particular layers and stages of computation.**
+> 
+> （**LLMの自己報告は情動関連内部表現と系統的に結びついているが、その対応は部分的かつタスク依存である。Base–Instruct間では表現と自己報告の関係にpost-training-associatedな再編が観測され、さらに内部でデコード可能な情動情報が一様に自己報告へ因果的に寄与するわけではなく、その因果的影響（measurable causal leverage）は特定の層・計算段階に集中する。**）
+>
+> ※ LLMの自己報告は出力レベルの共変動（covariation）のみによって特徴づけられるものではなく、またデコード可能なすべての情動関連情報の均一な直接読み出し（direct readout）でもありません（*LLM self-reports cannot be characterized by output-level covariation alone, nor as a uniform direct readout of all decodable affect-relevant information*）。
 
 ---
 
@@ -23,30 +29,33 @@
 本研究は、中心 RQ に対する一続きの証拠階層として 4 つの Stage を配備し、論文の主要章（Section 3〜6）に対応させています。
 
 ```text
-Covariation  →  Representation / Causality  →  Reorganization  →  Utilization
-(Behavioral)               (V1)                         (V2)                (V3)
+Covariation  →  Representation & Overlap  →  Reorganization  →  Causal Leverage
+(Behavioral)               (V1)                       (V2)              (V3)
 ```
 
 | Stage | 概念的役割 | 論文 Section | 中心的な科学的問い | 主な検証・比較軸 |
 |---|---|---|---|---|
-| **Behavioral** | **Covariation** (相関・導入現象) | §3. Behavioral Characterization | *Do Reader and Self covary?* | 出力レベルの相関（認識と自己報告は独立セッション） |
-| **V1** | **Representation / Causality** (表現・因果共有) | §4. Internal Representation and Causal Sharing | *What do Reader and Self share internally?* | 同一モデル内の Reader ↔ Self 内部表現と因果介入 |
-| **V2** | **Reorganization** (事後学習再編) | §5. Post-training Reorganization | *What does post-training reorganize?* | 同一ファミリーの Base ↔ Instruct 幾何・共有性・回復 |
-| **V3** | **Utilization** (因果的利用可能性) | §6. From Representation to Causal Utilization | *When/where does information acquire causal leverage?* | Instruct 側の層 × 生成段階（時空間介入・媒介減衰） |
+| **Behavioral** | **Covariation** (相関・導入現象) | §3. Behavioral Characterization: Alignment and Coupling between Reader and Self Perspectives | *Do Reader and Self covary in their responses to controlled affective changes?* | 制御された情動変化に対する出力レベルの連動（$\Delta$ カップリング） |
+| **V1** | **Representation & Overlap** (表現・因果重複) | §4. Shared Representation and Causal Overlap in Base Models | *What do Reader and Self share internally?* | 同一基底モデル内における因果関連表現と介入感受性サイトの部分的重複 |
+| **V2** | **Reorganization** (事後学習関連再編) | §5. Post-training-Associated Reorganization of Affect-Relevant Computations | *How does post-training associate with computational reorganization?* | 同一ファミリーの Base ↔ Instruct 幾何・共有性・分布回復（非因果的再編） |
+| **V3** | **Causal Leverage** (因果的利用可能性と必然性) | §6. From Decodability to Causal Leverage: Sufficiency, Specificity, and Spatiotemporal Dynamics | *Where does affect-relevant information exert measurable causal leverage over self-report?* | Instruct 側の層 × 生成段階（十分性・特異性・内生関連性の局在） |
 
-- **Behavioral** (`behavioral/`): EmoBank 3-Way と AIPsy 4-Split。4軸は correspondence, Sensitivity, Dose-response / Specificity, Reader–Self coupling。[`behavioral/README.md`](behavioral/README.md)
-- **V1** (`v1/`): decodability / 幾何（E1/E2）、rule-based 文脈統制（Phase B）、因果マップと交換可能性（E3/E4）、課題特異化（E6）。Base / Instruct 8 条件は各モデル内の再現であり、差の解釈は V2。[`v1/README.md`](v1/README.md)
-- **V2** (`v2/`): 幾何再編、ピーク解離、2D OT 分布回復（RQ1〜RQ4）。[`v2/README.md`](v2/README.md)
-- **V3** (`v3/`): AIPsy matched-neutral 192 pair での状態誘導ゲート、時空間 4-Map、mediated attenuation、確証的再現。EmoBank 3-way は使わない。RQ1 が完全一致の `GO` のときだけ RQ2 以降へ進む。[`v3/README.md`](v3/README.md)
+- **Behavioral** (`behavioral/`): EmoBank 3-Way と AIPsy 4-Split。4軸は correspondence, Sensitivity, Dose-response / Specificity, Reader–Self coupling（刺激変化に対する $\Delta$ カップリング $\text{corr}(\Delta_R, \Delta_S)$ を Primary 化）。[`behavioral/README.md`](behavioral/README.md)
+- **V1** (`v1/`): decodability / 幾何（E1/E2）、意味統制感度（Phase B）、因果マップと交換可能性（E3/E4）、課題特異化（E6）。同一モデル内での部分的重複（partially overlapping causally relevant representations and intervention-sensitive sites）を検証。[`v1/README.md`](v1/README.md)
+- **V2** (`v2/`): 幾何再編、ピーク解離、2D OT 分布回復（RQ1〜RQ4。直交 Procrustes アラインメント統制）。Base–Instruct 条件間の差異を「post-training-associated reorganization」として客観的に記述。[`v2/README.md`](v2/README.md)
+- **V3** (`v3/`): AIPsy matched-neutral 192 pair での状態誘導ゲート、時空間 4-Map、mediated attenuation、確証的再現。
+  - **Direction Injection**: 加算注入（$h + \alpha \sigma_h \hat{d}$）による十分性と因果的影響力（*sufficiency / causal leverage*）
+  - **Subspace Removal**: 部分空間除去による内生的な関連性（*necessity / endogenous relevance*）
+  - 因果的影響力が特定の層・生成段階に集中（*concentrated at particular layers and generation stages*）することを実証。[`v3/README.md`](v3/README.md)
 
 ### 3つの学術的貢献 (Main Contributions)
 
-1. **Behavioral + V1 (Covariation & Shared Mechanism)**:  
-   Reader Prediction（読者感情の推定）と Self-Report（提示後自己報告）が行動レベルで covary することを示し、その背後に部分的に共有された affect-relevant internal representation と因果機構が存在することを実証する。
-2. **V2 (Post-training Reorganization)**:  
-   事後学習（Post-training）がその情動情報を単純に消去するのではなく、表現幾何・Reader/Self 共有性・因果的利用パターンを系統的に再編することを示す。
-3. **V3 (Separation of Decodability and Causal Utilization)**:  
-   内部からデコード可能な情報（Decodable information）と実際に因果的役割を果たす情報（Causally utilized information）を分離し、自己報告に対する因果力がモデル内部のどの層・どの生成段階で現れるかを検証する。
+1. **Behavioral + V1 (Covariation & Representation Overlap)**:  
+   制御された刺激の情動変化に対して Reader Prediction（読者感情の推定）と Self-Report（提示後自己報告）が行動レベルで covary すること（*Reader and Self covary in their responses to controlled affective changes*）を示し、その背後に部分的に重複した因果関連表現と介入感受性サイト（*partially overlapping causally relevant representations and intervention-sensitive sites*）が存在することを実証する。
+2. **V2 (Post-training-Associated Reorganization)**:  
+   Base–Instruct 比較は単純な情動情報の消去説（simple complete-erasure account）と整合せず、表現幾何、Reader–Self 共有性、および介入感受性回路の系統的な再編（*changes in representational geometry, Reader–Self sharing, and intervention-sensitive organization*）が post-training 条件間で生じていることを明らかにする。
+3. **V3 (Distinguishing Decodability from Causal Leverage)**:  
+   内部でデコード可能な情動情報（*decodable affect-relevant information*）と介入によって実証される因果的関連性（*interventionally demonstrated causal relevance*）を明確に区別し、自己報告に対する測定可能な因果的影響力（*causal leverage*）がどの層および生成段階に集中しているかを時空間的に特定する。
 
 ---
 
@@ -56,25 +65,25 @@ Covariation  →  Representation / Causality  →  Reorganization  →  Utilizat
 - **Reader**: 平均的読者の VA を推定する認識課題（Cognitive estimation）
 - **Self**: 刺激提示後の自己報告 / 反応性課題（Self-reported affective response）
 
-仮説図は一直線（刺激 → 認識 → 内部状態 → 自己報告）ではなく、共有内部表現からのタスク分岐である。
+刺激から自己報告に至る計算モデルは、共有表現の存在をあらかじめ仮定せず、内部表現から各タスク計算への分岐として記述した上で、V1 でその共有度を検証します。
 
 ```text
 Stimulus
-  → Shared affect representation
-     → Reader readout
-     → Self readout
+  → affect-relevant internal representations
+     ↘ Reader-related computation
+     ↘ Self-report-related computation
 ```
 
 ### 候補空間とスケーリング（729 VAD vs 81 VA）
-論文 Methods における設計根拠：
+論文 Methods / Limitations における設計根拠と解釈境界：
 - **Behavioral / V1 Primary: $9^3 = 729$ VAD**  
   先行研究および人間評価アノテーション（EmoBank 等）のプロトコルを忠実に保持。※ Dominance は Behavioral / V1 の補助次元とし、最終主張には直接寄与しないため Appendix で補足する。
 - **V2 / V3 Primary: $9^2 = 81$ VA**  
   層 × 生成段階にわたる網羅的因果スイープの計算量を実行可能範囲に抑え、Primary endpoint を Valence / Arousal に限定。
-- **注意**: 729 空間の $E[V], E[A]$ と 81 空間の数値を同一尺度として直接比較・混在させない。
+- **Stage 間の比較境界**: 729 空間と 81 空間の絶対値を直接比較することはせず、**各 Stage 内の contrast と relative pattern を主たる推論対象**とします（Supplementary において 81 空間と 729 空間の小規模な感度分析を配置）。
 
 ### 対象モデル構成（コホート設計）
-モデルサイズ差交絡を排除し、事後学習（Post-training）による幾何・因果再編を純粋に検証するため、狭い 1〜1.5B パラメータ帯の 4 大独立ファミリーを Primary コホートとしています：
+モデルサイズ差を抑えた複数ファミリーの Base–Instruct 対を用いて、事後学習に伴う差異（post-training-associated differences）の再現性を検証するため、狭い 1〜1.5B パラメータ帯の 4 大独立ファミリーを Primary コホートとしています：
 - **Primary 1–1.5B Cohort (`primary_small`)**:  
   *four independently developed model families in the 1–1.5B regime*
   - **Qwen 2.5 (1.5B)**: `Qwen/Qwen2.5-1.5B` $\leftrightarrow$ `Qwen/Qwen2.5-1.5B-Instruct`

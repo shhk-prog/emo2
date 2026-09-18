@@ -1,10 +1,19 @@
 # V3 Stage: 時空間経路と mediated attenuation
+## 論文対応: Section 6. From Decodability to Causal Leverage: Sufficiency, Specificity, and Spatiotemporal Dynamics
 
-V3 は、刺激提示で作られた内部情動方向が、**どの層・どの生成段階を経て自己報告分布を動かすか**を測る。中心の問いは **When/where does information acquire causal leverage?** である。主指標は Pearl 流の NDE/NIE ではなく **mediated attenuation**（媒介減衰）である。
+V3 は、内部情動表現が**どの層・どの生成段階で自己報告分布に対して因果的影響力（causal leverage）を行使するか**を測る。中心の問いは **Where does affect-relevant information exert measurable causal leverage over self-report?** である。主指標は Pearl 流の NDE/NIE ではなく **mediated attenuation**（媒介減衰）である。
+
+本ステージでは、介入の役割を概念的に明確化する：
+- **Direction Injection**: 中立文への方向加算注入による因果的影響力・十分性（*sufficiency / causal leverage*）
+- **Subspace Removal**: 情動文からの内部部分空間除去による内生的関連性・必然性（*necessity / endogenous relevance*）
+
+自己報告に対する測定可能な因果的影響力はモデル全体に均一に分布するのではなく、**特定の層および生成段階に集中する（causal leverage is concentrated at particular layers and generation stages）**という仮説を時空間マップにより検証する。
+
+介入オペレータは、全実験において加算注入（Additive Injection: $h' = h + \alpha \cdot \sigma_h \cdot \hat{d}$）で厳密にスケール統一され、Confirmatory 再現性評価はサンプル単位の完全独立分割（Sample-level holdout cross-fitting）によりプローブ推定と介入評価のデータ重複リークを排除して実施される。
 
 測定対象は介入前後の自己報告 VA 変位と、統制課題への非特異的摂動である。「内部に感情状態が宿る」「媒介因果が証明された」とは書かない。Self は操作的な自己報告課題であり、情動的共感と同定しない。
 
-Sequence-Likelihood は **81 VA** 候補である。Behavioral / V1 の 729 VAD 空間とは混ぜない。
+Sequence-Likelihood は **81 VA** 候補である。Behavioral / V1 の 729 VAD 空間とは混ぜない。Stage 間では絶対値を直接比較せず、各 Stage 内の contrast と relative pattern を主たる推論対象とする。
 
 ---
 

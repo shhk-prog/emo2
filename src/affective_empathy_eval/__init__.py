@@ -56,8 +56,10 @@ from affective_empathy_eval.geometry import (
     compute_rsa_correlation,
     eval_held_out_cross_decoding,
     eval_held_out_procrustes,
+    get_block_hidden_state,
     train_and_eval_held_out_probe,
 )
+
 
 # Intervention
 from affective_empathy_eval.intervention import (

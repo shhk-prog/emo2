@@ -47,11 +47,13 @@ except ImportError:  # --dry-run は transformers 未導入環境でも起動で
     AutoModelForCausalLM = None  # type: ignore[misc, assignment]
     AutoTokenizer = None  # type: ignore[misc, assignment]
 
+from affective_empathy_eval.geometry import get_block_hidden_state
 from affective_empathy_eval.manifests import create_run_manifest
 from affective_empathy_eval.models.registry import (
     add_model_selection_args,
     resolve_single_model_from_args,
 )
+
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
@@ -130,10 +132,13 @@ def extract_hidden_states_batched(
 
         hidden_states = outputs.hidden_states
         seq_lengths = attention_mask.sum(dim=1) - 1
+        num_blocks = len(hidden_states) - 1
 
-        for layer_idx, layer_tensor in enumerate(hidden_states):
-            if layer_idx not in all_layer_reps:
-                all_layer_reps[layer_idx] = []
+        for block_idx in range(num_blocks):
+            layer_tensor = get_block_hidden_state(hidden_states, block_idx)
+            if block_idx not in all_layer_reps:
+                all_layer_reps[block_idx] = []
+
 
             batch_last_tokens = []
             for b_idx in range(len(batch_prompts)):
@@ -142,13 +147,14 @@ def extract_hidden_states_batched(
                     layer_tensor[b_idx, last_pos, :].detach().cpu().float().numpy()
                 )
                 batch_last_tokens.append(vec)
-            all_layer_reps[layer_idx].append(np.array(batch_last_tokens))
+            all_layer_reps[block_idx].append(np.array(batch_last_tokens))
 
     final_reps = {
         layer: np.concatenate(batches, axis=0)
         for layer, batches in all_layer_reps.items()
     }
     return final_reps
+
 
 
 def evaluate_regression_probe(
@@ -529,7 +535,7 @@ def main():
     )
     model.eval()
 
-    num_layers = model.config.num_hidden_layers + 1
+    num_layers = model.config.num_hidden_layers
 
     # Part 1: EmoBank
     if args.dataset in ["emobank", "both"]:

@@ -1,16 +1,17 @@
-# V1 Stage: 表現幾何と因果実装の共有
+# V1 Stage: 表現幾何と因果的オーバーラップ
+## 論文対応: Section 4. Shared Representation and Causal Overlap in Base Models
 
-V1 は、Behavioral Stage で観測される Reader–Self の行動連動が、**共有された内部表現**と**共有された因果実装**で支えられるかを問う。
+V1 は、Behavioral Stage で観測される Reader–Self の行動連動の背後に、**共有・整列された内部表現**と**部分的に重複した因果関連表現および介入感受性サイト（partially overlapping causally relevant representations and intervention-sensitive sites）**が存在するかを問う。
 
 中心の問いは次である。
 
 $$
-\text{Does similar behavior imply shared representation and shared causal implementation?}
+\text{Does similar behavior imply shared representation and causal overlap?}
 $$
 
-測定対象はモデル出力と内部活性化の変位である。「モデルが感情を経験する」とは書かない。
+測定対象はモデル出力と内部活性化の変位である。「モデルが感情を経験する」とは書かない。また、同一の因果機構を完全に証明するのではなく、因果関連表現および介入感受性部位の部分的重複（partial causal overlap）の検証を主眼とする。
 
-Reader は操作的な認識課題、Self は操作的な自己報告課題である。認知的共感 / 情動的共感との一対一対応はしない。仮説は一直線ではなく、共有表現から Reader readout と Self readout が分岐する形である。
+Reader は操作的な認識課題、Self は操作的な自己報告課題である。認知的共感 / 情動的共感との一対一対応はしない。仮説は一直線ではなく、情動関連表現から Reader 関連計算と Self 自己報告関連計算が分岐する形である。
 
 ---
 

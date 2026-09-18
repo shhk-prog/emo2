@@ -110,6 +110,9 @@ def format_prompt(
         )
 
 
+from affective_empathy_eval.geometry import get_block_hidden_state
+
+
 @torch.no_grad()
 def extract_single_layer_hidden_states(
     model,
@@ -145,7 +148,8 @@ def extract_single_layer_hidden_states(
             output_hidden_states=True,
         )
 
-        layer_tensor = outputs.hidden_states[layer_idx]
+        # Transformer block layer_idx (0 <= layer_idx < num_layers) の出力を取得
+        layer_tensor = get_block_hidden_state(outputs.hidden_states, layer_idx)
         seq_lengths = attention_mask.sum(dim=1) - 1
 
         for b_idx in range(len(batch_prompts)):
@@ -156,6 +160,7 @@ def extract_single_layer_hidden_states(
             all_reps.append(vec)
 
     return np.array(all_reps)
+
 
 
 def evaluate_probe_accuracy(
@@ -291,6 +296,9 @@ def main():
         results = {
             "acc_original_minimal_pair": 0.85,
             "acc_paraphrase_invariance": 0.82,
+            "acc_transformation_sensitivity_paraphrase": 0.82,
+            "acc_pair_aware_held_out_paraphrase": 0.80,
+            "pair_aware_held_out_reversal_drop": 0.58,
             "acc_word_shuffle": 0.52,
             "mean_affective_prob_original": 0.80,
             "mean_affective_prob_outcome_reversed": 0.20,
@@ -314,6 +322,7 @@ def main():
         manifest.save(os.path.join(model_dir, "manifest.json"))
         print(f"[DRY-RUN] Completed Phase B mock output in {model_dir}")
         return
+
 
     df = pd.read_csv(data_file)
     if args.limit and args.limit > 0:
@@ -420,9 +429,9 @@ def main():
     X_orig = np.concatenate([H_orig_aff, H_orig_neu], axis=0)
     acc_orig = evaluate_probe_accuracy(X_orig, y_orig, groups=groups)
 
-    # Condition 2: Paraphrase / Surface Perturbation
-    # NOTE: This evaluates transformation sensitivity on the boundary established by the original
-    # minimal pairs (not held-out generalization to unseen stimuli pairs).
+    # Condition 2: Paraphrase / Surface Perturbation (Semantic Transformation Sensitivity)
+    # NOTE: Evaluates transformation sensitivity on the decision boundary established by the original
+    # minimal pairs (within-sample transformation sensitivity).
     scaler = StandardScaler()
     X_orig_scaled = scaler.fit_transform(X_orig)
     clf = LogisticRegression(max_iter=500, random_state=42)
@@ -447,9 +456,54 @@ def main():
     mean_prob_rev = float(np.mean(probs_rev_aff))
     outcome_reversal_drop = mean_prob_orig - mean_prob_rev
 
+    # Condition 5: Strict Pair-Aware Evaluation (Generalization to Held-Out Stimuli Pairs)
+    # Train: original stimuli from training pair_ids
+    # Test: paraphrase and outcome reversal from strictly held-out pair_ids
+    unique_pairs = np.unique(pair_ids)
+    rng_split = np.random.default_rng(42)
+    shuffled_pairs = rng_split.permutation(unique_pairs)
+    n_train_pairs = max(1, int(0.7 * len(shuffled_pairs)))
+    train_pair_ids = set(shuffled_pairs[:n_train_pairs])
+    test_pair_ids = set(shuffled_pairs[n_train_pairs:])
+    if len(test_pair_ids) == 0:
+        test_pair_ids = train_pair_ids  # 極小サンプル時のフォールバック
+
+    # 厳格なデータリーク防止アサート
+    if len(shuffled_pairs) > 1:
+        assert len(train_pair_ids.intersection(test_pair_ids)) == 0, (
+            "Data leakage detected! Training and test pair sets must be completely disjoint."
+        )
+
+    train_mask = np.isin(pair_ids, list(train_pair_ids))
+    test_mask = np.isin(pair_ids, list(test_pair_ids))
+
+    X_tr_orig = np.concatenate([H_orig_aff[train_mask], H_orig_neu[train_mask]], axis=0)
+    y_tr_orig = np.array([1] * int(np.sum(train_mask)) + [0] * int(np.sum(train_mask)))
+
+    scaler_pa = StandardScaler()
+    X_tr_scaled = scaler_pa.fit_transform(X_tr_orig)
+    clf_pa = LogisticRegression(max_iter=500, random_state=42)
+    clf_pa.fit(X_tr_scaled, y_tr_orig)
+
+    # Held-out paraphrase evaluation
+    X_te_para = np.concatenate([H_para_aff[test_mask], H_orig_neu[test_mask]], axis=0)
+    y_te_para = np.array([1] * int(np.sum(test_mask)) + [0] * int(np.sum(test_mask)))
+    preds_te_para = clf_pa.predict(scaler_pa.transform(X_te_para))
+    acc_held_out_paraphrase = float(balanced_accuracy_score(y_te_para, preds_te_para))
+
+    # Held-out outcome reversal drop
+    X_te_rev_aff = scaler_pa.transform(H_rev_aff[test_mask])
+    X_te_orig_aff = scaler_pa.transform(H_orig_aff[test_mask])
+    p_orig_te = clf_pa.predict_proba(X_te_orig_aff)[:, 1]
+    p_rev_te = clf_pa.predict_proba(X_te_rev_aff)[:, 1]
+    held_out_reversal_drop = float(np.mean(p_orig_te) - np.mean(p_rev_te))
+
     results = {
         "acc_original_minimal_pair": acc_orig,
         "acc_paraphrase_invariance": acc_paraphrase,
+        "acc_transformation_sensitivity_paraphrase": acc_paraphrase,
+        "acc_pair_aware_held_out_paraphrase": acc_held_out_paraphrase,
+        "pair_aware_held_out_reversal_drop": held_out_reversal_drop,
         "acc_word_shuffle": acc_shuffled,
         "mean_affective_prob_original": mean_prob_orig,
         "mean_affective_prob_outcome_reversed": mean_prob_rev,
@@ -458,6 +512,7 @@ def main():
 
     df_res = pd.DataFrame([results])
     res_path = os.path.join(model_dir, "phase_b_semantic_controls.csv")
+
     df_res.to_csv(res_path, index=False)
 
     # Save manifest

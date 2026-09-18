@@ -518,7 +518,7 @@ def main():
     pk_inst_cross = [all_family_results[f]["summary_metrics"]["peak_depth_inst_cross"] for f in fams]
     mean_delta_share = [all_family_results[f]["summary_metrics"]["mean_delta_sharing"] for f in fams]
 
-    n_boot = 10 if args.dry_run else v2_config.get("statistics", {}).get("n_boot", 1000)
+    n_boot = 10 if args.dry_run else (v2_config.get("bootstrap", {}).get("n_boot") or v2_config.get("statistics", {}).get("n_boot", 1000))
 
     # Bootstrap 信頼区間の計算
     pt_com_r, com_r_low, com_r_up = compute_bootstrap_ci(com_dist_r, n_boot=n_boot)

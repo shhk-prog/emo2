@@ -1,6 +1,22 @@
 # V2 Primary
+## 論文対応: Section 5. Post-training-Associated Reorganization of Affect-Relevant Computations
 
 V2 の正式実行面。設計・指標・解釈の本文は親の [`v2/README.md`](../README.md) を正本とする。
+
+> **重要な解釈規約 (Non-Causal Interpretation of Post-Training)**:  
+> 本ステージにおける Base と Instruct の比較は、モデルファミリー間の事前学習後アーティファクト比較（observational comparison across model artifacts）であり、直接的な訓練介入実験ではありません。したがって、post-training の影響を「因果効果 (causal effect)」と過大解釈・表現してはならず、**「事後学習に伴う再編 (post-training-associated reorganization)」** として記述します。
+
+- **科学的問い (RQ)**: *How does post-training associate with the reorganization of affect-relevant representations, reader-self geometry, and causal readouts?*（事後学習に伴い、情動関連表現の幾何、Reader/Self 間の共有構造、および自己報告への因果的読み出し機構はどのように再編されるか？）
+- **Primary Metric**:
+  - **RQ1/RQ2 Cross-Decoding & Representation Shift**: Base / Instruct における decodability ピーク層シフト ($\Delta l^*, \Delta d^*$)、Native テンプレートと Matched-Plain プロンプト間での Procrustes 幾何不一致度。
+  - **RQ3 Causal Map Dissociation**: 因果的寄与ピーク層 $d_C$ と表現 decodability ピーク層 $d_D$ の解離（$\Delta d = d_C - d_D$）。
+  - **RQ4 Distributional Recovery**: Instruct 表現を Base 表現へ差し戻した際の出力分布回復率（Wasserstein-1 距離 $W_1$ に基づく Recovery 指標）。直接パッチ（Condition A）と直交 Procrustes アラインメントパッチ（Condition B）の比較。
+- **統計単位**: Stimulus (EmoBank test1k) / Model family
+- **統制条件**:
+  - Native chat template vs matched plain prompt（プロンプト形式交絡の統制）
+  - Aligned Procrustes transformation control in activation patching（表現空間アラインメント統制）
+  - 線形混合効果モデル (LMM) によるファミリー横断効果の頑健性検証
+- **出力成果物**: `v2/results/` (`cross_decoding/`, `causal_maps/`, `recovery/`, `confirmatory_summary.json`)
 
 比較軸は同一ファミリーの **Base ↔ Instruct**。Reader ↔ Self の解釈は V1、状態誘導の時空間は V3。候補空間は 81 VA。データ既定は EmoBank test1k（`configs/v2_experiments.yaml`）。
 

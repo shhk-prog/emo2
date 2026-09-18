@@ -420,13 +420,49 @@ def compute_sequence_likelihoods_for_candidates(
                             f"Generation-stage patch index {token_index} exceeds joint length {len(seq)}."
                         )
                 with ActivationHookManager(generation_patch["adapter"]) as hook_mgr:
-                    hook_mgr.register_patch_hook(
-                        layer_idx=int(generation_patch["layer_idx"]),
-                        patch_tensor=generation_patch["patch_tensor"],
-                        token_indices=token_index,
-                        hook_point=generation_patch.get("hook_point", HookPoint.POST_MLP_RESID),
-                    )
+                    mode = str(generation_patch.get("mode", "inject")).lower()
+                    hook_point = generation_patch.get("hook_point", HookPoint.POST_MLP_RESID)
+                    layer_idx = int(generation_patch["layer_idx"])
+
+                    if "direction" in generation_patch:
+                        dir_val = generation_patch["direction"]
+                        alpha_val = float(generation_patch.get("alpha", 1.0))
+                        h_std_val = float(generation_patch.get("hidden_std", 1.0))
+                        hook_mgr.register_direction_intervention_hook(
+                            layer_idx=layer_idx,
+                            direction=dir_val,
+                            alpha=alpha_val,
+                            hidden_std=h_std_val,
+                            token_indices=token_index,
+                            hook_point=hook_point,
+                            mode=mode,
+                        )
+                    elif "patch_tensor" in generation_patch:
+                        patch_t = generation_patch["patch_tensor"]
+                        if mode == "inject":
+                            # additive injection with direct patch tensor
+                            hook_mgr.register_direction_intervention_hook(
+                                layer_idx=layer_idx,
+                                direction=patch_t,
+                                alpha=float(generation_patch.get("alpha", 1.0)),
+                                hidden_std=float(generation_patch.get("hidden_std", 1.0)),
+                                token_indices=token_index,
+                                hook_point=hook_point,
+                                mode="inject",
+                            )
+                        else:
+                            # replace mode
+                            hook_mgr.register_patch_hook(
+                                layer_idx=layer_idx,
+                                patch_tensor=patch_t,
+                                token_indices=token_index,
+                                hook_point=hook_point,
+                            )
+                    else:
+                        raise KeyError("generation_patch requires either 'direction' or 'patch_tensor'.")
+
                     outputs = model(input_ids=inp_tensor, attention_mask=attn_tensor)
+
             logits = outputs.logits  # (batch_size, max_seq_len, vocab_size)
             log_probs = F.log_softmax(logits[:, :-1, :].float(), dim=-1)
 

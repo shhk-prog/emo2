@@ -2,7 +2,9 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import torch
 import torch.nn as nn
+import numpy as np
 from .adapters import ModelAdapter
+
 
 
 class HookPoint(Enum):
@@ -105,41 +107,70 @@ class ActivationHookManager:
         handle = target_module.register_forward_hook(hook_fn)
         self.handles.append(handle)
 
-    def register_direction_injection_hook(
+    def register_direction_intervention_hook(
         self,
         layer_idx: int,
-        direction: torch.Tensor,
+        direction: Union[torch.Tensor, np.ndarray],
         alpha: float,
+        hidden_std: float = 1.0,
         token_indices: Optional[Union[int, List[int], slice]] = None,
         hook_point: HookPoint = HookPoint.POST_MLP_RESID,
+        mode: str = "inject",
     ):
         """
-        方向ベクトルを注入: h' = h + alpha * d
+        V3 統一介入オペレータ:
+          mode="inject":  h' = h + alpha * hidden_std * unit(direction)
+          mode="replace": h' = alpha * hidden_std * unit(direction)
+
+        ここで:
+          - unit(direction) は単位ノルムの方向ベクトル d_hat
+          - hidden_std は対象 layer/site での hidden activation scale (sigma_h)
+          - alpha は無次元介入強度
         """
+        assert mode in ("inject", "replace"), f"mode must be 'inject' or 'replace', got '{mode}'"
         target_module, is_input = self._resolve_target(layer_idx, hook_point)
+
+        if isinstance(direction, np.ndarray):
+            dir_tensor = torch.from_numpy(direction).float()
+        else:
+            dir_tensor = direction.clone().detach().float()
 
         def hook_fn(module, args, output):
             is_tuple = isinstance(output, tuple)
             out_tensor = output[0] if is_tuple else output
 
             new_tensor = out_tensor.clone()
-            d = direction.to(device=out_tensor.device, dtype=out_tensor.dtype)
-            d = d / torch.norm(d, p=2)  # 単位ベクトル化
+            d = dir_tensor.to(device=out_tensor.device, dtype=out_tensor.dtype)
+            d_norm = torch.norm(d, p=2)
+            d_hat = d / (d_norm + 1e-12) if d_norm > 0 else torch.zeros_like(d)
 
-            delta = alpha * d
+            # scale は alpha 側で乗算 (sigma_h * alpha)
+            delta = float(alpha) * float(hidden_std) * d_hat
             if delta.ndim == 1:
                 delta = delta.view(1, 1, -1)
             elif delta.ndim == 2:
                 delta = delta.unsqueeze(1)
 
             if token_indices is None:
-                new_tensor = new_tensor + delta
+                if mode == "inject":
+                    new_tensor = new_tensor + delta
+                else:
+                    new_tensor = torch.broadcast_to(delta, new_tensor.shape).clone()
             elif isinstance(token_indices, int):
-                new_tensor[:, token_indices : token_indices + 1, :] += delta
+                if mode == "inject":
+                    new_tensor[:, token_indices : token_indices + 1, :] += delta
+                else:
+                    new_tensor[:, token_indices : token_indices + 1, :] = delta
             elif isinstance(token_indices, list):
-                new_tensor[:, token_indices, :] += delta
+                if mode == "inject":
+                    new_tensor[:, token_indices, :] += delta
+                else:
+                    new_tensor[:, token_indices, :] = delta
             elif isinstance(token_indices, slice):
-                new_tensor[:, token_indices, :] += delta
+                if mode == "inject":
+                    new_tensor[:, token_indices, :] += delta
+                else:
+                    new_tensor[:, token_indices, :] = delta
 
             if is_tuple:
                 return (new_tensor,) + output[1:]
@@ -147,6 +178,31 @@ class ActivationHookManager:
 
         handle = target_module.register_forward_hook(hook_fn)
         self.handles.append(handle)
+        return handle
+
+    def register_direction_injection_hook(
+        self,
+        layer_idx: int,
+        direction: Union[torch.Tensor, np.ndarray],
+        alpha: float,
+        token_indices: Optional[Union[int, List[int], slice]] = None,
+        hook_point: HookPoint = HookPoint.POST_MLP_RESID,
+        hidden_std: float = 1.0,
+        mode: str = "inject",
+    ):
+        """
+        後方互換・短縮メソッド: register_direction_intervention_hook を呼び出す。
+        """
+        return self.register_direction_intervention_hook(
+            layer_idx=layer_idx,
+            direction=direction,
+            alpha=alpha,
+            hidden_std=hidden_std,
+            token_indices=token_indices,
+            hook_point=hook_point,
+            mode=mode,
+        )
+
 
     def register_centered_projection_removal_hook(
         self,
@@ -287,3 +343,33 @@ class ActivationHookManager:
             return self.adapter.get_mlp_module(layer_idx), True
         else:
             raise ValueError(f"Unsupported hook point: {hook_point}")
+
+
+def apply_direction_intervention(
+    adapter: ModelAdapter,
+    layer_idx: int,
+    direction: Union[torch.Tensor, np.ndarray],
+    alpha: float,
+    hidden_std: float = 1.0,
+    token_position: Optional[Union[int, List[int], slice]] = None,
+    mode: str = "inject",
+    hook_point: HookPoint = HookPoint.POST_MLP_RESID,
+) -> ActivationHookManager:
+    """
+    共通介入コンテキストマネージャーを作成・登録して返す。
+    使用例:
+        with apply_direction_intervention(adapter, layer_idx, direction, alpha, hidden_std, token_pos, mode="inject"):
+            outputs = model(...)
+    """
+    hook_mgr = ActivationHookManager(adapter)
+    hook_mgr.register_direction_intervention_hook(
+        layer_idx=layer_idx,
+        direction=direction,
+        alpha=alpha,
+        hidden_std=hidden_std,
+        token_indices=token_position,
+        hook_point=hook_point,
+        mode=mode,
+    )
+    return hook_mgr
+

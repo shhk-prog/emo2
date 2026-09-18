@@ -1,6 +1,10 @@
-# V2 Stage: 事後学習による幾何・因果の再編
+# V2 Stage: 事後学習に伴う幾何・因果の再編
+## 論文対応: Section 5. Post-training-Associated Reorganization of Affect-Relevant Computations
 
-V2 は、**同一ファミリーの Base と Instruct** を対にして、情動情報の表現幾何と因果回路が事後学習（instruction tuning）でどう再編されるかを測る。
+> **重要な解釈規約 (Non-Causal Interpretation of Post-Training)**:  
+> 本ステージにおける Base と Instruct の比較は、モデルファミリー間の事前学習後アーティファクト比較（observational comparison across model artifacts）であり、直接的な訓練介入実験ではありません。したがって、post-training の影響を「因果効果 (causal effect)」と過大解釈・表現してはならず、**「事後学習に伴う再編 (post-training-associated reorganization)」** として記述します。
+
+V2 は、**同一ファミリーの Base と Instruct** を対にして、情動情報の表現幾何と因果回路が事後学習（post-training）に伴ってどう再編されるかを測る。
 
 比較軸は Base ↔ Instruct である。Reader ↔ Self の同一モデル内比較は V1 の軸であり、混ぜない。
 

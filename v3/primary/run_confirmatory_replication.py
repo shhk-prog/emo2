@@ -277,92 +277,109 @@ def run_real_model_confirmatory(
         d_profile_v.append(r2)
 
     # 3. 中間〜後期層における介入効果 (gamma_V, slope_v)
+    # NOTE: Confirmatory data reuse 防止のため、direction 推定と intervention 評価を同一サンプルで行わず、
+    # pair_id 単位の cross-fitting (Out-of-fold intervention evaluation) を実施する。
     mid_layer = int(num_layers * 0.65)
-    # 情動方向 d_V, d_A は mid_layer の hidden states から正しく推定
-    H_mid = all_H[mid_layer]
-    ridge_mid_v = Ridge(alpha=10.0).fit(H_mid, y_v)
-    d_v = ridge_mid_v.coef_ / (np.linalg.norm(ridge_mid_v.coef_) + 1e-6)
-    ridge_mid_a = Ridge(alpha=10.0).fit(H_mid, y_a)
-    d_a = ridge_mid_a.coef_ / (np.linalg.norm(ridge_mid_a.coef_) + 1e-6)
-
     alphas = [-1.0, -0.5, 0.0, 0.5, 1.0]
-    shifts_v = []
-    shifts_a = []
-    for direction, collect, clean_list in (
-        (d_v, shifts_v, clean_ev_list),
-        (d_a, shifts_a, clean_ea_list),
-    ):
-        dir_tensor = torch.tensor(direction, dtype=torch.float32, device=device)
-        for alpha in alphas:
-            axis_shifts = []
-            with torch.no_grad():
-                for idx in range(min(5, N)):
-                    text = str(eval_df.loc[idx, "text"])
-                    prompt = build_prompt(text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
-                    enc = encode_prompt_canonical(tokenizer, prompt, device=device)
-                    anchors = find_semantic_anchors(enc["input_ids"][0].tolist(), tokenizer, text)
+
+    # 全 fold の test sample における alpha ごとの shift を集約
+    test_shifts_v = {alpha: [] for alpha in alphas}
+    test_shifts_a = {alpha: [] for alpha in alphas}
+
+    # 各層の因果プロファイル C(l) の out-of-fold shifts
+    test_c_profile_shifts = {l: [] for l in range(num_layers)}
+
+    H_mid = all_H[mid_layer]
+    splits_list = list(split_gen_fn(H_mid))
+
+    for fold_idx, (train_idx, test_idx) in enumerate(splits_list):
+        # 厳密なリーク防止チェック
+        assert len(set(train_idx).intersection(set(test_idx))) == 0, "Train and test sample sets overlap!"
+
+        # Fold 内の訓練データのみから方向 d とスケール h_std を推定
+        ridge_mid_v = Ridge(alpha=10.0).fit(H_mid[train_idx], y_v[train_idx])
+        norm_v = np.linalg.norm(ridge_mid_v.coef_)
+        d_v = ridge_mid_v.coef_ / (norm_v + 1e-6) if norm_v > 0 else np.zeros_like(ridge_mid_v.coef_)
+        proj_std_v = float(np.std(H_mid[train_idx] @ d_v))
+        h_std_v = proj_std_v if proj_std_v > 1e-6 else float(np.std(H_mid[train_idx]))
+
+        ridge_mid_a = Ridge(alpha=10.0).fit(H_mid[train_idx], y_a[train_idx])
+        norm_a = np.linalg.norm(ridge_mid_a.coef_)
+        d_a = ridge_mid_a.coef_ / (norm_a + 1e-6) if norm_a > 0 else np.zeros_like(ridge_mid_a.coef_)
+        proj_std_a = float(np.std(H_mid[train_idx] @ d_a))
+        h_std_a = proj_std_a if proj_std_a > 1e-6 else float(np.std(H_mid[train_idx]))
+
+        # 評価は独立な test_idx のみで実行 (最大各fold 5件程度で高速化)
+        eval_sub_test_idx = test_idx[:min(5, len(test_idx))]
+
+        with torch.no_grad():
+            for sample_idx in eval_sub_test_idx:
+                text = str(eval_df.loc[sample_idx, "text"])
+                prompt = build_prompt(text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
+                enc = encode_prompt_canonical(tokenizer, prompt, device=device)
+                anchors = find_semantic_anchors(enc["input_ids"][0].tolist(), tokenizer, text)
+                patch_pos = anchors["prompt_end"]
+
+                # Dose-response evaluation on test sample
+                for axis_name, direction, h_std, store_dict, clean_val in (
+                    ("v", d_v, h_std_v, test_shifts_v, clean_ev_list[sample_idx]),
+                    ("a", d_a, h_std_a, test_shifts_a, clean_ea_list[sample_idx]),
+                ):
+                    for alpha in alphas:
+                        with ActivationHookManager(adapter) as hook_mgr:
+                            hook_mgr.register_direction_intervention_hook(
+                                layer_idx=mid_layer,
+                                direction=direction,
+                                alpha=alpha,
+                                hidden_std=h_std,
+                                token_indices=patch_pos,
+                                hook_point=HookPoint.POST_MLP_RESID,
+                                mode="inject",
+                            )
+                            _, probs_p = compute_sequence_likelihoods_for_candidates(
+                                model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device, batch_size=81
+                            )
+                        ev_p, ea_p = compute_expected_va(probs_p, candidates)
+                        shift = (ev_p if axis_name == "v" else ea_p) - clean_val
+                        store_dict[alpha].append(shift)
+
+                # 各層の因果効果 C(l) の推定 (alpha=1.0)
+                for l_idx in range(num_layers):
+                    H_l_train = all_H[l_idx][train_idx]
+                    ridge_l = Ridge(alpha=10.0).fit(H_l_train, y_v[train_idx])
+                    norm_l = np.linalg.norm(ridge_l.coef_)
+                    d_l = ridge_l.coef_ / (norm_l + 1e-6) if norm_l > 0 else np.zeros_like(ridge_l.coef_)
+                    std_l = float(np.std(H_l_train @ d_l))
+                    h_std_l = std_l if std_l > 1e-6 else float(np.std(H_l_train))
+
                     with ActivationHookManager(adapter) as hook_mgr:
-                        hook_mgr.register_direction_injection_hook(
-                            layer_idx=mid_layer,
-                            direction=dir_tensor,
-                            alpha=alpha,
-                            token_indices=anchors["prompt_end"],
+                        hook_mgr.register_direction_intervention_hook(
+                            layer_idx=l_idx,
+                            direction=d_l,
+                            alpha=1.0,
+                            hidden_std=h_std_l,
+                            token_indices=patch_pos,
                             hook_point=HookPoint.POST_MLP_RESID,
+                            mode="inject",
                         )
-                        _, probs_p = compute_sequence_likelihoods_for_candidates(
+                        _, probs_l = compute_sequence_likelihoods_for_candidates(
                             model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device, batch_size=81
                         )
-                    ev_p, ea_p = compute_expected_va(probs_p, candidates)
-                    axis_shifts.append((ev_p if collect is shifts_v else ea_p) - clean_list[idx])
-            collect.append(float(np.mean(axis_shifts)))
+                    ev_l, _ = compute_expected_va(probs_l, candidates)
+                    test_c_profile_shifts[l_idx].append(abs(ev_l - clean_ev_list[sample_idx]))
 
+    # Test fold のみから平均シフトとスロープを算出
+    shifts_v = [float(np.mean(test_shifts_v[a])) if test_shifts_v[a] else 0.0 for a in alphas]
+    shifts_a = [float(np.mean(test_shifts_a[a])) if test_shifts_a[a] else 0.0 for a in alphas]
     slope_v = estimate_interventional_slope(alphas, shifts_v)
     slope_a = estimate_interventional_slope(alphas, shifts_a)
 
-    # 4. Causal profile across layers (Empirical H1, layer-specific)
-    logger.info("Measuring empirical causal profile C(l) across layers (layer-specific directions)...")
-    c_profile_v = []
-    test_df = eval_df
-    causal_sub_df = test_df.iloc[:min(15, len(test_df))]
-    causal_sub_indices = causal_sub_df.index.tolist()
-    batch_size = 81
-    opt_layer = mid_layer
-    evaluate_candidate_likelihoods = lambda *args, **kwargs: compute_sequence_likelihoods_for_candidates(*args, **kwargs)[1]
-
-    for l_idx in range(num_layers):
-        H_l = all_H[l_idx]
-        ridge_l_v = Ridge(alpha=10.0).fit(H_l, y_v)
-        coef_norm_v = np.linalg.norm(ridge_l_v.coef_)
-        d_v_l = ridge_l_v.coef_ / (coef_norm_v + 1e-6)
-        proj_std_v = float(np.std(H_l @ d_v_l))
-        h_std_v_l = proj_std_v if proj_std_v > 1e-6 else float(np.std(H_l))
-        dv_l_torch = torch.tensor(1.0 * h_std_v_l * d_v_l, dtype=torch.float32, device=device)
-
-        l_shifts = []
-        for row_i, (_, row) in enumerate(causal_sub_df.iterrows()):
-            text = str(row["text"])
-            global_idx = causal_sub_indices[row_i]
-            prompt_self = build_prompt(text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
-            enc = encode_prompt_canonical(tokenizer, prompt_self, device=device)
-            anchors = find_semantic_anchors(enc["input_ids"][0].tolist(), tokenizer, text)
-            p_pos = anchors["prompt_end"]
-            with ActivationHookManager(adapter) as hook_mgr:
-                hook_mgr.register_direction_injection_hook(
-                    layer_idx=l_idx,
-                    direction=dv_l_torch,
-                    alpha=1.0,
-                    token_indices=p_pos,
-                )
-                probs_p = evaluate_candidate_likelihoods(
-                    model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
-                )
-            ev_p, _ = compute_expected_va(probs_p, candidates)
-            # Use empirical clean baseline
-            clean_v = float(clean_ev_list[global_idx])
-            l_shifts.append(abs(ev_p - clean_v))
-        c_profile_v.append(float(np.mean(l_shifts)) if l_shifts else 0.0)
-
+    c_profile_v = [
+        float(np.mean(test_c_profile_shifts[l])) if test_c_profile_shifts[l] else 0.0
+        for l in range(num_layers)
+    ]
     dissoc_v = compute_layer_dissociation(relative_depths, d_profile_v, c_profile_v)
+
 
     # 5. Necessity via Centered 2D Orthogonal Subspace Removal (Empirical H3)
     logger.info("Measuring empirical necessity via centered 2D orthogonal subspace removal...")

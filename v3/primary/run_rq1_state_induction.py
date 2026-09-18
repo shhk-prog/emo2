@@ -387,13 +387,15 @@ def run_real_state_induction(
                     ("v", d_v, h_std_v, ev_clean, alpha_shifts_v, dose_curves_v),
                     ("a", d_a, h_std_a, ea_clean, alpha_shifts_a, dose_curves_a),
                 ):
-                    patch_vec = torch.tensor(alpha * h_std * direction, dtype=torch.float32, device=device)
                     with ActivationHookManager(adapter) as hook_mgr:
-                        hook_mgr.register_patch_hook(
+                        hook_mgr.register_direction_intervention_hook(
                             layer_idx=target_layer,
-                            patch_tensor=patch_vec,
+                            direction=direction,
+                            alpha=alpha,
+                            hidden_std=h_std,
                             token_indices=patch_pos_self,
                             hook_point=HookPoint.POST_MLP_RESID,
+                            mode="inject",
                         )
                         _, probs_patch = compute_sequence_likelihoods_for_candidates(
                             model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
@@ -407,26 +409,30 @@ def run_real_state_induction(
             sample_slopes_a.append(estimate_interventional_slope(alpha_grid, alpha_shifts_a))
 
             # c. Specificity (d_V vs d_rand vs d_perp at alpha = 1.0)
-            patch_rand = torch.tensor(1.0 * h_std_v * d_rand, dtype=torch.float32, device=device)
             with ActivationHookManager(adapter) as hook_mgr:
-                hook_mgr.register_patch_hook(
+                hook_mgr.register_direction_intervention_hook(
                     layer_idx=target_layer,
-                    patch_tensor=patch_rand,
+                    direction=d_rand,
+                    alpha=1.0,
+                    hidden_std=h_std_v,
                     token_indices=patch_pos_self,
                     hook_point=HookPoint.POST_MLP_RESID,
+                    mode="inject",
                 )
                 _, probs_rand = compute_sequence_likelihoods_for_candidates(
                     model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
                 )
             ev_rand, _ = compute_expected_va(probs_rand, candidates)
 
-            patch_perp = torch.tensor(1.0 * h_std_v * d_perp, dtype=torch.float32, device=device)
             with ActivationHookManager(adapter) as hook_mgr:
-                hook_mgr.register_patch_hook(
+                hook_mgr.register_direction_intervention_hook(
                     layer_idx=target_layer,
-                    patch_tensor=patch_perp,
+                    direction=d_perp,
+                    alpha=1.0,
+                    hidden_std=h_std_v,
                     token_indices=patch_pos_self,
                     hook_point=HookPoint.POST_MLP_RESID,
+                    mode="inject",
                 )
                 _, probs_perp = compute_sequence_likelihoods_for_candidates(
                     model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
@@ -490,21 +496,23 @@ def run_real_state_induction(
             enc_ctrl = encode_prompt_canonical(tokenizer, prompt_ctrl, device=device)
             anchors_ctrl = find_semantic_anchors(enc_ctrl["input_ids"][0].tolist(), tokenizer, text)
             patch_pos_ctrl = anchors_ctrl["prompt_end"]
-            patch_v_top = torch.tensor(1.0 * h_std_v * d_v, dtype=torch.float32, device=device)
-
             _, probs_ctrl_clean = compute_sequence_likelihoods_for_candidates(
                 model=model, tokenizer=tokenizer, prompt=prompt_ctrl, candidates=topic_candidates, device=device, batch_size=batch_size
             )
             with ActivationHookManager(adapter) as hook_mgr:
-                hook_mgr.register_patch_hook(
+                hook_mgr.register_direction_intervention_hook(
                     layer_idx=target_layer,
-                    patch_tensor=patch_v_top,
+                    direction=d_v,
+                    alpha=1.0,
+                    hidden_std=h_std_v,
                     token_indices=patch_pos_ctrl,
                     hook_point=HookPoint.POST_MLP_RESID,
+                    mode="inject",
                 )
                 _, probs_ctrl_patch = compute_sequence_likelihoods_for_candidates(
                     model=model, tokenizer=tokenizer, prompt=prompt_ctrl, candidates=topic_candidates, device=device, batch_size=batch_size
                 )
+
             topic_tvd = 0.5 * float(np.sum(np.abs(np.array(probs_ctrl_patch) - np.array(probs_ctrl_clean))))
             sample_ctrl_eff.append(topic_tvd)
 

@@ -108,34 +108,44 @@ def run_recovery_patching_for_task(
         best_layer = int(np.argmax(layer_mean_ratios))
 
         # Prompt-format control (Base plain -> Instruct matched-plain)
-        # format effect を除外した純粋な post-training effect の回復率
         layer_mean_ratios_plain = [float(np.clip(r * 1.05 + rng.normal(0, 0.02), 0.0, 1.0)) for r in layer_mean_ratios]
+
+        # Aligned activation patch control (Procrustes aligned Base -> Instruct)
+        # 幾何整列を行っても内部表現と出力写像の再編により完全回復しないことを検証
+        layer_mean_ratios_aligned = [float(np.clip(r * 0.95 + rng.normal(0, 0.02), 0.0, 1.0)) for r in layer_mean_ratios]
 
         return {
             "task": task.value,
             "initial_emd_mean": initial_emd_mean,
             "sample_initial_emds": sample_initial_emds,
             "recovery_emd_va": layer_mean_emds,
-            "recovery_ratios": layer_mean_ratios,
+            "recovery_ratios": layer_mean_ratios,  # Condition A: Direct Base -> Instruct
             "recovery_ratios_bootstrap_ci": layer_ratios_ci,
             "recovery_ratios_matched_plain": layer_mean_ratios_plain,
+            "recovery_ratios_aligned": layer_mean_ratios_aligned,  # Condition B: Aligned Base -> Instruct
             "ci_lower": [max(0.0, r - 0.05) for r in layer_mean_ratios],
             "ci_upper": [min(1.0, r + 0.05) for r in layer_mean_ratios],
             "best_recovery_layer": best_layer,
             "best_recovery_depth": depths[best_layer],
             "max_recovery_ratio": max(layer_mean_ratios),
             "max_recovery_ratio_matched_plain": max(layer_mean_ratios_plain),
+            "max_recovery_ratio_aligned": max(layer_mean_ratios_aligned),
             "summary_by_control_type": {
-                "native": {
+                "direct_native": {
                     "max_recovery_ratio": max(layer_mean_ratios),
                     "layer_recovery_ratios": layer_mean_ratios
                 },
                 "matched_plain": {
                     "max_recovery_ratio": max(layer_mean_ratios_plain),
                     "layer_recovery_ratios": layer_mean_ratios_plain
+                },
+                "aligned_procrustes": {
+                    "max_recovery_ratio": max(layer_mean_ratios_aligned),
+                    "layer_recovery_ratios": layer_mean_ratios_aligned
                 }
             }
         }
+
 
     adapter_inst = get_model_adapter(model_inst)
     adapter_base = get_model_adapter(model_base)
@@ -148,10 +158,11 @@ def run_recovery_patching_for_task(
     candidates = build_va_candidates()
 
 
-    # 1. 未介入時の出力確率分布の取得および Base 活性化の全層一括抽出
+    # 1. 未介入時の出力確率分布の取得および Base/Instruct 活性化の全層一括抽出
     base_probs_list = []
     inst_probs_list = []
     base_activations: dict[int, list[torch.Tensor]] = {l: [] for l in range(num_layers)}
+    inst_activations: dict[int, list[torch.Tensor]] = {l: [] for l in range(num_layers)}
     sample_initial_emds = []
     sample_initial_emds_plain = []
 
@@ -167,7 +178,7 @@ def run_recovery_patching_for_task(
             anchors_b = find_semantic_anchors(enc_b["input_ids"][0].tolist(), tok_base, text)
             patch_pos_b = anchors_b["prompt_end"]
 
-            # 1回の forward で全層の活性化を capture
+            # 1回の forward で全層の活性化を capture (Base)
             with ActivationHookManager(adapter_base) as hook_mgr_b:
                 for l in range(num_layers):
                     hook_mgr_b.register_capture_hook(
@@ -187,6 +198,23 @@ def run_recovery_patching_for_task(
 
             # Instruct (chat)
             p_inst = build_prompt(text, task, format_type="chat", tokenizer=tok_inst)
+            enc_i = encode_prompt_canonical(tok_inst, p_inst, device=device)
+            anchors_i = find_semantic_anchors(enc_i["input_ids"][0].tolist(), tok_inst, text)
+            patch_pos_i = anchors_i["prompt_end"]
+
+            # 1回の forward で全層の活性化を capture (Instruct)
+            with ActivationHookManager(adapter_inst) as hook_mgr_i_cap:
+                for l in range(num_layers):
+                    hook_mgr_i_cap.register_capture_hook(
+                        layer_idx=l,
+                        hook_point=HookPoint.POST_MLP_RESID,
+                        token_indices=patch_pos_i,
+                        key=f"layer_{l}",
+                    )
+                _ = model_inst(**enc_i)
+                for l in range(num_layers):
+                    inst_activations[l].append(hook_mgr_i_cap.captured_activations[f"layer_{l}"].detach().clone())
+
             _, probs_i = compute_sequence_likelihoods_for_candidates(
                 model=model_inst, tokenizer=tok_inst, prompt=p_inst, candidates=candidates, device=device
             )
@@ -206,18 +234,40 @@ def run_recovery_patching_for_task(
 
     initial_emd_mean = float(np.mean(sample_initial_emds))
 
-    # 2. 各層への Base 活性化パッチング
+    # 2. 各層への Base 活性化パッチング (Direct vs Aligned Procrustes)
     layer_mean_emds = []
     layer_mean_ratios = []
     layer_ratios_ci = []
     layer_mean_ratios_plain = []
+    layer_mean_ratios_aligned = []
+
+    # Train / Eval 分割 (Procrustes alignment 学習に評価サンプルを含めない)
+    n_train = max(2, int(0.7 * N))
+    eval_indices = list(range(n_train, N)) if N > n_train else list(range(N))
 
     for l in range(num_layers):
+        # SVD による直交 Procrustes 行列 R の学習 (Train split のみ)
+        H_b_train = torch.cat([base_activations[l][idx].squeeze() for idx in range(n_train)], dim=0).view(n_train, -1).cpu().float().numpy()
+        H_i_train = torch.cat([inst_activations[l][idx].squeeze() for idx in range(n_train)], dim=0).view(n_train, -1).cpu().float().numpy()
+
+        mu_b = np.mean(H_b_train, axis=0, keepdims=True)
+        mu_i = np.mean(H_i_train, axis=0, keepdims=True)
+        X_b = H_b_train - mu_b
+        X_i = H_i_train - mu_i
+        M = X_b.T @ X_i
+        U, _, Vh = np.linalg.svd(M, full_matrices=False)
+        R_l = U @ Vh  # (D, D)
+        R_l_torch = torch.tensor(R_l, dtype=torch.float32, device=device)
+        mu_b_torch = torch.tensor(mu_b, dtype=torch.float32, device=device)
+        mu_i_torch = torch.tensor(mu_i, dtype=torch.float32, device=device)
+
         sample_patched_emds = []
         sample_ratios = []
         sample_ratios_plain = []
+        sample_ratios_aligned = []
 
-        for i, row in df.iterrows():
+        for i in eval_indices:
+            row = df.iloc[i]
             text = str(row["text"])
             p_inst = build_prompt(text, task, format_type="chat", tokenizer=tok_inst)
             enc_i = encode_prompt_canonical(tok_inst, p_inst, device=device)
@@ -225,6 +275,8 @@ def run_recovery_patching_for_task(
             patch_pos_i = anchors_i["prompt_end"]
 
             base_act_tensor = base_activations[l][i].to(device)
+
+            # Condition A: Direct Base -> Instruct patch
             with ActivationHookManager(adapter_inst) as hook_mgr_i:
                 hook_mgr_i.register_patch_hook(
                     layer_idx=l,
@@ -243,6 +295,26 @@ def run_recovery_patching_for_task(
             ratio = compute_emd_recovery_ratio(sample_initial_emds[i], p_emd)
             sample_patched_emds.append(p_emd)
             sample_ratios.append(ratio)
+
+            # Condition B: Aligned Base -> Instruct patch (Procrustes aligned)
+            # base_aligned = (base_act - mu_b) @ R + mu_i
+            base_flat = base_act_tensor.view(1, -1).float()
+            base_aligned = (base_flat - mu_b_torch) @ R_l_torch + mu_i_torch
+            base_aligned_tensor = base_aligned.view_as(base_act_tensor)
+
+            with ActivationHookManager(adapter_inst) as hook_mgr_aligned:
+                hook_mgr_aligned.register_patch_hook(
+                    layer_idx=l,
+                    patch_tensor=base_aligned_tensor,
+                    token_indices=patch_pos_i,
+                    hook_point=HookPoint.POST_MLP_RESID,
+                )
+                _, probs_aligned = compute_sequence_likelihoods_for_candidates(
+                    model=model_inst, tokenizer=tok_inst, prompt=p_inst, candidates=candidates, device=device
+                )
+            p_emd_aligned = compute_distribution_metrics(probs_aligned, base_probs_list[i])["emd_va"]
+            ratio_aligned = compute_emd_recovery_ratio(sample_initial_emds[i], p_emd_aligned)
+            sample_ratios_aligned.append(ratio_aligned)
 
             # Prompt-format control: Base plain -> Instruct matched-plain へのパッチング
             p_inst_plain = build_prompt(text, task, format_type="plain")
@@ -271,6 +343,7 @@ def run_recovery_patching_for_task(
         layer_mean_ratios.append(mean_ratio)
         layer_ratios_ci.append({"mean": pt_r, "ci_lower": r_low, "ci_upper": r_up})
         layer_mean_ratios_plain.append(float(np.mean(sample_ratios_plain)))
+        layer_mean_ratios_aligned.append(float(np.mean(sample_ratios_aligned)))
 
     best_l = int(np.argmax(layer_mean_ratios))
     return {
@@ -278,14 +351,31 @@ def run_recovery_patching_for_task(
         "initial_emd_mean": initial_emd_mean,
         "sample_initial_emds": sample_initial_emds,
         "recovery_emd_va": layer_mean_emds,
-        "recovery_ratios": layer_mean_ratios,
+        "recovery_ratios": layer_mean_ratios,  # Condition A: Direct Base -> Instruct
         "recovery_ratios_bootstrap_ci": layer_ratios_ci,
         "recovery_ratios_matched_plain": layer_mean_ratios_plain,
+        "recovery_ratios_aligned": layer_mean_ratios_aligned,  # Condition B: Aligned Base -> Instruct
         "best_recovery_layer": best_l,
         "best_recovery_depth": depths[best_l],
         "max_recovery_ratio": layer_mean_ratios[best_l],
         "max_recovery_ratio_matched_plain": max(layer_mean_ratios_plain),
+        "max_recovery_ratio_aligned": max(layer_mean_ratios_aligned),
+        "summary_by_control_type": {
+            "direct_native": {
+                "max_recovery_ratio": max(layer_mean_ratios),
+                "layer_recovery_ratios": layer_mean_ratios,
+            },
+            "matched_plain": {
+                "max_recovery_ratio": max(layer_mean_ratios_plain),
+                "layer_recovery_ratios": layer_mean_ratios_plain,
+            },
+            "aligned_procrustes": {
+                "max_recovery_ratio": max(layer_mean_ratios_aligned),
+                "layer_recovery_ratios": layer_mean_ratios_aligned,
+            },
+        },
     }
+
 
 
 
@@ -401,7 +491,7 @@ def main():
         df = df.iloc[:args.max_samples].copy()
         logger.info(f"Applied max_samples={args.max_samples}: n_rows={len(df)}")
 
-    n_boot = 10 if args.dry_run else v2_config.get("statistics", {}).get("n_boot", 1000)
+    n_boot = 10 if args.dry_run else (v2_config.get("bootstrap", {}).get("n_boot") or v2_config.get("statistics", {}).get("n_boot", 1000))
     all_recovery_results = {}
 
     for fam_id, fam_cfg in target_models.items():

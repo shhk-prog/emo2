@@ -291,6 +291,17 @@ def run_behavioral(args, python_bin: str):
                 run_command(cmd_emobank)
                 run_command(cmd_aipsy)
 
+    # 3. 自動要約・統計集計・論文用 derived CSV 生成 (Unified Pipeline)
+    logger.info("--- Generating Behavioral Summary and Derived Tables ---")
+    cmd_sum_emobank = [python_bin, "behavioral/analysis/summarize_behavioral_emobank.py"]
+    cmd_sum_aipsy = [python_bin, "behavioral/analysis/summarize_behavioral_aipsy.py"]
+    if args.dry_run:
+        logger.info("[Dry-run] Simulated Behavioral summarization (EmoBank & AIPsy)")
+    else:
+        run_command(cmd_sum_emobank)
+        run_command(cmd_sum_aipsy)
+
+
 
 def run_scale_validation(args, python_bin: str):
     logger.info("=== Running Scale Validation Ablation (Mistral 7B) ===")

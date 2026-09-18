@@ -122,6 +122,22 @@ def compute_relative_depth(layer_idx: int, num_layers: int) -> float:
     return float(layer_idx / (num_layers - 1))
 
 
+def get_block_hidden_state(hidden_states: tuple | list, layer_idx: int):
+    """
+    Transformer block l (0 <= layer_idx < num_layers) の出力を取得する。
+    Hugging Face の outputs.hidden_states において:
+      hidden_states[0] = embedding output
+      hidden_states[l + 1] = Transformer block l output (0 <= l < L)
+    hidden_state_index と transformer_layer_index を混同しないための標準アクセサ。
+    """
+    assert 0 <= layer_idx < len(hidden_states) - 1, (
+        f"layer_idx {layer_idx} out of range for hidden_states of length {len(hidden_states)}. "
+        f"Valid block index is 0 <= layer_idx < {len(hidden_states) - 1}."
+    )
+    return hidden_states[layer_idx + 1]
+
+
+
 def compute_center_of_mass(
     profile: list[float],
     relative_depths: list[float] | None = None,

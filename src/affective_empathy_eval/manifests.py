@@ -1,7 +1,9 @@
 import json
 import os
+from pathlib import Path
 import pandas as pd
 from typing import Dict, Any, List, Optional
+
 from dataclasses import dataclass, asdict
 
 @dataclass
@@ -59,15 +61,47 @@ class ManifestManager:
         return pd.DataFrame(records)
 
 
+import hashlib
+
+
+DEFAULT_INTERVENTION_VERSION = "v3_additive_injection_v2"
+DEFAULT_CODE_VERSION = "0.3.0"
+DEFAULT_PROMPT_VERSION = "1.0.0"
+DEFAULT_CANDIDATE_SPACE = "VA_81"
+
+
+def compute_string_or_dict_hash(obj: Any) -> str:
+    """オブジェクト（辞書、文字列、パス等）の SHA256 ハッシュを算出"""
+    if isinstance(obj, dict):
+        s = json.dumps(obj, sort_keys=True)
+    elif isinstance(obj, (str, Path)):
+        if os.path.isfile(str(obj)):
+            with open(str(obj), "rb") as f:
+                return hashlib.sha256(f.read()).hexdigest()[:16]
+        s = str(obj)
+    else:
+        s = str(obj)
+    return hashlib.sha256(s.encode("utf-8")).hexdigest()[:16]
+
+
 @dataclass
 class RunManifest:
-    """Run manifest storing metadata for reproducibility."""
+    """Run manifest storing metadata for reproducibility and cache validation."""
     run_type: str
     model_name: str
     config: Dict[str, Any]
     metadata: Dict[str, Any]
     timestamp_utc: str
     git_commit: str
+    config_hash: str = "unknown"
+    dataset_hash: str = "unknown"
+    model_revision: str = "main"
+    tokenizer_revision: str = "main"
+    prompt_version: str = DEFAULT_PROMPT_VERSION
+    candidate_space: str = DEFAULT_CANDIDATE_SPACE
+    seed: int = 42
+    code_version: str = DEFAULT_CODE_VERSION
+    intervention_version: str = DEFAULT_INTERVENTION_VERSION
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -83,6 +117,11 @@ def create_run_manifest(
     model_name: str,
     config: Optional[Dict[str, Any]] = None,
     metadata: Optional[Dict[str, Any]] = None,
+    dataset_path: Optional[str] = None,
+    prompt_version: str = DEFAULT_PROMPT_VERSION,
+    candidate_space: str = DEFAULT_CANDIDATE_SPACE,
+    seed: int = 42,
+    intervention_version: str = DEFAULT_INTERVENTION_VERSION,
 ) -> RunManifest:
     from datetime import datetime, timezone
     import subprocess
@@ -96,12 +135,62 @@ def create_run_manifest(
     except Exception:
         git_sha = "unknown"
 
+    cfg = config or {}
+    meta = metadata or {}
+    cfg_hash = compute_string_or_dict_hash(cfg)
+    ds_hash = compute_string_or_dict_hash(dataset_path) if dataset_path else "unknown"
+
     return RunManifest(
         run_type=run_type,
         model_name=model_name,
-        config=config or {},
-        metadata=metadata or {},
+        config=cfg,
+        metadata=meta,
         timestamp_utc=datetime.now(timezone.utc).isoformat(),
         git_commit=git_sha,
+        config_hash=cfg_hash,
+        dataset_hash=ds_hash,
+        model_revision="main",
+        tokenizer_revision="main",
+        prompt_version=prompt_version,
+        candidate_space=candidate_space,
+        seed=seed,
+        code_version=DEFAULT_CODE_VERSION,
+        intervention_version=intervention_version,
     )
+
+
+def is_manifest_matching(
+    manifest_path: str,
+    expected_model_name: Optional[str] = None,
+    expected_intervention_version: Optional[str] = DEFAULT_INTERVENTION_VERSION,
+    expected_candidate_space: Optional[str] = None,
+    expected_prompt_version: Optional[str] = None,
+) -> bool:
+    """
+    キャッシュの有効性を検証する。
+    特に旧 replacement（あるいはバージョン未指定）のキャッシュと新 additive injection キャッシュが混在するのを防止。
+    """
+    if not os.path.exists(manifest_path):
+        return False
+
+    try:
+        with open(manifest_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        if expected_model_name and data.get("model_name") != expected_model_name:
+            return False
+
+        if expected_intervention_version and data.get("intervention_version") != expected_intervention_version:
+            return False
+
+        if expected_candidate_space and data.get("candidate_space") != expected_candidate_space:
+            return False
+
+        if expected_prompt_version and data.get("prompt_version") != expected_prompt_version:
+            return False
+
+        return True
+    except Exception:
+        return False
+
 

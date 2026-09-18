@@ -101,19 +101,29 @@ def simulate_model_confirmatory(
     attenuated_shift = 0.40 + rng.normal(0, 0.03)
     attenuation_ratio = float((natural_shift - attenuated_shift) / natural_shift)
 
-    stage_causal = {
+    stage_causal_v = {
         "candidate_start": float(0.12 + rng.normal(0, 0.02)),
         "pre_V": float(1.05 + rng.normal(0, 0.03)),
         "V_value": float(0.65 + rng.normal(0, 0.03)),
-        "pre_A": float(0.92 + rng.normal(0, 0.03)),
-        "A_value": float(0.55 + rng.normal(0, 0.03)),
+        "pre_A": float(0.40 + rng.normal(0, 0.02)),
+        "A_value": float(0.25 + rng.normal(0, 0.02)),
         "response_end": float(0.08 + rng.normal(0, 0.02)),
+    }
+    stage_causal_a = {
+        "candidate_start": float(0.10 + rng.normal(0, 0.02)),
+        "pre_V": float(0.35 + rng.normal(0, 0.02)),
+        "V_value": float(0.20 + rng.normal(0, 0.02)),
+        "pre_A": float(0.95 + rng.normal(0, 0.03)),
+        "A_value": float(0.60 + rng.normal(0, 0.03)),
+        "response_end": float(0.07 + rng.normal(0, 0.02)),
     }
 
     h1_pass = dissoc_v["delta_d_peak"] > 0 and dissoc_v["delta_d_center"] > 0
     h2_pass = slope_v > 0.2 and slope_a > 0.2
     h3_pass = attenuation_ratio > 0.3
-    h4_pass = stage_causal["pre_V"] > stage_causal["candidate_start"] + 0.5
+    h4_pass_v = stage_causal_v["pre_V"] > stage_causal_v["candidate_start"] + 0.5
+    h4_pass_a = stage_causal_a["pre_A"] > stage_causal_a["candidate_start"] + 0.5
+    h4_pass = bool(h4_pass_v and h4_pass_a)
 
     all_confirmed = bool(h1_pass and h2_pass and h3_pass and h4_pass)
 
@@ -141,7 +151,11 @@ def simulate_model_confirmatory(
             "passed": bool(h3_pass),
         },
         "h4_temporal_emergence": {
-            "stage_causal": stage_causal,
+            "stage_causal": stage_causal_v,
+            "stage_causal_v": stage_causal_v,
+            "stage_causal_a": stage_causal_a,
+            "passed_valence": bool(h4_pass_v),
+            "passed_arousal": bool(h4_pass_a),
             "passed": bool(h4_pass),
         },
         "all_confirmed": all_confirmed,
@@ -285,18 +299,25 @@ def run_real_model_confirmatory(
     slope_v = estimate_interventional_slope(alphas, shifts_v)
     slope_a = estimate_interventional_slope(alphas, shifts_a)
 
-    # 4. Causal profile across layers (Empirical H1)
-    logger.info("Measuring empirical causal profile C(l) across layers...")
+    # 4. Causal profile across layers (Empirical H1, layer-specific)
+    logger.info("Measuring empirical causal profile C(l) across layers (layer-specific directions)...")
     c_profile_v = []
     test_df = eval_df
     causal_sub_df = test_df.iloc[:min(15, len(test_df))]
     causal_sub_indices = causal_sub_df.index.tolist()
     batch_size = 81
-    h_std_v = float(np.std(H_mid))
     opt_layer = mid_layer
     evaluate_candidate_likelihoods = lambda *args, **kwargs: compute_sequence_likelihoods_for_candidates(*args, **kwargs)[1]
 
     for l_idx in range(num_layers):
+        H_l = all_H[l_idx]
+        ridge_l_v = Ridge(alpha=10.0).fit(H_l, y_v)
+        coef_norm_v = np.linalg.norm(ridge_l_v.coef_)
+        d_v_l = ridge_l_v.coef_ / (coef_norm_v + 1e-6)
+        proj_std_v = float(np.std(H_l @ d_v_l))
+        h_std_v_l = proj_std_v if proj_std_v > 1e-6 else float(np.std(H_l))
+        dv_l_torch = torch.tensor(1.0 * h_std_v_l * d_v_l, dtype=torch.float32, device=device)
+
         l_shifts = []
         for row_i, (_, row) in enumerate(causal_sub_df.iterrows()):
             text = str(row["text"])
@@ -305,13 +326,12 @@ def run_real_model_confirmatory(
             enc = encode_prompt_canonical(tokenizer, prompt_self, device=device)
             anchors = find_semantic_anchors(enc["input_ids"][0].tolist(), tokenizer, text)
             p_pos = anchors["prompt_end"]
-            dv_torch = torch.tensor(1.0 * h_std_v * d_v, dtype=torch.float32, device=device)
             with ActivationHookManager(adapter) as hook_mgr:
                 hook_mgr.register_patch_hook(
                     layer_idx=l_idx,
                     component="residual",
                     token_indices=p_pos,
-                    direction=dv_torch,
+                    direction=dv_l_torch,
                     alpha=1.0,
                 )
                 probs_p = evaluate_candidate_likelihoods(
@@ -408,9 +428,10 @@ def run_real_model_confirmatory(
     attenuation_ratio = float((natural_shift - attenuated_shift) / (natural_shift + 1e-6))
     attenuation_ratio = float(np.clip(attenuation_ratio, 0.0, 1.0))
 
-    # 6. Temporal Emergence across Generation Stages (Empirical H4)
-    logger.info("Measuring empirical temporal emergence across generation stages...")
-    temp_effects = {}
+    # 6. Temporal Emergence across Generation Stages (Empirical H4 for Valence and Arousal)
+    logger.info("Measuring empirical temporal emergence across generation stages (Valence & Arousal)...")
+    temp_effects_v = {}
+    temp_effects_a = {}
 
     # Representative candidate JSON string for stage token identification
     sample_cand_str = candidates[40]["json_str"] if len(candidates) > 40 else '{"valence": 5, "arousal": 5}'
@@ -419,12 +440,22 @@ def run_real_model_confirmatory(
     stage_keys = ["candidate_start", "pre_V", "V_value", "pre_A", "A_value", "response_end"]
     stage_anchors = ["prompt_end"] + [k for k in stage_keys if k in cand_stage_offsets]
 
+    proj_std_v_mid = float(np.std(H_mid @ d_v))
+    h_std_v_mid = proj_std_v_mid if proj_std_v_mid > 1e-6 else float(np.std(H_mid))
+    dv_torch = torch.tensor(1.0 * h_std_v_mid * d_v, dtype=torch.float32, device=device)
+
+    proj_std_a_mid = float(np.std(H_mid @ d_a))
+    h_std_a_mid = proj_std_a_mid if proj_std_a_mid > 1e-6 else float(np.std(H_mid))
+    da_torch = torch.tensor(1.0 * h_std_a_mid * d_a, dtype=torch.float32, device=device)
+
     for stg in stage_anchors:
-        stg_shifts = []
+        stg_shifts_v = []
+        stg_shifts_a = []
         for row_i, (_, row) in enumerate(causal_sub_df.iloc[:min(5, len(causal_sub_df))].iterrows()):
             text = str(row["text"])
             global_idx = causal_sub_indices[row_i]
             clean_v = float(clean_ev_list[global_idx])
+            clean_a = float(clean_ea_list[global_idx])
 
             prompt_self = build_prompt(text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
             p_ids = tokenizer.encode(prompt_self, add_special_tokens=False)
@@ -435,7 +466,7 @@ def run_real_model_confirmatory(
             else:
                 target_pos = p_end + 1 + cand_stage_offsets[stg]
 
-            dv_torch = torch.tensor(1.0 * h_std_v * d_v, dtype=torch.float32, device=device)
+            # 1) Valence steering
             with ActivationHookManager(adapter) as hook_mgr:
                 hook_mgr.register_patch_hook(
                     layer_idx=opt_layer,
@@ -444,19 +475,39 @@ def run_real_model_confirmatory(
                     direction=dv_torch,
                     alpha=1.0,
                 )
-                probs_stg = evaluate_candidate_likelihoods(
+                probs_stg_v = evaluate_candidate_likelihoods(
                     model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
                 )
-            ev_stg, _ = compute_expected_va(probs_stg, candidates)
-            stg_shifts.append(abs(ev_stg - clean_v))
-        temp_effects[stg] = float(np.mean(stg_shifts)) if stg_shifts else 0.0
+            ev_stg_v, _ = compute_expected_va(probs_stg_v, candidates)
+            stg_shifts_v.append(abs(ev_stg_v - clean_v))
 
-    stage_causal = temp_effects
+            # 2) Arousal steering
+            with ActivationHookManager(adapter) as hook_mgr:
+                hook_mgr.register_patch_hook(
+                    layer_idx=opt_layer,
+                    component="residual",
+                    token_indices=target_pos,
+                    direction=da_torch,
+                    alpha=1.0,
+                )
+                probs_stg_a = evaluate_candidate_likelihoods(
+                    model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
+                )
+            _, ea_stg_a = compute_expected_va(probs_stg_a, candidates)
+            stg_shifts_a.append(abs(ea_stg_a - clean_a))
+
+        temp_effects_v[stg] = float(np.mean(stg_shifts_v)) if stg_shifts_v else 0.0
+        temp_effects_a[stg] = float(np.mean(stg_shifts_a)) if stg_shifts_a else 0.0
+
+    stage_causal_v = temp_effects_v
+    stage_causal_a = temp_effects_a
 
     h1_pass = dissoc_v["delta_d_peak"] > 0 and dissoc_v["delta_d_center"] > 0
     h2_pass = slope_v > 0.1 and slope_a > 0.1
     h3_pass = attenuation_ratio > 0.2
-    h4_pass = stage_causal["pre_V"] > stage_causal["candidate_start"]
+    h4_pass_v = stage_causal_v.get("pre_V", 0.0) > stage_causal_v.get("candidate_start", 0.0)
+    h4_pass_a = stage_causal_a.get("pre_A", 0.0) > stage_causal_a.get("candidate_start", 0.0)
+    h4_pass = bool(h4_pass_v and h4_pass_a)
 
     all_confirmed = bool(h1_pass and h2_pass and h3_pass and h4_pass)
 
@@ -484,7 +535,11 @@ def run_real_model_confirmatory(
             "passed": bool(h3_pass),
         },
         "h4_temporal_emergence": {
-            "stage_causal": stage_causal,
+            "stage_causal": stage_causal_v,
+            "stage_causal_v": stage_causal_v,
+            "stage_causal_a": stage_causal_a,
+            "passed_valence": bool(h4_pass_v),
+            "passed_arousal": bool(h4_pass_a),
             "passed": bool(h4_pass),
         },
         "all_confirmed": all_confirmed,

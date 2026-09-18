@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# run_production_v3.sh
+# run_production_behavioral.sh
 #
-# Production V3 Evaluation Runner across 4 Primary Small Families
-# (Target: Qwen 1.5B, Confirmatory: Llama 3.2 1B, Gemma 3 1B, OLMo 2 1B)
+# Production Behavioral Evaluation Runner across 4 Primary Small Families
+# (Qwen 1.5B, Llama 3.2 1B, Gemma 3 1B, OLMo 2 1B: 8 models total)
 # Evaluates:
-#   1. RQ1: State Induction & Go/No-Go Gate
-#   2. RQ2: Spatiotemporal 4-Maps
-#   3. RQ3: Mediated attenuation (Discovery / Confirmation split)
-#   4. Step 7: Confirmatory Cross-Architecture Replication
-# Dataset sizes are logged from the loaded CSVs. Wall-clock time is unmeasured.
+#   1. EmoBank 3-Way VAD (full CSV; row counts are logged at load time)
+#   2. AIPsy-Affect 4-Split (full CSV; row/pair counts are logged at load time)
+# Wall-clock time: unmeasured until a Qwen-family benchmark is recorded.
 # ==============================================================================
 
 set -euo pipefail
 
+# Project root resolution
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${PROJECT_ROOT}"
 
+# Activate virtualenv
 if [ -f ".venv/bin/activate" ]; then
     source .venv/bin/activate
 elif [ -n "${VIRTUAL_ENV:-}" ]; then
@@ -33,20 +33,19 @@ DRY_RUN="${2:-}"
 LOG_DIR="results/logs"
 mkdir -p "${LOG_DIR}"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-LOG_FILE="${LOG_DIR}/production_v3_${TIMESTAMP}.log"
+LOG_FILE="${LOG_DIR}/production_behavioral_${TIMESTAMP}.log"
 
 echo "==================================================================" | tee -a "${LOG_FILE}"
-echo "Starting Production V3 Pipeline Evaluation" | tee -a "${LOG_FILE}"
+echo "Starting Production Behavioral Evaluation" | tee -a "${LOG_FILE}"
 echo "Timestamp : $(date -u +"%Y-%m-%dT%H:%M:%SZ")" | tee -a "${LOG_FILE}"
 echo "Device    : ${DEVICE}" | tee -a "${LOG_FILE}"
 echo "Log File  : ${LOG_FILE}" | tee -a "${LOG_FILE}"
-echo "Cohort    : primary_small (Target: Qwen | Confirmatory: Llama, Gemma, OLMo)" | tee -a "${LOG_FILE}"
-echo "Pipeline  : RQ1 (Gate) -> RQ2 (4-Maps) -> RQ3 (Mediation) -> Confirmatory" | tee -a "${LOG_FILE}"
-echo "Data Scale: Full production CSVs (actual counts logged by the Python runner)" | tee -a "${LOG_FILE}"
+echo "Cohort    : primary_small (4 families, 8 models)" | tee -a "${LOG_FILE}"
+echo "Datasets  : EmoBank + AIPsy (actual counts logged by the Python runner)" | tee -a "${LOG_FILE}"
 echo "Runtime   : unmeasured (do not use pre-benchmark hour estimates)" | tee -a "${LOG_FILE}"
 echo "==================================================================" | tee -a "${LOG_FILE}"
 
-CMD=(python -m affective_empathy_eval.run --stage v3 --model-set primary_small --device "${DEVICE}")
+CMD=(python -m affective_empathy_eval.run --stage behavioral --model-set primary_small --device "${DEVICE}")
 if [ "${DRY_RUN}" = "--dry-run" ]; then
     CMD+=(--dry-run)
 fi
@@ -57,6 +56,6 @@ END_SEC=$(date +%s)
 ELAPSED=$((END_SEC - START_SEC))
 
 echo "==================================================================" | tee -a "${LOG_FILE}"
-echo "V3 Pipeline Evaluation completed successfully!" | tee -a "${LOG_FILE}"
+echo "Behavioral Evaluation completed successfully!" | tee -a "${LOG_FILE}"
 echo "Elapsed Time: ${ELAPSED} seconds" | tee -a "${LOG_FILE}"
 echo "==================================================================" | tee -a "${LOG_FILE}"

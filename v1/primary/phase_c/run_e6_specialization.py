@@ -162,9 +162,44 @@ def run_lmm_interaction_test(df_long: pd.DataFrame) -> Dict[str, Any]:
         }
 
 
+def select_sites_from_e3(
+    e3_csv_path: str, num_layers: int
+) -> Tuple[int, int, str]:
+    """
+    Select Reader-site and Self-site layers deterministically from E3 Discovery results.
+    """
+    if not os.path.exists(e3_csv_path):
+        reader_l = int(round(0.5 * (num_layers - 1)))
+        self_l = int(round(0.6 * (num_layers - 1)))
+        return reader_l, self_l, "fallback_heuristic"
+
+    df = pd.read_csv(e3_csv_path)
+    mag_r_col = (
+        "discovery_mag_reader"
+        if "discovery_mag_reader" in df.columns
+        else "magnitude_reader"
+    )
+    mag_s_col = (
+        "discovery_mag_self"
+        if "discovery_mag_self" in df.columns
+        else "magnitude_self"
+    )
+
+    reader_peak_l = int(df.loc[df[mag_r_col].idxmax(), "layer"])
+    
+    # Self peak layer selection
+    sorted_s = df.sort_values(by=mag_s_col, ascending=False)
+    self_peak_l = int(sorted_s.iloc[0]["layer"])
+    # If both peaks happen to coincide, choose the runner-up for Self to allow 2x2 contrast
+    if self_peak_l == reader_peak_l and len(sorted_s) > 1:
+        self_peak_l = int(sorted_s.iloc[1]["layer"])
+
+    return reader_peak_l, self_peak_l, "e3_discovery_peak"
+
+
 def main():
     parser = argparse.ArgumentParser(
-        description="V1 Primary Phase C: E6 Targeted Ablation & Double Dissociation"
+        description="V1 Primary Phase C: E6 Targeted Ablation & Causal Specialization"
     )
     parser.add_argument(
         "--model-id",
@@ -178,6 +213,12 @@ def main():
         default=None,
         help="Output prefix. Derived from --family or --model-id if omitted.",
     )
+    parser.add_argument(
+        "--e3-csv",
+        type=str,
+        default=None,
+        help="Path to e3_causal_map.csv from which to extract Discovery peaks",
+    )
     parser.add_argument("--reader-layer", type=int, default=None)
     parser.add_argument("--self-layer", type=int, default=None)
     parser.add_argument(
@@ -187,10 +228,17 @@ def main():
         default="zero",
     )
     parser.add_argument(
+        "--split-seed",
+        type=int,
+        default=42,
+        help="Seed for 50/50 Discovery/Confirmation split (matching E3/E4)",
+    )
+    parser.add_argument(
         "--split-eval",
         type=str,
         choices=["confirmation", "all"],
         default="confirmation",
+        help="Split to evaluate targeted ablation on (default: confirmation)",
     )
     parser.add_argument("--limit", type=int, default=0, help="Sample limit (0 for full dataset)")
     parser.add_argument(
@@ -224,22 +272,32 @@ def main():
         or "it" in args.model_id.lower()
     )
 
-    # 動的レイヤー決定
+    try:
+        num_layers, _ = resolve_architecture_dims(args.model_id)
+    except Exception:
+        num_layers = 28
+
+    # 動的レイヤー決定 (E3 Discovery 結果または指定)
+    e3_csv_path = args.e3_csv or os.path.join(model_dir, "e3_causal_map.csv")
+    site_selection_method = "manual"
     if args.reader_layer is None or args.self_layer is None:
-        try:
-            num_layers, _ = resolve_architecture_dims(args.model_id)
-        except Exception:
-            num_layers = 28
+        r_l, s_l, site_selection_method = select_sites_from_e3(e3_csv_path, num_layers)
         if args.reader_layer is None:
-            args.reader_layer = int(round(0.5 * (num_layers - 1)))
+            args.reader_layer = r_l
         if args.self_layer is None:
-            args.self_layer = int(round(0.6 * (num_layers - 1)))
+            args.self_layer = s_l
 
     print(
-        f"=== Starting V1 Phase C E6 Double Dissociation: {args.model_id} ==="
+        f"=== Starting V1 Phase C E6 Causal Specialization: {args.model_id} ==="
+    )
+    print(
+        f"Site Selection: {site_selection_method} (Source: {e3_csv_path})"
     )
     print(
         f"Reader-Site Layer: {args.reader_layer} | Self-Site Layer: {args.self_layer}"
+    )
+    print(
+        f"Evaluation Split: {args.split_eval} (Seed: {args.split_seed})"
     )
 
     if args.dry_run:
@@ -254,30 +312,43 @@ def main():
                 "Self_SelfSite": 0.62,
             },
             "has_crossover": True,
+            "site_selection_method": site_selection_method,
+            "reader_layer": args.reader_layer,
+            "self_layer": args.self_layer,
+            "split_eval": args.split_eval,
         }
         with open(os.path.join(model_dir, "e6_lmm_results.json"), "w") as f:
             json.dump(stat_results, f, indent=2)
-        pd.DataFrame(
+        dry_df = pd.DataFrame(
             [
                 {
                     "pair_id": "dry_pair_1",
+                    "eval_split": args.split_eval,
                     "task": "Reader",
                     "site_type": "ReaderSite",
                     "site_layer": args.reader_layer,
                     "impact": 0.55,
                 }
             ]
-        ).to_csv(
+        )
+        dry_df.to_csv(
+            os.path.join(model_dir, "e6_specialization_trials.csv"),
+            index=False,
+        )
+        dry_df.to_csv(
             os.path.join(model_dir, "e6_double_dissociation_trials.csv"),
             index=False,
         )
         manifest = create_run_manifest(
-            run_type="v1_phase_c_e6",
+            run_type="v1_phase_c_e6_specialization",
             model_name=args.model_id,
             config={
                 "model_prefix": args.model_prefix,
                 "reader_layer": args.reader_layer,
                 "self_layer": args.self_layer,
+                "site_selection_method": site_selection_method,
+                "split_eval": args.split_eval,
+                "split_seed": args.split_seed,
                 "dry_run": True,
             },
             metadata=stat_results,
@@ -302,7 +373,25 @@ def main():
     if args.limit > 0:
         merged = merged.head(args.limit)
 
-    eval_df = merged.reset_index(drop=True)
+    # 50/50 Group split by pair_id matching E3/E4
+    rng_split = np.random.default_rng(args.split_seed)
+    unique_pairs = merged["pair_id"].unique()
+    perm_pairs = rng_split.permutation(unique_pairs)
+    split_cut = len(perm_pairs) // 2
+    discovery_pairs_set = set(perm_pairs[:split_cut])
+    
+    merged["eval_split"] = [
+        "discovery" if pid in discovery_pairs_set else "confirmation"
+        for pid in merged["pair_id"]
+    ]
+
+    if args.split_eval == "confirmation":
+        eval_df = merged[merged["eval_split"] == "confirmation"].reset_index(drop=True)
+        print(f"Targeted Ablation strictly evaluated on Confirmation split: N={len(eval_df)} pairs (Discovery N={len(discovery_pairs_set)} reserved for site selection)")
+    else:
+        eval_df = merged.reset_index(drop=True)
+        print(f"Targeted Ablation evaluated on ALL pairs: N={len(eval_df)} pairs")
+
     n_pairs = len(eval_df)
 
     tokenizer = AutoTokenizer.from_pretrained(args.model_id, trust_remote_code=True)
@@ -447,10 +536,15 @@ def main():
         )
 
     df_long = pd.DataFrame(long_records)
-    long_csv_path = os.path.join(
+    # Save both canonical specialization filename and legacy double dissociation filename
+    spec_csv_path = os.path.join(
+        model_dir, "e6_specialization_trials.csv"
+    )
+    legacy_csv_path = os.path.join(
         model_dir, "e6_double_dissociation_trials.csv"
     )
-    df_long.to_csv(long_csv_path, index=False)
+    df_long.to_csv(spec_csv_path, index=False)
+    df_long.to_csv(legacy_csv_path, index=False)
 
     stat_results = run_lmm_interaction_test(df_long)
     cell_means = df_long.groupby(["task", "site_type"])["impact"].mean()
@@ -467,6 +561,11 @@ def main():
         "Self_SelfSite": mean_s_ss,
     }
     stat_results["has_crossover"] = bool(has_crossover)
+    stat_results["site_selection_method"] = site_selection_method
+    stat_results["reader_layer"] = args.reader_layer
+    stat_results["self_layer"] = args.self_layer
+    stat_results["split_eval"] = args.split_eval
+    stat_results["n_evaluation_pairs"] = len(eval_df)
 
     with open(os.path.join(model_dir, "e6_lmm_results.json"), "w") as f:
         json.dump(
@@ -477,19 +576,22 @@ def main():
 
     # Save manifest
     manifest = create_run_manifest(
-        run_type="v1_phase_c_e6",
+        run_type="v1_phase_c_e6_specialization",
         model_name=args.model_id,
         config={
             "model_prefix": args.model_prefix,
             "reader_layer": args.reader_layer,
             "self_layer": args.self_layer,
+            "site_selection_method": site_selection_method,
             "ablation_type": args.ablation_type,
+            "split_eval": args.split_eval,
+            "split_seed": args.split_seed,
             "limit": args.limit,
         },
         metadata=stat_results,
     )
     manifest.save(os.path.join(model_dir, "manifest_e6.json"))
-    print(f"E6 analysis complete. Saved to {model_dir}")
+    print(f"E6 causal specialization analysis complete. Saved to {model_dir}")
 
 
 if __name__ == "__main__":

@@ -234,7 +234,10 @@ def main():
     # 刺激データセット読み込み
     df = pd.read_csv(v2_config["dataset"]["path"])
     logger.info(describe_loaded_frame(df, "V2-RQ3 dataset", v2_config["dataset"]["path"]))
-    if args.max_samples is not None:
+    if args.dry_run:
+        df = df.head(32).copy()
+        logger.info(f"[DRY-RUN] Scaled down dataset to N={len(df)} for fast smoke testing.")
+    elif args.max_samples is not None:
         df = df.iloc[: args.max_samples].copy()
         logger.info(f"Applied max_samples={args.max_samples}: n_rows={len(df)}")
 
@@ -254,13 +257,14 @@ def main():
             except Exception:
                 pass
 
+        eff_num_layers = min(fam_cfg.num_layers, 4) if args.dry_run else fam_cfg.num_layers
         logger.info(
-            f"--- Running Causal Maps for Family: {fam_id} ({fam_cfg.num_layers} layers) ---"
+            f"--- Running Causal Maps for Family: {fam_id} ({eff_num_layers} layers) ---"
         )
 
         depths = [
-            compute_relative_depth(l, fam_cfg.num_layers)
-            for l in range(fam_cfg.num_layers)
+            compute_relative_depth(l, eff_num_layers)
+            for l in range(eff_num_layers)
         ]
         fam_causal = {}
         model_groups = [
@@ -291,7 +295,7 @@ def main():
                     df=df,
                     task=task_type,
                     format_type=fmt,
-                    num_layers=fam_cfg.num_layers,
+                    num_layers=eff_num_layers,
                     device=args.device,
                     is_dry_run=args.dry_run,
                 )

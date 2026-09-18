@@ -16,6 +16,7 @@ Strict Features:
 """
 
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -60,6 +61,56 @@ def get_git_commit() -> str:
         return commit.decode("utf-8").strip()
     except Exception:
         return "unknown"
+
+
+def compute_cache_metadata(
+    model_id: str,
+    tokenizer: Any,
+    df: pd.DataFrame,
+    prompts_sample: List[str],
+    intervention_position: str = "prompt_end",
+    candidate_schema: str = "vad_triplets_729",
+) -> Dict[str, Any]:
+    dataset_str = "".join(
+        df["pair_id"].astype(str)
+        + df["text_aff"].astype(str)
+        + df["text_neu"].astype(str)
+    )
+    dataset_hash = hashlib.sha256(dataset_str.encode("utf-8")).hexdigest()[:16]
+
+    prompt_str = "".join(prompts_sample)
+    prompt_hash = hashlib.sha256(prompt_str.encode("utf-8")).hexdigest()[:16]
+
+    tok_name = tokenizer.__class__.__name__ if tokenizer is not None else "unknown"
+    vocab_size = getattr(tokenizer, "vocab_size", -1) if tokenizer is not None else -1
+
+    return {
+        "model_id": str(model_id),
+        "git_commit": get_git_commit(),
+        "dataset_hash": dataset_hash,
+        "prompt_hash": prompt_hash,
+        "candidate_schema": candidate_schema,
+        "intervention_position": intervention_position,
+        "tokenizer": f"{tok_name}_v{vocab_size}",
+    }
+
+
+def validate_cache_metadata(meta_file: str, current_meta: Dict[str, Any]) -> bool:
+    if not os.path.exists(meta_file):
+        return False
+    try:
+        with open(meta_file, "r", encoding="utf-8") as f:
+            cached_meta = json.load(f)
+        for k, v in current_meta.items():
+            if cached_meta.get(k) != v:
+                print(
+                    f"[CACHE MISMATCH in {os.path.basename(meta_file)}] {k}: cached={cached_meta.get(k)} != current={v}"
+                )
+                return False
+        return True
+    except Exception as ex:
+        print(f"[CACHE ERROR] Failed reading {meta_file}: {ex}")
+        return False
 
 
 def format_prompt(
@@ -395,15 +446,29 @@ def main():
         for t in merged["text_neu"]
     ]
 
+    # Compute current run cache metadata
+    current_cache_meta = compute_cache_metadata(
+        model_id=args.model_id,
+        tokenizer=tokenizer,
+        df=merged,
+        prompts_sample=prompts_r_aff[:10] + prompts_s_aff[:10],
+        intervention_position="prompt_end",
+        candidate_schema="vad_triplets_729",
+    )
+
     # Baselines
     baseline_cache_file = os.path.join(
         cache_model_dir, f"baselines_n{n_pairs}.npz"
+    )
+    baseline_meta_file = os.path.join(
+        cache_model_dir, f"baselines_n{n_pairs}_meta.json"
     )
     loaded_cache_baselines = False
     if (
         not args.no_cache
         and not args.force
         and os.path.exists(baseline_cache_file)
+        and validate_cache_metadata(baseline_meta_file, current_cache_meta)
     ):
         try:
             bcache = np.load(baseline_cache_file)
@@ -416,6 +481,7 @@ def main():
             clean_ev_r_aff = bcache["clean_ev_r_aff"]
             clean_ea_r_aff = bcache["clean_ea_r_aff"]
             loaded_cache_baselines = True
+            print(f"Loaded validated clean baselines from {baseline_cache_file}")
         except Exception:
             pass
 
@@ -470,13 +536,23 @@ def main():
                 clean_ev_r_aff=clean_ev_r_aff,
                 clean_ea_r_aff=clean_ea_r_aff,
             )
+            with open(baseline_meta_file, "w", encoding="utf-8") as f:
+                json.dump(current_cache_meta, f, indent=2)
 
     # Hidden States
     hidden_cache_file = os.path.join(
         cache_model_dir, f"hidden_states_n{n_pairs}.npz"
     )
+    hidden_meta_file = os.path.join(
+        cache_model_dir, f"hidden_states_n{n_pairs}_meta.json"
+    )
     loaded_cache_hidden = False
-    if not args.no_cache and not args.force and os.path.exists(hidden_cache_file):
+    if (
+        not args.no_cache
+        and not args.force
+        and os.path.exists(hidden_cache_file)
+        and validate_cache_metadata(hidden_meta_file, current_cache_meta)
+    ):
         try:
             hcache = np.load(hidden_cache_file)
             reps_r_aff = {
@@ -500,6 +576,7 @@ def main():
                 if k.startswith("s_neu_")
             }
             loaded_cache_hidden = True
+            print(f"Loaded validated representations from {hidden_cache_file}")
         except Exception:
             pass
 
@@ -529,6 +606,8 @@ def main():
             for l, arr in reps_s_neu.items():
                 save_dict[f"s_neu_{l}"] = arr
             np.savez_compressed(hidden_cache_file, **save_dict)
+            with open(hidden_meta_file, "w", encoding="utf-8") as f:
+                json.dump(current_cache_meta, f, indent=2)
 
     # E3: Shared Causal Map
     e3_csv_path = os.path.join(model_dir, "e3_causal_map.csv")

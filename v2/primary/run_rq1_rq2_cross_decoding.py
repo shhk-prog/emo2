@@ -320,8 +320,8 @@ def analyze_v2_geometry_and_sharing(
             inst_share = float((inst_r_to_s + inst_s_to_r) / 2.0)
             delta_share = float(inst_share - base_share)
 
-            # Secondary 指標
-            dd = (inst_r_to_s - base_r_to_s) - (inst_s_r2 - base_s_r2)
+            # Secondary 指標: 双方向 cross-decoding の変化差 (Reader->Self の変化 vs Self->Reader の変化)
+            dd = float((inst_r_to_s - base_r_to_s) - (inst_s_to_r - base_s_to_r))
 
             res_axis = results["rq2_sharing"][axis]
             res_axis["base_r2_reader"].append(base_r_r2)
@@ -389,6 +389,9 @@ def main():
 
     target_models = resolve_models_from_args(args, Path(args.models_config))
     dataset_df = load_dataset(v2_config["dataset"]["path"], max_samples=args.max_samples)
+    if args.dry_run:
+        dataset_df = dataset_df.head(32).copy()
+        logger.info(f"[DRY-RUN] Scaled down dataset to N={len(dataset_df)} for fast smoke testing.")
     train_df, test_df = split_dataset(
         dataset_df,
         train_ratio=v2_config["dataset"]["train_ratio"],
@@ -417,7 +420,10 @@ def main():
             except Exception:
                 pass
 
-        logger.info(f"--- Processing Family: {fam_id} ({fam_cfg.family_name}, {fam_cfg.num_layers} layers) ---")
+        eff_num_layers = min(fam_cfg.num_layers, 4) if args.dry_run else fam_cfg.num_layers
+        eff_hidden_dim = min(fam_cfg.hidden_dim, 64) if args.dry_run else fam_cfg.hidden_dim
+
+        logger.info(f"--- Processing Family: {fam_id} ({fam_cfg.family_name}, {eff_num_layers} layers, dim={eff_hidden_dim}) ---")
 
         # 抽出条件: Base/Instruct × Reader/Self
         conditions = [
@@ -462,8 +468,8 @@ def main():
                 format_type=default_fmt,
                 device=args.device,
                 is_dry_run=args.dry_run,
-                hidden_dim=fam_cfg.hidden_dim,
-                num_layers=fam_cfg.num_layers,
+                hidden_dim=eff_hidden_dim,
+                num_layers=eff_num_layers,
             )
             acts_test[key] = extract_activations_for_model(
                 model=model,
@@ -473,8 +479,8 @@ def main():
                 format_type=default_fmt,
                 device=args.device,
                 is_dry_run=args.dry_run,
-                hidden_dim=fam_cfg.hidden_dim,
-                num_layers=fam_cfg.num_layers,
+                hidden_dim=eff_hidden_dim,
+                num_layers=eff_num_layers,
             )
 
             if model is not None:
@@ -488,7 +494,7 @@ def main():
             acts_test=acts_test,
             train_df=train_df,
             test_df=test_df,
-            num_layers=fam_cfg.num_layers,
+            num_layers=eff_num_layers,
             ridge_alpha=v2_config["decoding"]["ridge_alpha"],
         )
         all_family_results[fam_id] = fam_res
@@ -512,7 +518,7 @@ def main():
     pk_inst_cross = [all_family_results[f]["summary_metrics"]["peak_depth_inst_cross"] for f in fams]
     mean_delta_share = [all_family_results[f]["summary_metrics"]["mean_delta_sharing"] for f in fams]
 
-    n_boot = v2_config.get("statistics", {}).get("n_boot", 1000)
+    n_boot = 10 if args.dry_run else v2_config.get("statistics", {}).get("n_boot", 1000)
 
     # Bootstrap 信頼区間の計算
     pt_com_r, com_r_low, com_r_up = compute_bootstrap_ci(com_dist_r, n_boot=n_boot)

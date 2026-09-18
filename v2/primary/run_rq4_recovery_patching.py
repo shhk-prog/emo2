@@ -69,7 +69,7 @@ def run_recovery_patching_for_task(
     指定タスク（Reader または Self）において、Base 活性化の Instruct への層別パッチングを実施。
     刺激ごと（sample-wise）の EMD_VA および回復率 Recovery_{i,l} を算出し、Bootstrap CI を付与。
     """
-    num_layers = fam_cfg.num_layers
+    num_layers = min(fam_cfg.num_layers, 4) if is_dry_run else fam_cfg.num_layers
     depths = [compute_relative_depth(l, num_layers) for l in range(num_layers)]
     N = len(df)
 
@@ -384,11 +384,14 @@ def main():
 
     df = pd.read_csv(v2_config["dataset"]["path"])
     logger.info(describe_loaded_frame(df, "V2-RQ4 dataset", v2_config["dataset"]["path"]))
-    if args.max_samples is not None:
+    if args.dry_run:
+        df = df.head(32).copy()
+        logger.info(f"[DRY-RUN] Scaled down dataset to N={len(df)} for fast smoke testing.")
+    elif args.max_samples is not None:
         df = df.iloc[:args.max_samples].copy()
         logger.info(f"Applied max_samples={args.max_samples}: n_rows={len(df)}")
 
-    n_boot = v2_config.get("statistics", {}).get("n_boot", 1000)
+    n_boot = 10 if args.dry_run else v2_config.get("statistics", {}).get("n_boot", 1000)
     all_recovery_results = {}
 
     for fam_id, fam_cfg in target_models.items():

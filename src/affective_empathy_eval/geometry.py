@@ -45,10 +45,13 @@ def eval_held_out_procrustes(
     H_train_2: np.ndarray,
     H_test_1: np.ndarray,
     H_test_2: np.ndarray,
+    pca_dim: int | None = 64,
 ) -> float:
     """
     Train split で Procrustes 直交回転行列 R を求め、Held-out test split に適用した残差平方和（不一致度）を評価
-    不一致度が低いほど幾何が整合
+    不一致度が低いほど幾何が整合。
+    高次元・低サンプル時の rank-deficiency と null space 回転不定性を回避するため、
+    pca_dim が指定され D > pca_dim の場合は train split で共通 PCA を行い次元削減後に Procrustes を計算。
     """
     # センタリング
     mu1 = np.mean(H_train_1, axis=0)
@@ -56,7 +59,21 @@ def eval_held_out_procrustes(
     X1 = H_train_1 - mu1
     X2 = H_train_2 - mu2
 
-    # SVD による最適直交回転行列 R (D x D)
+    D = X1.shape[1]
+    V_k = None
+    if pca_dim is not None and D > pca_dim:
+        k = min(pca_dim, X1.shape[0] - 1, X2.shape[0] - 1)
+        if 0 < k < D:
+            from sklearn.decomposition import PCA
+
+            # Train の両表現を結合して共通主成分基底を fit
+            pca = PCA(n_components=k, random_state=42)
+            pca.fit(np.vstack([X1, X2]))
+            V_k = pca.components_.T  # (D, k)
+            X1 = X1 @ V_k
+            X2 = X2 @ V_k
+
+    # SVD による最適直交回転行列 R
     import torch
 
     tX1 = torch.from_numpy(X1).float()
@@ -68,6 +85,10 @@ def eval_held_out_procrustes(
     # Test split に適用
     X_test1 = H_test_1 - mu1
     X_test2 = H_test_2 - mu2
+    if V_k is not None:
+        X_test1 = X_test1 @ V_k
+        X_test2 = X_test2 @ V_k
+
     X_test1_rotated = X_test1 @ R
 
     # 正規化フロベニウス残差

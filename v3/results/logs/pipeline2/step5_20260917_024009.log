@@ -1,7 +1,0 @@
-2026-09-17 02:46:34,805 [INFO] Starting V3-RQ1 State Induction (pilot=False, dry_run=True)
-2026-09-17 02:46:34,813 [INFO] Executing mock state induction and gate simulation...
-2026-09-17 02:46:34,813 [INFO] Gate Evaluation Completed: DECISION = GO
-2026-09-17 02:46:34,813 [INFO]   Checklist: {'specificity_pass': np.True_, 'necessity_pass': True, 'dose_response_pass': True, 'selectivity_pass': True, 'non_specific_detected': False, 'decision': 'GO'}
-2026-09-17 02:46:34,814 [INFO] Saved RQ1 results to v3/results/raw/v3_rq1_results.json
-2026-09-17 02:46:34,814 [INFO] Saved gate decision to v3/results/derived/v3_gate_decision.json
-2026-09-17 02:46:34,814 [INFO] >>> GATE STATUS: GO! Proceeding to Step 6 (Spatiotemporal Full Exploration).

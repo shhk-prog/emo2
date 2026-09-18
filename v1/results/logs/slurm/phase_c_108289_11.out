@@ -1,17 +1,0 @@
-Working directory: /mnt/nas/home/hiromi/src/emo
-========================================================================
-Starting Slurm Task: Array ID 11 / Job ID 108335
-Running on Host: iag-03 | GPU: NVIDIA H100 NVL
-========================================================================
-
-========================================================================
-Executing Job 11: gemma2_2b_instruct_patching
-Command: python v1/scripts/run_v1_phase_c_causal_patching.py --model-id "google/gemma-2-2b-it" --model-prefix "gemma2_2b_instruct" --limit 0 --device "cuda" --sub-batch-size 81 --all-layers
-Log:     v1/results/logs/phase_c/gemma2_2b_instruct_patching_20260917_124344.log
-========================================================================
-=== Starting V1 Phase C Causal Intervention for Model: google/gemma-2-2b-it ===
-Alphas: [-1.0, 0.0, 0.5, 1.0, 1.5] | Limit: 0 pairs | Sub-batch: 81 | Output: v1/results/derived/v1_phase_c/gemma2_2b_instruct
-Loaded 192 matched clinical-neutral pairs.
-
-Loading Tokenizer and Model...
-Loading weights:   0%|          | 0/288 [00:00<?, ?it/s]

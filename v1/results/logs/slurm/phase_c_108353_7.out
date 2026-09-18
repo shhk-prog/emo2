@@ -1,35 +1,0 @@
-Working directory: /mnt/nas/home/hiromi/src/emo
-========================================================================
-Starting Slurm Task: Array ID 7 / Job ID 108362
-Running on Host: iag-02 | GPU: NVIDIA H100
-========================================================================
-
-========================================================================
-Executing Job 7: llama3.2_1b_instruct_patching
-Command: python v1/scripts/run_v1_phase_c_causal_patching.py --model-id "meta-llama/Llama-3.2-1B-Instruct" --model-prefix "llama3.2_1b_instruct" --limit 0 --device "cuda" --sub-batch-size 81 --all-layers
-Log:     v1/results/logs/phase_c/llama3.2_1b_instruct_patching_20260917_131218.log
-========================================================================
-=== Starting V1 Phase C Causal Intervention for Model: meta-llama/Llama-3.2-1B-Instruct ===
-Alphas: [-1.0, 0.0, 0.5, 1.0, 1.5] | Limit: 0 pairs | Sub-batch: 81 | Output: v1/results/derived/v1_phase_c/llama3.2_1b_instruct
-Loaded 192 matched clinical-neutral pairs.
-
-Loading Tokenizer and Model...
-Loading weights:   0%|          | 0/146 [00:00<?, ?it/s]Loading weights:   1%|          | 1/146 [00:00<00:51,  2.82it/s]Loading weights:  21%|██        | 30/146 [00:00<00:01, 80.01it/s]Loading weights:  33%|███▎      | 48/146 [00:00<00:00, 101.83it/s]Loading weights:  43%|████▎     | 63/146 [00:00<00:00, 114.53it/s]Loading weights:  53%|█████▎    | 78/146 [00:00<00:00, 111.75it/s]Loading weights:  63%|██████▎   | 92/146 [00:00<00:00, 118.24it/s]Loading weights:  73%|███████▎  | 106/146 [00:01<00:00, 103.57it/s]Loading weights:  82%|████████▏ | 120/146 [00:01<00:00, 110.14it/s]Loading weights:  91%|█████████ | 133/146 [00:01<00:00, 111.75it/s]Loading weights: 100%|██████████| 146/146 [00:01<00:00, 104.34it/s]
-Evaluating target layers: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] (total architecture layers: 16)
-
-[1/3] Computing Clean Baselines (No Intervention)...
-Clean Shift Self:   mean Delta V = -0.849, mean Delta A = 0.271
-Clean Shift Reader: mean Delta V = -0.485, mean Delta A = 0.414
-
-[2/3] Extracting Hidden States across Target Layers...
-
-[3/3] Running Interventions (E3 & E4) across Layers and Alphas...
-Target Layers:   0%|          | 0/16 [00:00<?, ?it/s]Target Layers:   6%|▋         | 1/16 [45:20<11:20:04, 2720.33s/it]Target Layers:  12%|█▎        | 2/16 [1:30:41<10:34:51, 2720.81s/it]Target Layers:  19%|█▉        | 3/16 [2:16:02<9:49:30, 2720.83s/it] Target Layers:  25%|██▌       | 4/16 [3:01:24<9:04:16, 2721.41s/it]Target Layers:  31%|███▏      | 5/16 [3:46:46<8:18:55, 2721.42s/it]Target Layers:  38%|███▊      | 6/16 [4:32:06<7:33:31, 2721.19s/it]Target Layers:  44%|████▍     | 7/16 [5:17:27<6:48:09, 2721.08s/it]Target Layers:  50%|█████     | 8/16 [6:02:48<6:02:47, 2720.89s/it]Target Layers:  56%|█████▋    | 9/16 [6:48:08<5:17:25, 2720.83s/it]Target Layers:  62%|██████▎   | 10/16 [7:33:29<4:32:04, 2720.69s/it]Target Layers:  69%|██████▉   | 11/16 [8:18:49<3:46:42, 2720.52s/it]Target Layers:  75%|███████▌  | 12/16 [9:04:09<3:01:21, 2720.32s/it]Target Layers:  81%|████████▏ | 13/16 [9:49:29<2:16:00, 2720.26s/it]Target Layers:  88%|████████▊ | 14/16 [10:34:50<1:30:40, 2720.45s/it]Target Layers:  94%|█████████▍| 15/16 [11:20:10<45:20, 2720.29s/it]  Target Layers: 100%|██████████| 16/16 [12:05:30<00:00, 2720.27s/it]Target Layers: 100%|██████████| 16/16 [12:05:30<00:00, 2720.65s/it]
-
-Phase C results saved to v1/results/derived/v1_phase_c/llama3.2_1b_instruct/
-Summary report written to v1/results/derived/v1_phase_c/llama3.2_1b_instruct/phase_c_summary.md
-=== Phase C Causal Intervention Completed Successfully! ===
-✓ Finished job: llama3.2_1b_instruct_patching (Log saved to v1/results/logs/phase_c/llama3.2_1b_instruct_patching_20260917_131218.log)
-========================================================================
-Finished Slurm Task: Array ID 7
-========================================================================

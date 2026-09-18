@@ -200,13 +200,72 @@ def run_real_path_mediation(
                     h_stim.append(hook_mgr.captured_activations["h_stim"].cpu().float().numpy().ravel())
 
         H_s = np.array(h_stim)
-        ridge = Ridge(alpha=10.0).fit(H_s, y_v_disc)
-        preds = ridge.predict(H_s)
-        r2 = max(0.0, float(1.0 - np.sum((y_v_disc - preds)**2) / (np.sum((y_v_disc - np.mean(y_v_disc))**2) + 1e-6)))
+        # Held-out 5-fold cross-validation R^2
+        from sklearn.model_selection import KFold
+        n_splits = min(5, len(H_s))
+        if n_splits > 1:
+            kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
+            preds = np.zeros_like(y_v_disc)
+            for train_idx, val_idx in kf.split(H_s):
+                ridge = Ridge(alpha=10.0).fit(H_s[train_idx], y_v_disc[train_idx])
+                preds[val_idx] = ridge.predict(H_s[val_idx])
+            ss_res = np.sum((y_v_disc - preds)**2)
+            ss_tot = np.sum((y_v_disc - np.mean(y_v_disc))**2) + 1e-6
+            r2 = max(0.0, float(1.0 - ss_res / ss_tot))
+        else:
+            r2 = 0.0
         d_stim_profile.append(r2)
 
-        # 生成時因果ピーク (d=0.68付近の因果的変位)
-        c_score = float(np.exp(-((relative_depths[l] - 0.68)**2) / 0.04) * (1.0 + 0.1 * r2))
+        # 実 activation intervention による因果的変位 C(l) = |Delta Report(l)| の実測
+        # Discovery subset の代表サンプルに対して層 l でステアリング介入 (alpha=1.0) を実行
+        eval_k = min(8, len(disc_texts))
+        delta_reports = []
+        if H_s.shape[0] >= 2 and np.std(y_v_disc) > 1e-4:
+            # 層 l での Valence 方向ベクトル
+            ridge_dir = Ridge(alpha=10.0).fit(H_s, y_v_disc)
+            d_l = ridge_dir.coef_
+            norm_d = np.linalg.norm(d_l)
+            if norm_d > 1e-6:
+                d_l = d_l / norm_d
+            else:
+                d_l = np.zeros_like(d_l)
+        else:
+            d_l = np.zeros(H_s.shape[1])
+
+        with torch.no_grad():
+            for k_idx in range(eval_k):
+                text_k = disc_texts[k_idx]
+                p_k = build_prompt(text_k, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
+                enc_k = encode_prompt_canonical(tokenizer, p_k, device=device)
+                anch_k = find_semantic_anchors(enc_k["input_ids"][0].tolist(), tokenizer, text_k)
+                patch_pos_k = anch_k["prompt_end"]
+
+                # a. Clean expected report
+                _, probs_clean_k = compute_sequence_likelihoods_for_candidates(
+                    model=model, tokenizer=tokenizer, prompt=p_k, candidates=candidates, device=device, batch_size=81
+                )
+                ev_c, ea_c = compute_expected_va(probs_clean_k, candidates)
+
+                # b. Intervened expected report (alpha=1.0 along d_l)
+                h_orig = H_s[k_idx]
+                h_patched = h_orig + d_l * 1.0
+                patch_tensor_k = torch.tensor(h_patched, dtype=torch.float32, device=device)
+
+                with ActivationHookManager(adapter) as hook_mgr:
+                    hook_mgr.register_patch_hook(
+                        layer_idx=l,
+                        patch_tensor=patch_tensor_k,
+                        token_indices=patch_pos_k,
+                        hook_point=HookPoint.POST_MLP_RESID,
+                    )
+                    _, probs_int_k = compute_sequence_likelihoods_for_candidates(
+                        model=model, tokenizer=tokenizer, prompt=p_k, candidates=candidates, device=device, batch_size=81
+                    )
+                ev_i, ea_i = compute_expected_va(probs_int_k, candidates)
+                delta_norm = float(np.sqrt((ev_i - ev_c)**2 + (ea_i - ea_c)**2))
+                delta_reports.append(delta_norm)
+
+        c_score = float(np.mean(delta_reports)) if delta_reports else 0.0
         c_gen_profile.append(c_score)
 
     stim_peak_layer = int(np.argmax(d_stim_profile))
@@ -259,17 +318,38 @@ def run_real_path_mediation(
             anchors = find_semantic_anchors(enc["input_ids"][0].tolist(), tokenizer, text)
             patch_pos = anchors["prompt_end"]
 
-            # a. Clean baseline (TE: 自己報告の自然変位 |ev - 5.0|)
+            # matched-neutral の特定と baseline 自己報告の計測
+            neutral_text = None
+            if "neutral_text" in row and str(row["neutral_text"]).strip():
+                neutral_text = str(row["neutral_text"])
+            elif "text_neutral" in row and str(row["text_neutral"]).strip():
+                neutral_text = str(row["text_neutral"])
+            elif "pair_id" in conf_df.columns:
+                pair_matches = df[(df["pair_id"] == row["pair_id"]) & (df.get("condition", pd.Series()) == "neutral")]
+                if len(pair_matches) > 0:
+                    neutral_text = str(pair_matches.iloc[0]["text"])
+
+            if neutral_text is not None and len(neutral_text.strip()) > 0:
+                p_neu = build_prompt(neutral_text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
+                _, probs_neu = compute_sequence_likelihoods_for_candidates(
+                    model=model, tokenizer=tokenizer, prompt=p_neu, candidates=candidates, device=device, batch_size=81
+                )
+                ev_neu, ea_neu = compute_expected_va(probs_neu, candidates)
+            else:
+                # neutral baseline がない場合はエラーを送出（Primaryでは固定5.0へのサイレントfallbackは禁止）
+                raise ValueError(f"Missing matched-neutral baseline for stimulus: {row.get('stimulus_id', row.get('id', 'unknown'))}")
+
+            # a. Clean baseline (TE: 自己報告の情動変位 |ev_clean - ev_neu|)
             _, probs_clean = compute_sequence_likelihoods_for_candidates(
                 model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device, batch_size=81
             )
             ev_clean, ea_clean = compute_expected_va(probs_clean, candidates)
-            te_v = abs(ev_clean - 5.0)
-            te_a = abs(ea_clean - 5.0)
+            te_v = abs(ev_clean - ev_neu)
+            te_a = abs(ea_clean - ea_neu)
             te_v_list.append(te_v)
             te_a_list.append(te_a)
 
-            # b. Mediator 遮断 (NDE: 情動部分空間除去下の変位)
+            # b. Mediator 遮断 (NDE: 情動部分空間除去下の変位 |ev_abl - ev_neu|)
             with ActivationHookManager(adapter) as hook_mgr:
                 hook_mgr.register_capture_hook(
                     layer_idx=mediator_layer,
@@ -296,8 +376,8 @@ def run_real_path_mediation(
                     model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device, batch_size=81
                 )
             ev_abl, ea_abl = compute_expected_va(probs_abl, candidates)
-            nde_v = abs(ev_abl - 5.0)
-            nde_a = abs(ea_abl - 5.0)
+            nde_v = abs(ev_abl - ev_neu)
+            nde_a = abs(ea_abl - ea_neu)
             nde_v_list.append(nde_v)
             nde_a_list.append(nde_a)
 

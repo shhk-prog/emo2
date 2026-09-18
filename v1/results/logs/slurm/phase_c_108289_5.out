@@ -1,39 +1,0 @@
-Working directory: /mnt/nas/home/hiromi/src/emo
-========================================================================
-Starting Slurm Task: Array ID 5 / Job ID 108294
-Running on Host: iag-02 | GPU: NVIDIA H100
-========================================================================
-
-========================================================================
-Executing Job 5: llama3.2_1b_base_patching
-Command: python v1/scripts/run_v1_phase_c_causal_patching.py --model-id "meta-llama/Llama-3.2-1B" --model-prefix "llama3.2_1b_base" --limit 0 --device "cuda" --sub-batch-size 81 --all-layers
-Log:     v1/results/logs/phase_c/llama3.2_1b_base_patching_20260917_014647.log
-========================================================================
-=== Starting V1 Phase C Causal Intervention for Model: meta-llama/Llama-3.2-1B ===
-Alphas: [-1.0, 0.0, 0.5, 1.0, 1.5] | Limit: 0 pairs | Sub-batch: 81 | Output: v1/results/derived/v1_phase_c/llama3.2_1b_base
-Loaded 192 matched clinical-neutral pairs.
-
-Loading Tokenizer and Model...
-Loading weights:   0%|          | 0/146 [00:00<?, ?it/s]Loading weights:   1%|          | 1/146 [00:00<00:52,  2.79it/s]Loading weights:  21%|██        | 30/146 [00:00<00:01, 83.41it/s]Loading weights:  33%|███▎      | 48/146 [00:00<00:01, 96.68it/s]Loading weights:  43%|████▎     | 63/146 [00:00<00:00, 108.35it/s]Loading weights:  53%|█████▎    | 78/146 [00:00<00:00, 104.62it/s]Loading weights:  64%|██████▎   | 93/146 [00:01<00:00, 107.13it/s]Loading weights:  73%|███████▎  | 106/146 [00:01<00:00, 106.75it/s]Loading weights:  82%|████████▏ | 120/146 [00:01<00:00, 103.19it/s]Loading weights:  90%|████████▉ | 131/146 [00:01<00:00, 101.17it/s]Loading weights: 100%|██████████| 146/146 [00:01<00:00, 101.39it/s]
-Evaluating target layers: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-
-[1/3] Computing Clean Baselines (No Intervention)...
-Clean Shift Self:   mean Delta V = -0.086, mean Delta A = -0.024
-Clean Shift Reader: mean Delta V = -0.046, mean Delta A = -0.014
-
-[2/3] Extracting Hidden States across Target Layers...
-
-[3/3] Running Interventions (E3 & E4) across Layers and Alphas...
-Target Layers:   0%|          | 0/17 [00:00<?, ?it/s]Target Layers:   6%|▌         | 1/17 [36:22<9:42:03, 2182.73s/it]Target Layers:  12%|█▏        | 2/17 [1:12:44<9:05:32, 2182.18s/it]Target Layers:  18%|█▊        | 3/17 [1:49:06<8:29:06, 2181.92s/it]Target Layers:  24%|██▎       | 4/17 [2:25:28<7:52:48, 2182.22s/it]Target Layers:  29%|██▉       | 5/17 [3:01:50<7:16:26, 2182.19s/it]Target Layers:  35%|███▌      | 6/17 [3:38:12<6:40:03, 2182.13s/it]Target Layers:  41%|████      | 7/17 [4:14:35<6:03:43, 2182.32s/it]Target Layers:  47%|████▋     | 8/17 [4:50:57<5:27:19, 2182.15s/it]Target Layers:  53%|█████▎    | 9/17 [5:27:19<4:50:56, 2182.08s/it]Target Layers:  59%|█████▉    | 10/17 [6:03:41<4:14:34, 2182.14s/it]Target Layers:  65%|██████▍   | 11/17 [6:40:03<3:38:12, 2182.13s/it]Target Layers:  71%|███████   | 12/17 [7:16:26<3:01:51, 2182.20s/it]Target Layers:  76%|███████▋  | 13/17 [7:52:49<2:25:29, 2182.46s/it]Target Layers:  82%|████████▏ | 14/17 [8:29:11<1:49:07, 2182.51s/it]Target Layers:  88%|████████▊ | 15/17 [9:05:35<1:12:45, 2182.73s/it]Target Layers:  94%|█████████▍| 16/17 [9:41:59<36:23, 2183.16s/it]  Target Layers:  94%|█████████▍| 16/17 [9:41:59<36:22, 2182.45s/it]
-Traceback (most recent call last):
-  File "/mnt/nas/home/hiromi/src/emo/v1/scripts/run_v1_phase_c_causal_patching.py", line 428, in <module>
-    main()
-  File "/mnt/nas/home/hiromi/src/emo/v1/scripts/run_v1_phase_c_causal_patching.py", line 299, in main
-    with PyTorchActivationPatcher(model, l, diff_s, patch_weight=1.0, position=pos_s, intervention_type="add"):
-  File "/mnt/nas/home/hiromi/src/emo/v1/src/affective_empathy_eval/intervention.py", line 111, in __enter__
-    raise ValueError(f"Invalid target layer {self.target_layer} for model architecture.")
-ValueError: Invalid target layer 16 for model architecture.
-✓ Finished job: llama3.2_1b_base_patching (Log saved to v1/results/logs/phase_c/llama3.2_1b_base_patching_20260917_014647.log)
-========================================================================
-Finished Slurm Task: Array ID 5
-========================================================================

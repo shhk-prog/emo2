@@ -188,3 +188,7 @@ class InterventionEvaluator:
             })
             
         return results
+
+
+# Backward-compatibility alias
+Evaluator = InterventionEvaluator

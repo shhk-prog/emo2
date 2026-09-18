@@ -1,20 +1,0 @@
-Working directory: /mnt/nas/home/hiromi/src/emo
-========================================================================
-Starting Slurm Task: Array ID 2 / Job ID 108348
-Running on Host: iag-02 | GPU: NVIDIA H100
-========================================================================
-
-========================================================================
-Executing Job 2: qwen2.5_1.5b_base_ablation
-Command: python v1/scripts/run_v1_phase_c_targeted_ablation.py --model-id "Qwen/Qwen2.5-1.5B" --model-prefix "qwen2.5_1.5b_base" --reader-layer 8 --self-layer 20 --limit 0 --device "cuda" --sub-batch-size 81
-Log:     v1/results/logs/phase_c/qwen2.5_1.5b_base_ablation_20260917_124612.log
-========================================================================
-=== Starting V1 Phase C E6 Double Dissociation for Model: Qwen/Qwen2.5-1.5B ===
-Reader-Site Layer: 8 | Self-Site Layer: 20 | Limit: 0 pairs | Sub-batch: 81
-Loaded 192 matched clinical-neutral pairs.
-
-Loading Model and Tokenizer...
-Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:   0%|          | 1/338 [00:00<04:41,  1.20it/s]Loading weights:  47%|████▋     | 159/338 [00:00<00:00, 222.80it/s]Loading weights:  69%|██████▊   | 232/338 [00:01<00:00, 248.63it/s]Loading weights:  85%|████████▍ | 286/338 [00:01<00:00, 263.11it/s]Loading weights:  98%|█████████▊| 331/338 [00:01<00:00, 262.33it/s]Loading weights: 100%|██████████| 338/338 [00:01<00:00, 217.43it/s]
-
-[1/3] Computing Clean Baselines...
-Clean Reader:   0%|          | 0/192 [00:00<?, ?it/s]

@@ -325,7 +325,15 @@ def run_real_state_induction(
             ev_abl, _ = compute_expected_va(probs_abl, candidates)
             # Necessity: matched-neutral baseline shift vs after projection removal
             # Primary: matched neutral baseline deviation |E[V]_aff - E[V]_neutral|
-            neutral_base = float(row.get("neutral_expected_v", row.get("reader_V_neutral", 5.0)))
+            if "neutral_expected_v" in row and not pd.isna(row["neutral_expected_v"]):
+                neutral_base = float(row["neutral_expected_v"])
+            elif "reader_V_neutral" in row and not pd.isna(row["reader_V_neutral"]):
+                neutral_base = float(row["reader_V_neutral"])
+            else:
+                raise ValueError(
+                    f"Missing matched-neutral baseline for stimulus {row.get('stimulus_id', row.get('id', 'unknown'))}. "
+                    "Primary analysis forbids falling back to arbitrary 5.0."
+                )
             nat_dev = abs(ev_clean - neutral_base)
             abl_dev = abs(ev_abl - neutral_base)
             att_ratio = (nat_dev - abl_dev) / (nat_dev + 1e-6) if nat_dev > 0.05 else 0.0

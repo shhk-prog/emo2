@@ -1,8 +1,0 @@
-2026-09-17 02:46:38,190 [INFO] Starting V3-RQ2 & RQ3 Spatiotemporal Map Analysis (dry_run=True)
-Traceback (most recent call last):
-  File "/mnt/nas/home/hiromi/src/emo/v3/scripts/run_v3_spatiotemporal_maps.py", line 195, in <module>
-    main()
-  File "/mnt/nas/home/hiromi/src/emo/v3/scripts/run_v3_spatiotemporal_maps.py", line 139, in main
-    model_meta = models_cfg["models"][target_family]
-                 ~~~~~~~~~~^^^^^^^^^^
-KeyError: 'models'

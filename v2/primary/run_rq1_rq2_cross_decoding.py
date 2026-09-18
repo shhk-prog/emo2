@@ -62,13 +62,13 @@ def parse_args():
     parser.add_argument(
         "--config",
         type=str,
-        default="v2/configs/v2_experiments.yaml",
+        default="configs/v2_experiments.yaml",
         help="Path to V2 config",
     )
     parser.add_argument(
         "--models-config",
         type=str,
-        default="v2/configs/models.yaml",
+        default="configs/models.yaml",
         help="Path to models config",
     )
     parser.add_argument(

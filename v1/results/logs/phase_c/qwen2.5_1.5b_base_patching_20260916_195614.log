@@ -1,31 +1,0 @@
-=== Starting V1 Phase C Causal Intervention for Model: Qwen/Qwen2.5-1.5B ===
-Alphas: [-1.0, 0.0, 0.5, 1.0, 1.5] | Limit: 0 pairs | Output: v1/results/derived/v1_phase_c/qwen2.5_1.5b_base
-Loaded 192 matched clinical-neutral pairs.
-
-Loading Tokenizer and Model...
-Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:   0%|          | 1/338 [00:00<04:46,  1.18it/s]Loading weights:  51%|█████     | 172/338 [00:00<00:00, 245.53it/s]Loading weights:  80%|███████▉  | 269/338 [00:01<00:00, 255.47it/s]Loading weights:  99%|█████████▉| 334/338 [00:01<00:00, 274.48it/s]Loading weights: 100%|██████████| 338/338 [00:01<00:00, 223.71it/s]
-[W916 19:57:07.041538725 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 12184453120 bytes (free: 11009327104, total: 99949674496).
-[W916 19:57:18.302191899 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 12702449664 bytes (free: 7140081664, total: 99949674496).
-[W916 19:57:22.858029477 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 13440647168 bytes (free: 5806292992, total: 99949674496).
-[W916 19:57:58.808195456 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 14252244992 bytes (free: 13265862656, total: 99949674496).
-[W916 19:58:03.828525968 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 14770241536 bytes (free: 9279176704, total: 99949674496).
-[W916 19:58:35.300310007 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 14990442496 bytes (free: 8536784896, total: 99949674496).
-[W916 19:59:01.106309685 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 16911433728 bytes (free: 3960799232, total: 99949674496).
-[W916 19:59:18.243233111 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 15286140928 bytes (free: 190119936, total: 99949674496).
-[W916 19:59:42.818372349 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 15286140928 bytes (free: 15033761792, total: 99949674496).
-[W916 20:00:18.911780707 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 17131634688 bytes (free: 12301172736, total: 99949674496).
-[W916 20:00:23.590628916 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 17649631232 bytes (free: 7871987712, total: 99949674496).
-[W916 20:04:19.760869262 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 17796431872 bytes (free: 6982795264, total: 99949674496).
-[W916 20:08:14.091264389 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 18018729984 bytes (free: 6393495552, total: 99949674496).
-[W916 20:08:19.447196209 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 18534629376 bytes (free: 5948899328, total: 99949674496).
-[W916 20:12:28.005151908 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 18683527168 bytes (free: 4915003392, total: 99949674496).
-Evaluating target layers: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28]
-
-[1/3] Computing Clean Baselines (No Intervention)...
-Clean Shift Self:   mean Delta V = -0.679, mean Delta A = 0.009
-Clean Shift Reader: mean Delta V = -0.716, mean Delta A = 0.181
-
-[2/3] Extracting Hidden States across Target Layers...
-
-[3/3] Running Interventions (E3 & E4) across Layers and Alphas...
-Target Layers:   0%|          | 0/29 [00:00<?, ?it/s]Target Layers:   3%|▎         | 1/29 [46:19<21:37:19, 2779.99s/it]Target Layers:   7%|▋         | 2/29 [1:32:40<20:51:03, 2780.12s/it]Target Layers:  10%|█         | 3/29 [2:19:00<20:04:46, 2780.23s/it]Target Layers:  14%|█▍        | 4/29 [3:05:20<19:18:27, 2780.31s/it]Target Layers:  17%|█▋        | 5/29 [3:51:39<18:31:55, 2779.80s/it]Target Layers:  21%|██        | 6/29 [4:37:57<17:45:15, 2778.93s/it]Target Layers:  24%|██▍       | 7/29 [5:24:14<16:58:47, 2778.54s/it]

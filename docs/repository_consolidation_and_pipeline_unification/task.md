@@ -1,58 +1,49 @@
-# タスク定義: リポジトリ正本一本化・Primary Pipeline 確立・構成整理
+# 全体改修タスクリスト (10項目の完全修正)
 
-## 目的
-リポジトリ全体の構造を「Behavioral → V1 → V2 → V3」という論文の論理的ストーリーに完全に一致させ、重複パッケージの解消、Primary / Exploratory / Legacy の物理的完全分離、キャッシュ・メタデータの厳密化、相対深度の数学的定義統一を行い、第三者が完全に再現・検証可能な公開リサーチコードベースを完成させる。
+- [x] **Task 1: パッケージ一本化と壊れたexportの修正 (最優先・pytest 100% pass)**
+  - [x] `src/affective_empathy_eval/data.py` に `load_emobank_csv = load_emobank`, `load_aipsy_csv = load_aipsy_affect` エイリアスを追加
+  - [x] `src/affective_empathy_eval/evaluation.py` に `Evaluator = InterventionEvaluator` エイリアスを追加
+  - [x] `src/affective_empathy_eval/extraction.py` に `extract_activations_batch` ヘルパーを追加
+  - [x] `src/affective_empathy_eval/intervention.py` に `HookManager = ActivationPatcher`, `RepresentationSteering = SteeringController` エイリアスを追加
+  - [x] `src/affective_empathy_eval/statistics.py` に `apply_benjamini_hochberg = apply_fdr_correction`, `compute_d_z = compute_paired_cohen_dz` エイリアスを追加
+  - [x] `src/affective_empathy_eval/geometry.py` の export 整理
+  - [x] `src/affective_empathy_eval/__init__.py` の import / export を実在する全シンボルに完全整合
+  - [x] `v1/src/` を物理削除して一本化
+  - [x] `pytest.ini` を削除し `pyproject.toml` に設定一本化 (`testpaths = ["tests"]`, `pythonpath = ["src"]`)
+  - [x] `v1/pyproject.toml` を削除
+  - [x] `requirements.txt` のヘッダーに pyproject.toml 正本と明記
+  - [x] pytest テストスイートの実行確認（40/40 100% pass）
 
-## 主要タスク項目と進捗状況
+- [x] **Task 2: V3 Path Mediation の重大人工計算排除と実介入化**
+  - [x] `v3/primary/run_rq3_path_mediation.py`（および `v3/scripts/run_v3_path_mediation.py`）の Discovery 内 `Ridge` を 5-fold held-out CV に修正
+  - [x] 人工ガウス関数 `c_score` を完全撤去し、各層 $l$ での実 activation intervention（$\alpha=1.0$）による出力変位 $C(l) = \sqrt{\Delta V(l)^2 + \Delta A(l)^2}$ の実測コードへ置換
+  - [x] TE / NDE の計算を 5.0 基準から matched-neutral 基準（$|E[V]_{\rm aff} - E[V]_{\rm neu}|$）へ修正
 
-1. **共通コードの一本化 (Root `src/affective_empathy_eval` への集約)**: [完了]
-   - `v1/src/affective_empathy_eval` の全モジュール（`data.py`, `evaluation.py`, `extraction.py`, `intervention.py`, `manifests.py`, `metrics.py`, `probing.py`, `schemas.py`, `splits.py`, `controls.py`, `prompts.py`, `models/`）を root `src/` へ統合完了。
-   - `v3/src/ot_utils.py` を `src/affective_empathy_eval/optimal_transport.py`、`v3/src/diagnostics.py` を `src/affective_empathy_eval/diagnostics.py` として統合完了。
-   - `src/affective_empathy_eval/__init__.py` を更新し全モジュールを export。
-   - `v1/src/affective_empathy_eval/__init__.py` を root パッケージへの自動リダイレクトおよび DeprecationWarning 出力仕様に変更し、同名重複によるバージョン齟齬を完全解消。
+- [x] **Task 3: V3 State Induction の 5.0 fallback 禁止**
+  - [x] `v3/primary/run_rq1_state_induction.py`（および `v3/scripts/run_v3_state_induction.py`）の 5.0 fallback を禁止し、matched-neutral 欠損時は明示的エラー（`ValueError`）を発生させる
 
-2. **ステージごとの Primary / Exploratory / Legacy 物理的分離**: [完了]
-   - **Behavioral (`behavioral/`)**:
-     - `behavioral/primary/run_behavioral_emobank.py`（EmoBank 3-Way VAD 729候補評価）
-     - `behavioral/primary/run_behavioral_aipsy.py`（AIPsy-Affect 4-Split 729候補評価）
-     - `behavioral/analysis/summarize_behavioral_emobank.py`（EmoBank 結果集計・4指標分析）
-     - `behavioral/analysis/summarize_behavioral_aipsy.py`（AIPsy 結果集計・Cohen's d_z, FDR補正）
-     - `behavioral/README.md`（4大指標: Human Grounding, Sensitivity, Dose-Response & Specificity, Reader-Self Coupling を明記）
-   - **V1 (`v1/`)**:
-     - `v1/primary/run_phase_a.py`（E1 Decodability & E2 Geometry）
-     - `v1/primary/run_phase_b.py`（Phase B Semantic Controls Audit）
-     - `v1/primary/run_phase_c.py`（E3 Causal Map & E4 Interchangeability）
-     - `v1/primary/phase_c/select_e4_sites.py`（Discovery スプリットに基づく候補層選定）
-     - `v1/primary/phase_c/run_e3_causal_map.py`（E3 実行ラッパー）
-     - `v1/primary/phase_c/run_e4_interchangeability.py`（E4 実行ラッパー）
-     - `v1/primary/phase_c/run_e6_specialization.py`（E6 標的消去・LMM交互作用検定）
-     - `v1/primary/phase_c/summarize_phase_c.py`（Phase C 統合レポート生成）
-     - `v1/README.md` 更新（5大実験体系 E1, E2, E3, E4, E6 への整理、未実装E5除外の明記、Prompt-End Normalized）
-   - **V2 (`v2/`)**:
-     - `v2/primary/run_rq1_rq2_cross_decoding.py`（RQ1/RQ2 クロスデコード・幾何解析）
-     - `v2/primary/run_rq3_causal_map.py`（RQ3 因果回路再配置・ピーク解離）
-     - `v2/primary/run_rq4_recovery_patching.py`（RQ4 復元パッチング）
-     - `v2/primary/run_confirmatory_analysis.py`（確証的仮説検証 LMM）
-     - `v2/primary/README.md`（RQ1〜RQ4 の明確な研究体系と実行方法）
-   - **V3 (`v3/`)**:
-     - `v3/primary/run_rq1_state_induction.py`（RQ1 状態誘発と部分空間幾何）
-     - `v3/primary/run_rq2_spatiotemporal_maps.py`（RQ2 4-Map 時空間マッピングとピーク解離）
-     - `v3/primary/run_rq3_path_mediation.py`（RQ3 因果媒介解析）
-     - `v3/primary/run_confirmatory_replication.py`（確証的追試・反証実験）
-     - `v3/docs/legacy/README.md`（旧論文ドラフト退避・隔離）
-     - `v3/primary/README.md`（3大 RQ + Confirmatory の研究体系と実行方法）
+- [x] **Task 4: V2 / V3 Primary スクリプトの wrapper 解消（実装本体配置）**
+  - [x] `v2/primary/run_rq3_causal_map.py` に `v2/scripts/run_v2_2x2_causal_map.py` の実装本体を統合し `sys.path.insert` を撤廃
+  - [x] `v2/primary/run_rq4_recovery_patching.py` に `v2/scripts/run_v2_recovery_patching.py` の実装本体を統合
+  - [x] `v2/primary/run_confirmatory_analysis.py` に `v2/scripts/run_v2_confirmatory_analysis.py` の実装本体を統合
+  - [x] `v3/primary/run_rq1_state_induction.py` に `v3/scripts/run_v3_state_induction.py` の実装本体を統合
+  - [x] `v3/primary/run_rq2_spatiotemporal_maps.py` に `v3/scripts/run_v3_spatiotemporal_maps.py` の実装本体を統合
+  - [x] `v3/primary/run_rq3_path_mediation.py` に `v3/scripts/run_v3_path_mediation.py` の実装本体を統合
+  - [x] `v3/primary/run_confirmatory_replication.py` に `v3/scripts/run_v3_confirmatory_replication.py` の実装本体を統合
 
-3. **研究仕様・数学的定義の全ステージ統一**: [完了]
-   - 相対深度の計算式を全スクリプトで `d = l / (num_layers - 1) if num_layers > 1 else 0.0` に置換・完全統一（旧 `(l + 1) / num_layers` を全廃）。
-   - 介入位置を Prompt-End Normalized (`pos = len(prompt_ids) - 1`, `add_special_tokens=False`) に固定。
-   - `create_run_manifest` を Primary スクリプトに統合し、git commit, config, metadata を保存。
+- [x] **Task 5: 全 README の記述・config パス修正**
+  - [x] root `README.md`: Behavioral Stage を `behavioral/` に、V1 を Prompt-End Normalized に、最新ディレクトリ構造に更新
+  - [x] `v1/README.md`: Prompt-End 記述に修正、Behavioral の詳細を `behavioral/README.md` へ委譲、Phase B の LLM Judge 矛盾を解消、過去の数値に (previous run) と注記
+  - [x] `behavioral/README.md`: 「接地度」を human-affect correspondence に統一
+  - [x] `v2/README.md` & `v2/primary/README.md`: config パスを root `configs/` に修正
+  - [x] `v3/README.md` & `v3/primary/README.md`: config パスを root `configs/` に修正
 
-4. **文書・設定・成果物管理の整理**: [完了]
-   - `.gitignore` の厳格化（`.DS_Store`, `._*`, `*.npz`, `**/results/cache/`, `**/results/logs/`, `*.pt`, `.env` 等を除外）。
-   - `pyproject.toml` を最新の依存関係（`statsmodels`, `tqdm`, `POT` 等）および pytest 設定の単一正本へ更新。
-   - `tests/test_v3_causal_extensions.py` を新設し、root `tests/` で全共通機能および拡張機能のテストを一括実行可能に統合。
+- [x] **Task 6: 旧 results のアーカイブとディレクトリ初期化**
+  - [x] `scripts/archive_and_clean_results.py` を実行して `archive/results_pre_rerun_20260918/` へ退避し、`behavioral/results/`, `v1/results/`, `v2/results/`, `v3/results/` を空化
 
-5. **旧実験結果のアーカイブ退避と results のクリーン初期化**: [完了]
-   - `.gitignore` に `archive/` を追加し Git 管理対象外に設定。
-   - `v2/results/prompt_hashes.json` を `v2/configs/prompt_hashes.json` に安全退避。
-   - `scripts/archive_and_clean_results.py` を作成し、全ステージ（behavioral, v1, v2, v3）の旧 results を `archive/results_pre_rerun_20260918/` および `archive/results_pre_rerun_20260918.tar.gz` へ一括退避し、各 `results/` ディレクトリを `.gitkeep` のみで初期化するパイプラインを確立。
+- [x] **Task 7: 不要ファイル・ディレクトリの整理**
+  - [x] `.DS_Store` および `._*` ファイルの全削除
+  - [x] `scratch/` の消去
+  - [x] ルート直下の `get_stats.py`, `get_md_tables.py`, `get_arousal_stats.py` を `tools/reporting/` へ移動
+  - [x] `fairshare_gpu/` を `docs/infrastructure/` へ移動
+  - [x] `docs/` 配下の古い draft を `docs/archive/` に退避・整理

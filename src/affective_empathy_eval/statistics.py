@@ -314,3 +314,46 @@ def generate_derangement(n: int, rng: np.random.Generator | None = None) -> np.n
         if not np.any(perm == np.arange(n)):
             return perm
 
+
+def apply_benjamini_hochberg(p_values: list[float] | np.ndarray) -> np.ndarray:
+    """
+    Benjamini-Hochberg FDR correction returning adjusted p-values (q-values).
+    Uses robust pure-numpy fallback if statsmodels is unavailable.
+    """
+    _, qvals = apply_fdr_correction(p_values)
+    return np.asarray(qvals, dtype=np.float64)
+
+
+def compute_correlation_with_ci(
+    x: np.ndarray,
+    y: np.ndarray,
+    method: str = "pearson",
+    n_bootstraps: int = 1000,
+    ci: float = 0.95,
+    seed: int = 42,
+) -> tuple[float, float, float]:
+    """
+    Computes Pearson or Spearman correlation with bootstrap 95% CI.
+    Returns: (r, ci_lower, ci_upper)
+    """
+    from scipy import stats
+
+    if len(x) < 3 or len(y) < 3:
+        return 0.0, -1.0, 1.0
+
+    if method == "pearson":
+        r, _ = stats.pearsonr(x, y)
+        stat_fn = lambda a, b: float(stats.pearsonr(a, b)[0]) if np.std(a) > 0 and np.std(b) > 0 else 0.0
+    else:
+        r, _ = stats.spearmanr(x, y)
+        stat_fn = lambda a, b: float(stats.spearmanr(a, b)[0]) if np.std(a) > 0 and np.std(b) > 0 else 0.0
+
+    ci_low, ci_high = compute_bivariate_bootstrap_ci(
+        x, y, stat_fn=stat_fn, n_bootstraps=n_bootstraps, ci=ci, seed=seed
+    )
+    return float(r), float(ci_low), float(ci_high)
+
+
+# Backward-compatibility alias
+compute_d_z = compute_paired_cohen_dz
+

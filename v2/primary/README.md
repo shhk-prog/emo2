@@ -33,8 +33,8 @@
 ### 3.1 RQ1 & RQ2: 幾何構造とクロスデコーディング
 ```bash
 python v2/primary/run_rq1_rq2_cross_decoding.py \
-    --config v2/configs/v2_experiments.yaml \
-    --models-config v2/configs/models.yaml \
+    --config configs/v2_experiments.yaml \
+    --models-config configs/models.yaml \
     --family Qwen \
     --device cuda
 ```
@@ -42,8 +42,8 @@ python v2/primary/run_rq1_rq2_cross_decoding.py \
 ### 3.2 RQ3: 因果マッピングとピーク解離
 ```bash
 python v2/primary/run_rq3_causal_map.py \
-    --config v2/configs/v2_experiments.yaml \
-    --models-config v2/configs/models.yaml \
+    --config configs/v2_experiments.yaml \
+    --models-config configs/models.yaml \
     --family Qwen \
     --device cuda
 ```
@@ -51,8 +51,8 @@ python v2/primary/run_rq3_causal_map.py \
 ### 3.3 RQ4: 因果的復元パッチング
 ```bash
 python v2/primary/run_rq4_recovery_patching.py \
-    --config v2/configs/v2_experiments.yaml \
-    --models-config v2/configs/models.yaml \
+    --config configs/v2_experiments.yaml \
+    --models-config configs/models.yaml \
     --family Qwen \
     --device cuda
 ```
@@ -60,8 +60,8 @@ python v2/primary/run_rq4_recovery_patching.py \
 ### 3.4 Confirmatory 統合統計解析
 ```bash
 python v2/primary/run_confirmatory_analysis.py \
-    --config v2/configs/v2_experiments.yaml \
-    --models-config v2/configs/models.yaml
+    --config configs/v2_experiments.yaml \
+    --models-config configs/models.yaml
 ```
 
 ---

@@ -8,9 +8,9 @@
 
 従来の単なる相関や「neutralization / collapse」といった曖昧な記述を廃し、以下の4大評価指標によって情動行動プロファイルを特徴づける：
 
-1. **Human Grounding (人間基準接地性)**
-   - EmoBank等の人間アノテーション評定（Valence, Arousal, Dominance）とモデル出力の相関（Pearson $r$ および Spearman $\rho$）。
-   - Writer推定 ($W \leftrightarrow W_{\text{human}}$)、Reader予測 ($R \leftrightarrow R_{\text{human}}$)、自己報告 ($S \leftrightarrow R_{\text{human}}$) の3系統で接地度を定量化。
+1. **Human-Affect Correspondence (人間評定対応度)**
+   - EmoBank等の人間アノテーション評定（Valence, Arousal, Dominance）とモデル出力の対応関係（Pearson $r$ および Spearman $\rho$）。
+   - Writer推定 ($W \leftrightarrow W_{\text{human}}$)、Reader予測 ($R \leftrightarrow R_{\text{human}}$) においては認識精度、自己報告 ($S \leftrightarrow R_{\text{human}}$) においては人間情動刺激に対する自己報告の変位一致度（human-affect correspondence; なお人間Reader評定はSelf-reportの直接的ground truthではない点に留意）として定量化。
 2. **Sensitivity (感度・感情刺激分離能)**
    - 中立刺激（Neutral）と感情刺激（Clinical / Emotional）の間で、自己報告および認識分布が明確に変位するか。
    - ペア差分の効果量（Cohen's $d_z$）および Benjamini-Hochberg FDR補正後 $p$ 値で統計的有意性を検証。

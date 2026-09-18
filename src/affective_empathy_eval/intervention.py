@@ -140,3 +140,8 @@ class PyTorchActivationPatcher:
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.handle is not None:
             self.handle.remove()
+
+
+# Backward-compatibility aliases
+HookManager = ActivationPatcher
+RepresentationSteering = SteeringController

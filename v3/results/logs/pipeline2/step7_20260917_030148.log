@@ -1,8 +1,0 @@
-2026-09-17 03:05:47,206 [INFO] Starting Step 7 Confirmatory Replication across families (dry_run=True)
-Traceback (most recent call last):
-  File "/mnt/nas/home/hiromi/src/emo/v3/scripts/run_v3_confirmatory_replication.py", line 187, in <module>
-    main()
-  File "/mnt/nas/home/hiromi/src/emo/v3/scripts/run_v3_confirmatory_replication.py", line 141, in main
-    model_meta = families_dict.get(fam, {})
-                                   ^^^
-NameError: name 'fam' is not defined

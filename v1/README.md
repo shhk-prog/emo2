@@ -15,57 +15,23 @@ $$\boxed{\text{Does Similar Behavior imply Shared Representation and Shared Caus
 
 ---
 
-## 2. 行動実験ステージの実証知見 (Behavioral Coupling & 4大RQ)
+## 2. 前提知見：行動実験ステージにおける連動 (Behavioral Coupling: previous run)
 
-AIPsy-Affect 4-Split（全2,196件）および EmoBank（1,000件）に対する 729候補 Sequence-Likelihood 評価により、以下の知見が確立されました。
+> [!NOTE]
+> 行動評価の詳細プロトコル、最新の実行手順および詳細な統計表については [behavioral/README.md](file:///mnt/nas/home/hiromi/src/emo2/behavioral/README.md) を参照してください。本節は内部表現解析（V1 Stage）の動機づけとなる前提結果（previous run）の要約です。
 
-### ① Sensitivity（感情刺激とNeutralの峻別）
-- **Negative感情に対する一貫した不快変位 ($V-$)**:
-  - すべてのモデルファミリーにおいて、中立文と比較して有意な Valence 低下が観測された。
-  - 特に **Mistral Instruct** では、Reader $\Delta V = -1.26$, Self $\Delta V = -1.46$ ($d = -2.11$) という決定的な沈み込みを示した。
-- **Arousal（覚醒度）反応のモデル差**:
-  - Mistral Instruct (Negative $\Delta A = +1.45$, Alert $+1.49$) や Gemma Instruct (+0.97, +1.01) では著しい覚醒上昇が見られる一方、Qwen では Arousal 変化が小さい。感情刺激への反応軸がモデルによって異なる。
-- **Positive刺激の反応方向**:
-  - Mistral / Gemma Instruct では明確な快方向への反転（Self $\Delta V = +0.30 \sim +0.54$）を示すが、Qwen / Llama では Positive でも Valence がわずかに低下する非対称性が見られる。
+AIPsy-Affect 4-Split および EmoBank に対する 729候補 Sequence-Likelihood 評価（previous run）により、以下の基礎的知見が確認されています：
 
-### ② Dose-Response（感情強度に応じた段階的反応: Neutral → Moderate → Clinical）
-- **感情強度に応じた段階的シフト（用量反応性）**:
-  - `Neutral` $\rightarrow$ `Moderate` $\rightarrow$ `Clinical` の3段階トリプレットにおいて、強度の増加に伴う段階的変位を確認。
-  - **Mistral** が最も安定した段階性を示し、単調性成立率は 60.4% 〜 66.7% に達した（チャンスレベル約16.7%を凌駕）。
-  - **Gemma** は Instruct 化によって劇的に改善（Reader: 14.6% $\rightarrow$ 50.0%、Self: 20.8% $\rightarrow$ 54.2%）。
-- **Reader と Self の驚異的な一致**:
-  - 強度依存性（単調性成立率）において、Reader と Self はほぼ同一のスコアと変位パターンを示す：
-    | Model | Reader 単調性 | Self 単調性 | 解釈 |
-    |:---|:---:|:---:|:---|
-    | **Qwen Base / Inst** | 41.7% / 37.5% | 39.6% / 39.6% | ほぼ同等（中程度） |
-    | **Mistral Base / Inst** | 64.6% / 66.7% | 60.4% / 60.4% | 最も高く一致 |
-    | **Llama Base / Inst** | 20.8% / 33.3% | 14.6% / 29.2% | ともに低いが改善 |
-    | **Gemma Base / Inst** | 14.6% / 50.0% | 20.8% / 54.2% | ともに劇的改善 |
-
-### ③ Specificity（文章複雑性統制: Complex Neutral vs. Clinical）
-- **複雑性効果（Perplexity交絡）の完全な反証**:
-  - 長文・難解な構文を持つが感情を含まない `Complex Neutral` 文における変位量は $\Delta V \approx -0.00 \sim -0.01$ とほぼゼロ。
-  - 複雑性効果がほぼゼロであるのに対し、純感情刺激（Clinical）では大きな変位を示すため、「文が長く難解だから困惑して変位しているだけ」という語彙・統語的交絡仮説は完全に反証された。
-- **感情特異性の現れ方のモデル依存性**:
-  - Mistral は全感情で高い特異性、Qwen は Negative Valence に特化、Llama は Instruct 化で Negative 特異性が顕在化、Gemma は Instruct 化で Positive / Alert 特異性が顕在化する。
-
-### ④ Behavioral Coupling（他者認識と自己報告の連動: $\Delta VA_R \leftrightarrow \Delta VA_S$）
-- **全モデルで極めて高い相関**:
-  - 刺激ごとの Reader 変位と Self 変位の相関は、**Valence で $r = .798 \sim .973$**、**Arousal で $r = .833 \sim .945$** に達する。
-  - 「人間はこう感じる」と予測する刺激ほど、モデル自身の自己報告も同期して同方向に変化する。
-- **モデルファミリー別の特徴**:
-  - **Qwen**: 最も強く安定した同期（Base: $r_V = .973, r_A = .926$、Instruct: $r_V = .960, r_A = .885$）。
-  - **Mistral**: 極めて高い同期に加え、Self の反応振幅が Reader を上回る（振幅比 1.16）。
-  - **Llama**: Instruct 化で同期が大幅強化（Valence: $.798 \rightarrow .889$、Negative V: $.741 \rightarrow .915$）。
-  - **Gemma**: 中程度だが安定した連動（$r \approx .83 \sim .86$）。
-- **解釈の厳密性（危険地帯の回避）**:
-  - 高い相関 $r$ はあくまで **「刺激間での共変動・同期」** を示しており、「他者認識が自己報告へ因果的に伝播した」と断定することはできない。この行動的連動を足がかりに、**「内部表現や因果回路も共有されているのか？」** を問うのが本 V1 の目的である。
-
-### ⑤ 8感情別プロファイル（理論的VA方向との整合性）
-- **Mistral**: 最も理論期待に整合（Negative V↓, Positive V↑, terror/rage/Alert A↑）。
-- **Qwen**: Negative-Valence 偏重（Negative刺激で強くV低下するが、Positive感情の快方向への分化は弱い）。
-- **Gemma**: Instruct 化によって不整合だったVA方向が劇的に再編され、カテゴリ構造が明瞭化。
-- **Llama**: Instruct 化で反応量は顕在化するが、Positive でも V低下するなど方向精度は限定的。
+- **Sensitivity (感情刺激とNeutralの峻別)**:
+  - すべてのモデルファミリーにおいて、中立文と比較して有意な Valence 低下 ($V-$) を確認（例: Mistral Instruct previous run で $d = -2.11$）。
+- **Dose-Response (用量反応性: Neutral → Moderate → Clinical)**:
+  - 感情強度の増加に伴う段階的変位を確認（Mistral previous run で単調性成立率 60.4% 〜 66.7%）。Reader と Self は同等の単調性傾向を示す。
+- **Specificity (文章複雑性統制: Complex Neutral vs. Clinical)**:
+  - 難解だが感情を含まない Complex Neutral 文では変位がほぼゼロ（$\Delta V \approx 0$）であり、単純な語彙長・構文Perplexity交絡を反証。
+- **Behavioral Coupling (他者認識と自己報告の連動)**:
+  - 刺激ごとの Reader 変位と Self 変位が極めて高い相関（previous run: Valence $r \approx .80 \sim .97$、Arousal $r \approx .83 \sim .95$）を示し、「他者予測」と「自己報告」が行動レベルで強く同期していることが判明。
+- **解釈の厳密性**:
+  - 高い相関 $r$ はあくまで「刺激間での共変動・同期」を示しており、「他者認識が自己報告へ因果的に伝播した」と断定することはできない。この行動的連動を足がかりに、「内部表現や因果回路も共有されているのか？」を問うのが本 V1 の目的である。
 
 ---
 
@@ -86,13 +52,13 @@ Step 3: E2 Shared Geometry (形式)
                                   │
                                   ▼
 【Phase B: Representation の意味的妥当性 (Semantic Validity)】
-Step 4: E5 Semantic vs. Lexical (意味)
+Step 4: Phase B Semantic vs. Lexical (意味)
   ● 観測された表現は、単純な語彙共起だけでは説明しにくく、文脈意味に追従するか？
-  ● Lexical Confound Audit ＋ 独立Judge検証付き4段階統制 (Minimal pair, Outcome reversal, Paraphrase, Shuffle)
+  ● Lexical Confound Audit ＋ 4段階統制 (Minimal pair, Outcome reversal, Paraphrase, Word Shuffle)
                                   │
                                   ▼
 【Phase C: Causality (因果回路の検証)】
-Step 5: E3 Shared Causal Map (場所)
+Step 5: E3 Shared Causal Map (場所 - Prompt-End Normalized)
   ● 同じsiteが、同じ強さ・同じVA方向に出力を動かしているか？ (Magnitude + 2D Direction Vector)
 Step 6: E4 Causal Interchangeability (交換可能性)
   ● Reader/Self 間でペア単位の感情差分ベクトルを移植できるか？ (Matched Difference Patching & αスイープ)

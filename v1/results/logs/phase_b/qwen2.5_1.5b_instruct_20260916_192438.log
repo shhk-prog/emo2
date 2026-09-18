@@ -1,5 +1,0 @@
-usage: run_v1_phase_b_semantic_audit.py [-h] [--model-id MODEL_ID]
-                                        [--model-prefix MODEL_PREFIX]
-                                        [--limit LIMIT] [--layer LAYER]
-                                        [--device DEVICE] [--out-dir OUT_DIR]
-run_v1_phase_b_semantic_audit.py: error: unrecognized arguments: --is-instruct

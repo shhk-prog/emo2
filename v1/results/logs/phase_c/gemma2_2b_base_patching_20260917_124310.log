@@ -1,6 +1,0 @@
-=== Starting V1 Phase C Causal Intervention for Model: google/gemma-2-2b ===
-Alphas: [-1.0, 0.0, 0.5, 1.0, 1.5] | Limit: 0 pairs | Sub-batch: 81 | Output: v1/results/derived/v1_phase_c/gemma2_2b_base
-Loaded 192 matched clinical-neutral pairs.
-
-Loading Tokenizer and Model...
-Loading weights:   0%|          | 0/288 [00:00<?, ?it/s]Loading weights:   0%|          | 1/288 [00:01<06:51,  1.43s/it]Loading weights:  48%|████▊     | 137/288 [00:01<00:01, 122.18it/s]Loading weights:  72%|███████▏  | 207/288 [00:01<00:00, 134.40it/s]Loading weights:  88%|████████▊ | 252/288 [00:02<00:00, 140.64it/s]Loading weights:  99%|█████████▉| 286/288 [00:02<00:00, 147.91it/s]Loading weights: 100%|██████████| 288/288 [00:02<00:00, 116.55it/s]

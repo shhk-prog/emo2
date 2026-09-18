@@ -1,8 +1,0 @@
-{
-  "specificity_pass": true,
-  "necessity_pass": true,
-  "dose_response_pass": true,
-  "selectivity_pass": true,
-  "non_specific_detected": false,
-  "decision": "GO"
-}

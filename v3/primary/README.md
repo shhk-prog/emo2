@@ -46,32 +46,32 @@ v3/primary/
 ### 4.1 RQ1: 状態誘発
 ```bash
 python v3/primary/run_rq1_state_induction.py \
-    --config v3/configs/v3_experiments.yaml \
-    --models-config v3/configs/models.yaml \
+    --config configs/v3_experiments.yaml \
+    --models-config configs/models.yaml \
     --device cuda
 ```
 
 ### 4.2 RQ2: 時空間4-Mapマッピング
 ```bash
 python v3/primary/run_rq2_spatiotemporal_maps.py \
-    --config v3/configs/v3_experiments.yaml \
-    --models-config v3/configs/models.yaml \
+    --config configs/v3_experiments.yaml \
+    --models-config configs/models.yaml \
     --device cuda
 ```
 
 ### 4.3 RQ3: 因果媒介解析
 ```bash
 python v3/primary/run_rq3_path_mediation.py \
-    --config v3/configs/v3_experiments.yaml \
-    --models-config v3/configs/models.yaml \
+    --config configs/v3_experiments.yaml \
+    --models-config configs/models.yaml \
     --device cuda
 ```
 
 ### 4.4 Confirmatory 追試・反証実験
 ```bash
 python v3/primary/run_confirmatory_replication.py \
-    --config v3/configs/v3_experiments.yaml \
-    --models-config v3/configs/models.yaml \
+    --config configs/v3_experiments.yaml \
+    --models-config configs/models.yaml \
     --device cuda
 ```
 

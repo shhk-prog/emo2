@@ -105,3 +105,8 @@ def split_aipsy_affect(df: pd.DataFrame, train_ratio: float = 0.6, dev_ratio: fl
     test_df = df[df["pair_id"].isin(test_pairs)].copy()
     
     return train_df, dev_df, test_df
+
+
+# Backward-compatibility aliases
+load_emobank_csv = load_emobank
+load_aipsy_csv = load_aipsy_affect

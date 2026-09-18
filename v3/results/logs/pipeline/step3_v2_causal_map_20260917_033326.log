@@ -1,121 +1,0 @@
-2026-09-17 03:40:40,462 [INFO] Starting V2-RQ3 Causal Map analysis (dry_run=False, device=cuda)
-2026-09-17 03:40:40,470 [INFO] --- Running Causal Maps for Family: Qwen (28 layers) ---
-2026-09-17 03:40:40,470 [INFO] Loading weights for Qwen/Qwen2.5-1.5B onto cuda...
-2026-09-17 03:40:40,690 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
-2026-09-17 03:40:40,700 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B/8faed761d45a263340a0528343f099c05c9a4323/config.json?%2FQwen%2FQwen2.5-1.5B%2Fresolve%2Fmain%2Fconfig.json=&etag=%22169d606d5cf502a5628a52381586679a6d0caaab%22 "HTTP/1.1 200 OK"
-2026-09-17 03:40:40,877 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
-2026-09-17 03:40:40,886 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B/8faed761d45a263340a0528343f099c05c9a4323/tokenizer_config.json?%2FQwen%2FQwen2.5-1.5B%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%22ba7e4c5637b9732dadcd66286ce48334e8b31e9e%22 "HTTP/1.1 200 OK"
-2026-09-17 03:40:41,069 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
-2026-09-17 03:40:41,239 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
-2026-09-17 03:40:41,581 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B "HTTP/1.1 200 OK"
-2026-09-17 03:40:41,749 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
-2026-09-17 03:40:41,759 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B/8faed761d45a263340a0528343f099c05c9a4323/config.json?%2FQwen%2FQwen2.5-1.5B%2Fresolve%2Fmain%2Fconfig.json=&etag=%22169d606d5cf502a5628a52381586679a6d0caaab%22 "HTTP/1.1 200 OK"
-[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
-Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:  40%|████      | 136/338 [00:00<00:00, 1330.73it/s]Loading weights:  90%|████████▉ | 303/338 [00:00<00:00, 1485.36it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 1527.19it/s]
-2026-09-17 03:40:42,660 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
-2026-09-17 03:40:42,669 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B/8faed761d45a263340a0528343f099c05c9a4323/generation_config.json?%2FQwen%2FQwen2.5-1.5B%2Fresolve%2Fmain%2Fgeneration_config.json=&etag=%22cbbb3133034e192527e5321b4c679154e4819ab8%22 "HTTP/1.1 200 OK"
-2026-09-17 03:40:42,670 [INFO] Causal patching for base_reader...
-2026-09-17 03:44:58,724 [INFO] Causal patching for base_self...
-2026-09-17 03:49:11,505 [INFO] Loading weights for Qwen/Qwen2.5-1.5B-Instruct onto cuda...
-2026-09-17 03:49:11,714 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
-2026-09-17 03:49:11,723 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%22f81ead14ab072d65a07817f83a3ee0e5a1890d10%22 "HTTP/1.1 200 OK"
-2026-09-17 03:49:11,947 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
-2026-09-17 03:49:11,957 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/tokenizer_config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%2207bfe0640cb5a0037f9322287fbfc682806cf672%22 "HTTP/1.1 200 OK"
-2026-09-17 03:49:12,135 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
-2026-09-17 03:49:12,311 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
-2026-09-17 03:49:12,656 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct "HTTP/1.1 200 OK"
-2026-09-17 03:49:12,829 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
-2026-09-17 03:49:12,838 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%22f81ead14ab072d65a07817f83a3ee0e5a1890d10%22 "HTTP/1.1 200 OK"
-Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:  33%|███▎      | 111/338 [00:00<00:00, 1100.92it/s]Loading weights:  83%|████████▎ | 279/338 [00:00<00:00, 1429.17it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 1426.90it/s]
-2026-09-17 03:49:13,352 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
-2026-09-17 03:49:13,362 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/generation_config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Fgeneration_config.json=&etag=%22dfc11073787daf1b0f9c0f1499487ab5f4c93738%22 "HTTP/1.1 200 OK"
-2026-09-17 03:49:13,363 [INFO] Causal patching for inst_reader...
-2026-09-17 03:53:27,766 [INFO] Causal patching for inst_self...
-2026-09-17 03:57:39,917 [INFO] Dissociation metrics (Qwen Base Self): Delta d*=-0.037, Delta bar_d=0.142
-2026-09-17 03:57:39,918 [INFO] Saved causal map to v2/results/raw/v2_causal_map_Qwen.json
-2026-09-17 03:57:39,918 [INFO] --- Running Causal Maps for Family: Llama (16 layers) ---
-2026-09-17 03:57:39,918 [INFO] Loading weights for meta-llama/Llama-3.2-1B onto cuda...
-2026-09-17 03:57:40,184 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-1B/resolve/main/config.json "HTTP/1.1 200 OK"
-2026-09-17 03:57:40,697 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-1B/resolve/main/tokenizer_config.json "HTTP/1.1 200 OK"
-2026-09-17 03:57:40,875 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
-2026-09-17 03:57:41,052 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
-2026-09-17 03:57:41,812 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B "HTTP/1.1 200 OK"
-2026-09-17 03:57:42,012 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-1B/resolve/main/config.json "HTTP/1.1 200 OK"
-Loading weights:   0%|          | 0/146 [00:00<?, ?it/s]Loading weights:  46%|████▌     | 67/146 [00:00<00:00, 669.57it/s]Loading weights: 100%|██████████| 146/146 [00:00<00:00, 817.32it/s]
-2026-09-17 03:57:42,445 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-1B/resolve/main/generation_config.json "HTTP/1.1 200 OK"
-2026-09-17 03:57:42,447 [INFO] Causal patching for base_reader...
-2026-09-17 03:59:15,014 [INFO] Causal patching for base_self...
-2026-09-17 04:00:44,400 [INFO] Loading weights for meta-llama/Llama-3.2-1B-Instruct onto cuda...
-2026-09-17 04:00:44,595 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct/resolve/main/config.json "HTTP/1.1 200 OK"
-2026-09-17 04:00:44,809 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 200 OK"
-2026-09-17 04:00:45,000 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
-2026-09-17 04:00:45,181 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
-2026-09-17 04:00:46,057 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B-Instruct "HTTP/1.1 200 OK"
-2026-09-17 04:00:46,246 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct/resolve/main/config.json "HTTP/1.1 200 OK"
-Loading weights:   0%|          | 0/146 [00:00<?, ?it/s]Loading weights:  45%|████▌     | 66/146 [00:00<00:00, 647.76it/s]Loading weights: 100%|██████████| 146/146 [00:00<00:00, 815.12it/s]
-2026-09-17 04:00:46,679 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct/resolve/main/generation_config.json "HTTP/1.1 200 OK"
-2026-09-17 04:00:46,681 [INFO] Causal patching for inst_reader...
-2026-09-17 04:02:16,601 [INFO] Causal patching for inst_self...
-2026-09-17 04:03:46,276 [INFO] Dissociation metrics (Llama Base Self): Delta d*=0.667, Delta bar_d=0.225
-2026-09-17 04:03:46,278 [INFO] Saved causal map to v2/results/raw/v2_causal_map_Llama.json
-2026-09-17 04:03:46,278 [INFO] --- Running Causal Maps for Family: Gemma (26 layers) ---
-2026-09-17 04:03:46,278 [INFO] Loading weights for google/gemma-2-2b onto cuda...
-2026-09-17 04:03:46,490 [INFO] HTTP Request: HEAD https://huggingface.co/google/gemma-2-2b/resolve/main/config.json "HTTP/1.1 200 OK"
-2026-09-17 04:03:46,833 [INFO] HTTP Request: HEAD https://huggingface.co/google/gemma-2-2b/resolve/main/tokenizer_config.json "HTTP/1.1 200 OK"
-2026-09-17 04:03:47,036 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-2-2b/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
-2026-09-17 04:03:47,222 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-2-2b/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
-2026-09-17 04:03:47,926 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-2-2b "HTTP/1.1 200 OK"
-2026-09-17 04:03:48,104 [INFO] HTTP Request: HEAD https://huggingface.co/google/gemma-2-2b/resolve/main/config.json "HTTP/1.1 200 OK"
-Loading weights:   0%|          | 0/288 [00:00<?, ?it/s]Loading weights:   0%|          | 1/288 [00:00<00:37,  7.66it/s]Loading weights:  40%|███▉      | 114/288 [00:00<00:00, 589.89it/s]Loading weights:  70%|███████   | 202/288 [00:00<00:00, 706.87it/s]Loading weights: 100%|██████████| 288/288 [00:00<00:00, 686.40it/s]
-2026-09-17 04:03:48,938 [INFO] HTTP Request: HEAD https://huggingface.co/google/gemma-2-2b/resolve/main/generation_config.json "HTTP/1.1 200 OK"
-2026-09-17 04:03:48,939 [INFO] Causal patching for base_reader...
-2026-09-17 04:08:53,131 [INFO] Causal patching for base_self...
-2026-09-17 04:13:55,179 [INFO] Loading weights for google/gemma-2-2b-it onto cuda...
-2026-09-17 04:13:55,474 [INFO] HTTP Request: HEAD https://huggingface.co/google/gemma-2-2b-it/resolve/main/config.json "HTTP/1.1 200 OK"
-2026-09-17 04:13:55,741 [INFO] HTTP Request: HEAD https://huggingface.co/google/gemma-2-2b-it/resolve/main/tokenizer_config.json "HTTP/1.1 200 OK"
-2026-09-17 04:13:55,927 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-2-2b-it/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
-2026-09-17 04:13:56,115 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-2-2b-it/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
-2026-09-17 04:13:56,834 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-2-2b-it "HTTP/1.1 200 OK"
-2026-09-17 04:13:57,013 [INFO] HTTP Request: HEAD https://huggingface.co/google/gemma-2-2b-it/resolve/main/config.json "HTTP/1.1 200 OK"
-Loading weights:   0%|          | 0/288 [00:00<?, ?it/s]Loading weights:  11%|█         | 32/288 [00:00<00:00, 317.31it/s]Loading weights:  51%|█████     | 146/288 [00:00<00:00, 798.61it/s]Loading weights:  90%|████████▉ | 258/288 [00:00<00:00, 937.81it/s]Loading weights: 100%|██████████| 288/288 [00:00<00:00, 888.94it/s]
-2026-09-17 04:13:57,611 [INFO] HTTP Request: HEAD https://huggingface.co/google/gemma-2-2b-it/resolve/main/generation_config.json "HTTP/1.1 200 OK"
-2026-09-17 04:13:57,612 [INFO] Causal patching for inst_reader...
-2026-09-17 04:18:59,871 [INFO] Causal patching for inst_self...
-2026-09-17 04:24:02,295 [INFO] Dissociation metrics (Gemma Base Self): Delta d*=0.560, Delta bar_d=0.161
-2026-09-17 04:24:02,298 [INFO] Saved causal map to v2/results/raw/v2_causal_map_Gemma.json
-2026-09-17 04:24:02,298 [INFO] --- Running Causal Maps for Family: Mistral (32 layers) ---
-2026-09-17 04:24:02,298 [INFO] Loading weights for mistralai/Mistral-7B-v0.1 onto cuda...
-2026-09-17 04:24:02,580 [INFO] HTTP Request: HEAD https://huggingface.co/mistralai/Mistral-7B-v0.1/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
-2026-09-17 04:24:02,590 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/mistralai/Mistral-7B-v0.1/27d67f1b5f57dc0953326b2601d68371d40ea8da/config.json?%2Fmistralai%2FMistral-7B-v0.1%2Fresolve%2Fmain%2Fconfig.json=&etag=%22f4989f072a7f517d01d479eb1685c6e50e014f88%22 "HTTP/1.1 200 OK"
-2026-09-17 04:24:03,066 [INFO] HTTP Request: HEAD https://huggingface.co/mistralai/Mistral-7B-v0.1/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
-2026-09-17 04:24:03,075 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/mistralai/Mistral-7B-v0.1/27d67f1b5f57dc0953326b2601d68371d40ea8da/tokenizer_config.json?%2Fmistralai%2FMistral-7B-v0.1%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%22c482ae9f11e5008531fa78cf5d85fee7f5056bb6%22 "HTTP/1.1 200 OK"
-2026-09-17 04:24:03,255 [INFO] HTTP Request: HEAD https://huggingface.co/mistralai/Mistral-7B-v0.1/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
-2026-09-17 04:24:03,264 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/mistralai/Mistral-7B-v0.1/27d67f1b5f57dc0953326b2601d68371d40ea8da/tokenizer_config.json?%2Fmistralai%2FMistral-7B-v0.1%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%22c482ae9f11e5008531fa78cf5d85fee7f5056bb6%22 "HTTP/1.1 200 OK"
-2026-09-17 04:24:03,434 [INFO] HTTP Request: GET https://huggingface.co/api/models/mistralai/Mistral-7B-v0.1/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
-2026-09-17 04:24:03,621 [INFO] HTTP Request: GET https://huggingface.co/api/models/mistralai/Mistral-7B-v0.1/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
-2026-09-17 04:24:03,936 [INFO] HTTP Request: HEAD https://huggingface.co/mistralai/Mistral-7B-v0.1/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
-2026-09-17 04:24:03,947 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/mistralai/Mistral-7B-v0.1/27d67f1b5f57dc0953326b2601d68371d40ea8da/config.json?%2Fmistralai%2FMistral-7B-v0.1%2Fresolve%2Fmain%2Fconfig.json=&etag=%22f4989f072a7f517d01d479eb1685c6e50e014f88%22 "HTTP/1.1 200 OK"
-Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights:   5%|▌         | 15/291 [00:00<00:02, 136.25it/s]Loading weights:  14%|█▍        | 41/291 [00:00<00:01, 199.17it/s]Loading weights:  23%|██▎       | 68/291 [00:00<00:00, 224.50it/s]Loading weights:  33%|███▎      | 95/291 [00:00<00:00, 241.75it/s]Loading weights:  42%|████▏     | 123/291 [00:00<00:00, 250.71it/s]Loading weights:  54%|█████▍    | 157/291 [00:00<00:00, 278.99it/s]Loading weights:  64%|██████▍   | 186/291 [00:00<00:00, 279.97it/s]Loading weights:  76%|███████▌  | 221/291 [00:00<00:00, 295.85it/s]Loading weights:  88%|████████▊ | 256/291 [00:00<00:00, 308.89it/s]Loading weights:  99%|█████████▊| 287/291 [00:01<00:00, 308.81it/s]Loading weights: 100%|██████████| 291/291 [00:01<00:00, 277.95it/s]
-2026-09-17 04:24:05,495 [INFO] HTTP Request: HEAD https://huggingface.co/mistralai/Mistral-7B-v0.1/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
-2026-09-17 04:24:05,504 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/mistralai/Mistral-7B-v0.1/27d67f1b5f57dc0953326b2601d68371d40ea8da/generation_config.json?%2Fmistralai%2FMistral-7B-v0.1%2Fresolve%2Fmain%2Fgeneration_config.json=&etag=%222c5f418036a121b3fd432d1bf2b3c5c9daf59fab%22 "HTTP/1.1 200 OK"
-2026-09-17 04:24:05,505 [INFO] Causal patching for base_reader...
-2026-09-17 04:31:01,271 [INFO] Causal patching for base_self...
-2026-09-17 04:37:54,741 [INFO] Loading weights for mistralai/Mistral-7B-Instruct-v0.2 onto cuda...
-2026-09-17 04:37:55,069 [INFO] HTTP Request: HEAD https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
-2026-09-17 04:37:55,079 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/mistralai/Mistral-7B-Instruct-v0.2/63a8b081895390a26e140280378bc85ec8bce07a/config.json?%2Fmistralai%2FMistral-7B-Instruct-v0.2%2Fresolve%2Fmain%2Fconfig.json=&etag=%22c0519dc5f5cc99c2238a453da18994599c898b66%22 "HTTP/1.1 200 OK"
-2026-09-17 04:37:55,334 [INFO] HTTP Request: HEAD https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
-2026-09-17 04:37:55,344 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/mistralai/Mistral-7B-Instruct-v0.2/63a8b081895390a26e140280378bc85ec8bce07a/tokenizer_config.json?%2Fmistralai%2FMistral-7B-Instruct-v0.2%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%22f63c0374bad221568938f908e397a38d9f0dfac0%22 "HTTP/1.1 200 OK"
-2026-09-17 04:37:55,510 [INFO] HTTP Request: HEAD https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
-2026-09-17 04:37:55,520 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/mistralai/Mistral-7B-Instruct-v0.2/63a8b081895390a26e140280378bc85ec8bce07a/tokenizer_config.json?%2Fmistralai%2FMistral-7B-Instruct-v0.2%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%22f63c0374bad221568938f908e397a38d9f0dfac0%22 "HTTP/1.1 200 OK"
-2026-09-17 04:37:55,693 [INFO] HTTP Request: GET https://huggingface.co/api/models/mistralai/Mistral-7B-Instruct-v0.2/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
-2026-09-17 04:37:55,879 [INFO] HTTP Request: GET https://huggingface.co/api/models/mistralai/Mistral-7B-Instruct-v0.2/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
-2026-09-17 04:37:56,200 [INFO] HTTP Request: HEAD https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
-2026-09-17 04:37:56,210 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/mistralai/Mistral-7B-Instruct-v0.2/63a8b081895390a26e140280378bc85ec8bce07a/config.json?%2Fmistralai%2FMistral-7B-Instruct-v0.2%2Fresolve%2Fmain%2Fconfig.json=&etag=%22c0519dc5f5cc99c2238a453da18994599c898b66%22 "HTTP/1.1 200 OK"
-Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights:   5%|▍         | 14/291 [00:00<00:02, 137.59it/s]Loading weights:  14%|█▎        | 40/291 [00:00<00:01, 203.33it/s]Loading weights:  22%|██▏       | 65/291 [00:00<00:01, 223.93it/s]Loading weights:  32%|███▏      | 94/291 [00:00<00:00, 242.25it/s]Loading weights:  42%|████▏     | 121/291 [00:00<00:00, 251.93it/s]Loading weights:  51%|█████     | 149/291 [00:00<00:00, 260.21it/s]Loading weights:  62%|██████▏   | 181/291 [00:00<00:00, 278.67it/s]Loading weights:  73%|███████▎  | 212/291 [00:00<00:00, 287.30it/s]Loading weights:  85%|████████▍ | 247/291 [00:00<00:00, 301.35it/s]Loading weights:  96%|█████████▌| 279/291 [00:01<00:00, 305.23it/s]Loading weights: 100%|██████████| 291/291 [00:01<00:00, 275.09it/s]
-2026-09-17 04:37:57,784 [INFO] HTTP Request: HEAD https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
-2026-09-17 04:37:57,793 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/mistralai/Mistral-7B-Instruct-v0.2/63a8b081895390a26e140280378bc85ec8bce07a/generation_config.json?%2Fmistralai%2FMistral-7B-Instruct-v0.2%2Fresolve%2Fmain%2Fgeneration_config.json=&etag=%22cb0c9b6c64cf786052efdd1a4ae597337b2f2708%22 "HTTP/1.1 200 OK"
-2026-09-17 04:37:57,794 [INFO] Causal patching for inst_reader...
-2026-09-17 04:44:04,662 [INFO] Causal patching for inst_self...
-2026-09-17 04:50:10,100 [INFO] Dissociation metrics (Mistral Base Self): Delta d*=0.774, Delta bar_d=0.517
-2026-09-17 04:50:10,101 [INFO] Saved causal map to v2/results/raw/v2_causal_map_Mistral.json
-2026-09-17 04:50:10,102 [INFO] All causal maps completed! Saved to v2/results/derived/v2_causal_dissociation_summary.json

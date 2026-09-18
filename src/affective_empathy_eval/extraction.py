@@ -339,3 +339,34 @@ class PyTorchRepresentationExtractor:
         finally:
             self.tokenizer.padding_side = original_padding_side
             self.remove_hooks()
+
+
+def extract_activations_batch(
+    model: Any,
+    tokenizer: Any,
+    requests: List[Dict[str, Any]],
+    output_dir: str,
+    manifest_manager: ManifestManager,
+    model_name: str = "model",
+    model_revision: str = "main",
+    layers: Optional[List[int]] = None,
+    positions: Optional[List[str]] = None,
+) -> List[ExtractionManifest]:
+    """Helper function to batch extract activations using RepresentationExtractor."""
+    extractor = RepresentationExtractor(
+        model=model,
+        tokenizer=tokenizer,
+        model_name=model_name,
+        model_revision=model_revision,
+    )
+    return extractor.extract_representations_batch(
+        requests=requests,
+        output_dir=output_dir,
+        manifest_manager=manifest_manager,
+        layers_to_extract=layers,
+        positions_to_extract=positions,
+    )
+
+
+# Backward-compatibility alias
+RepresentationExtractor = PyTorchRepresentationExtractor

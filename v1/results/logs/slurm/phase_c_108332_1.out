@@ -1,17 +1,0 @@
-Working directory: /mnt/nas/home/hiromi/src/emo
-========================================================================
-Starting Slurm Task: Array ID 1 / Job ID 108336
-Running on Host: iag-02 | GPU: NVIDIA H100
-========================================================================
-
-========================================================================
-Executing Job 1: qwen2.5_1.5b_base_patching
-Command: python v1/scripts/run_v1_phase_c_causal_patching.py --model-id "Qwen/Qwen2.5-1.5B" --model-prefix "qwen2.5_1.5b_base" --limit 0 --device "cuda" --sub-batch-size 81 --all-layers
-Log:     v1/results/logs/phase_c/qwen2.5_1.5b_base_patching_20260917_124420.log
-========================================================================
-=== Starting V1 Phase C Causal Intervention for Model: Qwen/Qwen2.5-1.5B ===
-Alphas: [-1.0, 0.0, 0.5, 1.0, 1.5] | Limit: 0 pairs | Sub-batch: 81 | Output: v1/results/derived/v1_phase_c/qwen2.5_1.5b_base
-Loaded 192 matched clinical-neutral pairs.
-
-Loading Tokenizer and Model...
-Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:   0%|          | 1/338 [00:00<04:54,  1.14it/s]Loading weights:  54%|█████▍    | 184/338 [00:00<00:00, 248.95it/s]Loading weights:  80%|███████▉  | 270/338 [00:01<00:00, 266.26it/s]Loading weights:  98%|█████████▊| 330/338 [00:01<00:00, 272.25it/s]Loading weights: 100%|██████████| 338/338 [00:01<00:00, 225.67it/s]

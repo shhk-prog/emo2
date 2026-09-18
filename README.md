@@ -102,7 +102,7 @@ Stimulus
 
 認識と反応は独立セッションである。同一会話に baseline / recognition / post を並べない。認識出力を post 自己報告の代替にしない。
 
-### 2.2 Sequence-Likelihood
+### 4.2 Sequence-Likelihood
 
 主測定は自由生成ではなく、候補 JSON の条件付き対数尤度と Softmax 期待値である。
 
@@ -111,18 +111,18 @@ Stimulus
 - Valence / Arousal が主対象。Dominance は Behavioral / V1 の補助次元
 - 両空間の $E[V], E[A]$ を同一尺度として比較しない
 
-### 2.3 層と介入位置
+### 4.3 層と介入位置
 
 - 相対深度 $d = l/(L-1)$（0-based）。論文・横断表は層番号ではなく $d$ で比較する
 - V1 / V2 の標準介入位置は prompt-end（`add_special_tokens=False`、`prompt_end = len(prompt_ids)-1`）
 - V3 RQ2 の生成段階は joint sequence 上の token。`prompt_end` に丸めない
 - Phase B / V3 RQ1 の既定層は $d=0.5$ から $l=\operatorname{round}(d(L-1))$。Qwen 14 層固定ではない
 
-### 2.4 モデル正本
+### 4.4 モデル正本
 
 ID の正本は [`configs/models.yaml`](configs/models.yaml) のみ。コードへ model ID をハードコードしない。未知 family は Qwen へ落とさず `KeyError` にする。`--model-id` / `--family` が必要な単独スクリプトで Qwen default は使わない。
 
-### 2.5 データ
+### 4.5 データ
 
 件数は README に固定せず、実行時に実 CSV を読んでログする。
 
@@ -135,9 +135,23 @@ ID の正本は [`configs/models.yaml`](configs/models.yaml) のみ。コード�
 
 V3 は AIPsy の clinical–neutral 192 pair だけを wide 化する。EmoBank 3-way は `pair_id` / matched-neutral が無いため V3 Primary に使わない。原データは読み取り専用。
 
-### 2.6 結果
+### 4.6 結果の不変性
 
 `**/results/raw/**` と `**/results/derived/**` は追記専用で Git 管理しない（`.gitkeep` のみ残す）。再実行は別 `run_id`。失敗・拒否・パース不能は削除せず理由とともに残す。
+
+### 4.7 共通プロトコル対応表 (Cross-Stage Methodological Matrix)
+
+論文の Methods 章で定義される、各ステージにおける統一的な実験仕様の対応表です：
+
+| 項目 / 次元 | Behavioral (§3) | V1 Stage (§4) | V2 Stage (§5) | V3 Stage (§6) |
+|---|---|---|---|---|
+| **Candidate Space** | $9^3 = 729$ VAD | $9^3 = 729$ VAD | $9^2 = 81$ VA | $9^2 = 81$ VA |
+| **Prompt Format** | Plain (Base) / Chat (Instruct) | Plain (Base) / Chat (Instruct) | Plain (Base) / Chat & Matched-Plain (Instruct) | Chat (Instruct primary) |
+| **Token Position** | Sequence-end (log-likelihood) | `prompt_end` (Phase A/B/C) | `prompt_end` (D/C anchor 統一) | Spatiotemporal Grid (`prompt_end` + joint stage tokens) |
+| **Layer Coordinate** | N/A (Black-box behavioral) | Relative depth $d = l / (L-1)$ | Relative depth $d = l / (L-1)$ | Relative depth $d = l / (L-1)$ |
+| **Split Unit** | Pair-aware (`pair_id`) / Unpaired (EmoBank) | Stratified Group Split (`pair_id` 漏洩防止) | Stratified Group Split (`pair_id` 漏洩防止) | Matched-pair (192 clinical-neutral pairs) |
+| **Primary Metric** | $E[V], E[A]$, Cohen's $d_z$, Spearman $\rho$, $r_{RS}$ | $R^2$, Balanced Acc, RSA, Causal Shift $\Delta V, \Delta A$ | Cross-decoding $\Delta\Delta_{\text{cross}}$, $\Delta d_{\text{peak}}$, 2D OT EMD Recovery | Interventional slope $\gamma$, Subspace Attenuation, Causal Leverage $C$ |
+| **Statistical Test** | Paired $t$, Jonckheere-Terpstra, FDR (BH), Bootstrap CI | 5-fold GroupKFold CV, FDR (BH), LMM (Phase C E6) | Bootstrap 95% CI, Permutation Test | Pre-registered Go/No-Go Gate, Bootstrap 95% CI, FDR |
 
 ---
 

@@ -35,7 +35,8 @@ else
 fi
 
 DEVICE="${1:-cuda:0}"
-DRY_RUN="${2:-}"
+shift || true
+EXTRA_ARGS=("$@")
 
 LOG_DIR="results/logs"
 mkdir -p "${LOG_DIR}"
@@ -46,7 +47,7 @@ echo "==================================================================" | tee 
 echo "MASTER PRODUCTION PIPELINE EXECUTION STARTED" | tee -a "${MASTER_LOG}"
 echo "Timestamp : $(date -u +"%Y-%m-%dT%H:%M:%SZ")" | tee -a "${MASTER_LOG}"
 echo "Device    : ${DEVICE}" | tee -a "${MASTER_LOG}"
-echo "Dry Run   : ${DRY_RUN:-false}" | tee -a "${MASTER_LOG}"
+echo "Extra Args: ${EXTRA_ARGS[*]:-none}" | tee -a "${MASTER_LOG}"
 echo "Master Log: ${MASTER_LOG}" | tee -a "${MASTER_LOG}"
 echo "Cohort    : primary_small (4 families, 8 models total)" | tee -a "${MASTER_LOG}"
 echo "Stages    : Behavioral -> V1 -> V2 -> V3 (full production CSVs; counts logged at load)" | tee -a "${MASTER_LOG}"
@@ -57,19 +58,19 @@ GLOBAL_START=$(date +%s)
 
 # Stage 1: Behavioral
 echo -e "\n>>> [1/4] EXECUTING BEHAVIORAL STAGE..." | tee -a "${MASTER_LOG}"
-bash "${SCRIPT_DIR}/run_production_behavioral.sh" "${DEVICE}" "${DRY_RUN}" 2>&1 | tee -a "${MASTER_LOG}"
+bash "${SCRIPT_DIR}/run_production_behavioral.sh" "${DEVICE}" "${EXTRA_ARGS[@]}" 2>&1 | tee -a "${MASTER_LOG}"
 
 # Stage 2: V1
 echo -e "\n>>> [2/4] EXECUTING V1 STAGE..." | tee -a "${MASTER_LOG}"
-bash "${SCRIPT_DIR}/run_production_v1.sh" "${DEVICE}" "${DRY_RUN}" 2>&1 | tee -a "${MASTER_LOG}"
+bash "${SCRIPT_DIR}/run_production_v1.sh" "${DEVICE}" "${EXTRA_ARGS[@]}" 2>&1 | tee -a "${MASTER_LOG}"
 
 # Stage 3: V2
 echo -e "\n>>> [3/4] EXECUTING V2 STAGE..." | tee -a "${MASTER_LOG}"
-bash "${SCRIPT_DIR}/run_production_v2.sh" "${DEVICE}" "${DRY_RUN}" 2>&1 | tee -a "${MASTER_LOG}"
+bash "${SCRIPT_DIR}/run_production_v2.sh" "${DEVICE}" "${EXTRA_ARGS[@]}" 2>&1 | tee -a "${MASTER_LOG}"
 
 # Stage 4: V3
 echo -e "\n>>> [4/4] EXECUTING V3 STAGE..." | tee -a "${MASTER_LOG}"
-bash "${SCRIPT_DIR}/run_production_v3.sh" "${DEVICE}" "${DRY_RUN}" 2>&1 | tee -a "${MASTER_LOG}"
+bash "${SCRIPT_DIR}/run_production_v3.sh" "${DEVICE}" "${EXTRA_ARGS[@]}" 2>&1 | tee -a "${MASTER_LOG}"
 
 GLOBAL_END=$(date +%s)
 GLOBAL_ELAPSED=$((GLOBAL_END - GLOBAL_START))

@@ -253,6 +253,12 @@ def main():
         type=str,
         default="behavioral/results/emobank_3way",
     )
+    parser.add_argument(
+        "--device",
+        type=str,
+        default="cuda" if torch.cuda.is_available() else "cpu",
+        help="Device to run evaluation on (e.g. cuda, cuda:0, cpu)",
+    )
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--batch-size", type=int, default=243)
     args = parser.parse_args()
@@ -264,19 +270,34 @@ def main():
         if fallback.exists():
             stim_path = fallback
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    torch_dtype = torch.bfloat16 if args.dtype == "bfloat16" else torch.float16
+    device = args.device
+    torch_dtype = torch.bfloat16 if args.dtype == "bfloat16" else (torch.float16 if device != "cpu" else torch.float32)
 
     print(
-        f"Loading Model: {args.model} (tag: {args.tag}, dtype: {args.dtype})..."
+        f"Loading Model: {args.model} (tag: {args.tag}, dtype: {args.dtype}, device: {device})..."
     )
     tokenizer = AutoTokenizer.from_pretrained(args.model, trust_remote_code=True)
-    model = AutoModelForCausalLM.from_pretrained(
-        args.model,
-        torch_dtype=torch_dtype,
-        device_map="auto",
-        trust_remote_code=True,
-    )
+    if device.startswith("cuda:"):
+        model = AutoModelForCausalLM.from_pretrained(
+            args.model,
+            torch_dtype=torch_dtype,
+            device_map=device,
+            trust_remote_code=True,
+        )
+    elif device == "cuda":
+        model = AutoModelForCausalLM.from_pretrained(
+            args.model,
+            torch_dtype=torch_dtype,
+            device_map="auto",
+            trust_remote_code=True,
+        )
+    else:
+        model = AutoModelForCausalLM.from_pretrained(
+            args.model,
+            torch_dtype=torch_dtype,
+            device_map=None,
+            trust_remote_code=True,
+        ).to(device)
     model.eval()
 
     candidates, vad_triplets = build_vad_candidates()

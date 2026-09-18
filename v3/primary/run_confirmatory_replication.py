@@ -41,6 +41,8 @@ from affective_empathy_eval.data import (
     load_v3_matched_pair_table,
     resolve_matched_neutral_text,
 )
+from affective_empathy_eval.models.adapters import get_model_adapter
+from affective_empathy_eval.models.hooks import ActivationHookManager, HookPoint
 from affective_empathy_eval.models.registry import (
     add_model_selection_args,
     get_registry,
@@ -242,6 +244,7 @@ def run_real_model_confirmatory(
         splitter = KFold(n_splits=n_splits, shuffle=True, random_state=42)
         split_gen_fn = lambda data: splitter.split(data)
 
+    all_H = {}
     for l in range(num_layers):
         h_l = []
         with torch.no_grad():
@@ -289,8 +292,8 @@ def run_real_model_confirmatory(
         (d_v, shifts_v, clean_ev_list),
         (d_a, shifts_a, clean_ea_list),
     ):
+        dir_tensor = torch.tensor(direction, dtype=torch.float32, device=device)
         for alpha in alphas:
-            p_vec = torch.tensor(alpha * direction, dtype=torch.float32, device=device)
             axis_shifts = []
             with torch.no_grad():
                 for idx in range(min(5, N)):
@@ -299,9 +302,10 @@ def run_real_model_confirmatory(
                     enc = encode_prompt_canonical(tokenizer, prompt, device=device)
                     anchors = find_semantic_anchors(enc["input_ids"][0].tolist(), tokenizer, text)
                     with ActivationHookManager(adapter) as hook_mgr:
-                        hook_mgr.register_patch_hook(
+                        hook_mgr.register_direction_injection_hook(
                             layer_idx=mid_layer,
-                            patch_tensor=p_vec,
+                            direction=dir_tensor,
+                            alpha=alpha,
                             token_indices=anchors["prompt_end"],
                             hook_point=HookPoint.POST_MLP_RESID,
                         )
@@ -343,12 +347,11 @@ def run_real_model_confirmatory(
             anchors = find_semantic_anchors(enc["input_ids"][0].tolist(), tokenizer, text)
             p_pos = anchors["prompt_end"]
             with ActivationHookManager(adapter) as hook_mgr:
-                hook_mgr.register_patch_hook(
+                hook_mgr.register_direction_injection_hook(
                     layer_idx=l_idx,
-                    component="residual",
-                    token_indices=p_pos,
                     direction=dv_l_torch,
                     alpha=1.0,
+                    token_indices=p_pos,
                 )
                 probs_p = evaluate_candidate_likelihoods(
                     model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
@@ -418,19 +421,14 @@ def run_real_model_confirmatory(
         n_shift = abs(ev_clean - neutral_base)
         nat_shifts.append(n_shift)
 
-        # Centered projection removal hook: h' = h - Q Q^T (h - mu_neu)
-        def proj_removal_hook(h):
-            h_centered = h - mu_neu
-            proj = torch.matmul(h_centered, Q)
-            proj_back = torch.matmul(proj, Q.T)
-            return h - proj_back
-
+        # Centered 2D orthogonal subspace removal hook: h' = h - Q Q^T (h - mu_neu)
         with ActivationHookManager(adapter) as hook_mgr:
-            hook_mgr.register_patch_hook(
+            hook_mgr.register_subspace_removal_hook(
                 layer_idx=opt_layer,
-                component="residual",
+                orth_basis_q=Q,
+                mean_vector=mu_neu,
                 token_indices=p_pos,
-                patch_fn=proj_removal_hook,
+                hook_point=HookPoint.POST_MLP_RESID,
             )
             probs_abl = evaluate_candidate_likelihoods(
                 model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
@@ -484,12 +482,11 @@ def run_real_model_confirmatory(
 
             # 1) Valence steering
             with ActivationHookManager(adapter) as hook_mgr:
-                hook_mgr.register_patch_hook(
+                hook_mgr.register_direction_injection_hook(
                     layer_idx=opt_layer,
-                    component="residual",
-                    token_indices=target_pos,
                     direction=dv_torch,
                     alpha=1.0,
+                    token_indices=target_pos,
                 )
                 probs_stg_v = evaluate_candidate_likelihoods(
                     model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
@@ -499,12 +496,11 @@ def run_real_model_confirmatory(
 
             # 2) Arousal steering
             with ActivationHookManager(adapter) as hook_mgr:
-                hook_mgr.register_patch_hook(
+                hook_mgr.register_direction_injection_hook(
                     layer_idx=opt_layer,
-                    component="residual",
-                    token_indices=target_pos,
                     direction=da_torch,
                     alpha=1.0,
+                    token_indices=target_pos,
                 )
                 probs_stg_a = evaluate_candidate_likelihoods(
                     model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size

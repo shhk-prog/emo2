@@ -34,11 +34,29 @@ Behavioral の正式実行面。設計・指標・解釈の本文は親の [`beh
 
 ## 実行
 
-```bash
-bash scripts/run_production_behavioral.sh cuda:0
+### 推奨: 統合 CLI（root configs/models.yaml から一括実行）
 
+モデル ID は `configs/models.yaml` を正本とし、CLI が自動解決してディスパッチします。
+
+```bash
+# Primary 1-1.5B コホート全体を実行
 python -m affective_empathy_eval.run --stage behavioral --model-set primary_small --device cuda:0
 
+# 特定ファミリーのみ実行する場合
+python -m affective_empathy_eval.run --stage behavioral --model-set primary_small --family qwen --device cuda:0
+```
+
+### 本番 Bash ランナー
+
+環境構築済みの `.venv` を自動 activate し、ログを `results/logs/` に tee します。
+
+```bash
+bash scripts/run_production_behavioral.sh cuda:0
+```
+
+### 個別スクリプト実行例（低レイヤ確認・手動検証用）
+
+```bash
 python behavioral/primary/run_behavioral_emobank.py \
     --model Qwen/Qwen2.5-1.5B-Instruct \
     --is_instruct --tag qwen_instruct --device cuda:0

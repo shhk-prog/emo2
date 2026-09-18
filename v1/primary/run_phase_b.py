@@ -236,6 +236,13 @@ def main():
         help="Mock dry-run mode for quick pipeline smoke testing",
     )
     parser.add_argument(
+        "--task-type",
+        type=str,
+        default="reader",
+        choices=["reader", "self"],
+        help="Task prompt framing (reader or self)",
+    )
+    parser.add_argument(
         "--limit",
         type=int,
         default=0,
@@ -319,12 +326,28 @@ def main():
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
-    model = AutoModelForCausalLM.from_pretrained(
-        args.model_id,
-        torch_dtype=torch.float16 if args.device == "cuda" else torch.float32,
-        device_map="auto" if args.device == "cuda" else None,
-        trust_remote_code=True,
-    )
+    device = args.device
+    if device.startswith("cuda:"):
+        model = AutoModelForCausalLM.from_pretrained(
+            args.model_id,
+            torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
+            device_map=device,
+            trust_remote_code=True,
+        )
+    elif device == "cuda":
+        model = AutoModelForCausalLM.from_pretrained(
+            args.model_id,
+            torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
+            device_map="auto",
+            trust_remote_code=True,
+        )
+    else:
+        model = AutoModelForCausalLM.from_pretrained(
+            args.model_id,
+            torch_dtype=torch.float32,
+            device_map=None,
+            trust_remote_code=True,
+        ).to(device)
     model.eval()
 
     if args.layer is None:
@@ -339,6 +362,8 @@ def main():
         tokenizer,
         df["text_original_affective"].tolist(),
         target_layer,
+        task_type=args.task_type,
+        is_instruct=is_instruct,
         device=args.device,
     )
     H_orig_neu = extract_single_layer_hidden_states(
@@ -346,6 +371,8 @@ def main():
         tokenizer,
         df["text_original_neutral"].tolist(),
         target_layer,
+        task_type=args.task_type,
+        is_instruct=is_instruct,
         device=args.device,
     )
     H_para_aff = extract_single_layer_hidden_states(
@@ -353,6 +380,8 @@ def main():
         tokenizer,
         df["text_paraphrase_affective"].tolist(),
         target_layer,
+        task_type=args.task_type,
+        is_instruct=is_instruct,
         device=args.device,
     )
     H_shuf_aff = extract_single_layer_hidden_states(
@@ -360,6 +389,8 @@ def main():
         tokenizer,
         df["text_shuffled_affective"].tolist(),
         target_layer,
+        task_type=args.task_type,
+        is_instruct=is_instruct,
         device=args.device,
     )
     H_shuf_neu = extract_single_layer_hidden_states(
@@ -367,6 +398,8 @@ def main():
         tokenizer,
         df["text_shuffled_neutral"].tolist(),
         target_layer,
+        task_type=args.task_type,
+        is_instruct=is_instruct,
         device=args.device,
     )
     H_rev_aff = extract_single_layer_hidden_states(
@@ -374,6 +407,8 @@ def main():
         tokenizer,
         df["text_reversed_affective"].tolist(),
         target_layer,
+        task_type=args.task_type,
+        is_instruct=is_instruct,
         device=args.device,
     )
 

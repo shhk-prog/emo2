@@ -294,6 +294,12 @@ def run_real_spatiotemporal_maps(
     covar_v = v3_stimulus_covariate(eval_df, "v", N)
     covar_a = v3_stimulus_covariate(eval_df, "a", N)
 
+    # 固定シードによる再現可能な因果介入サンプル選択 (全層・全ステージで共通の一貫したサブセット)
+    n_causal_intervene = min(n_causal_samples, N)
+    rng_causal = np.random.default_rng(42)
+    sub_eval_idx = sorted(rng_causal.choice(N, size=n_causal_intervene, replace=False).tolist())
+    logger.info(f"Selected {len(sub_eval_idx)} seeded random samples for causal intervention evaluation.")
+
     # 層 × ステージ グリッド解析
     for l in range(num_layers):
         logger.info(f"Computing 4-Map for Layer {l}/{num_layers}...")
@@ -388,8 +394,6 @@ def run_real_spatiotemporal_maps(
             h_std_v = float(np.std(H @ d_v)) if np.std(H @ d_v) > 0 else 1.0
             h_std_a = float(np.std(H @ d_a)) if np.std(H @ d_a) > 0 else 1.0
 
-            n_causal_intervene = min(n_causal_samples, N)
-            sub_eval_idx = list(range(n_causal_intervene))
             with torch.no_grad():
                 for idx in sub_eval_idx:
                     prompt = sample_prompts[idx]

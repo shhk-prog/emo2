@@ -82,6 +82,7 @@ def test_production_dry_run_dispatch(monkeypatch):
             dry_run=True,
             force_after_no_go=True,
             max_samples=2,
+            all_layers=False,
         )
         if stage == "behavioral":
             runner.run_behavioral(args, sys.executable)
@@ -126,6 +127,7 @@ def test_all_dispatched_commands_argparse_compatibility(monkeypatch):
             dry_run=True,
             force_after_no_go=True,
             max_samples=2,
+            all_layers=False,
         )
         if stage == "behavioral":
             runner.run_behavioral(args, sys.executable)

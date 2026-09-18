@@ -105,7 +105,7 @@ def extract_activations_for_model(
     num_layers: int = 28,
 ) -> dict[int, np.ndarray]:
     """
-    データセットの全刺激文に対して、各層の残差ストリーム活性化（意味的アンカー: stimulus_end）を抽出
+    データセットの全刺激文に対して、各層の残差ストリーム活性化（意味的アンカー: prompt_end）を抽出
     戻り値: {layer_idx: (N, hidden_dim)}
     """
     N = len(df)
@@ -138,7 +138,7 @@ def extract_activations_for_model(
             input_ids = enc["input_ids"]
 
             anchors = find_semantic_anchors(enc["input_ids"][0].tolist(), tokenizer, text)
-            anchor_pos = anchors["stimulus_end"]
+            anchor_pos = anchors["prompt_end"]  # Aligned with RQ3 causal patching token position
 
             with ActivationHookManager(adapter) as hook_mgr:
                 for l in range(actual_layers):

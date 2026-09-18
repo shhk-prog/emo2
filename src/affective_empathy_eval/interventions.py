@@ -2,6 +2,7 @@
 介入・方向抽出・QR直交化・傾きγ推定モジュール
 """
 
+from typing import Any
 import numpy as np
 
 
@@ -9,28 +10,32 @@ def extract_conditional_directions(
     H: np.ndarray,
     V: np.ndarray,
     A: np.ndarray,
+    method: str = "lstsq",
+    alpha: float = 1.0,
+    **kwargs,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
-    外部刺激情動ラベル (V, A) を用いた重回帰により、他軸を条件付き統制した Valence 方向 d_V と Arousal 方向 d_A を抽出
+    外部刺激情動ラベル (V, A) または内部予測値を用いた重回帰（最小二乗または Ridge）により、
+    他軸を条件付き統制した Valence 方向 d_V と Arousal 方向 d_A を抽出
     H: (N, D) - 活性化行列
-    V: (N,) - 外部Valenceラベル
-    A: (N,) - 外部Arousalラベル
-
-    モデル: H = beta_0 + beta_V * V + beta_A * A + epsilon
-    各次元 d について重回帰を実行（または行列一括最小二乗法）
+    V: (N,) - Valenceラベル/スコア
+    A: (N,) - Arousalラベル/スコア
     """
-    N, _ = H.shape
-    # デザイン行列: X = [1, V, A] (N, 3)
-    X = np.column_stack([np.ones(N), V, A])
+    N, D = H.shape
+    if method == "ridge":
+        from sklearn.linear_model import Ridge
+        X = np.column_stack([V, A])
+        ridge = Ridge(alpha=alpha, fit_intercept=True)
+        ridge.fit(X, H)
+        beta_v = ridge.coef_[:, 0]
+        beta_a = ridge.coef_[:, 1]
+    else:
+        # デザイン行列: X = [1, V, A] (N, 3)
+        X = np.column_stack([np.ones(N), V, A])
+        beta, _, _, _ = np.linalg.lstsq(X, H, rcond=None)
+        beta_v = beta[1]  # (D,)
+        beta_a = beta[2]  # (D,)
 
-    # 最小二乗解: (X^T X)^{-1} X^T H -> (3, D)
-    # beta[0] = 切片, beta[1] = beta_V, beta[2] = beta_A
-    beta, _, _, _ = np.linalg.lstsq(X, H, rcond=None)
-
-    beta_v = beta[1]  # (D,)
-    beta_a = beta[2]  # (D,)
-
-    # 単位ベクトル化
     norm_v = np.linalg.norm(beta_v)
     norm_a = np.linalg.norm(beta_a)
 
@@ -41,16 +46,24 @@ def extract_conditional_directions(
 
 
 def compute_orthonormal_subspace(
-    d_v: np.ndarray,
-    d_a: np.ndarray,
+    *directions: Any,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
-    基底行列 B = [d_v, d_a] に対し QR 分解を適用して直交正規基底 Q (D, 2) を構成
-    Q^T Q = I_2
+    基底行列 B に対し QR 分解を適用して直交正規基底 Q (D, K) を構成
+    引数は (d_v, d_a) または ([d_v, d_a]) のどちらの呼び出しでも柔軟に受け付ける。
+    Q^T Q = I_K
     射影行列: P = Q Q^T
     """
-    B = np.column_stack([d_v, d_a])  # (D, 2)
-    Q, _ = np.linalg.qr(B)  # Q is (D, 2)
+    if len(directions) == 1 and isinstance(directions[0], (list, tuple)):
+        dir_list = list(directions[0])
+    else:
+        dir_list = list(directions)
+
+    if not dir_list:
+        raise ValueError("At least one direction vector required for compute_orthonormal_subspace.")
+
+    B = np.column_stack(dir_list)  # (D, K)
+    Q, _ = np.linalg.qr(B)  # Q is (D, K)
     P = Q @ Q.T  # (D, D)
     return Q, P
 

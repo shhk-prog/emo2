@@ -28,7 +28,8 @@ else
 fi
 
 DEVICE="${1:-cuda:0}"
-DRY_RUN="${2:-}"
+shift || true
+EXTRA_ARGS=("$@")
 
 LOG_DIR="results/logs"
 mkdir -p "${LOG_DIR}"
@@ -39,6 +40,7 @@ echo "==================================================================" | tee 
 echo "Starting Production V3 Pipeline Evaluation" | tee -a "${LOG_FILE}"
 echo "Timestamp : $(date -u +"%Y-%m-%dT%H:%M:%SZ")" | tee -a "${LOG_FILE}"
 echo "Device    : ${DEVICE}" | tee -a "${LOG_FILE}"
+echo "Extra Args: ${EXTRA_ARGS[*]:-none}" | tee -a "${LOG_FILE}"
 echo "Log File  : ${LOG_FILE}" | tee -a "${LOG_FILE}"
 echo "Cohort    : primary_small (Target: Qwen | Confirmatory: Llama, Gemma, OLMo)" | tee -a "${LOG_FILE}"
 echo "Pipeline  : RQ1 (Gate) -> RQ2 (4-Maps) -> RQ3 (Mediation) -> Confirmatory" | tee -a "${LOG_FILE}"
@@ -47,8 +49,8 @@ echo "Runtime   : unmeasured (do not use pre-benchmark hour estimates)" | tee -a
 echo "==================================================================" | tee -a "${LOG_FILE}"
 
 CMD=(python -m affective_empathy_eval.run --stage v3 --model-set primary_small --device "${DEVICE}")
-if [ "${DRY_RUN}" = "--dry-run" ]; then
-    CMD+=(--dry-run)
+if [ ${#EXTRA_ARGS[@]} -gt 0 ]; then
+    CMD+=("${EXTRA_ARGS[@]}")
 fi
 
 START_SEC=$(date +%s)

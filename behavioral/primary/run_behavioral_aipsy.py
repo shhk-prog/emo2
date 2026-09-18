@@ -221,12 +221,30 @@ def main():
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
-    model = AutoModelForCausalLM.from_pretrained(
-        args.model,
-        torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
-        device_map="auto" if args.device == "cuda" else None,
-        trust_remote_code=True,
-    )
+    device = args.device
+    torch_dtype = torch.bfloat16 if device != "cpu" and torch.cuda.is_available() else torch.float32
+
+    if device.startswith("cuda:"):
+        model = AutoModelForCausalLM.from_pretrained(
+            args.model,
+            torch_dtype=torch_dtype,
+            device_map=device,
+            trust_remote_code=True,
+        )
+    elif device == "cuda":
+        model = AutoModelForCausalLM.from_pretrained(
+            args.model,
+            torch_dtype=torch_dtype,
+            device_map="auto",
+            trust_remote_code=True,
+        )
+    else:
+        model = AutoModelForCausalLM.from_pretrained(
+            args.model,
+            torch_dtype=torch_dtype,
+            device_map=None,
+            trust_remote_code=True,
+        ).to(device)
     model.eval()
 
     candidates, vad_triplets = build_candidates()

@@ -468,6 +468,37 @@ def main():
         pd.DataFrame(e1_records).to_csv(
             os.path.join(model_dir, "e1_emobank_decodability.csv"), index=False
         )
+        e2_records = [
+            {
+                "layer": l,
+                "relative_depth": l / (dummy_layers - 1),
+                "target": "Valence_human",
+                "direct_transfer_score": 0.5,
+                "rsa_correlation": 0.7,
+                "r2_aligned_transfer": 0.55,
+                "geometry_pattern": "Operational: Shared Geometry",
+            }
+            for l in range(dummy_layers)
+        ]
+        pd.DataFrame(e2_records).to_csv(
+            os.path.join(model_dir, "e2_emobank_geometry.csv"), index=False
+        )
+        aipsy_records = [
+            {
+                "layer": l,
+                "relative_depth": l / (dummy_layers - 1),
+                "dataset": "AIPsy",
+                "target": "emotion_category",
+                "reader_balanced_acc": 0.75,
+                "self_balanced_acc": 0.72,
+                "reader_f1_macro": 0.70,
+                "self_f1_macro": 0.68,
+            }
+            for l in range(dummy_layers)
+        ]
+        pd.DataFrame(aipsy_records).to_csv(
+            os.path.join(model_dir, "e1_aipsy_classification.csv"), index=False
+        )
         manifest = create_run_manifest(
             run_type="v1_phase_a",
             model_name=args.model_id,
@@ -576,6 +607,14 @@ def main():
             geom_v["target"] = "Valence_human"
             e2_emobank_records.append(geom_v)
 
+            geom_a = evaluate_cross_decoding_and_geometry(
+                H_R_l, H_S_l, y_human_a, group_ids=group_ids
+            )
+            geom_a["layer"] = l
+            geom_a["relative_depth"] = rel_d
+            geom_a["target"] = "Arousal_human"
+            e2_emobank_records.append(geom_a)
+
             # 逐次保存 (レイヤー完了ごと)
             pd.DataFrame(e1_emobank_records).to_csv(
                 os.path.join(model_dir, "e1_emobank_decodability.csv"), index=False
@@ -592,6 +631,65 @@ def main():
         df_e2_emo.to_csv(
             os.path.join(model_dir, "e2_emobank_geometry.csv"), index=False
         )
+
+    # Part 2: AIPsy Classification Probing
+    if args.dataset in ["aipsy", "both"]:
+        aipsy_path = Path("v1/data/processed/aipsy_4split_all.csv")
+        if not aipsy_path.exists():
+            aipsy_path = Path("data/processed/aipsy_4split_all.csv")
+        if not aipsy_path.exists():
+            aipsy_path = Path("data/raw/aipsy/aipsy_split.csv")
+
+        if aipsy_path.exists():
+            print(f"Loading AIPsy stimuli for classification probing from {aipsy_path}...")
+            df_aipsy = pd.read_csv(aipsy_path)
+            if args.limit > 0:
+                df_aipsy = df_aipsy.head(args.limit)
+
+            target_col = "emotion" if "emotion" in df_aipsy.columns else ("split" if "split" in df_aipsy.columns else None)
+            if target_col is not None:
+                prompts_r_aip = [
+                    format_prompt(tokenizer, t, "reader", is_instruct)
+                    for t in df_aipsy["text"]
+                ]
+                prompts_s_aip = [
+                    format_prompt(tokenizer, t, "self", is_instruct)
+                    for t in df_aipsy["text"]
+                ]
+                reps_r_aip = extract_hidden_states_batched(
+                    model, tokenizer, prompts_r_aip, device=args.device, batch_size=args.batch_size
+                )
+                reps_s_aip = extract_hidden_states_batched(
+                    model, tokenizer, prompts_s_aip, device=args.device, batch_size=args.batch_size
+                )
+
+                y_labels = df_aipsy[target_col].values
+                grp_aip = df_aipsy["pair_id"].values if "pair_id" in df_aipsy.columns else None
+
+                e1_aipsy_records = []
+                for l in range(len(reps_r_aip)):
+                    rel_d = l / (len(reps_r_aip) - 1) if len(reps_r_aip) > 1 else 0.0
+                    res_r_cls = evaluate_classification_probe(reps_r_aip[l], y_labels, group_ids=grp_aip)
+                    res_s_cls = evaluate_classification_probe(reps_s_aip[l], y_labels, group_ids=grp_aip)
+                    e1_aipsy_records.append(
+                        {
+                            "layer": l,
+                            "relative_depth": rel_d,
+                            "dataset": "AIPsy",
+                            "target": target_col,
+                            "reader_balanced_acc": res_r_cls["balanced_acc"],
+                            "self_balanced_acc": res_s_cls["balanced_acc"],
+                            "reader_f1_macro": res_r_cls["f1_macro"],
+                            "self_f1_macro": res_s_cls["f1_macro"],
+                            "reader_roc_auc": res_r_cls["roc_auc"],
+                            "self_roc_auc": res_s_cls["roc_auc"],
+                        }
+                    )
+                df_e1_aipsy = pd.DataFrame(e1_aipsy_records)
+                df_e1_aipsy.to_csv(
+                    os.path.join(model_dir, "e1_aipsy_classification.csv"), index=False
+                )
+                print(f"Saved AIPsy classification probing to {os.path.join(model_dir, 'e1_aipsy_classification.csv')}")
 
     # Save manifest
     manifest = create_run_manifest(

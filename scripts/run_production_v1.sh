@@ -29,7 +29,8 @@ else
 fi
 
 DEVICE="${1:-cuda:0}"
-DRY_RUN="${2:-}"
+shift || true
+EXTRA_ARGS=("$@")
 
 LOG_DIR="results/logs"
 mkdir -p "${LOG_DIR}"
@@ -40,6 +41,7 @@ echo "==================================================================" | tee 
 echo "Starting Production V1 Pipeline Evaluation" | tee -a "${LOG_FILE}"
 echo "Timestamp : $(date -u +"%Y-%m-%dT%H:%M:%SZ")" | tee -a "${LOG_FILE}"
 echo "Device    : ${DEVICE}" | tee -a "${LOG_FILE}"
+echo "Extra Args: ${EXTRA_ARGS[*]:-none}" | tee -a "${LOG_FILE}"
 echo "Log File  : ${LOG_FILE}" | tee -a "${LOG_FILE}"
 echo "Cohort    : primary_small (4 families, 8 models)" | tee -a "${LOG_FILE}"
 echo "Pipeline  : Phase A -> Phase B -> Phase C (E3/E4) -> E6 -> Summarize" | tee -a "${LOG_FILE}"
@@ -53,9 +55,9 @@ if [ ! -f "v1/data/processed/v1_e5_semantic_controls.csv" ]; then
     python v1/primary/prepare_v1_phase_b_controls.py 2>&1 | tee -a "${LOG_FILE}"
 fi
 
-CMD=(python -m affective_empathy_eval.run --stage v1 --model-set primary_small --device "${DEVICE}")
-if [ "${DRY_RUN}" = "--dry-run" ]; then
-    CMD+=(--dry-run)
+CMD=(python -m affective_empathy_eval.run --stage v1 --model-set primary_small --device "${DEVICE}" --all-layers)
+if [ ${#EXTRA_ARGS[@]} -gt 0 ]; then
+    CMD+=("${EXTRA_ARGS[@]}")
 fi
 
 START_SEC=$(date +%s)

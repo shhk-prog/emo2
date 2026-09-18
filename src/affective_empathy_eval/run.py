@@ -74,6 +74,12 @@ def parse_args():
     )
     add_model_selection_args(parser)
     parser.add_argument(
+        "--all-layers",
+        action="store_true",
+        default=False,
+        help="Test all layers in V1 Phase C causal patching",
+    )
+    parser.add_argument(
         "--force-after-no-go",
         action="store_true",
         help="Continue V3 RQ2/RQ3/Confirmatory even if RQ1 gate is NO_GO",
@@ -228,7 +234,10 @@ def run_v1(args, python_bin: str):
             run_command([python_bin, "v1/primary/run_phase_b.py"] + common_flags)
 
             # 3. Phase C: Causal Interventions (E3/E4)
-            run_command([python_bin, "v1/primary/run_phase_c.py"] + common_flags)
+            cmd_phase_c = [python_bin, "v1/primary/run_phase_c.py"] + common_flags
+            if getattr(args, "all_layers", False):
+                cmd_phase_c.append("--all-layers")
+            run_command(cmd_phase_c)
 
             # 4. Phase C E6: Task-Specific Causal Specialization & LMM
             run_command([python_bin, "v1/primary/phase_c/run_e6_specialization.py"] + common_flags)

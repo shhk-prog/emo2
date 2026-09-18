@@ -153,6 +153,7 @@ def run_recovery_patching_for_task(
     inst_probs_list = []
     base_activations: dict[int, list[torch.Tensor]] = {l: [] for l in range(num_layers)}
     sample_initial_emds = []
+    sample_initial_emds_plain = []
 
     model_base.eval()
     model_inst.eval()
@@ -191,9 +192,17 @@ def run_recovery_patching_for_task(
             )
             inst_probs_list.append(probs_i)
 
+            # Instruct (plain) baseline for matched-plain control
+            p_inst_plain_clean = build_prompt(text, task, format_type="plain")
+            _, probs_i_plain = compute_sequence_likelihoods_for_candidates(
+                model=model_inst, tokenizer=tok_inst, prompt=p_inst_plain_clean, candidates=candidates, device=device
+            )
+
             # サンプルごとの初期 EMD
             init_metrics = compute_distribution_metrics(probs_i, probs_b)
             sample_initial_emds.append(init_metrics["emd_va"])
+            init_metrics_plain = compute_distribution_metrics(probs_i_plain, probs_b)
+            sample_initial_emds_plain.append(init_metrics_plain["emd_va"])
 
     initial_emd_mean = float(np.mean(sample_initial_emds))
 
@@ -201,6 +210,7 @@ def run_recovery_patching_for_task(
     layer_mean_emds = []
     layer_mean_ratios = []
     layer_ratios_ci = []
+    layer_mean_ratios_plain = []
 
     for l in range(num_layers):
         sample_patched_emds = []
@@ -250,7 +260,7 @@ def run_recovery_patching_for_task(
                     model=model_inst, tokenizer=tok_inst, prompt=p_inst_plain, candidates=candidates, device=device
                 )
             p_emd_plain = compute_distribution_metrics(probs_patched_plain, base_probs_list[i])["emd_va"]
-            ratio_plain = compute_emd_recovery_ratio(sample_initial_emds[i], p_emd_plain)
+            ratio_plain = compute_emd_recovery_ratio(sample_initial_emds_plain[i], p_emd_plain)
             sample_ratios_plain.append(ratio_plain)
 
         mean_emd = float(np.mean(sample_patched_emds))

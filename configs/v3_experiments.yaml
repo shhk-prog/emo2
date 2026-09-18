@@ -3,15 +3,20 @@ experiment_name: "v3_state_to_report"
 seed: 42
 
 # データセット設定
+# V3 Primary は matched-neutral が必須。EmoBank 3-way は使わない。
 dataset:
-  path: "v1/data/processed/stimuli_vad_3way_test1k.csv"
+  path: "v1/data/processed/aipsy_4split_all.csv"
+  paired: true
   train_ratio: 0.7
   pilot_size: 50
   text_column: "text"
   id_column: "id"
+  pair_id_column: "pair_id"
+  neutral_text_column: "neutral_text"
+  # 人間 VA 列は AIPsy に無い。方向推定はモデル自己報告、β 共変量は domain。
   external_labels:
-    valence: "reader_V"
-    arousal: "reader_A"
+    valence: null
+    arousal: null
 
 # モデル設定 (レジストリ動的解決: configs/models.yaml)
 target_family: "qwen"

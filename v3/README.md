@@ -1,8 +1,10 @@
 # V3 Stage: 時空間経路と mediated attenuation
 
-V3 は、刺激提示で作られた内部情動方向が、**どの層・どの生成段階を経て自己報告分布を動かすか**を測る。主指標は Pearl 流の NDE/NIE ではなく **mediated attenuation**（媒介減衰）である。
+V3 は、刺激提示で作られた内部情動方向が、**どの層・どの生成段階を経て自己報告分布を動かすか**を測る。中心の問いは **When/where does information acquire causal leverage?** である。主指標は Pearl 流の NDE/NIE ではなく **mediated attenuation**（媒介減衰）である。
 
-測定対象は介入前後の自己報告 VA 変位と、統制課題への非特異的摂動である。「内部に感情状態が宿る」「媒介因果が証明された」とは書かない。
+測定対象は介入前後の自己報告 VA 変位と、統制課題への非特異的摂動である。「内部に感情状態が宿る」「媒介因果が証明された」とは書かない。Self は操作的な自己報告課題であり、情動的共感と同定しない。
+
+Sequence-Likelihood は **81 VA** 候補である。Behavioral / V1 の 729 VAD 空間とは混ぜない。
 
 ---
 
@@ -46,15 +48,15 @@ v3/
 
 正本: `v3/primary/run_rq1_state_induction.py`
 
-**問い**: 外部ラベルから推定した方向 $d_V, d_A$ を入れたとき、自己報告は単調かつ特異的に動くか。動かなければ RQ2/RQ3 の主解釈を進めるゲートを通さない。
+**問い**: 推定した方向 $d_V, d_A$ を入れたとき、自己報告は単調かつ特異的に動くか。動かなければ RQ2/RQ3 の主解釈を進めるゲートを通さない。
 
 ### 3.1 手順
 
-1. pair_id Group split。train で人間 `reader_V`, `reader_A` に対する方向を推定。
-2. 中立平均 $\mu_{\mathrm{neu}}$ を matched-neutral から取る。固定 $5.0$ は使わない。
+1. pair_id Group split。方向は人間 VA があればそれを使い、AIPsy 既定では train のモデル自己報告を使う。
+2. 中立平均 $\mu_{\mathrm{neu}}$ と necessity baseline は、同一 `pair_id` の matched-neutral 文を通した自己報告から取る。固定 $5.0$ も人工中立文も使わない。
 3. QR で 2D 情動部分空間 $Q$ を作る。
 4. test で次を測る。
-   - $\alpha$ sweep（用量反応）
+   - $\alpha$ sweep は軸を分ける。$d_V$ 注入 → Valence 用量反応、$d_A$ 注入 → Arousal 用量反応
    - centered projection removal: $h' = h - QQ^\top(h-\mu_{\mathrm{neu}})$
    - random control
    - orthogonal / perpendicular control
@@ -68,10 +70,12 @@ v3/
 
 | 判定 | 内容 |
 |---|---|
-| Sufficiency / dose-response | slope の CI 下限が正 |
+| Sufficiency / dose-response | 各軸の slope CI 下限が正（$d_V$ と $d_A$ を別 sweep） |
 | Specificity | matched 効果が random / orthogonal を上回る |
 | Necessity | 射影除去による attenuation の CI 下限が閾値超 |
 | Topic control | Topic 課題の TVD 上限が `max_topic_tvd` 未満 |
+
+統合 CLI / `run_production_v3.sh` は RQ1 のあと `v3/results/derived/v3_gate_decision.json` を読む。`decision` が完全一致の `GO` のときだけ RQ2 以降へ進む。`NO_GO` および `GO (Valence-only)` / `GO (Arousal-only)` では停止する。継続は `--force-after-no-go` のみ。
 
 ### 3.3 Topic control の位置づけ
 
@@ -96,7 +100,7 @@ Primary は **4-Map × 2軸（V, A）** を同じ格子で出す。旧称のま�
 | Interventional slope | $\gamma_V, \gamma_A$ | $\alpha$ sweep による因果応答の傾き |
 | Causal displacement | $C_V, C_A$ | 介入による自己報告分布の変位 |
 
-出力キーは `D_V`, `D_A`, `beta_V`, `beta_A`, `gamma_V`, `gamma_A`, `C_V`, `C_A`。$D$ と $C$ だけを走らせる縮小版ではない。
+出力キーは `D_V`, `D_A`, `beta_V`, `beta_A`, `abs_beta_V`, `abs_beta_A`, `gamma_V`, `gamma_A`, `C_V`, `C_A`。$D$ と $C$ だけを走らせる縮小版ではない。
 
 意味段階（JSON 自己報告）:
 
@@ -107,9 +111,15 @@ Primary は **4-Map × 2軸（V, A）** を同じ格子で出す。旧称のま�
 5. `A_value`
 6. `response_end`
 
-$C(l,t)$ と $\gamma(l,t)$ は実介入の $\alpha$ sweep から測る。プローブ係数で代用しない。
+$C(l,t)$ と $\gamma(l,t)$ は実介入の $\alpha$ sweep から測る。プローブ係数で代用しない。生成段階の patch は joint sequence 上の token であり、`prompt_end` に丸めない。
+
+Valence 方向 $d_V$ の注入が $\gamma_V,C_V$、Arousal 方向 $d_A$ の注入が $\gamma_A,C_A$ である。片方の注入で両軸を同時に主張しない。
+
+$\beta$ は符号付き偏回帰係数を Primary に残し、`abs_beta_*` を併記する。
 
 記述上の見込み（仮説であり結果ではない）: 刺激提示時の $D$ は中間層、生成時の $C$ は後期の pre-value トークンに寄る。これを時空間ピーク解離と呼ぶ。
+
+RQ2 は Discovery であり、出力に `analysis_role: discovery` を付ける。マップ用サンプル数 `n_map_samples` と実介入サンプル数 `n_intervene_samples`（既定は $\min(5,N)$）は別記録する。
 
 本番は全層探索。`--subsample` は確認用。
 
@@ -153,11 +163,11 @@ Target（Qwen）で立てた 4 仮説を、Llama 3.2 / Gemma 3 / OLMo 2 の Inst
 仮説の骨格:
 
 1. Dissociation: $d_C$ が $d_D$ より深い
-2. Sufficiency: 介入 slope が正
+2. Sufficiency: Valence 方向 sweep の slope と Arousal 方向 sweep の slope を別々に見る
 3. Necessity: attenuation が閾値を超える
 4. Temporal emergence: `pre_V` 付近の因果が `response_start` より大きい
 
-確認側でも GroupKFold / pair split を保つ。Discovery の数字を確認に再利用しない。
+確認側でも GroupKFold / pair split を保つ。Discovery の数字を確認に再利用しない。Sufficiency で片方の注入から両軸を同時に主張しない。
 
 ---
 
@@ -165,7 +175,8 @@ Target（Qwen）で立てた 4 仮説を、Llama 3.2 / Gemma 3 / OLMo 2 の Inst
 
 | 項目 | 値 |
 |---|---|
-| データ | `v1/data/processed/stimuli_vad_3way_test1k.csv`（実件数はログ） |
+| データ | `v1/data/processed/aipsy_4split_all.csv` の clinical–neutral 192 pair（wide 化して `neutral_text` を付ける）。EmoBank 3-way は pair が無いため使わない。 |
+| 候補空間 | 81 VA。729 VAD の期待値と直接比較しない |
 | 実験設定 | `configs/v3_experiments.yaml` |
 | モデル | `configs/models.yaml` |
 | $\alpha$ grid（RQ1） | $-1.0,-0.5,0.0,0.5,1.0$ |
@@ -180,12 +191,15 @@ Target（Qwen）で立てた 4 仮説を、Llama 3.2 / Gemma 3 / OLMo 2 の Inst
 
 ```bash
 bash scripts/run_production_v3.sh cuda:0
+# RQ1 が GO でない場合に明示継続するときだけ
+# bash scripts/run_production_v3.sh cuda:0 --force-after-no-go
 ```
 
 統合 CLI:
 
 ```bash
 python -m affective_empathy_eval.run --stage v3 --model-set primary_small --device cuda:0
+# python -m affective_empathy_eval.run --stage v3 --model-set primary_small --force-after-no-go
 ```
 
 個別:
@@ -227,8 +241,8 @@ python v3/primary/run_rq1_state_induction.py --dry-run --family qwen
 | ファイル | 内容 |
 |---|---|
 | `v3/results/raw/v3_rq1_results.json` | 用量反応、specificity、attenuation、Topic TVD、ゲート |
-| `v3/results/derived/v3_gate_decision.json` | GO / NO_GO |
-| `v3/results/raw/v3_spatiotemporal_maps_{family}.json` | $D,C$ の層×段階格子 |
+| `v3/results/derived/v3_gate_decision.json` | `GO` / `NO_GO` / 軸片方の GO。pipeline 継続は完全一致の `GO` のみ |
+| `v3/results/raw/v3_spatiotemporal_maps_{family}.json` | $D,\beta,\gamma,C$ と `abs_beta_*`。`analysis_role=discovery` |
 | `v3/results/raw/v3_path_mediation_{family}.json` | Discovery 層、Confirmation の attenuation |
 | `v3/results/raw/v3_confirmatory_{family}.json` | 4 仮説の合否 |
 | `v3/results/derived/v3_*_summary.json` | 横断要約 |
@@ -241,5 +255,7 @@ python v3/primary/run_rq1_state_induction.py --dry-run --family qwen
 - 時空間解離は記述であり、二過程心理理論の証明ではない
 - mediated attenuation は遮断後の減衰であり、NDE/NIE ではない
 - Topic TVD と Self shift を引き算して主効果にしない
+- $\gamma_A, C_A$ を $d_V$ 注入時の Arousal 変化として読まない
 - Confirmatory 不成立を「Qwen だけが感情を持つ」と読まない
+- 81 VA の期待値を Behavioral / V1 の 729 VAD 期待値と直接比較しない
 - `v3/docs/legacy/` の neutralization / greedy collapse ストーリーは主筋ではない

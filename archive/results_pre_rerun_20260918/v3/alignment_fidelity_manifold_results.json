@@ -1,0 +1,15 @@
+{
+  "layer": 15,
+  "comp": "mlp",
+  "r2_activation_mean": 0.4965918897503676,
+  "r2_activation_median": 0.5028215832935162,
+  "linear_cka": 0.8235996237977236,
+  "retrieval_accuracy_top1": 0.7560975609756098,
+  "dm_natural_median": 39.660301208496094,
+  "dm_aligned_median": 4.980604825108442,
+  "dm_aligned_rank_in_natural_pct": 0.0,
+  "two_sample_auc": 0.6385569852941176,
+  "matched_cosine_mean": 0.9949967054011866,
+  "unmatched_cosine_mean": 0.9829664884875623,
+  "natural_pair_cosine_mean": 0.978515625
+}

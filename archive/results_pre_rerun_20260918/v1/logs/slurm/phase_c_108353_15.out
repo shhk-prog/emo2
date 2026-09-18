@@ -1,0 +1,19 @@
+Working directory: /mnt/nas/home/hiromi/src/emo
+========================================================================
+Starting Slurm Task: Array ID 15 / Job ID 108428
+Running on Host: iag-02 | GPU: NVIDIA H100
+========================================================================
+
+========================================================================
+Executing Job 15: mistral7b_v0.1_instruct_patching
+Command: python v1/scripts/run_v1_phase_c_causal_patching.py --model-id "mistralai/Mistral-7B-Instruct-v0.1" --model-prefix "mistral7b_v0.1_instruct" --limit 0 --device "cuda" --sub-batch-size 81 --all-layers
+Log:     v1/results/logs/phase_c/mistral7b_v0.1_instruct_patching_20260918_013414.log
+========================================================================
+  File "/mnt/nas/home/hiromi/src/emo/v1/scripts/run_v1_phase_c_causal_patching.py", line 515
+    f.write(f"- **Mean Pairwise Directional Cosine**: $\\text{{mean}}\\{\\cos(C_{{R,i}}, C_{{S,i}})\\} = {mean_pairwise_cos:.3f}$\n\n")
+                                                                         ^
+SyntaxError: unexpected character after line continuation character
+✓ Finished job: mistral7b_v0.1_instruct_patching (Log saved to v1/results/logs/phase_c/mistral7b_v0.1_instruct_patching_20260918_013414.log)
+========================================================================
+Finished Slurm Task: Array ID 15
+========================================================================

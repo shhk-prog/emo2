@@ -1,0 +1,121 @@
+==================================================================
+MASTER PRODUCTION PIPELINE EXECUTION STARTED
+Timestamp : 2026-09-18T09:45:37Z
+Device    : cpu
+Dry Run   : --dry-run
+Master Log: results/logs/production_all_master_20260918_184537.log
+Cohort    : primary_small (4 families, 8 models total)
+Stages    : Behavioral -> V1 -> V2 -> V3 (full production CSVs; counts logged at load)
+Runtime   : unmeasured. Prefer stage scripts over this master run for recoverability.
+==================================================================
+
+>>> [1/4] EXECUTING BEHAVIORAL STAGE...
+==================================================================
+Starting Production Behavioral Evaluation
+Timestamp : 2026-09-18T09:45:37Z
+Device    : cpu
+Log File  : results/logs/production_behavioral_20260918_184537.log
+Cohort    : primary_small (4 families, 8 models)
+Datasets  : EmoBank + AIPsy (actual counts logged by the Python runner)
+Runtime   : unmeasured (do not use pre-benchmark hour estimates)
+==================================================================
+2026-09-18 18:45:39,294 [INFO] Affective Empathy Evaluation Unified Runner
+2026-09-18 18:45:39,294 [INFO] Stage: behavioral | Cohort: primary_small | Dry-run: True
+2026-09-18 18:45:39,294 [INFO] Wall-clock estimates are unmeasured until a Qwen-family benchmark is recorded.
+2026-09-18 18:45:39,294 [INFO] Dataset inventory (actual loaded counts; wall-clock time is unmeasured):
+2026-09-18 18:45:39,300 [INFO] EmoBank 3-way: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-18 18:45:39,306 [INFO] AIPsy 4-split: n_rows=480 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=480 | split_counts={'clinical': 192, 'neutral': 192, 'moderate': 48, 'complex_neutral': 48}
+2026-09-18 18:45:39,312 [INFO] V1 Phase B rule-based controls: n_rows=192 | path=v1/data/processed/v1_e5_semantic_controls.csv | n_unique_pair_id=192
+2026-09-18 18:45:39,312 [INFO] === Running Behavioral Stage (model-set: primary_small) ===
+2026-09-18 18:45:39,314 [INFO] Running behavioral evaluation for qwen_base (Qwen/Qwen2.5-1.5B)...
+2026-09-18 18:45:39,314 [INFO] [Dry-run] Simulated EmoBank execution for Qwen/Qwen2.5-1.5B (tag=qwen_base)
+2026-09-18 18:45:39,314 [INFO] [Dry-run] Simulated AIPsy execution for Qwen/Qwen2.5-1.5B (tag=qwen_base)
+2026-09-18 18:45:39,314 [INFO] Running behavioral evaluation for qwen_instruct (Qwen/Qwen2.5-1.5B-Instruct)...
+2026-09-18 18:45:39,314 [INFO] [Dry-run] Simulated EmoBank execution for Qwen/Qwen2.5-1.5B-Instruct (tag=qwen_instruct)
+2026-09-18 18:45:39,314 [INFO] [Dry-run] Simulated AIPsy execution for Qwen/Qwen2.5-1.5B-Instruct (tag=qwen_instruct)
+2026-09-18 18:45:39,314 [INFO] Running behavioral evaluation for llama_base (meta-llama/Llama-3.2-1B)...
+2026-09-18 18:45:39,314 [INFO] [Dry-run] Simulated EmoBank execution for meta-llama/Llama-3.2-1B (tag=llama_base)
+2026-09-18 18:45:39,314 [INFO] [Dry-run] Simulated AIPsy execution for meta-llama/Llama-3.2-1B (tag=llama_base)
+2026-09-18 18:45:39,314 [INFO] Running behavioral evaluation for llama_instruct (meta-llama/Llama-3.2-1B-Instruct)...
+2026-09-18 18:45:39,314 [INFO] [Dry-run] Simulated EmoBank execution for meta-llama/Llama-3.2-1B-Instruct (tag=llama_instruct)
+2026-09-18 18:45:39,314 [INFO] [Dry-run] Simulated AIPsy execution for meta-llama/Llama-3.2-1B-Instruct (tag=llama_instruct)
+2026-09-18 18:45:39,314 [INFO] Running behavioral evaluation for gemma_base (google/gemma-3-1b-pt)...
+2026-09-18 18:45:39,314 [INFO] [Dry-run] Simulated EmoBank execution for google/gemma-3-1b-pt (tag=gemma_base)
+2026-09-18 18:45:39,314 [INFO] [Dry-run] Simulated AIPsy execution for google/gemma-3-1b-pt (tag=gemma_base)
+2026-09-18 18:45:39,314 [INFO] Running behavioral evaluation for gemma_instruct (google/gemma-3-1b-it)...
+2026-09-18 18:45:39,314 [INFO] [Dry-run] Simulated EmoBank execution for google/gemma-3-1b-it (tag=gemma_instruct)
+2026-09-18 18:45:39,314 [INFO] [Dry-run] Simulated AIPsy execution for google/gemma-3-1b-it (tag=gemma_instruct)
+2026-09-18 18:45:39,314 [INFO] Running behavioral evaluation for olmo_base (allenai/OLMo-2-0425-1B)...
+2026-09-18 18:45:39,314 [INFO] [Dry-run] Simulated EmoBank execution for allenai/OLMo-2-0425-1B (tag=olmo_base)
+2026-09-18 18:45:39,314 [INFO] [Dry-run] Simulated AIPsy execution for allenai/OLMo-2-0425-1B (tag=olmo_base)
+2026-09-18 18:45:39,314 [INFO] Running behavioral evaluation for olmo_instruct (allenai/OLMo-2-0425-1B-Instruct)...
+2026-09-18 18:45:39,314 [INFO] [Dry-run] Simulated EmoBank execution for allenai/OLMo-2-0425-1B-Instruct (tag=olmo_instruct)
+2026-09-18 18:45:39,314 [INFO] [Dry-run] Simulated AIPsy execution for allenai/OLMo-2-0425-1B-Instruct (tag=olmo_instruct)
+2026-09-18 18:45:39,314 [INFO] All requested stages completed successfully!
+==================================================================
+Behavioral Evaluation completed successfully!
+Elapsed Time: 2 seconds
+==================================================================
+
+>>> [2/4] EXECUTING V1 STAGE...
+==================================================================
+Starting Production V1 Pipeline Evaluation
+Timestamp : 2026-09-18T09:45:39Z
+Device    : cpu
+Log File  : results/logs/production_v1_20260918_184539.log
+Cohort    : primary_small (4 families, 8 models)
+Pipeline  : Phase A -> Phase B -> Phase C (E3/E4) -> E6 -> Summarize
+Data Scale: Full production CSVs (actual counts logged by the Python runner)
+Runtime   : unmeasured (do not use pre-benchmark hour estimates)
+==================================================================
+2026-09-18 18:45:41,762 [INFO] Affective Empathy Evaluation Unified Runner
+2026-09-18 18:45:41,762 [INFO] Stage: v1 | Cohort: primary_small | Dry-run: True
+2026-09-18 18:45:41,762 [INFO] Wall-clock estimates are unmeasured until a Qwen-family benchmark is recorded.
+2026-09-18 18:45:41,762 [INFO] Dataset inventory (actual loaded counts; wall-clock time is unmeasured):
+2026-09-18 18:45:41,768 [INFO] EmoBank 3-way: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-18 18:45:41,773 [INFO] AIPsy 4-split: n_rows=480 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=480 | split_counts={'clinical': 192, 'neutral': 192, 'moderate': 48, 'complex_neutral': 48}
+2026-09-18 18:45:41,779 [INFO] V1 Phase B rule-based controls: n_rows=192 | path=v1/data/processed/v1_e5_semantic_controls.csv | n_unique_pair_id=192
+2026-09-18 18:45:41,779 [INFO] === Running V1 Stage Pipeline (model-set: primary_small) ===
+2026-09-18 18:45:41,781 [INFO] --- Running V1 Pipeline for qwen_base (Qwen/Qwen2.5-1.5B) ---
+2026-09-18 18:45:41,781 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_a.py --model-id Qwen/Qwen2.5-1.5B --model-prefix qwen_base --device cpu --dry-run
+[DRY-RUN] V1 Phase A Probing for Model: Qwen/Qwen2.5-1.5B (Instruct=False)
+[DRY-RUN] Completed Phase A mock output in v1/results/derived/v1_phase_a/qwen_base
+2026-09-18 18:45:48,032 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_b.py --model-id Qwen/Qwen2.5-1.5B --model-prefix qwen_base --device cpu --dry-run
+=== Starting V1 Phase B Semantic Audit: Qwen/Qwen2.5-1.5B ===
+Data Path: v1/data/processed/v1_e5_semantic_controls.csv | Target Layer: 14 (relative_depth=0.50)
+[DRY-RUN] V1 Phase B for Model: Qwen/Qwen2.5-1.5B (Instruct=False)
+[DRY-RUN] Completed Phase B mock output in v1/results/derived/v1_phase_b/qwen_base
+2026-09-18 18:45:53,341 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_c.py --model-id Qwen/Qwen2.5-1.5B --model-prefix qwen_base --device cpu --dry-run
+=== Starting V1 Phase C Causal Intervention (Prompt-End Normalized) ===
+Model ID: Qwen/Qwen2.5-1.5B | Mode: all
+[DRY-RUN] V1 Phase C for Model: Qwen/Qwen2.5-1.5B
+[DRY-RUN] Completed Phase C mock output in v1/results/derived/v1_phase_c_prompt_end/qwen_base
+2026-09-18 18:45:58,409 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/phase_c/run_e6_specialization.py --model-id Qwen/Qwen2.5-1.5B --model-prefix qwen_base --device cpu --dry-run
+Traceback (most recent call last):
+  File "/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/pandas/core/indexes/base.py", line 3641, in get_loc
+    return self._engine.get_loc(casted_key)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 168, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 197, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7668, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7676, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'magnitude_reader'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/mnt/nas/home/hiromi/src/emo2/v1/primary/phase_c/run_e6_specialization.py", line 598, in <module>
+    main()
+  File "/mnt/nas/home/hiromi/src/emo2/v1/primary/phase_c/run_e6_specialization.py", line 284, in main
+    r_l, s_l, site_selection_method = select_sites_from_e3(e3_csv_path, num_layers)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/nas/home/hiromi/src/emo2/v1/primary/phase_c/run_e6_specialization.py", line 188, in select_sites_from_e3
+    reader_peak_l = int(df.loc[df[mag_r_col].idxmax(), "layer"])
+                               ~~^^^^^^^^^^^
+  File "/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/pandas/core/frame.py", line 4378, in __getitem__
+    indexer = self.columns.get_loc(key)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/pandas/core/indexes/base.py", line 3648, in get_loc
+    raise KeyError(key) from err
+KeyError: 'magnitude_reader'
+2026-09-18 18:46:03,683 [ERROR] Command failed with exit code 1: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/phase_c/run_e6_specialization.py --model-id Qwen/Qwen2.5-1.5B --model-prefix qwen_base --device cpu --dry-run

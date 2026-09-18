@@ -1,0 +1,15 @@
+stimulus_id,text,human_v,human_a,human_v_scaled,human_a_scaled,rec_ev,rec_ea,rec_gv,rec_ga,rec_gen_text,rec_p55,rec_entropy,post_ev,post_ea,post_gv,post_ga,post_gen_text,post_p55,post_entropy
+emobank_defenders5_31_47,ALASKA EMERGENCY,2.0,3.57,-0.5,0.2849999999999999,4.5430458656875645,4.22249864151018,2,3,"{
+  ""valence"": 2,
+  ""arousal"": 3
+}",0.008345957556349388,3.907611919468047,5.666960532691464,4.907047103563722,7,5,"{
+  ""valence"": 7,
+  ""arousal"": 5
+}",0.011614090217161364,3.8280511042240732
+emobank_hotel-california_27718_27751,I was discouraged and frustrated.,2.2,3.6,-0.3999999999999999,0.3,2.5190058727001547,3.9266077715488445,3,5,"{
+  ""valence"": 3,
+  ""arousal"": 5
+}",0.003259114753090717,3.0936138081839335,2.3568812906658634,5.202631617583803,2,7,"{
+  ""valence"": 2,
+  ""arousal"": 7
+}",0.0017004717779617222,3.1220307461221997

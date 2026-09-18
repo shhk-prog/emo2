@@ -1,0 +1,3059 @@
+stimulus_id,text,human_v,human_a,human_v_scaled,human_a_scaled,rec_ev,rec_ea,rec_gv,rec_ga,rec_gen_text,rec_p55,rec_entropy,post_ev,post_ea,post_gv,post_ga,post_gen_text,post_p55,post_entropy
+emobank_defenders5_31_47,ALASKA EMERGENCY,2.0,3.57,-0.5,0.2849999999999999,5.167420613677569,6.119979950427332,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a list",0.00015349197148654113,2.0157245957969874,3.9037417288422884,5.157056093821739,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a text",0.0004915191640864188,2.339702632959361
+emobank_hotel-california_27718_27751,I was discouraged and frustrated.,2.2,3.6,-0.3999999999999999,0.3,3.3894917151197,4.213553804176276,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a sample",0.002951740238992278,2.2531193719105613,2.7194524655058583,3.761186603639529,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is an example",0.0013975145161739836,2.010650527606684
+emobank_112C-L013_653_757,"Kids like Tommie J., made a ward of the court because of repeated beatings by an alcoholic father;",2.29,3.29,-0.355,0.145,5.052036443157814,5.742535807051965,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.00018045873856192826,2.1126087721195344,3.825387669236285,5.273642745669951,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}
+
+I'm not sure what you",0.0002251999427557396,2.1332962042165597
+emobank_NYTnewswire4_3733_3851,"Although he said the Gators will be excited to play the Hurricanes, ""I don't want to talk about that game,"" Zook said.",2.3,3.4,-0.3500000000000001,0.1999999999999999,3.1055808518689147,4.507709439595694,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0009885592075318036,2.017662079118212,4.376229406678537,4.852679818445644,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0003544432660175617,2.117340670169826
+emobank_captured_moments_23307_23321,"""I am jealous.",2.25,3.5,-0.375,0.25,3.5530471031537725,4.603823134215121,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}
+
+Note:
+1.",0.0016994350842145303,2.446131490284543,3.282005879647441,4.606787723587509,1,9,"{
+""valence"": 1,
+""arousal"": 9
+}
+
+I am jealous.
+
+I am",0.0008413120255486747,2.321327890524502
+emobank_A_defense_of_Michael_Moore_22762_22779,9) Gun homicides.,2.2,3.3,-0.3999999999999999,0.1499999999999999,5.666275741665967,6.16047141963416,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is a sample",0.00050126528036523,2.3568648080391332,4.230688897941774,5.133193629425266,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The text is a news",0.00035677087656850806,2.278248420055569
+emobank_NYTnewswire9_5696_5711,"""I said, `No.""'",2.2,3.5,-0.3999999999999999,0.25,2.7953234040542014,4.832984574138285,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.00037716752918124394,2.0724261278751985,2.580072146061771,5.194602655005185,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0002540842307205804,2.091793323625965
+emobank_hotel-california_3445_3575,"As much as Jesse had irritated me, I didn't like the picture my brain drew of him floating in his grave, body swollen and bloated.",2.2,3.4,-0.3999999999999999,0.1999999999999999,4.01286465497646,4.366388503298228,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0018851234721498813,2.2063066103236757,3.145751455276451,3.4385523064406502,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0016609833594973115,1.9764438671647195
+emobank_Nathans_Bylichka_52685_52792,"On the floor was Dvorov’s head, separated from his body by several feet and a growing puddle of dark blood.",2.2,3.6,-0.3999999999999999,0.3,4.497769582609251,4.7956653254703845,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0013311675945827139,2.481687149400749,3.897383708580393,4.99392896995417,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0013193654546289485,2.6306540594153045
+emobank_Nathans_Bylichka_21342_21360,The thing frowned.,2.18,2.91,-0.4099999999999999,-0.0449999999999999,3.2726178413107787,3.7326614067645343,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The thing frowned.",0.0014580980026966668,1.8345903165928585,2.9930701506403525,4.412037100551113,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The thing frowned.",0.0005315743631859186,2.1287567833106267
+emobank_NYTnewswire9_10538_10589,"And then the casualties were going to be terrible.""",2.33,3.0,-0.3349999999999999,0.0,2.916273040303124,4.26904427082725,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0031670350451288446,1.9693959542281108,2.893262903801207,4.901054437905916,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a quote",0.0007438608904731562,2.1084680155150632
+emobank_SemEval_742,Floods force Malaysia evacuations,2.22,3.56,-0.3899999999999999,0.28,5.032915809013435,5.508483428920547,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}
+
+The following is a sample",0.000534277327174,2.30168479068803,4.143529919590413,5.415490692136298,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}
+
+The following is a sample",0.00039098938753848975,2.1568391646384475
+emobank_Ohio_Steel_12452_12560,"The people of Youngstown, being now unemployed had very little money to spend on anything but staying alive.",2.22,3.0,-0.3899999999999999,0.0,3.696418018289268,4.8268136366174215,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0014580382137608513,2.253067039346566,4.016227104944379,4.496110428987569,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The people of Youngstown,",0.00265814472659662,2.4859500281667817
+emobank_SemEval_690,Now it's official: Iraq's a mess,2.18,3.46,-0.4099999999999999,0.2299999999999999,4.684199343553837,5.35713418150929,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0009619319415164599,2.3825768766440962,3.959171110408096,5.147102898378588,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.001256085442137614,2.3482969535967473
+emobank_Uprooted_Farming-on-Sand_1711_1753,Last year's rich loam is now useless sand.,2.3,3.0,-0.3500000000000001,0.0,2.6036950607320133,4.193015475052532,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0002018618890978896,1.8496546381694943,3.6075140634938556,5.184933604543564,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is an example",0.0001796090672694467,2.1391186780901323
+emobank_SemEval_882,"Attack video saddens ""friendly fire"" widow",1.88,3.37,-0.56,0.185,3.6773756979434014,4.747263016053762,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The video of a friendly",0.0002763212266339255,1.95363232135364,3.103880568796714,4.456095255163934,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The video of a friendly",0.00020624630255369674,1.8338632415598313
+emobank_wsj_2465_1041_1137,"An hour later, the paper's circulation manager, Miguel Soler, was shot and killed near his home.",2.0,3.18,-0.5,0.09,2.811411009083183,3.7865188712128766,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.00033334081968820246,1.9529621397443155,2.546547613434333,3.7632834356970206,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.001104048926351869,2.1521880007666527
+emobank_Nathans_Bylichka_38054_38115,Get out of my sight now – unless you know how to put it back?,2.12,3.63,-0.4399999999999999,0.3149999999999999,3.5201601774227713,4.70103394996437,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}",0.00034583253426448597,2.343774108404407,3.4878346492574153,4.068548693324567,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0009460863660377145,2.485454289155756
+emobank_SemEval_920,Dozens killed in Baghdad bombing,2.0,3.62,-0.5,0.31,3.9221201090834854,3.6050126487548146,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a sample",0.0035725042153551298,2.2529549525900077,4.025873155126355,3.381529759344769,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.004889823140597424,2.1337581759240267
+emobank_hotel-california_30137_30157,"“No,” said Adrienne.",2.25,3.5,-0.375,0.25,5.17763848459925,5.862251942767163,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a sentence",0.0005533313410426324,2.6314647481579057,3.6879513805240354,5.995162897245169,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0001783505276451934,2.3474016390232397
+emobank_NYTnewswire9_9777_9839,"Three days later, another B-29 from the 509th bombed Nagasaki.",2.33,3.0,-0.3349999999999999,0.0,3.29158607797943,3.613235751253656,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0031372993113612385,2.2856915434871503,2.620792889604907,3.449358225081462,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.000941330204492354,2.403343817448814
+emobank_110CYL071_246_283,Michael was born with cerebral palsy.,2.14,3.14,-0.4299999999999999,0.07,4.907557729200312,5.180457304622102,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.003994116059559368,2.322728505031522,4.141194967772417,4.3297805482121055,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0013860858170697966,2.004484720190164
+emobank_SemEval_679,Gunmen abduct Filipino woman in Nigeria,2.22,3.22,-0.3899999999999999,0.1100000000000001,2.842215417781799,3.651920224857757,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}
+
+The following is a sample",0.0005008629553668405,1.6512087055758955,2.618060183886959,3.5786537906497373,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0005825535947907355,1.63903629133502
+emobank_112C-L015_859_939,Many of the children have no homes; no memories of joy from past holidays.,2.12,3.25,-0.4399999999999999,0.125,3.022789836316916,3.927996759474496,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0016531541442745233,2.2856515328511855,2.78766145757194,2.938308466225312,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.001674932889519772,1.9050741229643726
+emobank_captured_moments_9076_9083,Enough.,2.3,3.4,-0.3500000000000001,0.1999999999999999,4.125024576656301,5.356243176279119,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a short",0.005675887813729343,2.729254275705408,3.32985244055456,4.745084188937691,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a part",0.0011089392054344507,2.3854397477655875
+emobank_A_defense_of_Michael_Moore_19756_19840,"The kid was a little bastard, and the parents were involved in drugs -- case closed.",2.3,3.3,-0.3500000000000001,0.1499999999999999,3.2815998702995275,4.0958071201853485,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0006312491685829914,2.1571006908259833,2.900808583012275,3.3434440295751893,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The kid was a little",0.0009433236396909206,2.1506069183585947
+emobank_hotel-california_30791_30976,"“You could force the captain to set down somewhere. Let us off the ship. If he refuses, threaten him. If he still refuses, well, of all of us, isn't there someone who can drive a ship?”",2.3,3.6,-0.3500000000000001,0.3,4.4475069973481824,5.249585061715351,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0011479682015108944,2.0074401313199877,3.8855920486646593,4.364432114427125,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.000584391989029488,1.8694641056951078
+emobank_IFAW1_1303_1324,"“stupid, non-feeling”",2.0,3.0,-0.5,0.0,4.00380752683169,4.352510704830749,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The text is a sentence",0.0007992669125886934,1.7931544440608806,2.840360882742713,3.1012472668848483,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The text is a part",0.0007698226627798432,1.5473882541088475
+emobank_Nathans_Bylichka_37381_37477,“and you’d better pray to whatever god you think will listen that he won’t care we woke her up.”,2.3,3.4,-0.3500000000000001,0.1999999999999999,3.647557430226219,4.917019276831576,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.000956055137093108,2.038846870319016,4.700919896144589,6.161347434791386,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0006728268494197917,2.233365229034348
+emobank_Ohio_Steel_10791_10967,"However, to American companies already suffering financial setbacks, outdated machinery, and fierce competition, this lack of demand was an inconvenience they could not afford.",2.3,3.1,-0.3500000000000001,0.05,3.3248892934100622,3.9562005873974,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0030962434852164805,2.2515841564205505,3.0689331969044957,3.747894155377682,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.002885949330408623,2.268225302575871
+emobank_marine1_490_675,"Even today, after years of public outrage, dolphins continue to die in tuna fisheries of other countries and are still being cruelly and often illegally killed by gillnets and harpoons.",2.0,3.2,-0.5,0.1,2.7860438213288035,3.2287020931314787,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}",0.0016466528597661053,1.7513670381120487,2.4468019834209604,2.8396380044715217,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.001842370215547309,1.5368037968076862
+emobank_sucker_1488_1738,"“a black-themed book will come up for consideration, and there won’t be anyone of color to put in an opinion, or there’ll be one, who shouldn’t bear the burden alone. So we all pretend we’re experts. Maybe I’m the only one who’s embarrassed by that.”",2.33,3.33,-0.3349999999999999,0.165,3.5115912486151517,4.253406079446934,5,5,"{
+""valence"": 5,
+""arousal"": 5
+}",0.0015557583278279366,1.9117222148547393,2.7810091406703727,3.7332543831230343,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}",0.0015381327060205604,1.7142050170199143
+emobank_hotel-california_2985_3092,"The survivors of the unfortunate accidents, the catastrophic malfunctions, the fateful crashes: this is us.",2.33,2.89,-0.3349999999999999,-0.0549999999999999,2.9695675143386873,3.1979898777206763,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0010901635747243943,1.8193944944166967,3.83701572506207,3.854285634515425,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.000519301492562794,2.0358402083951255
+emobank_NYTnewswire9_7912_8038,"At 8:15 a.m. Hiroshima time, the pneumatic bomb-bay doors opened and ""Little Boy,"" equivalent to 20,000 tons of TNT, fell out.",2.0,3.5,-0.5,0.25,2.5522568735284636,3.7830412939186178,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.000502455396996799,2.325149461385859,3.668576533372601,4.842961803445965,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0002549756450673797,2.6317574325258146
+emobank_SemEval_1204,Swiss plane crashes at Moscow airport,2.2,3.0,-0.3999999999999999,0.0,3.8124501630489074,4.455055534610695,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The Swiss plane crashed at",0.001548482598093958,2.304863884401374,3.1969170394395543,4.447387378020387,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The Swiss plane crashed at",0.0011956235742120512,2.0730370560323674
+emobank_20020731-nyt_18216_18312,"""There was death in D.C. throughout the '80s and into the '90s, and there was death everywhere,""",2.3,3.1,-0.3500000000000001,0.05,3.742544364234038,5.810541095200804,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}",0.00022950626597294368,2.0971815499780955,4.040922604834939,6.60203221243477,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",4.6458391482571324e-05,1.86600092963071
+emobank_hotel-california_26456_26482,My quarters felt stifling.,2.22,3.11,-0.3899999999999999,0.0549999999999999,3.951307155012027,5.042362511059182,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+Note:
+1.",0.0012981752238726226,2.401215092569595,3.669848185663519,6.020760501379753,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0001603762664636267,2.1214572464766963
+emobank_SemEval_846,"Scorpion on a plane, a pantful of pain",2.12,3.12,-0.4399999999999999,0.06,4.377803418816574,4.7069715745663965,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The text is a short",0.0021582619554901673,2.4710881638073783,3.7868528879457815,4.276210409550783,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a sample",0.002703959849240612,2.340220886803203
+emobank_hotel-california_18971_19010,We're not even going to leave a legacy.,2.33,2.89,-0.3349999999999999,-0.0549999999999999,3.49051634508188,4.187187086414669,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0015539670392773122,2.275382660291596,2.56093138623644,4.027056010007958,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is an example",0.0008282147988514768,2.2457439406467135
+emobank_A_defense_of_Michael_Moore_4592_4632,Mustafa was 14 years when he was killed.,2.1,3.1,-0.4499999999999999,0.05,2.2395427086681416,2.9892005274444293,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0019787588615834528,1.7257270244314262,2.4295517394674206,2.961831045964975,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.001612422739111914,2.0587214471276103
+emobank_Seedbombing_2063_2206,"I found this hard to do while also avoiding cops, dealing with the camera and the car window, scoping out angles of approach for throwing, etc.",2.3,3.2,-0.3500000000000001,0.1,4.178390861127272,4.549397062044369,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.003763089695327657,2.588972633338304,3.7847646344576784,4.657562278701581,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0016559919819442537,2.3773785842035386
+emobank_SemEval_1086,High cholesterol raises stroke risk healthy women,2.3,2.8,-0.3500000000000001,-0.1,4.723448480802941,5.010108578508294,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The text is from the",0.00031683470918864644,2.301062876637983,3.4547276796864077,4.159712340226452,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0007126902251395102,2.105336346208875
+emobank_NYTnewswire2_8918_8994,"""This is a criminal act and it certainly puts things in a different league,""",2.0,3.1,-0.5,0.05,3.7490406614120007,5.676714781081259,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.00014971879299962426,2.0477496575842276,3.090565318947519,5.2254009789393265,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a quote",0.0005367647673983256,2.188266165708151
+emobank_Fermentation_HR5034_9996_10126,"The hypocrisy, misleading notions and disinformation being featured at the wholesalers website supporting H.R. 5034 is staggering.",2.0,3.25,-0.5,0.125,3.7900203024475316,4.696706294026685,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.003789042838658067,2.236310334986253,2.691575506431936,3.2922099560726235,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}
+
+The following is a sample output:",0.007824094154001187,2.047197569725242
+emobank_SemEval_648,Somalia declares state of emergency,2.13,3.62,-0.435,0.31,5.118087731869756,5.332237881215162,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a sample",0.0015479126373453753,2.237211227605631,4.968271976217928,4.549261792109661,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The Somali government has declared",0.0020103503681037837,2.14841558674183
+emobank_hotel-california_17786_17818,"“That's still dumb,” said Sarah.",2.2,3.2,-0.3999999999999999,0.1,2.5503468921140926,3.905906930103865,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0007362306838641874,1.9274652399727952,2.9439115824118005,5.527867995004859,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a part",0.00017707112240482158,2.087371003424163
+emobank_cable_spool_fort_8516_8674,"""I thought he might stab you."" Roy said and craned his neck forward to look at Tucker's face as the other boys began to crowd around at a respectful distance.",2.3,3.4,-0.3500000000000001,0.1999999999999999,2.350442720090669,3.949595221707967,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}",0.001372745221542329,1.9065655460046969,2.7025777130451933,3.874374347007566,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}",0.0013330377740633159,2.2459080573001353
+emobank_hotel-california_33279_33299,I couldn't find her.,2.11,3.11,-0.445,0.0549999999999999,3.0996829067965432,4.342657414433568,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a list",0.0019159178576033872,2.2848171629405036,2.347745612629193,3.595081259739882,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.000978353481032526,1.970170466819406
+emobank_The_Black_Willow_10749_10795,"I would not be happy, thus separated from it.""",2.2,3.2,-0.3999999999999999,0.1,2.832858007005605,4.8727851046220305,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0007137919361051906,2.1277979948932084,2.9912848916262034,6.5483608296976445,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is an example",9.712131188212896e-05,1.9104607776187306
+emobank_NYTnewswire7_1802_1854,"But in some areas, the seabass are being overfished.",2.3,3.0,-0.3500000000000001,0.0,2.8905847111356238,4.979981485187752,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.00046573621784690725,2.2033150202200265,2.6437454547155808,4.55357736181027,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is the JSON",0.0003474713670251619,2.058176752803598
+emobank_cable_spool_fort_116_125,You suck.,1.6,3.9,-0.7,0.4499999999999999,4.561437344839784,5.091778966897277,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a sample",0.004738095458590409,2.638313548842317,2.748936712594447,4.260647895645303,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0007779673416660314,1.975518962382199
+emobank_detroit_9593_9753,"You think I'm kidding, but I couldn't be more serious -- that Honda is a visceral reminder for people of how the American consumer has left Detroit in the dust.",2.3,3.8,-0.3500000000000001,0.3999999999999999,4.165193114454418,5.732098580062694,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}",0.0007626861379867492,2.3796627970243254,4.2375907173407175,5.459355482953178,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0009475566686411431,2.3975558439453213
+emobank_cable_spool_fort_115_137,"""You suck."" Chad said.",2.1,3.8,-0.4499999999999999,0.3999999999999999,3.4428029893702705,5.484460596475382,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.00023844717671548358,2.0567191714788855,3.062293612872386,5.342077876437853,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a sample",0.00017132797326972223,2.0633761551055514
+emobank_easy_money_6254_6342,Or maybe this guy was just a wacko who wanted to take me out on a dark road and kill me.,2.0,3.7,-0.5,0.3500000000000001,2.9044261095788193,3.4702658321138196,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0019810807444597695,2.2127331174616605,3.2019368660806564,3.4079858445345126,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}
+
+The following is a sample output:",0.0013741235097655404,2.168209024053466
+emobank_audubon1_60_76,I’m outraged ...,1.63,3.91,-0.685,0.455,3.7666045205190537,5.2964438110255445,9,1,"{
+  ""valence"": 9,
+  ""arousal"": 1
+}
+
+The text is a part",0.0003068989123630778,2.0107133313331795,4.875177855492128,6.487773227916348,9,1,"{
+  ""valence"": 9,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0004924293966959784,1.9447951203038576
+emobank_detroit_15207_15294,"You want to yell at which insurance company fucked up, or change a bedpan, so to speak?",2.1,3.8,-0.4499999999999999,0.3999999999999999,4.417031615238327,5.332393143079241,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}",0.0020764032973052487,2.310552242520823,2.421202794216923,4.571884221626322,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0009369301216356989,2.0835169978734873
+emobank_Nathans_Bylichka_56572_56622,Hands closed on my neck and I felt my spine crack.,1.9,3.8,-0.55,0.3999999999999999,3.9493819596530795,4.188333405973687,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}",0.001503069097936678,2.181389079087227,4.0842009915746855,4.078029400514152,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a part",0.0005529366208982429,2.039927937272949
+emobank_The_Black_Willow_12929_13034,"""What in G-d's name could have possessed you to do such a thing,"" cried Arthur, nearly raising his voice.",2.3,3.8,-0.3500000000000001,0.3999999999999999,2.536531988158252,3.9609141447247715,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.00016184085487357762,1.7615997577333116,2.5364692242504012,3.776573153603207,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0003691831538055782,1.8675766510312266
+emobank_Madame_White_Snake_3473_3497,“disturbed and agitated”,2.12,4.0,-0.4399999999999999,0.5,5.592919785865497,5.783908882308065,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a list",0.00266603500803691,2.423647576653199,4.621285844910629,4.682156662605114,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The text is a part",0.0017305318291612377,2.4337938994467962
+emobank_audubon1_7282_7287,“NO!”,2.0,3.89,-0.5,0.445,3.1612342806123213,4.861908454934806,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0003533837630100749,2.1963539582974816,2.974509869708237,4.726711009824222,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The text is a sentence",0.0003567562962111667,2.2413197715845814
+emobank_Nathans_Bylichka_37816_37828,he screamed.,2.22,3.78,-0.3899999999999999,0.3899999999999999,2.968402809150798,3.6210739224510045,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0022516218982126914,1.853799701255166,2.297107295042944,2.7400315438198173,9,1,"{
+  ""valence"": 9,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0008637481209259299,1.5918007209043583
+emobank_Homosexuality_5297_5340,They also do not belong in a court of law!”,2.18,4.0,-0.4099999999999999,0.5,3.5139718139155285,4.092789412370999,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.001994452830269763,2.452837787233775,3.4695546981616885,3.89882173483652,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a part",0.003496914866604436,2.7546215881486584
+emobank_Nathans_Bylichka_11578_11605,That just unnerved me more.,2.0,3.8,-0.5,0.3999999999999999,3.833407175694002,4.740246644622684,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a list",0.003307840626219411,2.3026352803567125,2.8162640913511066,4.396788473049419,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0009169058017741315,2.138183965369133
+emobank_detroit_4319_4400,"We didn't slow down to take a photo, but I'll paraphrase: DON'T BURN HOUSES DOWN!",2.1,4.1,-0.4499999999999999,0.5499999999999998,3.615563223812818,4.861716708860266,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.000990324703769967,1.993627918149186,3.1248514717468474,3.6144091884948053,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The JSON format is as",0.0012025747163763182,1.8781634643162297
+emobank_defenders5_2473_2623,They are utterly out of step with their Alaska constituents ... the state agency that manages Alaska wildlife ... and the rest of the American public!,2.3,3.7,-0.3500000000000001,0.3500000000000001,3.411810412177716,4.784200651765422,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0005871247240419738,1.6970375568904952,3.6049322253355793,5.965334696651693,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",6.769367924804292e-05,1.8591707555491714
+emobank_Nathans_Bylichka_57890_57977,"Rachel, her clothes torn and her face drawn, looked like she might cry when she saw me.",2.33,4.0,-0.3349999999999999,0.5,3.312435311052554,4.408950064091828,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.001068402974343531,2.1111363439148763,3.01278277103329,4.07345957949734,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is an example",0.0008766219712753184,2.1188997198004893
+emobank_SemEval_640,Firms on alert for letter bombs,2.2,3.8,-0.3999999999999999,0.3999999999999999,4.650654133181694,5.032689635896606,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a sample",0.0019766252862881434,2.37642679486737,4.369523561294981,4.695084693617743,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following text is a",0.0012678880005615907,2.274371562487957
+emobank_hotel-california_22389_22419,Fact: Adrienne intimidated me.,2.0,3.67,-0.5,0.3349999999999999,4.918684461658282,5.781971794133731,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.001670134405104224,2.6136406432186363,4.42132925939455,5.021103586473814,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0008355436979457064,2.264488949412712
+emobank_Ohio_Steel_19152_19222,Black Monday was a devastating blow to an entire generation of people.,2.0,3.72,-0.5,0.3600000000000001,3.478385945829242,3.98353987093156,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.002463371901313883,2.1432399350459033,2.646559223197393,3.262009826966333,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0011560971604955867,1.9650347211996442
+emobank_Nathans_Bylichka_38047_38053,Fools!,2.25,3.75,-0.375,0.375,4.117480031982568,5.586881496877215,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a poem",0.0004949221775530006,2.268009667885604,3.150559855395046,5.011921947380308,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a quote",0.00012646364648461213,2.054860377859349
+emobank_SemEval_215,Toddler died from E. coli tainted spinach,1.62,3.75,-0.69,0.375,2.2599860524049165,2.1574189145511986,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0007182290728875823,1.0563516435043756,2.6909651695952244,2.78165557695049,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0005571498049539997,1.3371527637786083
+emobank_captured_moments_28049_28065,"""Never,"" I said.",2.25,3.88,-0.375,0.4399999999999999,4.228763339572234,5.207282513324865,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0006270070233858963,2.3743791674689207,3.1366391328301306,4.716177990310818,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a sample",0.00030944144934000307,2.2844910363260102
+emobank_captured_moments_5506_5538,"I hate it, despise it, abhor it!",1.3,4.4,-0.85,0.7000000000000002,3.711683977359314,5.809893014192277,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}",0.0006875505909526759,2.0429609324940894,3.724404688765316,6.120121854991492,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is an example",0.0004745520305680981,2.171915091251874
+emobank_hsus4_1520_1565,needless deaths that could have been stopped!,1.7,3.9,-0.65,0.4499999999999999,3.914324981804052,4.211722304553826,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.001478537467405653,2.246892256879573,3.181827650202068,3.7842577442417538,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a news",0.0022911033653591163,2.3552806461314266
+emobank_A_defense_of_Michael_Moore_11775_12045,"This booing by the crowd, not mentioned with a single word in your transcript or your article, shows that the crowd was fully aware of the controversy they would cause by coming to Littleton after children were being killed there -- and they effectively said ""Fuck you"".",1.7,3.7,-0.65,0.3500000000000001,1.920980999614916,5.35796706326415,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}",8.546928875427886e-05,1.4660303974186837,3.4028564972000925,5.869799696094495,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}",0.0003915490169766302,1.8922437204605005
+emobank_captured_moments_34911_34954,I threw a chair at him.,1.8,4.0,-0.6,0.5,3.751918379429778,4.590059201447552,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0024020713595061583,2.4849371473947013,3.048024949131764,4.137564557631684,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The output should be in",0.0012573777716054957,2.1552858083059596
+emobank_captured_moments_28882_28898,This is torture.,1.67,3.67,-0.665,0.3349999999999999,4.898105142868596,5.799653750438116,9,1,"{
+  ""valence"": 9,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0030478456230525943,2.451036035842903,3.2761672820747565,3.3613864837732614,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0016760935389709035,2.1039592198077326
+emobank_Nathans_Bylichka_10078_10146,"I have to warn you, though, you won’t like what I have to tell you.”",2.0,3.67,-0.5,0.3349999999999999,3.8902908941089054,5.966824160734197,1,9,"{
+""valence"": 1,
+""arousal"": 9
+}",0.0002472906457441072,2.161504964080601,3.168117615307061,5.5522307444743495,1,9,"{
+""valence"": 1,
+""arousal"": 9
+}
+
+I have to warn you, though",0.00023662112443899682,2.1388037381372453
+emobank_Nathans_Bylichka_56058_56169,I raised the stake; he drew back the dagger for a slash that could doubtless open my neck from throat to spine.,2.3,3.8,-0.3500000000000001,0.3999999999999999,2.6948786186927096,3.3728440425852035,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0006820464539997152,1.7120124598679907,4.118762567627414,4.669436286760426,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.001274549434679891,2.2399482151765566
+emobank_defenders5_3431_3435,“NO”,1.7,3.9,-0.65,0.4499999999999999,3.5988103785772343,4.487377961807546,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a simple",0.00044149888113354045,2.1847404643269086,2.785358961410675,3.7320397154550533,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a short",0.0005792480086767582,1.939041551448359
+emobank_A_defense_of_Michael_Moore_12034_12044,"""Fuck you""",1.2,4.2,-0.9,0.6000000000000001,4.500657973073818,5.702206543367439,9,1,"{
+  ""valence"": 9,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0008499115437690781,2.5358327068188355,3.6758075529693923,5.552641882007822,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The output should be a",0.0004560216860537267,2.4373703469026986
+emobank_hotel-california_17786_17806,"“That's still dumb,”",2.0,3.75,-0.5,0.375,3.772324817563919,5.61322912061215,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a sentence",0.0002873127899739322,2.3054555231977227,2.7107235958879583,6.181210128736054,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The text is a sentence",0.0002815133906774442,2.017317823908989
+emobank_The_Black_Willow_4372_4383,"""Damn you,""",1.75,4.12,-0.625,0.56,4.280989404459557,5.6735911609017595,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.00021356843824980065,2.457319844852913,3.2065602172866092,5.679994048271986,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a sample",0.00010068600905531396,2.1244776556479916
+emobank_Fermentation_Eminent-Domain_5349_5372,And I am really pissed.,1.8,4.0,-0.6,0.5,4.822438295635571,5.211367735777885,5,8,"{
+  ""valence"": 5,
+  ""arousal"": 8
+}",0.0018108310847277807,2.5116249262429653,3.8992970218092444,4.977070779817444,9,1,"{
+  ""valence"": 9,
+  ""arousal"": 1
+}
+
+The following is a sample",0.00045760125525334957,2.4141065366393817
+emobank_detroit_13308_13320,I think not!,2.3,3.9,-0.3500000000000001,0.4499999999999999,4.497258215479849,5.079598406889524,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a list",0.0028274076158904004,2.7043359698010567,2.7126446815762364,3.2532746495025977,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0011606195524439995,2.210956336011777
+emobank_detroit_11992_12207,"Have we really built a ""Great Society"" or is that all propaganda -- Bull Shiite to hush free thought, eyes to the flag, while our pockets and resources were raided by shysters, spin-meisters, schmucks and banksters?",2.0,3.8,-0.5,0.3999999999999999,4.231333675889937,4.571787952262515,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.001602898015620315,2.159967664036493,3.6483161101375177,4.260132403611133,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0011901923174180823,2.198433249816326
+emobank_The_Black_Willow_4463_4529,"He pounded his desk in vain, cursing the foul muse that drove him.",1.9,3.8,-0.55,0.3999999999999999,3.622619334685338,4.648156351081873,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0033345861241593252,2.4393448995123452,3.1238869943318583,4.6162691376813205,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a part",0.00063274458975778,1.9566904966009848
+emobank_easy_money_11294_11394,"For some reason I thought of a giant clown face from a carnival ride, but it scared the hell out me.",2.1,3.7,-0.4499999999999999,0.3500000000000001,3.2992118516282307,3.534548181859526,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}",0.0023668288818656934,2.0278287885583475,2.771995885285518,2.879835109850227,9,1,"{
+  ""valence"": 9,
+  ""arousal"": 1
+}",0.001373499009711453,2.02482496901974
+emobank_Nathans_Bylichka_52097_52120,"Suddenly, Amy screamed.",2.0,3.71,-0.5,0.355,5.6011720781891565,5.702069136381656,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a short",0.0019328214125598137,2.231612463410187,5.041719405014267,5.05894914049999,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0012940484671204711,2.2433883530067047
+emobank_The_Black_Willow_4372_4422,"""Damn you,"" he cried, ""will you never leave me be?",1.78,3.78,-0.61,0.3899999999999999,3.0804128475847152,4.9621504296747,5,8,"{
+  ""valence"": 5,
+  ""arousal"": 8
+}",0.00011660574819203356,2.164142376466108,2.929951682947798,4.938270539999968,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0003968392959502436,2.2530768485938246
+emobank_SemEval_994,Collision on icy road kills 7,1.67,3.78,-0.665,0.3899999999999999,3.791505336082863,6.041108105200906,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a news",0.0010134277594619633,2.8469465441133868,3.122536128943222,5.986308533484151,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0004903337994923739,2.320383087085357
+emobank_lw1_1033_1057,Of all the impertinence!,1.88,4.12,-0.56,0.56,4.377868852728261,4.705634707736499,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a short",0.0012764600048577042,2.240084342834502,3.315692256142838,4.168173797344633,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The text is a part",0.0007101821582856772,2.2722949926140714
+emobank_The_Black_Willow_16502_16537,"""Heavens, no,"" said Nathan, aghast.",2.1,3.7,-0.4499999999999999,0.3500000000000001,3.063915196749537,4.408730388777074,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",4.334944299162319e-05,1.9147302857086532,2.783970618773415,3.5520195205629412,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The text is a part",7.767211686058453e-05,1.8611468929120876
+emobank_Nathans_Bylichka_22420_22431,"“Oh, shit!”",1.9,4.3,-0.55,0.6499999999999999,4.184751339262241,5.48703895447453,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.00043727123537772185,2.358109143697568,3.3234256941588134,5.826015932679088,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a sample",0.00016021826579676015,2.1555017879693197
+emobank_easy_money_13623_13705,"""None,"" I said and slipped the knife into his neck right at the base of his skull.",2.1,3.9,-0.4499999999999999,0.4499999999999999,2.539034800166993,3.443949039151111,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0005031294079510845,2.0362783751332456,2.303034621936431,3.193085911313271,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a part",0.0018763918788991915,2.1759129191147846
+emobank_Nathans_Bylichka_7597_7686,"My girlfriend has disappeared, I don’t even know where to start looking, and I need help!",1.57,4.0,-0.715,0.5,3.368842406690079,4.802098862614223,5,7,"{
+""valence"": 5,
+""arousal"": 7
+}",0.00037367704666616545,2.0726754739228523,2.266710180287361,4.254231548075903,5,7,"{
+""valence"": 5,
+""arousal"": 7
+}
+
+I have tried to do this but",0.0001814917271035872,1.7012354121282833
+emobank_cable_spool_fort_6006_6023,You didn't fight!,2.2,3.8,-0.3999999999999999,0.3999999999999999,4.0590830606932595,5.373420277088675,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a short",0.0007581325567575787,2.6092270722785824,3.267133340767047,4.69385842416071,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a part",0.0004217814798519735,2.396911644595068
+emobank_detroit_3555_3589,I was actually afraid for my life.,1.7,3.9,-0.65,0.4499999999999999,4.583278359845135,5.2290673242053245,5,8,"{
+  ""valence"": 5,
+  ""arousal"": 8
+}",0.0025126822187231893,2.461750622337133,2.9263551017029643,4.969037389332018,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0003799498570745334,2.150300914688291
+emobank_WhereToHongKong_59648_59721,Dr. Sun Yat-sen (1866–1925) began his political career in Canton.,3.0,2.33,0.0,-0.3349999999999999,2.0557371693940483,3.3537953720356386,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0028557000066844742,2.3404697064829816,2.4227402895849752,3.5993736330326778,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0003499381994048666,2.1338174253888114
+emobank_Nathans_Bylichka_31628_31664,This place is just a little of both.,3.0,2.25,0.0,-0.375,3.5930387811051396,4.303682259964041,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}",0.0017981626516120489,2.1453282787850982,2.441823164385173,3.558331282416654,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}
+
+The text is a part",0.00036243360715888584,1.9007123351001562
+emobank_110CYL070_1325_1335,"Sincerely,",3.0,2.3,0.0,-0.3500000000000001,2.352140458805334,3.964003797061304,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The text is a letter",0.0010196041105036994,2.0968370096205504,2.7674816593145586,4.364275390554619,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.00027694687749587384,2.1589045090260472
+emobank_Nathans_Bylichka_2070_2112,I was feeling calm and private that night.,3.1,1.8,0.05,-0.6,2.7587253104346496,3.588370293146575,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0017451243941829472,2.166770654537556,2.155020959743645,3.209338885127285,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The output should be in",0.0007059458649713437,1.9458531597153754
+emobank_hotel-california_21106_21113,Silent.,2.9,2.2,-0.05,-0.3999999999999999,4.356009426744452,4.690199517655932,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The text is a sentence",0.004036362981124483,2.478091627283663,2.779961029783078,3.09711874996553,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a short",0.0013128482903774783,1.8238432932238735
+emobank_SemEval_801,Rice: U.S. won't pull plug on Iraq,3.14,2.29,0.07,-0.355,3.3447365549935526,4.4079618640339175,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The U.S.",0.000293083420021041,2.002159140117183,3.99952890065485,4.751433499599582,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The U.S.",0.00027747753489562886,2.1366502846430726
+emobank_110CYL071_18_35,"November 15, 1994",3.0,2.2,0.0,-0.3999999999999999,3.8600187321636135,5.390037298770127,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a sample",0.002463692919489864,2.6466064755081367,3.5291758757170815,4.7193136475323865,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+Text: November 1",0.000738583906101501,2.354514128559888
+emobank_WhatToHongKong_3035_3172,"Pick up a copy of HKTA’s “The Official Dining, Entertainment & Shopping Directory” in which all member stores are listed.",3.2,2.2,0.1,-0.3999999999999999,3.857125321744575,4.670378824941658,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0012500352236451432,2.3607420860105357,4.2570362176079595,5.283635221612632,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+Sample Output:
+{",0.001198063734944313,2.560445231188763
+emobank_IntroHongKong_1558_1761,"But in fact, once news of the handover vanished from the front pages, the people of Hong Kong returned to their usual topics of conversation: the economy and the price of housing.",2.9,2.1,-0.05,-0.4499999999999999,4.945773273995215,5.0905212230702475,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.007475734870687257,2.435840612942769,3.8755431540550083,4.350385428062994,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0037549443838928017,2.3846874595781737
+emobank_114CUL059_18_30,"July 25,1997",3.0,2.2,0.0,-0.3999999999999999,4.015439878086362,5.7177466983838166,5,5,"{
+""valence"": 5,
+""arousal"": 5
+}
+
+The following is a sample output:",0.0012645652065720963,2.7405778995489016,3.5476441077436904,5.236489228106869,5,7,"{
+""valence"": 5,
+""arousal"": 7
+}
+
+The following is a sample output:",0.00034229615860746285,2.4084395929251685
+emobank_Nathans_Bylichka_39817_39841,The man closed his eyes.,3.0,2.27,0.0,-0.365,3.20610021855069,3.915326826637007,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The man closed his eyes",0.0016368306288323438,2.349469022614665,2.4139882787630453,3.183765001369072,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The man closed his eyes",0.0012781916918727441,2.047592256438988
+emobank_hotel-california_33981_33997,Some other ship.,3.0,2.33,0.0,-0.3349999999999999,4.120941319916939,4.784719494869707,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a list",0.004660896547063714,2.797779517448242,3.4599537117118837,4.4855607584003545,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a part",0.0014799308405074806,2.6820795240588873
+emobank_Fermentation_HR5034_14155_14202,"arunrob@gmail.com October 13, 2010 at 12:39 PM",2.88,1.87,-0.06,-0.565,2.3108735333086035,3.847372336226674,5,5,"{
+""valence"": 5,
+""arousal"": 5
+}
+
+I am a 20 year",0.0013778165906431264,1.999266112629557,2.1753142656447486,3.6095458524624426,5,7,"{
+""valence"": 5,
+""arousal"": 7
+}
+
+I am a little bit happy.",0.0005597068940149064,2.0025435139376886
+emobank_Fermentation_HR5034_7908_8121,"""Over half the states have been sued challenging their alcohol laws. The lawsuits have attacked items such as commonsense safeguards that require a face-to-face transaction (needed for I.D. checks) to buy alcohol""",2.67,2.33,-0.165,-0.3349999999999999,3.386923365950881,4.925593553548471,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.001361119028281847,2.6402177621933736,3.3733231926175584,4.609774407065703,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}",0.001405387807473196,2.778317117527639
+emobank_hotel-california_29929_29956,“I never thought about it.”,3.0,2.09,0.0,-0.455,2.9968785601585797,3.8526822870472257,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a list",0.0013087797086091734,2.1115846797259934,3.5362550419351204,4.758744042985882,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a part",0.0008571182315547251,2.236057799103942
+emobank_easy_money_4002_4130,"There was only one chair, so I sat on the edge of the bed as he handed me a book open to a picture of some sort of stone tablet.",2.9,2.3,-0.05,-0.3500000000000001,3.04409854891954,3.1691499977946958,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0033040384441734728,1.9869080690881205,2.488087664042757,2.879355173513087,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0026841723309299005,1.9562445894358378
+emobank_wsj_0120_3120_3137,"""migrate to 900,""",2.86,2.29,-0.07,-0.355,3.309908281134767,5.14363579718078,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}",8.358167537511751e-05,2.2369185271444927,2.985808619742632,5.511763460677851,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is a sample",8.922623745410381e-05,2.164893950811851
+emobank_wwf12_31_148,"December 7, 2000 FirstName LastName StreetNumber StreetName, CityName, StateName, ZipCode",3.0,2.0,0.0,-0.5,5.7893485923563635,6.219900437501542,5,7,"{
+""valence"": 5,
+""arousal"": 7
+}",0.0009037307123592068,2.5325788405132488,4.433078455296851,5.283216444882418,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}
+
+The following is a sample output:",0.0011282028573792742,2.547312421045359
+emobank_NYTnewswire7_7563_7623,She can be contacted at michellecole(at)news.oregonian.com.),3.0,2.25,0.0,-0.375,3.9458487080420577,4.968190850300555,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0055307640681607415,2.5210299777043934,3.034658198066194,4.517893431614923,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}
+
+The following is a sample",0.002071658140316745,2.292552384489307
+emobank_Nathans_Bylichka_34328_34342,Nepthys asked.,3.0,2.29,0.0,-0.355,6.12877956252815,6.439647264581995,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.002818054278589813,2.6192014941988395,5.883858658697647,5.976225151864039,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.00242366230094642,2.499778757732192
+emobank_WhereToHongKong_54465_54535,The island is also the designated home of the University of East Asia.,3.1,2.3,0.05,-0.3500000000000001,3.860104968159281,4.0991677610412856,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0020776343282665204,2.44889842148108,2.94534062535294,3.4626490120718296,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The island is also the",0.0015055309744971775,2.21288279263382
+emobank_hotel-california_33370_33568,"The speed of sound in dry air at twenty degrees Celsius or sixty-eight degrees Fahrenheit is three hundred and forty-three meters per second, or one thousand one hundred twenty-five feet per second.",3.0,2.33,0.0,-0.3349999999999999,2.192323638133616,2.9194642089481344,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0034646321804832057,1.9120520459818124,1.535444420536604,2.0543809805228017,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}",0.002640847262589368,1.3721882567423367
+emobank_NYTnewswire1_268_471,"ANAHEIM, Calif. -- The Anaheim Angels got help where they felt they needed it most, agreeing to trade for Milwaukee Brewers outfielder Alex Ochoa only hours before Wednesday's nonwaiver trading deadline.",3.12,2.25,0.06,-0.375,4.270743298570063,5.298461388506816,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.003642533595135172,2.498522529196084,5.064742767649717,5.674305797201974,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0051912973082898495,2.3465952375639767
+emobank_NYTnewswire9_5598_5682,"He said that they had split the atom and that we were going to drop an atomic bomb,""",2.78,3.22,-0.1100000000000001,0.1100000000000001,3.9502889071448584,4.133436779853718,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.001959700425065326,2.2906867740128787,3.92950038555764,4.139967046528774,5,5,"{
+""valence"": 5,
+""arousal"": 5
+}
+
+The following is a sample output:",0.0026046278975033893,2.441918300766375
+emobank_SemEval_1271,"Beauticians cut, curl, offer stroke-prevention info",3.14,3.0,0.07,0.0,3.265627483788614,4.5762936099998575,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}",0.0006814552618120775,2.1002931343363764,3.236052850105496,3.3758979261221587,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is from a",0.0009138826300332905,1.9896377606917461
+emobank_NYTnewswire9_7753_7754,"""",3.0,2.6,0.0,-0.1999999999999999,2.975282029920363,3.999253991122223,5,5,"{
+""valence"": 5,
+""arousal"": 5
+}
+
+""
+
+""
+
+""
+
+""",0.0030848600579762887,2.2529858614308087,2.541352953352261,3.799876142771666,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}
+
+""
+
+""
+
+""
+
+""",0.0022879826236917892,2.0557501120833153
+emobank_Nathans_Bylichka_19925_20022,"When it had all burnt, a thin outline of a doorframe appeared on the wall across from our corner.",2.9,2.7,-0.05,-0.1499999999999999,2.569084253985602,3.27743692528378,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0008904896960830607,2.064828521231718,2.414856897899039,3.405800399609614,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0017127208601487123,2.0912531831110672
+emobank_lessig_blog-carbon_1966_1997,I am suspicious of cap & trade.,2.6,3.2,-0.1999999999999999,0.1,4.519493453986394,5.633927410289765,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0022182186421723163,2.5947578084556544,3.1631274543876597,5.3439318683537484,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.00047574160054348735,2.275996018529944
+emobank_IntroDublin_7658_7712,The Irish are actually beginning to come home.,3.2,3.1,0.1,0.05,3.4263140737775553,3.9633620931717206,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0026330013561318326,2.266755575444794,3.503629762932598,4.342538801701721,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The Irish are actually beginning",0.0011292827340704209,2.2631175773541874
+emobank_118CWL048_1006_1066,Over 150 girls are currently waiting for a Big Sister.,3.0,3.44,0.0,0.2199999999999999,3.5433894467814007,4.78934504683507,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.002786656097014407,2.6137853967014975,3.355186219097902,4.8306966283417765,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0011079325521499961,2.423520868613437
+emobank_20020731-nyt_5994_6106,"Nor did it cite a $1,590 Oriental carpet that Chang gave to Torricelli's former wife, Susan Holloway Torricelli.",2.88,3.0,-0.06,0.0,3.0435747962603177,3.7940073263826832,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.004873597542975203,2.2467204134111256,3.0881895693507473,4.774434368089212,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.004185476493643657,2.3643122369705845
+emobank_Bartok_16606_16856,"In Example 2, the entire development section is represented by exactly three pitches, and indeed each subsection is associated with one of these three pitches as its tonal center—none of these pitches is involved in the structural whole-tone descent.",3.0,2.88,0.0,-0.06,3.5291009155103126,3.6983258592591977,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.019369692010571267,2.8495957935458844,3.9472301847324696,3.986959589598046,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}",0.011470203338422883,2.863529322204668
+emobank_A1_65_84,Dubai 01-82 (AFP) -,3.0,2.7,0.0,-0.1499999999999999,4.338072766328784,6.2917330418462605,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The UAE's Dubai",0.0004364241691525813,2.561669070058947,3.4226855339728823,5.2076726173298935,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}
+
+The Dubai Expo 202",0.0002105706614065007,2.351229972385487
+emobank_NYTnewswire5_1031_1103,"Right now, some particularly nice ones are in Bay Area farmers' markets.",3.3,3.3,0.1499999999999999,0.1499999999999999,2.7072819542571533,4.127106968189905,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0003281890698337002,2.0694770795925828,2.6827019929544256,4.103384964141647,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}
+
+The following is a sample",0.0006062497247352375,2.2441577408782023
+emobank_wsj_0127_805_889,"Reed is paying an interim dividend of 4.6 pence, up 15% from 4 pence a year earlier.",3.0,3.0,0.0,0.0,2.1988713422332715,5.937781112339157,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0006999760128077369,2.3997484310975157,2.5424248299163303,5.616690174691851,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.000880178393731607,2.586268012077603
+emobank_WhereToHongKong_1285_1483,"Next to the Jardine building is Exchange Square, a complex with a large shopping mall; just behind it is the General Post Office with a philatelic center on the ground floor.",3.0,3.0,0.0,0.0,3.0178327903174456,3.6651051965566257,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0011405386484434651,1.9478119528604705,2.5887485160732533,3.2995084986753223,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}",0.0014950006426010995,1.9142600874227877
+emobank_Ant_Robot_6023_6148,"Sensors will include a thermometer, photoreceptors, bump sensors, a polarization compass, and a series of chemical receptors.",3.0,3.0,0.0,0.0,3.4873401647716165,3.920835615486207,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}",0.007954877338558567,2.3895865311112656,3.16184019979732,3.5550740534383074,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is an example",0.0020583191916853354,2.053905653370218
+emobank_wsj_0127_928_1005,"Earnings were hurt by disposal of operations in its restructuring, Reed said.",2.44,3.0,-0.28,0.0,4.593332116949151,6.5427389360743655,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0007995337793286867,1.981162125669647,3.6863890436735134,5.088720224104083,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is the code",0.0007662584760259374,2.2102045718876395
+emobank_SemEval_929,"Dell to cut bonuses, trim management",2.8,3.0,-0.1,0.0,5.405855809432244,5.958598343978578,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The text is from the",0.0006821093415936632,2.2377598044074705,5.249288579523887,5.897709072275099,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0007810143926315307,2.4100067858966185
+emobank_Acephalous-Internet_1270_1472,"This realization is obviously not of world-historical importance, merely a reminder that this thing whose existence we take for granted daily represents a fundamentally weird complement to human memory.",3.0,3.0,0.0,0.0,3.10785078818924,3.8507120161224355,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.004004081859545345,2.313203286147867,3.2148027611645675,3.733026443172278,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.005516529110624842,2.410571933097439
+emobank_114CUL059_911_1020,"These 60 or so campers have takenon a fund raiser with a goal of raising $16,000 for camperships.",3.25,3.62,0.125,0.31,2.9554818550554804,4.431824570695703,5,7,"{
+""valence"": 5,
+""arousal"": 7
+}",0.0007236285435254962,2.401954405411132,3.467628509588808,4.431207222444677,5,7,"{
+""valence"": 5,
+""arousal"": 7
+}",0.0008598464697778526,2.533603558164431
+emobank_WhatToHongKong_16110_16267,"Although the music may seem strange to the unaccustomed ear, it certainly won’t put you to sleep; cymbals and drums guarantee your alertness.",3.12,3.25,0.06,0.125,3.765045561848931,5.259986631617631,5,8,"{
+  ""valence"": 5,
+  ""arousal"": 8
+}",0.0009331942063943672,2.3224473999496085,3.98198176581732,5.525064614326123,5,8,"{
+  ""valence"": 5,
+  ""arousal"": 8
+}",0.0006639455135040764,2.2456233257698455
+emobank_Ant_Robot_50291_50564,"Workers probably switch to patrolling based on their perceived life expectancy and as a function of a gene whose expression changes between young and old ants, and this is easily emulated using a clock pulse counter in Antie’s CPU that will count its “age” since last boot.",3.0,2.9,0.0,-0.05,4.355173601775748,5.01831754631647,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}",0.004325749718757708,2.6037719280968816,3.9726651453200286,4.970588356052129,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}",0.004614763852177281,2.5479815408934305
+emobank_Nathans_Bylichka_23761_23834,"As you can see, our situation is of personal importance to the young man.",3.09,2.73,0.0449999999999999,-0.135,2.6331616990924043,4.233769883163857,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0012067082463383613,2.2993488226573175,2.4807839660656135,3.75798217968251,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}
+
+The following is a sample",0.0007653321006278092,2.1306489290209365
+emobank_Nathans_Bylichka_33184_33265,They were always my favorite part of the Greek myths I read in elementary school.,3.3,2.9,0.1499999999999999,-0.05,2.2543794229324168,2.699670279332358,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0014933210991132952,1.851459087587196,2.4743811620835316,2.4315019167633265,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}
+
+The following is a sample",0.001230017379137726,1.763184782056965
+emobank_Homosexuality_3849_4031,"This theory, which defined Urnings as males who turned to other males as sexual partners, was published in twelve pamphlets by Ulrichs, starting in1864.",2.83,3.0,-0.0849999999999999,0.0,3.834436043547056,4.086374010543578,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0014219590321751141,2.408995477895995,3.7323466132361944,4.17560208806829,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}",0.0010196659583362677,2.5285384719591066
+emobank_vampires_1039_1046,'ninja',3.0,2.9,0.0,-0.05,4.454252166228004,5.352949994150505,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}
+
+The following is a list",0.004076681088167435,2.4799860599641863,3.0546910555142857,4.037446506900598,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a short",0.0021712991869965916,2.1699164447972543
+emobank_WhereToHongKong_54675_54833,"A grand colonial house, fully restored and outfitted with period furnishings, provides the centerpiece for this expanding “cultural village. ”",3.0,3.0,0.0,0.0,3.719759558524918,4.886621017508649,5,5,"{
+""valence"": 5,
+""arousal"": 5
+}",0.003412035210564088,2.017421719381705,4.49881764072868,6.312747900723311,5,7,"{
+""valence"": 5,
+""arousal"": 7
+}",0.00041833174956245993,2.146627640006547
+emobank_anth_essay_4_15389_15507,"Difficulties arise, however, as conflicts between the traditional and modern and native languages and Spanish develop.",2.8,2.9,-0.1,-0.05,1.8839109824261775,3.350926661842928,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.001689763128163336,1.9191072739177437,2.0276570827966465,3.3669492348474463,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is an example",0.0009899071239914176,2.0774239127626757
+emobank_hotel-california_3981_3998,She turned to me.,3.0,3.0,0.0,0.0,3.984442639514142,4.599218671237033,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a list",0.00220501744026462,2.4657187382220185,2.4404381688656924,3.666193516422161,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a part",0.0005792381853283236,2.0255266240081307
+emobank_A_defense_of_Michael_Moore_14510_14661,"b) Why should Moore leave the words ""Clinton is on the Today Show"" visible in the text, which is necessary to correctly interpret the highlighted part?",3.0,3.25,0.0,0.125,2.8786506804696907,3.4467261846843473,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0012681803943529796,1.6812951057576373,2.2422125872044885,2.763690307772391,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}",0.0005497932378222656,1.3644713817399354
+emobank_SemEval_116,Top General Optimistic on Iraq,3.0,3.12,0.0,0.06,4.087553662024847,4.3248423746273765,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a sample",0.0016320448321302892,2.3674528973692786,3.477852470633165,3.822011488983286,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}
+
+The following is a sample",0.0021829825308749893,2.2486207761085093
+emobank_Acephalous-Internet_2299_2485,"Now that I remember him, which I didn't before, I remember him as being the pitcher who'd pitched for 1) the team the Mets faced to get to the '86 Series and 2) the one they faced in it.",3.0,3.0,0.0,0.0,1.3154430347220136,3.246445112134199,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.00011182201895211643,1.280086174130778,1.3528078378366786,2.3665529049922047,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",5.443873650425034e-05,1.0733487380443436
+emobank_IntroDublin_6967_7136,"Almost half of Ireland’s population is under twenty-five, and with its universities and professional schools, Dublin also has a large student population.",3.0,3.0,0.0,0.0,3.2182480064268972,3.985721584845356,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}",0.0022673040062569003,2.282944099752303,2.770247366464788,3.6932903426459855,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}",0.0018182354819601902,2.2304478591472954
+emobank_SemEval_99,Vegetables May Boost Brain Power in Older Adults,3.3,3.1,0.1499999999999999,0.05,7.025959207099828,6.601771855321301,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}
+
+The following is a sample",0.002154739416576384,2.3706564539099486,6.440567965803854,6.3540413849927315,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}
+
+The following is a sample output:",0.0035794312497493355,2.515325002644472
+emobank_wsj_0175_536_643,Sony's planned acquisition of Guber/Peters Entertainment Co. for $200 million is scheduled to close Monday.,3.0,3.1,0.0,0.05,4.397816951258525,6.428242667753177,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0011944968517374982,2.266363616657695,4.518415530998336,6.054368770082956,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0008846319139931341,2.3545145477478617
+emobank_20020731-nyt_23886_24069,"The anonymous buyer, believed to be an individual collector who lives in the United States, made the winning bid in a fiercely contested nine-minute auction at Sotheby's in Manhattan.",3.4,3.3,0.1999999999999999,0.1499999999999999,3.503117033065096,5.05550702719135,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0010457908872136218,2.108870547107021,3.2390909020513203,5.129629975154092,5,8,"{
+  ""valence"": 5,
+  ""arousal"": 8
+}",0.002927357445995682,2.278102423646699
+emobank_Fermentation_HR5034_11796_11901,http://www.law.com/jsp/nlj/PubArticleNLJ.jsp?id=1202463630848&Alcohol_bill_means_happy_hour_for_lobbyists,3.0,2.7,0.0,-0.1499999999999999,1.6922324590165525,5.459938905534617,5,5,"{
+""valence"": 5,
+""arousal"": 5
+}",0.00036955607806271915,2.1625110424208667,2.0474033892449643,5.342323371113631,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}",0.00012322558080697988,2.2681976667195918
+emobank_detroit_14948_15031,But here's the thing -- frogs are mutating due to the planet trying to kill itself.,2.6,3.4,-0.1999999999999999,0.1999999999999999,4.1416472448345045,4.481678254673833,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.001410236750999415,2.2838206940793566,3.751806450545387,4.298559693915784,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0005758185276537749,2.283305402397435
+emobank_Black_and_white_6132_6219,It strays from reason in the way which it consumes and manipulates life.,2.5,3.25,-0.25,0.125,3.90844204025485,4.887441256331614,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}",0.002074546325058428,2.48985289385928,2.662642137364023,3.7323576259107742,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a part",0.0021245776130415124,2.03666948054011
+emobank_SemEval_1210,King and queen reign at British film awards,3.2,2.9,0.1,-0.05,4.496282782257928,4.7710279276449326,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}
+
+The British Academy of Film",0.0018737255732330284,2.6563320067440763,4.972617605203153,4.312254658873192,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}
+
+The British Academy of Film",0.0016319671618657615,2.614470868049008
+emobank_Fermentation_Eminent-Domain_4527_4654,"This is a case of over-reaching government regulation, costing business unnecessarily and burdening them with more regulations.",2.8,3.0,-0.1,0.0,3.063794256771508,4.285995845608944,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0036871090991858224,2.209479600688236,3.0498305417763256,4.609830943121121,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.003261757794383304,2.228281254751283
+emobank_IntroHongKong_68_170,"Exciting, mysterious, glamorous — these words have described Hong Kong for at least a century.",3.46,3.18,0.2299999999999999,0.09,4.862418556043107,5.417503763510057,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}",0.0008442706995428862,2.5023607342936502,5.568945429619507,5.2370234205963015,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}
+
+The following is a sample",0.0006345523431530614,2.490458403559767
+emobank_wsj_0159_825_882,10 as the deadline for the receipt of any competing bids.,3.1,3.1,0.05,0.05,2.6326258657196746,3.952798084068321,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.002182008537210565,2.1612728089937074,2.4977033657999343,5.289934467039515,10,10,"{
+  ""valence"": 10,
+  ""arousal"": 10
+}
+
+The deadline for",0.0017155674674510953,2.0758818412538402
+emobank_SemEval_1337,Princess Masako author: No regrets,3.0,2.78,0.0,-0.1100000000000001,3.271307062043472,4.099680429237607,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a short",0.0013822872192647837,1.902584262900121,3.2198528428940953,3.3574028168737335,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}
+
+The text is:
+
+Princess Mas",0.002856279490669931,1.9807915941703556
+emobank_WhatToHongKong_10118_10203,Woks and any other gadgets essential for Chinese cookery make good purchases.,3.22,2.89,0.1100000000000001,-0.0549999999999999,4.184516215516529,4.7356537809223855,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.003595131538520931,2.301627291818807,3.23838218014152,4.260211913127507,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.001754415768281355,2.1875768842665435
+emobank_WhereToHongKong_31668_31741,Two natural rock formations are always pointed out on excursions.,3.12,2.87,0.06,-0.0649999999999999,3.0016259560997782,4.593667488237887,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}",0.0008261615133846327,2.1786020379022033,3.790618805548913,4.335984325842953,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The first one is a",0.00028878765428279416,2.2128486735666515
+emobank_NYTnewswire9_7632_7642,None came.,2.7,2.8,-0.1499999999999999,-0.1,3.8684466693247845,4.165282675737814,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a sentence",0.00523024174103583,2.4659610655895476,2.5926480357283572,3.470355986707427,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0011283328506239965,2.066813033151125
+emobank_Ant_Robot_5877_5941,Antie will be implemented on a tiny Road Warrior robotic system.,3.2,3.2,0.1,0.1,4.561754240075195,4.947520625142317,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}",0.002523167054145624,2.4450953743101307,3.7505234619731143,4.532523323068785,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0025889667120199337,2.2932531029790075
+emobank_Fermentation_HR5034_4287_4426,"Fiction page ( http://www.hr5034.org/fact-vs-fiction ) ""FACT: This bill does not address direct shipping or any specific state alcohol law.",3.0,2.56,0.0,-0.2199999999999999,2.535733463525346,3.357476874759397,5,5,"{
+""valence"": 5,
+""arousal"": 5
+}",0.0017657573882690833,2.8116725594271097,2.7167496191381764,3.7431162788936527,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}
+
+Note:
+1. The JSON",0.0008403621134339838,2.413350447970198
+emobank_hotel-california_14602_14701,"Maybe we had all tired of the frivolity of our life, hitting some threshold or some breaking point.",2.5,2.7,-0.25,-0.1499999999999999,4.348301179855255,4.956690981268734,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}",0.0005251405881193383,2.359751811934253,3.288654882038731,4.176959314991805,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a bit",0.0006962675153764173,2.1943404554823283
+emobank_NWF1_2207_2523,"For more than 60 years, caring and concerned wildlife lovers like yourself have supported our mission to educate, inspire and assist individuals and organizations to conserve wildlife and other natural resources and to protect the earth’s environment in order to achieve a peaceful, equitable and sustainable future.",3.14,2.86,0.07,-0.07,3.1692677277756056,4.3378450651192235,5,5,"{
+""valence"": 5,
+""arousal"": 5
+}",0.005150051623087465,2.379046177450769,3.0289683157585796,4.255009322295413,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}",0.002465946331073819,2.3569358663539925
+emobank_WhatToHongKong_21826_21969,"Because of the heavy harbor traffic, only sailors licensed by the Hong Kong authorities can run pleasure boats in local waters.",3.0,3.0,0.0,0.0,2.567248620903279,3.47291766986274,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}",0.001305050133071736,2.1740246060366886,3.150901958526304,5.258781515859225,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0006704462741599353,2.3781793396134603
+emobank_detroit_16320_16354,Don't forget about the back taxes!,2.9,3.8,-0.05,0.3999999999999999,3.6296884779246676,4.877610150225512,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.002329493352086263,2.6223129579084135,3.4075605386896464,5.277491328342763,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The back taxes are a",0.0004896939319232418,2.448689673699395
+emobank_audubon1_7168_7287,"First,sign and return your Petition to the Secretary of Agriculture immediately, to declare a firm and resounding “NO!”",2.7,3.8,-0.1499999999999999,0.3999999999999999,4.358598540772899,5.492384926512703,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}",0.0010543589812781523,1.8438759527216877,4.572674156759746,5.6691313261361564,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}
+
+I am a student of the University",0.0021336265656344026,2.0461221011459916
+emobank_captured_moments_35083_35108,"I shouted, ""Where is she?",2.82,4.0,-0.09,0.5,4.0332232115312285,5.435487594984767,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0008539195295244473,2.522654721103812,3.5235696052776384,5.666535268076026,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}
+
+I am a little bit sad.",0.0003992444440484228,2.3514532684468294
+emobank_The_Black_Willow_14142_14205,"He glared at Allan, eyes impaling him and demanding a response.",2.38,3.87,-0.31,0.435,4.646051624445239,5.53982163339122,5,8,"{
+  ""valence"": 5,
+  ""arousal"": 8
+}",0.0018474147923067696,2.6315132243839745,4.75361308259477,6.007676832885743,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The text is a part",0.00028164256700838287,2.3090160324299593
+emobank_The_Black_Willow_10406_10468,"""That is precisely why I must excise this malignant instinct!""",2.6,3.7,-0.1999999999999999,0.3500000000000001,4.104672105178857,4.536133327114404,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.002429774106630373,2.3628037778612767,4.078985375310554,5.455888678960692,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a quote",0.0010840935275039719,2.5610218122957082
+emobank_SemEval_1470,Frantic 911 call in Ryan O'Neal case,2.6,3.7,-0.1999999999999999,0.3500000000000001,3.3332006611453227,3.774196653780877,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0005019761549036711,2.1269682875729394,3.7266585585854246,4.53524544503402,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0005657758307017282,2.1852173894200035
+emobank_Nathans_Bylichka_51309_51320,he shouted.,2.4,3.8,-0.3,0.3999999999999999,3.3430311906510575,4.08673520051822,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}
+
+The following is a list",0.00240371507496327,2.154793179938663,2.331468773676064,3.269940918684478,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0009668349718247624,1.8400526483973627
+emobank_detroit_13598_13622,The dark horse rides on!,3.4,3.9,0.1999999999999999,0.4499999999999999,2.8966270639276126,4.029317629643758,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}
+
+The following is a sample",0.0012747512808667888,2.121144397345473,2.864627067499563,3.811648633994846,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The dark horse rides on",0.0006182593769171926,2.1026594688468987
+emobank_Homosexuality_12358_12505,Dobbens reasoned that most parents would not raise their children to be homosexual; “They’re not like ‘My child’s going to be gay!”’,2.8,3.7,-0.1,0.3500000000000001,4.17874674436052,4.8721135616156594,5,5,"{
+""valence"": 5,
+""arousal"": 5
+}",0.0010781766872948197,2.52735948731684,4.449265268068938,5.029210437186101,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}",0.001944806564032098,2.5245092205787887
+emobank_112C-L013_530_542,Real people!,3.62,3.87,0.31,0.435,4.099438192499796,4.936746546025206,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The text is a real",0.0013893536784922373,2.311120570774297,3.532277057372547,3.7267612141308843,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+Example:
+{",0.001109176396939271,2.2606458064604067
+emobank_NYTnewswire7_135_185,RESPONSIBLE SEAFOOD SALES ARE THE CATCH OF THE DAY,3.5,3.8,0.25,0.3999999999999999,6.060444264362824,5.60032381545378,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a sample",0.0008087524926185235,2.217033553529533,5.719047407662385,5.288987082115958,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0019710630534780183,2.3940911103472207
+emobank_Nathans_Bylichka_53471_53659,"He bashed up a set of stairs set into the side of the wall, and we chased up after him, heading up a huge staircase that seemed to go up for more stories than the building could have held.",2.62,3.75,-0.1899999999999999,0.375,2.943822218182554,3.209712873916936,5,8,"{
+  ""valence"": 5,
+  ""arousal"": 8
+}",0.003168718695716016,2.1208780272440166,2.127306672240387,2.435707144663442,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.001523860021204066,1.7654664097516688
+emobank_captured_moments_6209_6225,"""But of course!""",3.57,3.71,0.2849999999999999,0.355,4.33564157869476,5.475732339918457,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a list",0.0004800182638743499,2.4255041908737978,3.1427932291502696,5.465005760511952,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a part",0.00025545974094849866,2.4186035087235402
+emobank_Nathans_Bylichka_54841_54853,Behind you!”,2.8,4.1,-0.1,0.5499999999999998,3.359170798590112,5.183402575454417,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}
+
+The text is a warning",0.0003211664915668636,2.154112126811255,2.7698066970067767,4.464184579525655,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0002173633833302312,2.1354970348510816
+emobank_easy_money_1285_1350,He set the cup down and looked straight at me for the first time.,3.1,3.7,0.05,0.3500000000000001,2.704709634032545,3.858117762348449,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0010808838210466733,2.0456108885836026,2.1417777156782645,3.1180471374769425,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0007470951704092731,1.8924727395057268
+emobank_118CWL050_3607_3658,"When you give to Big Sisters, you can get 50% back!",3.4,3.7,0.1999999999999999,0.3500000000000001,3.0291529667900994,4.45520786470152,5,8,"{
+  ""valence"": 5,
+  ""arousal"": 8
+}",0.001030470563550538,2.4283705449161017,2.5721617286640077,3.7076387475753405,5,8,"{
+  ""valence"": 5,
+  ""arousal"": 8
+}
+
+The following is a sample",0.004577708804460297,2.327381236723022
+emobank_defenders5_205_244,This wolf will be running for its life!,3.0,3.8,0.0,0.3999999999999999,2.9117797032224004,3.745648962970467,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}",0.001464791863892007,1.929014896083358,3.078213033690534,4.290747032149825,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0006325594963448949,2.1283711037599944
+emobank_defenders5_3662_3742,That’s why your special financial support is so important — and urgently needed.,3.11,3.67,0.0549999999999999,0.3349999999999999,5.255858809520332,5.809602926533787,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0008371158698909478,2.467125824874388,3.9369333510788413,5.3289278209595405,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a part",0.000849843157487914,2.4005585374383305
+emobank_Homosexuality_2493_2499,"“sex,”",3.5,3.7,0.25,0.3500000000000001,3.926669198733026,5.117318119534697,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a list",0.00012779171090266788,2.323483121085917,2.334045222958341,5.059716568153914,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}
+
+I'm not sure what you",0.00013663992747167385,1.838266263737358
+emobank_Nathans_Bylichka_54804_54840,"Then I heard Nepthys shout, “Nathan!",2.9,3.7,-0.05,0.3500000000000001,6.110176737011667,6.390619926430349,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}
+
+The following is a sample output:",0.0015261965459039484,2.557202636483275,5.18279062441129,6.116443937971317,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}
+
+I am a little bit sad.",0.00133773600215448,2.6865588357570886
+emobank_cable_spool_fort_4979_4990,"""Time out!""",2.4,3.9,-0.3,0.4499999999999999,3.497974979931618,5.1126154252308496,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a sample",0.0013367494389589605,2.560309318087806,2.384132685550555,4.30197319790676,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.00046500276073643137,2.1411995950624645
+emobank_detroit_707_778,Some of us (and lots of New Yorkers) pay that much in rent every month!,2.7,3.7,-0.1499999999999999,0.3500000000000001,4.55925673725263,5.357214420658237,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}",0.0011253000456845378,2.7063076458966506,4.6600699842399,5.244375433936151,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}
+
+Note:
+- You",0.0003913521731360911,2.749888775394624
+emobank_Nathans_Bylichka_51701_51730,"“Listen, man, he’s not there!",2.7,4.0,-0.1499999999999999,0.5,3.7327066221559315,5.332586626777908,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}
+
+The text is a short story about",0.0013466381782069408,2.3825284918362906,3.140628167037184,5.508617736817061,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}
+
+The text is a conversation between two",0.0005767294808651388,2.167976826838541
+emobank_SemEval_913,Here come the Globes!,3.5,3.8,0.25,0.3999999999999999,5.144069645852385,5.036923022905099,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a sample",0.0014001536108236387,2.5593626409442765,4.527824117090801,4.423073076794791,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.00116058051906599,2.517986570886776
+emobank_captured_moments_34149_34268,"She was looking slightly to my left, smiling with trust and satisfaction like one sexually content.",3.63,3.82,0.3149999999999999,0.4099999999999999,3.4698637849338616,4.852427641183683,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}",0.0012196852961459017,2.370015796831999,3.396111426370102,5.408290242833929,5,8,"{
+""valence"": 5,
+""arousal"": 8
+}
+
+I'm not sure what you",0.00045815568113273606,2.202151747603772
+emobank_Madame_White_Snake_7189_7196,"“Lust,”",3.4,3.8,0.1999999999999999,0.3999999999999999,3.3786268911474515,5.5250503472652905,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}
+
+The text is a short",7.600803908660306e-05,2.078194921837219,2.6210508480554857,6.587725207680431,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}
+
+I am a little bit sad.",8.080123824916917e-05,1.7960579704152169
+emobank_SemEval_54,Game on! London exhibition celebrates the history of video games,3.5,3.7,0.25,0.3500000000000001,3.5998763053807306,3.6152766732932182,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a sample",0.0015742422549622026,2.036866579353674,3.027822599294411,3.5159480309437523,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The London Games Festival is",0.0019458826974718749,1.9227589159798266
+emobank_united1_1334_1467,"Offer is first-come, first-served and at this incredibly low rate, cabins are sure to sell out quickly, so call 1-800-822-2841 today!",3.6,3.7,0.3,0.3500000000000001,1.8301111846589297,2.8152402040359696,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0005471659621303073,1.4251128624328742,2.028597281265282,3.17289971026057,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0013935114241072901,1.9178776808845963
+emobank_Fermentation_Eminent-Domain_5129_5331,"I'd be pissed that I'm forced now to put a place-name on my label that told my buyers nothing of real value about the wine behind my label and, in some cases, demonstrably lowered its perceived quality.",2.4,3.7,-0.3,0.3500000000000001,2.839787690720747,4.186334855397744,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0002561711469983175,1.8779789572528762,2.9781520429421944,4.5708534410553945,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}",0.0003788408422597995,1.9417305162411376
+emobank_captured_moments_35640_35817,"Most of his story I have pieced together since, but I understood enough as I knelt on his chest with my hands tight on his fleshy throat.",2.44,3.67,-0.28,0.3349999999999999,2.1131905566457085,2.5515000663293987,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.002384723572449131,1.7117964692271113,1.6894400002038577,2.2784916631525975,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0010672487518435729,1.4572830891827497
+emobank_Homosexuality_12475_12505,‘My child’s going to be gay!”’,3.0,4.12,0.0,0.56,3.5019354664827174,4.932116332189354,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0007532868365315218,2.1557483604065375,3.2918250727323533,5.166497985539645,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0006875423194573181,2.2721455330277465
+emobank_Uprooted_Bike_4508_4524,Then keep going!,3.17,4.16,0.0849999999999999,0.5800000000000001,2.6856426712203483,3.8328056951615332,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a command",0.003971606413119572,2.2896570668642346,2.0678674968984114,3.2040593040437284,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a part",0.000852617315740578,2.0968275527494384
+emobank_detroit_17039_17149,"A $1,000 house, which could be fixed up into maybe a $30-40,000 house comes with a tax bill of $4-6K per year!",2.8,3.8,-0.1,0.3999999999999999,1.3365740924437712,4.827967212390246,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",2.426223466616762e-05,1.8876299860550894,2.1441987729039513,4.327210080356889,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",1.704163066993255e-05,2.244826859343403
+emobank_Nathans_Bylichka_51878_51937,"Even if you did find this vampire cat, he’d tear you apart!",2.7,3.7,-0.1499999999999999,0.3500000000000001,2.69712395590859,4.4211605095496544,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.00041461187257656407,2.0966770867116984,3.1332596193579496,5.162754306050787,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0006894406434572202,2.3814027440092573
+emobank_hsus4_3962_4057,Please help us carry this message to others so that animal cruelty and abuse can be eliminated.,2.4,3.8,-0.3,0.3999999999999999,3.2374641270961133,3.681647794841539,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.003621356080924176,2.2536936606200833,2.7213736679200022,2.915462277773041,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.003322711399536057,2.0260448468929884
+emobank_20020731-nyt_34639_34650,Excellence.,3.5,3.7,0.25,0.3500000000000001,5.794358670401582,6.546307027400202,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The text is a part",0.005887016171210558,2.894152679615828,5.540577587259509,6.092805704749363,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a short",0.003435058880835323,2.8514190270663495
+emobank_captured_moments_24869_24876,"""Emil!""",3.4,3.7,0.1999999999999999,0.3500000000000001,4.591756071323541,5.498551559637056,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a list",0.001482635848698874,2.553861841660194,2.899061018749135,4.516776988151706,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a sentence",0.0005590780589066665,2.2741405329736417
+emobank_captured_moments_21658_21733,"She screamed, ""I haven't socialized with Terra's elite for most of my life!",2.4,4.2,-0.3,0.6000000000000001,2.901402801603389,3.763249154241925,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0005789026140309024,1.9940319300423455,2.5539782963974,2.756873070232963,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}
+
+I'm not sure what you",0.0007871307652619939,1.834738267809387
+emobank_Nathans_Bylichka_9223_9267,"I stopped and looked back at him, surprised.",3.0,3.8,0.0,0.3999999999999999,3.7265950482622405,5.175086253576277,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0005404232010144606,2.210729612968913,2.6610024203140705,4.202053726372161,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.00040876219176471285,2.1066727526956557
+emobank_NYTnewswire4_2523_2590,"""and he said he felt like he was having an out-of-body experience.""",2.9,3.7,-0.05,0.3500000000000001,2.8252641325012227,4.488838490858295,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0004801616158661153,1.9516681302663224,3.3698418989308503,5.38459029017819,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The output should be in",0.00044218810431330527,2.0837766003393323
+emobank_appalachian1_113_210,IT AUTHORIZES YOU TO START ENJOYING AMC’S OUTDOOR ACTIVITIES IMMEDIATELY!,3.57,4.0,0.2849999999999999,0.5,5.62204475495183,5.182172335012547,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}",0.000840588716604238,2.1184822191311303,6.588761096798265,6.023500643123635,9,9,"{
+""valence"": 9,
+""arousal"": 9
+}
+
+I'm not sure what you",0.0009304485016190104,2.3203291581735153
+emobank_Nathans_Bylichka_58041_58059,"“My fuckin’ hero,”",3.5,3.9,0.25,0.4499999999999999,6.054109747219348,5.810667309128149,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The text is a sentence",0.00031155781639133226,2.3539103579109035,3.6994422254458312,5.887110231944211,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a quote",0.00047121276757237056,2.0955204692285254
+emobank_A_defense_of_Michael_Moore_4532_4590,"Still think fucking with the U.S. was a good idea, Sammy?""",2.5,4.13,-0.25,0.565,4.702493103428521,6.432708516684446,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.00017054630958320243,2.061060422441351,4.388889364282152,5.309075326463615,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a sample",0.00045403535184761033,2.2551974395686356
+emobank_lw1_539_585,"""Tarrin says the planet's a freaking gemstone!",3.64,4.09,0.32,0.5449999999999999,4.607377402987595,5.48053509901779,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+Note:
+1.",0.00026135703537465843,2.294254242476674,4.093944202698103,5.094380254409937,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is an example",0.0009445454098720046,2.40384887038223
+emobank_Nathans_Bylichka_51839_51859,"“Don’t do this, kid!",2.36,4.09,-0.32,0.5449999999999999,4.443311909303494,5.441779744796083,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}
+
+The text is a warning from a",0.0014210905772120098,2.861139698487807,3.425245615106167,4.475584721926314,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}
+
+The text is a text from a",0.0008228707740448589,2.4843600850615535
+emobank_Nathans_Bylichka_37808_37815,“What!”,3.1,3.8,0.05,0.3999999999999999,3.333549929483762,4.428827050527211,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a list",0.0012915604055571699,2.41946606961516,3.663540816875642,5.160357843394521,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a sentence",0.00046575806729446767,2.4932742753553696
+emobank_detroit_13679_13703,You gotta be kidding me!,2.7,3.9,-0.1499999999999999,0.4499999999999999,3.84199917798449,5.203224156057108,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a sample",0.00047879330987965745,2.408243902496457,3.6318432879176106,4.594706860324049,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0004597294837226747,2.3603588642516433
+emobank_Nathans_Bylichka_51627_51648,"I have to hurry, too!",2.62,4.0,-0.1899999999999999,0.5,3.0923209904424374,4.281719502495125,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a sample",0.000627370414296342,2.077821363612892,2.547394401796489,3.368367085853416,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0005347884237885031,1.9192686350530683
+emobank_captured_moments_18270_18325,He's had shows in Brazil and New Madrid and everywhere!,3.6,3.8,0.3,0.3999999999999999,2.738672801716365,3.47702424817,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}",0.0010773932270998691,2.14560205856165,2.585606720813192,3.4441606740293267,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a bit",0.0005218889165743489,2.04095594276965
+emobank_How_soon-Fans_1597_1689,"Now, let's take a look at what the Friday's FanWoody Facebook page looks like today: Whoops!",3.13,3.75,0.0649999999999999,0.375,4.755952428282962,5.503407178641538,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.00200528125116815,2.567394147371932,4.140294440955519,5.353419771139397,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a sample",0.0008810602480062771,2.4478189811833375
+emobank_110CYL072_836_851,Goodwill works.,3.87,3.25,0.435,0.125,4.71738741950073,5.1769489048699056,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The text is a short",0.010454654678903517,2.5958631894778894,3.699647520940268,4.165362963515257,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a short",0.0019844445136748975,1.9352963873489983
+emobank_detroit_16391_16421,I find this topic fascinating.,3.91,3.37,0.455,0.185,3.7219842535754335,4.348363139462441,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}",0.0031305118135121724,2.2873364383952977,4.41176608041435,5.12274537466636,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0017815472942740596,2.4249155442554855
+emobank_The_Black_Willow_16538_16592,"""This is one of the strongest works I've read in ages.",3.8,3.5,0.3999999999999999,0.25,2.5858222138733797,3.5404675034434483,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+Note:
+1.",0.00036221685014469754,1.9344458535422693,2.4128510852811966,3.6535719644751183,9,9,"{
+""valence"": 9,
+""arousal"": 9
+}
+
+I'm not sure what you",0.001148838552543978,2.1823448563537498
+emobank_hotel-california_6697_6746,The accompanying bottle of wine was a nice touch.,3.75,3.0,0.375,0.0,2.8729045861319964,3.3330712640493294,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0025706760622468197,2.2323496601024684,3.6195517293072648,4.6840225822518775,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}
+
+The following is an example",0.001658558532625646,2.41560119504029
+emobank_alumnifund1_2049_2066,"With best wishes,",3.8,3.1,0.3999999999999999,0.05,4.3906896608503345,5.285422069780884,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The text is a short",0.0008629415469843035,2.632791498434895,3.762874341632825,4.878304278519637,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}
+
+The following is a sample",0.0003254191652980155,2.341762502032101
+emobank_marine1_1448_1698,"At a price nearly half off the regular membership dues, you will receive a host of member benefits (more on these in a moment)_and, far more important the satisfaction of actually doing something to improve the ocean world we pass on to our children.",3.75,3.5,0.375,0.25,3.0110702461287664,4.269097947204803,5,5,"{
+""valence"": 5,
+""arousal"": 5
+}",0.001082313300771992,2.304750482172501,4.048088775001137,5.704045919030238,5,8,"{
+""valence"": 5,
+""arousal"": 8
+}",0.0014280740064736297,2.6313152222384772
+emobank_detroit_11417_11443,I love what you are doing.,4.3,3.6,0.6499999999999999,0.3,4.586156282956072,5.4825430612735335,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is a sample",0.004160842835557005,2.5794215002789738,3.134146547826554,3.4759526412078143,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0016083945843720626,2.0593355537926756
+emobank_Nathans_Bylichka_42891_42959,"Good, round breasts, too, even though they’re small, they suit her.”",3.75,3.62,0.375,0.31,4.064029638707967,5.814997772673019,5,5,"{
+""valence"": 5,
+""arousal"": 5
+}",0.00017147052526947102,2.1990825701779277,4.338566037644862,5.689958722567161,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}
+
+The following is a sample output:",0.00011126678277690332,2.155627741093708
+emobank_captured_moments_5855_5869,"""It amuses me.",3.8,3.4,0.3999999999999999,0.1999999999999999,3.7530018945226304,5.469298478701665,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a short",0.0008947232485491986,2.4850794815675035,3.0177218213101056,5.268657267435037,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.00057758702504798,2.2540594913697887
+emobank_captured_moments_28271_28282,"Thank you!""",3.88,3.62,0.4399999999999999,0.31,2.670296455037829,3.572991368213685,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a list",0.0019410864592933322,1.9506423279199863,2.065976283629942,4.116814877232802,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0006059846193024119,1.8883850525657202
+emobank_Nathans_Bylichka_14994_15019,"“You’re a wonder, Dvorov.",3.86,3.43,0.4299999999999999,0.215,5.681974908382892,5.8302247237548865,5,5,"{
+""valence"": 5,
+""arousal"": 5
+}
+
+The text is a short story about",0.0003452326972700251,2.3389425671460677,5.943793480303478,5.998276510313227,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}
+
+I am a wonder, Dvorov",0.0003646065671458101,2.380786763746438
+emobank_112C-L016_1198_1314,Thank you for considering this opportunity to make this a memorable holiday season for a family in need.,3.78,3.22,0.3899999999999999,0.1100000000000001,3.4460459960681855,3.9411704859675147,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.004415075479029422,2.367258690756023,3.21418884568048,3.5849214633674356,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}
+
+The following is a sample",0.0033262132144399235,2.2141833324302413
+emobank_hotel-california_11508_11531,"It was nice, I decided.",3.88,3.38,0.4399999999999999,0.1899999999999999,2.928171112016277,3.9831178369232267,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0012120438801507586,2.1856697390899362,2.319028930796731,2.9984272570290886,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}
+
+The following is a sample",0.0009318540515505614,1.9445005468330632
+emobank_117CWL009_722_975,"As a sponsor, you and your guests will have a special evening, knowing that your tax deductible contribution will help support preschool, childcare, senior and resettlement services, as well as quality cultural events in our community.",3.67,3.44,0.3349999999999999,0.2199999999999999,3.130857615272628,4.4026261328266365,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0022059685734157524,2.4495408058448342,3.222040713885125,3.8671601123240062,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.002961722917745509,2.462994028006849
+emobank_118CWL050_2047_2151,I am very thankful to the Big Sisters program for allowing me this very special opportunity.,4.0,3.1,0.5,0.05,3.940565550241417,4.405617288707947,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0014429321391994938,2.2881053364822597,3.1943463071868363,3.9706082736761203,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The Big Sisters program is",0.0007665854829637077,2.1293329804253096
+emobank_How_soon-Fans_451_506,"Sure, it's great having several hundred thousands fans.",3.75,3.63,0.375,0.3149999999999999,3.646810351486344,4.732194633180757,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}",0.0009887304827092853,2.491631396658648,3.8889210470670053,4.746401727251289,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a bit",0.0018697831803614346,2.624231847179486
+emobank_NWF1_630_741,These images will be cheerful reminders to you and your gift recipients of all the wildlife treasures we value.,3.75,3.38,0.375,0.1899999999999999,3.2215508281660767,3.8254430307786715,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.007021635621388045,2.3303208610618595,4.427404684677617,4.698333195187049,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}
+
+The following is a sample",0.003974527587197394,2.396761625573884
+emobank_captured_moments_33213_33222,I smiled.,3.9,3.2,0.4499999999999999,0.1,5.951277594753153,6.55572942532736,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a list",0.0033843247378390964,2.5415338978624966,3.5968270201897674,4.42878767239201,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0007357141521244215,2.1055515850312934
+emobank_SemEval_1254,Gray wolves off endangered list,3.67,3.33,0.3349999999999999,0.165,3.845678336893042,5.500432597545529,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The text is from the",0.0011336537108926027,2.109219709822791,3.251142524507987,3.83503784365522,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}
+
+The gray wolf (Can",0.0005549895423604645,1.7182446295050813
+emobank_captured_moments_23385_23397,She giggled.,3.9,3.4,0.4499999999999999,0.1999999999999999,4.107570585292899,4.5435735834425515,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a list",0.0054642502464004915,2.5047970945655287,3.2288514278289098,3.4760972561762653,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0017452167043587007,1.9557491240794196
+emobank_Nathans_Bylichka_32524_32559,There’s an amazing DJ who’s an elf.,3.75,2.75,0.375,-0.125,4.96544549561954,5.345534143421422,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}",0.001578973485127885,2.445507866000982,4.464295198210945,5.560047581158732,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0006393973766571896,2.497895451525669
+emobank_114CUL057_921_1001,"We'll prepare a hog roast and hot dogs for the kids, with all the fixings.",3.8,3.5,0.3999999999999999,0.25,3.4385747939384697,4.691540025589919,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0006281090310180891,2.286554873229499,3.2694690779686146,4.846809833918899,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}
+
+The following is a sample",0.0003051910374950107,2.2602053934573663
+emobank_captured_moments_24374_24410,"""Ah, she is wonderfully perceptive.""",3.8,3.3,0.3999999999999999,0.1499999999999999,4.977670446071564,5.224354441801646,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}",0.0009909628608677336,2.163856229507586,5.133505485465641,5.175507242206185,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0010344450493485042,2.1792350986995577
+emobank_aspca1_1668_1695,Astro was wagging his tail.,3.78,3.56,0.3899999999999999,0.28,3.2400042267884186,4.122104883961126,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}",0.0013742711020275843,1.9788080630284635,2.766473648716376,5.36369824493069,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.00016984148789374852,1.8370062763445674
+emobank_Seedbombing_6528_6555,It makes me a little nicer.,3.8,3.3,0.3999999999999999,0.1499999999999999,2.9058322434624286,4.0009263200459975,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0016166045550044434,2.1983015893743088,2.4438559639435864,3.7802498736168157,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}
+
+The following is a sample",0.0005928241114564654,1.8961671813222996
+emobank_Nathans_Bylichka_3714_3798,"After she paid the driver, she grabbed my arm, laughing, and we ran down the street.",3.88,3.63,0.4399999999999999,0.3149999999999999,2.5515857734074494,4.3910664709813965,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}",0.0017930629279169588,2.284221227258961,2.484236494801336,2.951156776336149,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.00040425050148068856,1.7785923194859605
+emobank_detroit_8590_8679,You are exactly the kind of person who gives me back the hope I lost on my way into town.,3.8,3.5,0.3999999999999999,0.25,2.013515671401197,2.9539787761145986,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0008315262339620803,1.8436315617592143,2.2462794819355563,3.888463294299214,5,8,"{
+  ""valence"": 5,
+  ""arousal"": 8
+}
+
+The following is a sample",0.0012794797839998143,2.1899781157811975
+emobank_captured_moments_26947_27027,He spoke of his art with the enthusiasm of a seven-year-old.,3.8,3.5,0.3999999999999999,0.25,5.353848438036685,6.059794841425523,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0017862610925630177,2.8587127179524257,4.173931521327701,6.426839441695008,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a bit",0.0009190268546880117,2.592654447254348
+emobank_wildelifewatch1_2856_2998,It’s our FREE gift to you for joining now and a charming reminder that your support helps NWF protect valuable wildlife species like this one.,3.9,3.4,0.4499999999999999,0.1999999999999999,3.158436891086467,4.3521241767109125,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0007403020802285058,2.0614560684761294,3.358045824576924,4.133443919151874,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}",0.0025240817114006984,2.304972473156236
+emobank_SemEval_1313,"Start late, retire rich",3.8,3.2,0.3999999999999999,0.1,4.935104713928302,5.658617890529218,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}
+
+The following is a sample",0.00018726440892131822,2.0461895135507,4.397210798378527,5.002115875829975,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a short",0.0006685316556046383,2.129772274797505
+emobank_SemEval_95,Full recovery expected for marathon winner,3.9,3.3,0.4499999999999999,0.1499999999999999,3.397655106315316,4.376447067269136,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The text is a news",0.0008270967201478621,2.0214679349991007,3.463372602014303,3.736569288316385,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is:",0.0009096288839008031,2.0845995893852165
+emobank_Nathans_Bylichka_28170_28230,“That such a rock could hold so much magic – it’s a wonder.”,3.67,3.5,0.3349999999999999,0.25,3.3391388215350792,4.69536508075725,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.00031656296667472204,1.8980192753478107,3.732542391207653,5.351258993146703,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is an example",0.0007262524618885859,2.2164321956115804
+emobank_113CWL018_952_1022,Your contribution last year of helped us get where we are today.,3.9,3.1,0.4499999999999999,0.05,3.9192827400683283,4.770002005718021,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0014375299943695276,2.3621028440065914,4.035901248751442,5.057109300296856,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}
+
+The following is a sample",0.0004177482870983685,2.3134198807500113
+emobank_guidedogs1_2884_3066,“Sometimes you never see the good work your money does. I see the results... the guide does I’ve helped sponsor dramatically improve the lives of the men and women who receive them.”,3.7,3.2,0.3500000000000001,0.1,3.2277309639129013,4.305482238989865,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0005103049344288471,1.9381600538820554,2.8551776608707966,3.9496607027154664,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}",0.00016364503068326864,1.8467685016017434
+emobank_hotel-california_16366_16382,“But I like it.”,3.9,3.0,0.4499999999999999,0.0,4.140809554789447,4.781642264323361,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a list",0.0005943372541221581,2.2352597551602273,3.684605713216059,5.806225827179535,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a sentence",0.000407439243558686,2.234856376192203
+emobank_SemEval_866,Ferrer victorious in Spanish duel,3.67,3.33,0.3349999999999999,0.165,2.896207694853122,3.317089135226987,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is:",0.0014436688460973326,1.8080365349431826,2.0105431202870423,2.455739750074794,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The Spanish duel is a",0.0008275467190739165,1.3966913244497887
+emobank_easy_money_3727_3752,It never failed to amaze.,4.0,3.25,0.5,0.125,3.3771827224225883,3.795346123503002,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.001133541131606235,2.1073585981653187,2.9961273537917057,3.5752060569556594,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0005949861653744257,1.9558587109399614
+emobank_SemEval_76,Active peace brings the promise of development,3.78,3.22,0.3899999999999999,0.1100000000000001,3.2456355210687757,3.3146519582480183,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The text is from the",0.0019661028694848513,2.2563615188022674,2.6323661978010096,3.0017991853189168,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is from the",0.0016350949237825968,1.8649514392135573
+emobank_SemEval_26,Three found alive from missing Russian ship -report,3.86,3.57,0.4299999999999999,0.2849999999999999,3.036257001405927,3.9962825366481645,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a sample",0.0024177751802855005,2.1663465619290627,3.222093544193025,3.50805418071633,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0017847785629435662,2.0410827359482155
+emobank_WhereToHongKong_52232_52435,"Browsing is a real pleasure in Macau’s main streets and byways, where shops aimed at the tourist market are interspersed with the more workaday ironmongers, herbalists, and noodle stalls.",3.86,3.43,0.4299999999999999,0.215,2.909065093867606,3.6468743871189666,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0014902817021192553,2.1119034797276477,4.0653904963859055,5.246364822017494,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.00034259379749386183,2.242873715863596
+emobank_WhereToHongKong_31275_31516,"Down to earth, the Sha Tin Racecourse can accommodate over 80,000 spectators and is equipped with every imaginable luxury, including a giant video screen facing the stands, and for the horses, air-conditioned stables.",3.75,3.63,0.375,0.3149999999999999,3.0324147616122406,4.483301281354954,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}",0.0009378844344202074,2.275950496370778,2.3484019192125727,3.768320650117217,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}",0.00030182755517388767,2.009086036878805
+emobank_littleshelter2_504_553,And then we’ll work to find loving homes for them,3.7,3.5,0.3500000000000001,0.25,4.168335572764006,4.59653587247471,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0018651883896600686,2.3374843459068226,3.5642152414445514,4.095115169215303,5,5,"{
+""valence"": 5,
+""arousal"": 5
+}
+
+The text is a news article about",0.0014844244595885428,2.2781196078146038
+emobank_WhereToHongKong_43429_43625,"Also in front of the ferry terminal is a new Cyber fountain, with 86 water spouts that shoot up to 70 m (230 ft) and are illuminated at night by 288 spotlights producing 80 colors.",3.7,3.6,0.3500000000000001,0.3,1.7281946201237866,2.9572518366784197,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0006451726806175239,1.6339974104325992,1.5803019236546385,3.501517628652048,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}",0.00030982724186638845,1.6517458797642197
+emobank_wsj_0120_4316_4362,"""We're gaining 1,200 new customers each week,""",3.89,3.44,0.445,0.2199999999999999,1.879376507167291,4.086396483307561,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",9.955116535685867e-05,1.7618178734437746,1.9424715304301197,3.44445570848818,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is an example",4.2747969602281076e-05,1.9032831346281112
+emobank_WhereToHongKong_35238_35354,"A Trappist monastery, situated on a hillside overlooking the east coast of Lantau, is also open to visitors.",3.67,3.17,0.3349999999999999,0.0849999999999999,3.5461512798114985,4.051510815116184,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.004108245173550725,2.421369556490866,4.209548270892038,4.7475777967092405,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.001768905440146418,2.441823533915597
+emobank_captured_moments_22242_22253,She smiled.,4.0,3.5,0.5,0.25,4.542522722255997,4.984875656425367,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a list",0.002843260341976829,2.4466259172673506,2.855797586370655,3.4655139466967824,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0010638643055401326,1.8925845833018373
+emobank_Nathans_Bylichka_12638_12684,"“Nice, my man,” he said as they clasped hands.",3.73,3.09,0.365,0.0449999999999999,2.843924017586952,3.6652145186684773,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0011669306778226628,2.0594065791750604,3.2292260205267267,3.92208386493851,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}
+
+The following is a sample",0.0019219145762791401,2.2953459162270833
+emobank_Madame_White_Snake_8560_8606,Wouldn’t that be wonderful?”,3.8,3.6,0.3999999999999999,0.3,4.5274677385065765,5.865114856771109,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a list",0.0023047357084475793,2.3730118665985254,4.9174195701685814,6.9963010204839575,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}
+
+The text is a part of a",0.0006188089230744285,2.210346475280456
+emobank_The_Black_Willow_5305_5425,"""I had a perfect story in my pages; my hero returned home and reclaimed his love, I nearly had it tied together before…""",3.7,3.6,0.3500000000000001,0.3,3.2839839091554563,4.5552404178257655,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0002060400129227278,2.069430581565954,2.9991560908676336,4.7908073516449345,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.00046428792522746427,2.1229495000009977
+emobank_The_Black_Willow_9599_9620,"""Yes, it is finished!",3.8,3.6,0.3999999999999999,0.3,3.436872604450992,5.14075343579753,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}
+
+Hint:
+You can",0.00034691078919156537,2.4920278357999672,2.4948712053242184,3.961238726617927,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a short",0.00041553699166801587,2.3246966812108663
+emobank_captured_moments_22417_22430,"""I love you.""",4.1,3.8,0.5499999999999998,0.3999999999999999,2.9592089685680905,3.5767447935628693,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is a list",0.0016363116734746342,2.0495826458848905,3.5023741030475746,4.604934726505367,9,1,"{
+  ""valence"": 9,
+  ""arousal"": 1
+}
+
+The output should be in",0.0009398994969643909,2.384718809386154
+emobank_Nathans_Bylichka_3531_3576,Even the city feels alive when spring comes.”,3.8,3.8,0.3999999999999999,0.3999999999999999,3.655689699831596,4.728290530458806,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}",0.002206548966562019,2.4492980542105123,3.692499697571562,4.764621801593709,5,7,"{
+""valence"": 5,
+""arousal"": 7
+}
+
+The following is a sample output:",0.0011946763521557037,2.333360931363634
+emobank_115CVL036_1742_1858,We're at an exciting juncture and it won't be long until we start seeing solid results from our efforts.,3.8,3.7,0.3999999999999999,0.3500000000000001,2.8052510465604583,4.936936895926718,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0005247108777912442,2.1302130075480545,3.498322718329478,4.9241536364218685,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is an example",0.0007822248670982762,2.386349016366186
+emobank_Fermentation_Eminent-Domain_4473_4487,I love it Tom.,4.11,3.78,0.5550000000000002,0.3899999999999999,4.739232775878682,5.597353862249044,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is a sample",0.00404500742027148,2.485595688568095,3.2719536974989056,3.729561379178876,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0015780379583508156,2.091033864263831
+emobank_SemEval_759,News Baby pandas! Baby pandas! Baby pandas!,4.33,4.22,0.665,0.6099999999999999,4.205226495760281,4.946281665754417,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}",0.0007000586937465593,1.8527746046761746,3.9898052595560953,3.964762712299293,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0008754851591977875,1.7727746510960196
+emobank_audubon2_4069_4176,"P.S. On behalf of everyone here at the National Audubon Society, we look forward to saying, “Welcome back!”",3.7,3.7,0.3500000000000001,0.3500000000000001,5.893755950213812,6.660875171654601,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0009029638496935599,2.4587255830637553,5.280951849720278,6.193760664844854,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}",0.0005715436735788687,2.4667120617020015
+emobank_hotel-california_5023_5072,"“Honey,” she said, “You're going to be delighted.",4.11,3.67,0.5550000000000002,0.3349999999999999,3.0880997780266664,4.8568179453920965,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}",0.00021699750375899437,2.048429804718454,3.497022979313946,4.761200956832744,1,1,"{
+""valence"": 1,
+""arousal"": 1
+}
+
+I'm not sure what you",0.000660972188325448,2.241236932112748
+emobank_20020731-nyt_22221_22257,every day full of joy and energized.,3.83,3.67,0.415,0.3349999999999999,4.5267016740534105,5.079633338482553,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}",0.0022792758346191133,2.674878487368158,3.675146492883324,3.8429260128541642,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0021174746646858353,2.2901159772737705
+emobank_littleshelter2_1448_1478,Happy Holidays from all of us!,4.37,4.37,0.685,0.685,3.670954766589624,4.332250272620192,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0028151375908951394,2.3008748493913185,3.4064894067468234,3.725059562652641,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}
+
+The following is a sample",0.0005221138484805901,1.966181084442867
+emobank_NWF1_5357_5367,Thank you!,4.0,3.7,0.5,0.3500000000000001,4.126639004814177,4.60141844723497,9,1,"{
+  ""valence"": 9,
+  ""arousal"": 1
+}
+
+The following is a list",0.007414009281439651,2.6681791539944113,2.7392885499496664,3.408749184501253,9,1,"{
+  ""valence"": 9,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0016959228510772626,2.039415807437835
+emobank_Seedbombing_5247_5258,Loved this!,4.2,3.8,0.6000000000000001,0.3999999999999999,4.665382770747031,5.465920077780698,9,1,"{
+  ""valence"": 9,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0014588473081965144,2.5063028868350847,3.277446092227925,4.117555370481136,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is a sample",0.00025055163120452523,2.019293485218875
+emobank_vampires_4446_4474,lol Wonderful Simply Superb!,4.6,4.3,0.7999999999999998,0.6499999999999999,4.179568789813979,4.712575525417272,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+Note:
+1.",0.0007932734160301146,2.176969744517323,5.581545951310717,5.088886609480418,9,9,"{
+""valence"": 9,
+""arousal"": 9
+}
+
+Note:
+1. You can",0.00099500435008003,1.8909596217286848
+emobank_captured_moments_23398_23424,And then we did make love.,4.0,4.12,0.5,0.56,4.846021524312947,5.7901047921900695,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}",0.002799146695976335,2.5006625872640935,3.186029339882459,5.109087729423398,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0007636606498313252,2.3283183390159614
+emobank_113CWL017_1641_1724,Sponsor a child at the Boys & Girls Clubs of Indianapolis' summer camp today!,3.67,3.67,0.3349999999999999,0.3349999999999999,3.794336176831222,4.967082540245238,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.002048138721112121,1.9453819212892633,5.35256262910899,5.52458631448428,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}
+
+The Boys & Girls Clubs",0.0011315535384638625,2.0829317295704657
+emobank_captured_moments_7553_7566,"I'm in love.""",4.37,4.12,0.685,0.56,3.308535502815847,4.391657136294298,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}",0.002080594607650963,2.2552832178204874,3.6777972479894863,4.385632927955138,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0013396038410562118,2.4483786024602505
+emobank_detroit_1333_1376,The possibilities of this were fascinating.,3.7,3.7,0.3500000000000001,0.3500000000000001,3.8020188065380216,4.335470901517949,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0038273027268990643,2.4075890068420507,3.50539433423587,4.428422768051425,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The possibilities of this were",0.0030503452832987047,2.4620629140408643
+emobank_captured_moments_28527_28752,"Catching herself, she said casually, ""Oh..."" And then she smiled, laughed loudly at herself in the way that always made me think how much I loved her, and said, ""My God, yes, yes, yes!""",4.11,4.22,0.5550000000000002,0.6099999999999999,4.678981722620214,6.117874388805548,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}",0.0008614942267021901,2.284280397884482,3.981021036415318,5.647612160168729,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}",0.00035477920115060827,2.2240381811820096
+emobank_602CZL285_1182_1267,"With thousands of trees and flowers in bloom, we are having a beautiful Spring!",4.0,3.71,0.5,0.355,3.3000485427139497,4.176786735897061,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}",0.0012342358665022395,2.173424452863897,3.7080248640798756,4.8620520532781075,8,7,"{
+  ""valence"": 8,
+  ""arousal"": 7
+}
+
+The following is an example",0.0015763343160483786,2.5220724729955655
+emobank_audubon2_4161_4176,“Welcome back!”,4.1,3.8,0.5499999999999998,0.3999999999999999,3.6178842701114107,4.95796301757337,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a list",0.0005392730281637531,2.050811986903783,3.61991051974163,5.704060893964151,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a greeting",0.0005455902389778735,2.1924767848245392
+emobank_Uprooted_Bike_3670_3691,"""I love what you do,""",4.2,3.9,0.6000000000000001,0.4499999999999999,3.860543231079343,5.710855778364356,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is a list",0.0006438405672381767,2.4502221996392244,2.7436278218924812,5.550749980487104,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0004889417360030121,2.2138101282447677
+emobank_appalachian1_602_670,And join the fun while making a real difference for the environment!,3.87,3.87,0.435,0.435,3.305320030626526,4.3081878996598295,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}",0.0020581004053042947,2.3947227518266714,2.9492216597174776,3.7543438160926876,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a part",0.000961706937408448,2.263546857859945
+emobank_Nathans_Bylichka_41518_41558,"She laughed, liquid, alluring, alarming.",3.8,3.8,0.3999999999999999,0.3999999999999999,4.720514667133718,5.882255412780829,5,8,"{
+  ""valence"": 5,
+  ""arousal"": 8
+}",0.0009089511694590756,2.572261304336714,3.77378216949701,5.080112509993874,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The text is a part",0.00034591051246829897,2.112361328273138
+emobank_captured_moments_13169_13276,"Tasha and I became lovers that evening, after a good dinner of paella at her apartment.",3.7,3.8,0.3500000000000001,0.3999999999999999,2.199600339706596,2.7478120014570493,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.001982454866301293,1.7633354682649771,2.1239575040634144,2.9188999130980067,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}
+
+The following is a sample",0.00146228658473627,1.8101897731801306
+emobank_WhereToHongKong_50043_50095,Macau’s casinos are a source of non-stop excitement.,3.8,3.9,0.3999999999999999,0.4499999999999999,4.680317808547911,4.94662868711273,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}",0.0028264165816246018,2.589459372715216,3.977982883642262,5.023844324838894,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0012064643911233444,2.589281520070415
+emobank_captured_moments_27486_27504,""" --was glorious!""",4.0,3.9,0.5,0.4499999999999999,3.772529963538103,4.534495838840677,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0011147254906872372,2.167570684659058,4.164095091073918,5.371262838381869,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is a sample",0.000876810049140425,2.4354723685385236
+emobank_The_Black_Willow_1491_1616,"They gazed at each other, lost in the rapture of love based so deeply within their hearts that they had never seen it before.",3.8,3.9,0.3999999999999999,0.4499999999999999,3.3177149669789174,4.5283730149895165,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}",0.0027743674963066414,2.2597247493999895,3.1970379146799344,4.3402746347454535,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}",0.0024375096268933194,2.4118328057692002
+emobank_NYTnewswire1_3167_3223,"I'm very excited we'll be on the same team for a while.""",4.2,4.2,0.6000000000000001,0.6000000000000001,3.316888324556819,5.67792121500121,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0008073609303719241,2.0307236296525057,3.6620488244733083,6.461480500591789,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is a sample",0.00032747984023850327,2.0405301461372773
+emobank_vampires_341_362,"""Love at First Bite """,4.0,3.88,0.5,0.4399999999999999,5.5481375822248475,5.73140031452739,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The text is a short",0.0010719240961254177,2.4510177665792643,4.431397139686249,4.833345430996678,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a short",0.0032674803621713564,2.5559090287419344
+emobank_audubon2_3518_3567,"Special travel opportunities, and special (FREE!)",3.7,3.7,0.3500000000000001,0.3500000000000001,3.936663284886869,4.25313972540588,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+Sample Output:
+{",0.001972153993012539,2.4804075206892904,4.3599298736278165,4.222819233266568,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a list",0.002620115446070032,2.276606343006785
+emobank_114CUL058_1185_1212,"In short, Fun for Everyone!",4.2,4.0,0.6000000000000001,0.5,3.9540678124633257,4.0636884179255155,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a sample",0.002960288731815577,2.555436041754788,4.390238928963564,4.314922361728446,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a short",0.0014427509635458365,2.498891216746447
+emobank_Nathans_Bylichka_3826_4024,"We slammed against the doorway and I was laughing too, the pulse close enough to shake the doorframe and set up vibrations in my chest, Rachel in my arms because she’d used me to soften her landing.",4.1,3.8,0.5499999999999998,0.3999999999999999,3.70178560783284,4.411582723349982,9,9,"{
+""valence"": 9,
+""arousal"": 9
+}",0.0020364001390077847,2.0559352768494366,3.349411281174495,4.50141864395212,9,9,"{
+""valence"": 9,
+""arousal"": 9
+}",0.0011118558144719206,1.9255409107142933
+emobank_WhereToHongKong_53329_53408,"The ingredients, especially the fresh fish and seafood, are first-rate.",3.75,3.75,0.375,0.375,2.8940523017948223,4.174614721559616,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}",0.0004431352830934196,2.05762161425489,2.214918436871028,4.059027415712287,5,8,"{
+  ""valence"": 5,
+  ""arousal"": 8
+}
+
+The following is the code",0.00028805275735846475,1.8671674840251695
+emobank_Acephalous-Internet_1795_1799,Wow.,4.3,4.3,0.6499999999999999,0.6499999999999999,4.311444773740837,5.5799150460535945,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is a list",0.001219025988577164,2.4428607888915312,3.4016151318301677,5.942254586975686,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is a sample",0.00018717037505416078,2.207507813618286
+emobank_captured_moments_10582_10673,"But it is something marvelous and rare, which is surely a sign of love.",4.0,3.71,0.5,0.355,3.2356761523574544,4.896966750895972,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}",0.0006067117427182086,2.1212835434472153,3.3653992080217945,4.7456175184081495,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The following is a sample",0.0008260303237151822,2.327183468682331
+emobank_20020731-nyt_25143_25174,"""I am thrilled with the price.""",4.56,4.0,0.7799999999999998,0.5,2.3275670410223572,3.663980462348098,9,1,"{
+  ""valence"": 9,
+  ""arousal"": 1
+}",0.000479525994969504,1.794177715532053,3.4965947537528663,5.294774597574702,9,1,"{
+  ""valence"": 9,
+  ""arousal"": 1
+}
+
+The following is an example",0.0002926436909614123,2.1550930392526966
+emobank_guidedogs1_2014_2263,"“Both my friends were zipping through crowds while I lagged behind, even though I was a fast cane walker. I envied their freedom and most of all, the incredible bond they both had with their guide dogs. With my Lab, Jay, I feel so wonderfully FREE!”",3.7,3.8,0.3500000000000001,0.3999999999999999,5.2299593535050395,6.204310112589432,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}",0.0008216199993354733,2.3411879108027236,5.604867587696798,6.250745135413293,5,7,"{
+""valence"": 5,
+""arousal"": 7
+}",0.0007671952800657007,2.1123506405390704
+emobank_warner1_673_700,And the connection is FREE!,4.12,3.75,0.56,0.375,5.958756447187667,5.920422878124754,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a sample",0.0011732768247040572,2.4175727220749277,5.318680486205644,6.004527347418506,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a bit",0.0006852265916800617,2.5514710119133084
+emobank_Nathans_Bylichka_29128_29157,“Marvelous!” cried the woman.,4.0,3.67,0.5,0.3349999999999999,3.374401726999502,4.745176058451586,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}",0.0009344542551811546,2.0813495507026847,3.5803900359361798,4.2186697430471565,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The text is a part",0.0006973075129302779,2.226169318475945
+emobank_SemEval_535,"Discovered boys bring shock, joy",3.67,3.83,0.3349999999999999,0.415,4.7540806264434226,5.605343535899845,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}
+
+The following is a sample",0.0007123969866272727,2.6026166960250667,3.7416275614153283,4.504952312190032,1,9,"{
+  ""valence"": 1,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0006244553034222148,2.316042245359741
+emobank_Seedbombing_5588_5622,"Hey Brian, thanks for stopping by!",4.0,3.8,0.5,0.3999999999999999,3.297634852724989,4.360574088365627,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+Note:
+- The",0.0025292826428093833,2.2505194279601497,2.6893873997308297,4.591786336275551,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}
+
+The following is a sample",0.00019657969892912915,2.016942845930733
+emobank_Nathans_Bylichka_58041_58074,"“My fuckin’ hero,” she whispered.",3.8,3.7,0.3999999999999999,0.3500000000000001,2.7803627438269505,3.562841583355957,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}",0.0015547384767673916,1.8183424529920313,3.18580426692047,4.073239616640765,9,1,"{
+  ""valence"": 9,
+  ""arousal"": 1
+}
+
+The text is a quote",0.0007818814670892653,2.020628850625625
+emobank_warner1_951_1024,DTV is the SMARTEST and most exciting innovation to happen to television.,3.71,3.71,0.355,0.355,5.707231461712577,6.477658567459444,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}",0.0010471179604211972,2.386536021030379,5.432401567442112,6.079800711071426,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is a sample",0.0006976598864848556,2.3051098084646027
+emobank_How_soon-Lebron-James_2305_2327,Winning championships.,3.9,3.7,0.4499999999999999,0.3500000000000001,4.881035505029161,5.353285669517533,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a sample",0.0050496698867128305,2.564930853010808,5.330983724164606,5.119605401154962,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a description",0.003350215918106371,2.2844297070400743
+emobank_Uprooted_Bike_6076_6115,"Tried/shared/re-tweeted, with pleasure!",3.9,3.9,0.4499999999999999,0.4499999999999999,2.5956195399066564,3.7091212750381066,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}",0.00021495228500989508,1.87087974069556,3.0325742889918903,3.0451073667723194,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is a sample",0.00020822336792043292,1.879065715992843
+emobank_vampires_4335_4351,I like twilight!,4.0,3.86,0.5,0.4299999999999999,4.89687409824386,5.646653024809089,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The following is a sample",0.001720188419791507,2.6097780856818655,5.185086151236517,5.409687487499381,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}
+
+The following is a sample",0.0012926052790061214,2.819763354223916
+emobank_captured_moments_28728_28752,"""My God, yes, yes, yes!""",4.3,4.4,0.6499999999999999,0.7000000000000002,3.605123110273131,4.300263233585431,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}",0.001797458724234591,2.112189057559925,2.216366011785922,4.091081891580806,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is an example",0.0004493059207919255,1.9623666746276567
+emobank_appalachian1_696_721,You name it—we’ve got it!,3.83,3.83,0.415,0.415,3.615520890716309,5.0612738805852375,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}
+
+The text is a list",0.00023792898160019345,2.3015237611537778,3.056093565356482,5.892259475133433,5,7,"{
+  ""valence"": 5,
+  ""arousal"": 7
+}
+
+The following is a sample",0.00014417819873140168,2.061785798668698
+emobank_SemEval_932,Boy missing since 2002 found alive,4.0,3.7,0.5,0.3500000000000001,2.5682633665604864,3.161996253543443,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The text is from the",0.001371324968158719,1.7012148737699007,2.188496141560384,2.727100829245009,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is from the",0.0008029275324007081,1.5044431605221478
+emobank_audubon2_4177_4256,All of us are excited about sending you your magazine and membership materials.,3.9,3.8,0.4499999999999999,0.3999999999999999,5.040876944881732,5.686978769305501,5,5,"{
+  ""valence"": 5,
+  ""arousal"": 5
+}",0.0014666342064518973,2.569414611121807,5.532231831295932,5.957323042704868,9,9,"{
+  ""valence"": 9,
+  ""arousal"": 9
+}
+
+The following is a sample",0.002766732518111823,2.538954039336797
+emobank_captured_moments_6909_6923,"""I'll take it.",3.75,3.75,0.375,0.375,3.562071789898205,5.346297397503347,5,6,"{
+  ""valence"": 5,
+  ""arousal"": 6
+}
+
+The text is a short",0.0008832925667599756,2.5107387733213047,2.506371216907897,4.715686872447193,1,1,"{
+  ""valence"": 1,
+  ""arousal"": 1
+}
+
+The text is a part",0.0003154563357669499,2.0491860404410827

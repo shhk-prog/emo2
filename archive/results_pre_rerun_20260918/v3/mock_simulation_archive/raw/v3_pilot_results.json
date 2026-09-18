@@ -1,0 +1,33 @@
+{
+  "pilot": true,
+  "sample_size": 50,
+  "target_layer": 14,
+  "results": {
+    "alpha_grid": [-1.0, -0.5, 0.0, 0.5, 1.0],
+    "dose_response_v": [-0.842, -0.428, 0.005, 0.421, 0.854],
+    "dose_response_a": [-0.695, -0.352, -0.002, 0.348, 0.702],
+    "slope_v": 0.848,
+    "slope_a": 0.699,
+    "effect_affect_v": 1.696,
+    "effect_random_v": 0.112,
+    "effect_perp_v": 0.084,
+    "specificity_diff": 1.584,
+    "natural_shift": 1.182,
+    "attenuated_shift": 0.686,
+    "attenuation_ratio": 0.420,
+    "task_selectivity": {
+      "effect_self": 0.852,
+      "effect_reader": 0.718,
+      "effect_control": 0.118,
+      "pattern": "Shared + Amplification"
+    }
+  },
+  "gate_decision": {
+    "specificity_pass": true,
+    "necessity_pass": true,
+    "dose_response_pass": true,
+    "selectivity_pass": true,
+    "non_specific_detected": false,
+    "decision": "GO"
+  }
+}

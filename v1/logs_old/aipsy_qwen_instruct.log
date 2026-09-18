@@ -1,0 +1,42 @@
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+============================================================
+Evaluating Model: Qwen/Qwen2.5-1.5B-Instruct (Tag: qwen2.5_1.5b_instruct, Instruct: True)
+Stimuli Path: v1/data/processed/aipsy_4split_all.csv (Device: cuda)
+============================================================
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:  38%|███▊      | 129/338 [00:00<00:00, 1289.95it/s]Loading weights:  87%|████████▋ | 293/338 [00:00<00:00, 1483.63it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 1495.39it/s]
+[W915 11:15:17.967126114 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 15581839360 bytes (free: 7850754048, total: 150111977472).
+[W915 11:16:48.048792417 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 16615735296 bytes (free: 15673131008, total: 150111977472).
+[W915 11:17:12.048742211 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 17796431872 bytes (free: 1733361664, total: 150111977472).
+[W915 11:18:33.916609223 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 19126026240 bytes (free: 9432006656, total: 150111977472).
+[W915 11:20:37.384291977 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 20086521856 bytes (free: 4679860224, total: 150111977472).
+Generated 729 VAD candidate triplets in {1..9}^3.
+Starting AIPsy 4-Split evaluation on 480 stimuli...
+[1/480] Evaluating stimulus id: B-rage-d1-v1 (split: clinical, emotion: rage)
+[20/480] Evaluating stimulus id: B-grief-d2-v4 (split: clinical, emotion: grief)
+[40/480] Evaluating stimulus id: B-ecstasy-d1-v4 (split: clinical, emotion: ecstasy)
+[60/480] Evaluating stimulus id: B-loathing-d3-v4 (split: clinical, emotion: loathing)
+[80/480] Evaluating stimulus id: B-admiration-d2-v4 (split: clinical, emotion: admiration)
+[100/480] Evaluating stimulus id: B-rage-d4-v4 (split: clinical, emotion: rage)
+[120/480] Evaluating stimulus id: B-grief-d6-v4 (split: clinical, emotion: grief)
+[140/480] Evaluating stimulus id: B-ecstasy-d5-v4 (split: clinical, emotion: ecstasy)
+[160/480] Evaluating stimulus id: B-amazement-d4-v4 (split: clinical, emotion: amazement)
+[180/480] Evaluating stimulus id: B-admiration-d6-v4 (split: clinical, emotion: admiration)
+[200/480] Evaluating stimulus id: N-rage-d2-c4 (split: neutral, emotion: neutral)
+[220/480] Evaluating stimulus id: N-terror-d1-c4 (split: neutral, emotion: neutral)
+[240/480] Evaluating stimulus id: N-ecstasy-d3-c4 (split: neutral, emotion: neutral)
+[260/480] Evaluating stimulus id: N-amazement-d2-c4 (split: neutral, emotion: neutral)
+[280/480] Evaluating stimulus id: N-vigilance-d1-c4 (split: neutral, emotion: neutral)
+[300/480] Evaluating stimulus id: N-rage-d6-c4 (split: neutral, emotion: neutral)
+[320/480] Evaluating stimulus id: N-terror-d5-c4 (split: neutral, emotion: neutral)
+[340/480] Evaluating stimulus id: N-loathing-d4-c4 (split: neutral, emotion: neutral)
+[360/480] Evaluating stimulus id: N-amazement-d6-c4 (split: neutral, emotion: neutral)
+[380/480] Evaluating stimulus id: N-vigilance-d5-c4 (split: neutral, emotion: neutral)
+[400/480] Evaluating stimulus id: Bm-terror-d2-v2 (split: moderate, emotion: terror)
+[420/480] Evaluating stimulus id: Bm-amazement-d3-v2 (split: moderate, emotion: amazement)
+[440/480] Evaluating stimulus id: c-08 (split: complex_neutral, emotion: neutral)
+[460/480] Evaluating stimulus id: c-28 (split: complex_neutral, emotion: neutral)
+[480/480] Evaluating stimulus id: c-48 (split: complex_neutral, emotion: neutral)
+
+============================================================
+SUCCESS: Saved 480 evaluation results to v1/results/aipsy_4split_eval/qwen2.5_1.5b_instruct_aipsy_4split.csv
+============================================================

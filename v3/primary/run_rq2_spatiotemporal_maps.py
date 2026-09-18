@@ -32,9 +32,17 @@ from affective_empathy_eval.likelihood import (
     build_va_candidates,
     compute_expected_va,
     compute_sequence_likelihoods_for_candidates,
+    prepare_joint_sequence_with_boundary,
+    resolve_joint_stage_index,
 )
 from affective_empathy_eval.manifests import create_run_manifest
-from affective_empathy_eval.data import describe_loaded_frame
+from affective_empathy_eval.data import (
+    describe_loaded_frame,
+    load_v3_matched_pair_table,
+    v3_stimulus_covariate,
+)
+from affective_empathy_eval.models.adapters import get_model_adapter
+from affective_empathy_eval.models.hooks import ActivationHookManager, HookPoint
 from affective_empathy_eval.models.registry import (
     add_model_selection_args,
     get_registry,
@@ -142,6 +150,8 @@ def simulate_spatiotemporal_maps(
             "D_A": D_A.tolist(),
             "beta_V": beta_V.tolist(),
             "beta_A": beta_A.tolist(),
+            "abs_beta_V": np.abs(beta_V).tolist(),
+            "abs_beta_A": np.abs(beta_A).tolist(),
             "gamma_V": gamma_V.tolist(),
             "gamma_A": gamma_A.tolist(),
             "C_V": C_V.tolist(),
@@ -207,6 +217,8 @@ def run_real_spatiotemporal_maps(
     D_A = np.zeros((num_layers, num_stages))
     beta_V = np.zeros((num_layers, num_stages))
     beta_A = np.zeros((num_layers, num_stages))
+    abs_beta_V = np.zeros((num_layers, num_stages))
+    abs_beta_A = np.zeros((num_layers, num_stages))
     gamma_V = np.zeros((num_layers, num_stages))
     gamma_A = np.zeros((num_layers, num_stages))
     C_V = np.zeros((num_layers, num_stages))
@@ -215,33 +227,28 @@ def run_real_spatiotemporal_maps(
     # 各サンプルの Clean baseline 自己報告値を取得
     clean_ev_list = []
     clean_ea_list = []
-    clean_prompt_tokens = []
-    sample_stage_indices = []
+    sample_prompts: List[str] = []
+    sample_joint_meta: List[dict[str, Any]] = []
+    template_cand = candidates[40]["json_str"]  # {"valence": 5, "arousal": 5}
 
     with torch.no_grad():
         for _, row in eval_df.iterrows():
             text = str(row["text"])
             prompt = build_prompt(text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
-            enc = encode_prompt_canonical(tokenizer, prompt, device=device)
-            p_ids = enc["input_ids"][0].tolist()
-            clean_prompt_tokens.append(p_ids)
-
-            # 生成時ステージ位置の特定
-            sample_cand = candidates[40]["json_str"]  # 代表候補: {"valence": 5, "arousal": 5}
-            cand_tokens = tokenizer.encode(sample_cand, add_special_tokens=False)
-            stages = get_generation_stage_tokens(cand_tokens, tokenizer, candidate_str=sample_cand)
-
-            # プロンプト終端からの相対オフセットに変換
-            p_end = len(p_ids) - 1
-            stage_map = {
-                "candidate_start": p_end + 1,
-                "pre_V": p_end + 1 + stages["pre_V"],
-                "V_value": p_end + 1 + stages["V_value"],
-                "pre_A": p_end + 1 + stages["pre_A"],
-                "A_value": p_end + 1 + stages["A_value"],
-                "response_end": p_end + 1 + stages["response_end"],
-            }
-            sample_stage_indices.append(stage_map)
+            sample_prompts.append(prompt)
+            full_ids, cand_start = prepare_joint_sequence_with_boundary(
+                prompt=prompt, candidate=template_cand, tokenizer=tokenizer
+            )
+            cand_tokens = tokenizer.encode(template_cand, add_special_tokens=False)
+            stages = get_generation_stage_tokens(cand_tokens, tokenizer, candidate_str=template_cand)
+            sample_joint_meta.append(
+                {
+                    "full_ids": full_ids,
+                    "cand_start": cand_start,
+                    "stage_offsets": stages,
+                    "seq_len": len(full_ids),
+                }
+            )
 
             _, probs = compute_sequence_likelihoods_for_candidates(
                 model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device, batch_size=81
@@ -252,8 +259,8 @@ def run_real_spatiotemporal_maps(
 
     y_v = np.array(clean_ev_list)
     y_a = np.array(clean_ea_list)
-    covar_v = eval_df["reader_V"].values
-    covar_a = eval_df["reader_A"].values
+    covar_v = v3_stimulus_covariate(eval_df, "v", N)
+    covar_a = v3_stimulus_covariate(eval_df, "a", N)
 
     # 層 × ステージ グリッド解析
     for l in range(num_layers):
@@ -262,15 +269,15 @@ def run_real_spatiotemporal_maps(
             # 1. 活性化の抽出
             h_stage = []
             with torch.no_grad():
-                for i, row in eval_df.iterrows():
-                    text = str(row["text"])
-                    prompt = build_prompt(text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
-                    cand = candidates[40]["json_str"]
-                    full_text = prompt + cand
-                    enc_full = encode_prompt_canonical(tokenizer, full_text, device=device)
-                    t_idx = sample_stage_indices[i].get(stage_name, enc_full["input_ids"].shape[1] - 1)
-                    t_idx = min(t_idx, enc_full["input_ids"].shape[1] - 1)
-
+                for i in range(N):
+                    meta = sample_joint_meta[i]
+                    t_idx = resolve_joint_stage_index(
+                        meta["cand_start"], stage_name, meta["stage_offsets"], meta["seq_len"]
+                    )
+                    enc_full = {
+                        "input_ids": torch.tensor([meta["full_ids"]], device=device),
+                        "attention_mask": torch.ones(1, meta["seq_len"], dtype=torch.long, device=device),
+                    }
                     with ActivationHookManager(adapter) as hook_mgr:
                         hook_mgr.register_capture_hook(
                             layer_idx=l,
@@ -317,10 +324,12 @@ def run_real_spatiotemporal_maps(
             X_cov_a = np.column_stack([preds_a, covar_a])
             reg_v = LinearRegression().fit(X_cov_v, y_v)
             reg_a = LinearRegression().fit(X_cov_a, y_a)
-            beta_V[l, s_idx] = float(abs(reg_v.coef_[0]))
-            beta_A[l, s_idx] = float(abs(reg_a.coef_[0]))
+            beta_V[l, s_idx] = float(reg_v.coef_[0])
+            beta_A[l, s_idx] = float(reg_a.coef_[0])
+            abs_beta_V[l, s_idx] = float(abs(reg_v.coef_[0]))
+            abs_beta_A[l, s_idx] = float(abs(reg_a.coef_[0]))
 
-            # 4. 介入傾き gamma & 因果変位量 C (代表刺激 5 サンプルで高速測定)
+            # 4. 介入: d_V → gamma_V,C_V / d_A → gamma_A,C_A（生成段階は joint sequence 上）
             sample_gamma_v, sample_c_v = [], []
             sample_gamma_a, sample_c_a = [], []
             probe_dir_v = Ridge(alpha=10.0).fit(H, y_v).coef_
@@ -331,37 +340,50 @@ def run_real_spatiotemporal_maps(
             norm_a = np.linalg.norm(probe_dir_a)
             d_a = probe_dir_a / (norm_a + 1e-6) if norm_a > 0 else np.zeros_like(probe_dir_a)
 
-            h_std = float(np.std(H @ d_v)) if np.std(H @ d_v) > 0 else 1.0
+            h_std_v = float(np.std(H @ d_v)) if np.std(H @ d_v) > 0 else 1.0
+            h_std_a = float(np.std(H @ d_a)) if np.std(H @ d_a) > 0 else 1.0
 
             sub_eval_idx = list(range(min(5, N)))
             with torch.no_grad():
                 for idx in sub_eval_idx:
-                    text = str(eval_df.loc[idx, "text"])
-                    prompt = build_prompt(text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
-                    t_idx = sample_stage_indices[idx].get(stage_name, len(clean_prompt_tokens[idx]) - 1)
-                    t_idx = min(t_idx, len(clean_prompt_tokens[idx]) - 1)
+                    prompt = sample_prompts[idx]
+                    meta = sample_joint_meta[idx]
+                    t_idx = resolve_joint_stage_index(
+                        meta["cand_start"], stage_name, meta["stage_offsets"], meta["seq_len"]
+                    )
 
                     shifts_v, shifts_a = [], []
-                    for alpha in alpha_sweep:
-                        p_vec = torch.tensor(alpha * h_std * d_v, dtype=torch.float32, device=device)
-                        with ActivationHookManager(adapter) as hook_mgr:
-                            hook_mgr.register_patch_hook(
-                                layer_idx=l,
-                                patch_tensor=p_vec,
-                                token_indices=t_idx,
-                                hook_point=HookPoint.POST_MLP_RESID,
-                            )
+                    for axis_name, direction, h_std, shift_store in (
+                        ("v", d_v, h_std_v, shifts_v),
+                        ("a", d_a, h_std_a, shifts_a),
+                    ):
+                        axis_shifts = []
+                        for alpha in alpha_sweep:
+                            p_vec = torch.tensor(alpha * h_std * direction, dtype=torch.float32, device=device)
                             _, probs_p = compute_sequence_likelihoods_for_candidates(
-                                model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device, batch_size=81
+                                model=model,
+                                tokenizer=tokenizer,
+                                prompt=prompt,
+                                candidates=candidates,
+                                device=device,
+                                batch_size=81,
+                                generation_patch={
+                                    "adapter": adapter,
+                                    "layer_idx": l,
+                                    "patch_tensor": p_vec,
+                                    "token_index": t_idx,
+                                    "hook_point": HookPoint.POST_MLP_RESID,
+                                },
                             )
-                        ev_p, ea_p = compute_expected_va(probs_p, candidates)
-                        shifts_v.append(ev_p - clean_ev_list[idx])
-                        shifts_a.append(ea_p - clean_ea_list[idx])
+                            ev_p, ea_p = compute_expected_va(probs_p, candidates)
+                            if axis_name == "v":
+                                axis_shifts.append(ev_p - clean_ev_list[idx])
+                            else:
+                                axis_shifts.append(ea_p - clean_ea_list[idx])
+                        shift_store.extend(axis_shifts)
 
-                    sl_v = estimate_interventional_slope(alpha_sweep, shifts_v)
-                    sl_a = estimate_interventional_slope(alpha_sweep, shifts_a)
-                    sample_gamma_v.append(sl_v)
-                    sample_gamma_a.append(sl_a)
+                    sample_gamma_v.append(estimate_interventional_slope(alpha_sweep, shifts_v))
+                    sample_gamma_a.append(estimate_interventional_slope(alpha_sweep, shifts_a))
                     sample_c_v.append(abs(shifts_v[-1]))
                     sample_c_a.append(abs(shifts_a[-1]))
 
@@ -394,6 +416,8 @@ def run_real_spatiotemporal_maps(
             "D_A": D_A.tolist(),
             "beta_V": beta_V.tolist(),
             "beta_A": beta_A.tolist(),
+            "abs_beta_V": abs_beta_V.tolist(),
+            "abs_beta_A": abs_beta_A.tolist(),
             "gamma_V": gamma_V.tolist(),
             "gamma_A": gamma_A.tolist(),
             "C_V": C_V.tolist(),
@@ -418,8 +442,8 @@ def main():
     raw_dir.mkdir(parents=True, exist_ok=True)
     derived_dir.mkdir(parents=True, exist_ok=True)
 
-    df = pd.read_csv(v3_cfg["dataset"]["path"])
-    logger.info(describe_loaded_frame(df, "V3-RQ2 dataset", v3_cfg["dataset"]["path"]))
+    df = load_v3_matched_pair_table(v3_cfg["dataset"]["path"])
+    logger.info(describe_loaded_frame(df, "V3-RQ2 matched-pair table", v3_cfg["dataset"]["path"]))
     semantic_stages = v3_cfg["spatiotemporal"]["semantic_stages"]
     alpha_sweep = v3_cfg["spatiotemporal"]["alpha_sweep"]
 

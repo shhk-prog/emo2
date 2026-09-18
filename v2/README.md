@@ -4,7 +4,9 @@ V2 は、**同一ファミリーの Base と Instruct** を対にして、情動
 
 比較軸は Base ↔ Instruct である。Reader ↔ Self の同一モデル内比較は V1 の軸であり、混ぜない。
 
-測定対象は自己報告・認識の出力変位と、その内部表現 / 介入応答である。「Instruct 化で共感が生まれた」とは書かない。
+中心の問いは **What does post-training reorganize?** である。
+
+Reader / Self は操作的な認識課題と自己報告課題である。認知的共感 / 情動的共感との一対一対応はしない。「Instruct 化で共感が生まれた」とは書かない。
 
 ---
 
@@ -15,6 +17,8 @@ Behavioral  →  V1  →  V2  →  V3
 ```
 
 V1 が「1 モデル内で Reader と Self は共有か」を問うのに対し、V2 は「事後学習でその幾何と因果ピークはどう動くか」を問う。V3 は Instruct 側の状態誘導と時空間経路に進む。
+
+V2 / V3 の Sequence-Likelihood は 81 VA 候補である。Behavioral / V1 の 729 VAD 空間の $E[V], E[A]$ とは同一尺度として比較しない。
 
 ---
 
@@ -104,7 +108,8 @@ $$
 - Bootstrap 95% CI（既定 $n=1000$）
 - 対比較は family 内 Base vs Instruct（paired）
 - 確証的統合: `v2/primary/run_confirmatory_analysis.py`（LMM, FDR）
-- データ既定: `v1/data/processed/stimuli_vad_3way_test1k.csv`。件数はロード時にログする。固定の「1,000 件」は書かない。
+- データ既定: `v1/data/processed/stimuli_vad_3way_test1k.csv`。件数はロード時にログする。固定の「1,000 件」は書かない。V3 の AIPsy matched-neutral 192 pair とは別データである。
+- Sequence-Likelihood は 81 VA。Behavioral / V1 の 729 VAD 期待値と直接比較しない。
 
 ---
 
@@ -196,3 +201,4 @@ python v2/primary/run_rq1_rq2_cross_decoding.py --dry-run --family qwen
 - Recovery が高くても「内部に感情がある」ではなく「分布が介入で近づいた」
 - matched-plain で差が消えるなら、template 交絡を先に疑う
 - Primary 4 family と Mistral 7B を同じ主表に混ぜない
+- V1 の Reader↔Self 指標を、V2 の Base↔Instruct $\Delta$ と同一セルに置かない

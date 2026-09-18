@@ -1,0 +1,23 @@
+# V2 コード修正・統計パイプライン完全化 タスクリスト
+
+- [x] **Phase 1: 環境・パッケージ整合性と共有関数の整備**
+  - [x] 1.1 `.gitignore` の修正（`models/` 除外の解除とソースコード追跡の保証）
+  - [x] 1.2 `src/affective_empathy_eval/` と `v1/src/` のモジュール同期・editable install 確認
+  - [x] 1.3 `prompts.py`: `encode_prompt_canonical` の実装、`prompt_end` / `pre_response` アンカーの整理（指摘2, 12）
+  - [x] 1.4 `likelihood.py`: 候補ごとの joint tokenization（`prompt + candidate`）および境界判定の実装（指摘3）
+- [x] **Phase 2: RQ1 & RQ2 クロスデコーディング・幾何解析の拡張**
+  - [x] 2.1 `run_v2_2x2_cross_decoding.py`: `matched_plain` 条件の解析への完全接続（Base plain vs Inst native-chat, Base plain vs Inst matched-plain, Inst chat vs Inst plain）（指摘4）
+  - [x] 2.2 `run_v2_2x2_cross_decoding.py`: Sharing score $\Delta Share(l) = Share_I(l) - Share_B(l)$ の Primary 化（指摘5）
+  - [x] 2.3 `run_v2_2x2_cross_decoding.py`: Bootstrap CI のパイプライン接続（指摘11）
+- [x] **Phase 3: RQ3 因果マップ・解離解析の統計的完全化**
+  - [x] 3.1 `run_v2_2x2_causal_map.py`: 1回 forward での全層 capture または効率的パッチングの実装（指摘2, 12）
+  - [x] 3.2 `run_v2_2x2_causal_map.py`: サンプル単位 $C_{i,l}$ の記録、long-form CSV (`v2_causal_pair_level.csv`) 出力、LMM 検定実行（指摘6）
+  - [x] 3.3 `run_v2_2x2_causal_map.py`: BR, BS, IR, IS の 4条件すべてに対する解離量算出と比較（指摘7）
+- [x] **Phase 4: RQ4 分布回復パッチングの全面改修**
+  - [x] 4.1 `run_v2_recovery_patching.py`: Base 活性化の全層一括 capture 実装（指摘8）
+  - [x] 4.2 `run_v2_recovery_patching.py`: サンプル単位 EMD / 回復率 ($EMD_i, Recovery_{i,l}$) 算出と Bootstrap CI（指摘9）
+  - [x] 4.3 `run_v2_recovery_patching.py`: Reader / Self の両タスクでの回復パッチング実行とタスク間比較（指摘10）
+- [x] **Phase 5: テスト・検証とドキュメント作成**
+  - [x] 5.1 全ユニットテスト（pytest）の実行と通過確認（25件全PASS）
+  - [x] 5.2 Dry-run パイプライン（全4モデルファミリー）の実行と出力 JSON/CSV の検証
+  - [x] 5.3 `walkthrough.md` の作成と報告

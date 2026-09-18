@@ -1,0 +1,11 @@
+Working directory: /mnt/nas/home/hiromi/src/emo
+========================================================================
+Starting Slurm Task: Array ID 5 / Job ID 108351
+Running on Host: iag-03 | GPU: NVIDIA H100 NVL
+========================================================================
+
+========================================================================
+Executing Job 5: llama3.2_1b_base_patching
+Command: python v1/scripts/run_v1_phase_c_causal_patching.py --model-id "meta-llama/Llama-3.2-1B" --model-prefix "llama3.2_1b_base" --limit 0 --device "cuda" --sub-batch-size 81 --all-layers
+Log:     v1/results/logs/phase_c/llama3.2_1b_base_patching_20260917_124612.log
+========================================================================

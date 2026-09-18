@@ -6,12 +6,20 @@ V3 の正式実行面。設計・指標・解釈の本文は親の [`v3/README.m
 
 | ファイル | 内容 |
 |---|---|
-| `run_rq1_state_induction.py` | 状態誘導と Go/No-Go。Topic は非特異的摂動の確認統制 |
-| `run_rq2_spatiotemporal_maps.py` | 層 × 意味段階の 4-Map（$D$, $\beta$, $\gamma$, $C$） |
+| `run_rq1_state_induction.py` | 状態誘導と Go/No-Go。$d_V$ / $d_A$ を別 sweep。Topic は非特異的摂動の確認統制 |
+| `run_rq2_spatiotemporal_maps.py` | 層 × 意味段階の 4-Map（$D$, $\beta$, $\gamma$, $C$）。joint sequence patch。Discovery |
 | `run_rq3_path_mediation.py` | mediated attenuation（NDE/NIE は使わない） |
-| `run_confirmatory_replication.py` | Llama / Gemma 3 / OLMo 2 での追試 |
+| `run_confirmatory_replication.py` | Llama / Gemma 3 / OLMo 2。Sufficiency も V/A 別 sweep |
 
-モデルは `configs/models.yaml`。未知 family は `KeyError`。層は指定が無ければ $d=0.5$ から $l=\operatorname{round}(d(L-1))$。
+## 固定事項
+
+- モデルは `configs/models.yaml`。未知 family は `KeyError`
+- 層は指定が無ければ $d=0.5$ から $l=\operatorname{round}(d(L-1))$
+- 既定データは AIPsy clinical–neutral 192 pair。EmoBank 3-way は使わない
+- 候補空間は 81 VA
+- 統合 CLI は RQ1 が完全一致の `GO` のときだけ RQ2 以降へ進む
+- 継続は `--force-after-no-go` のみ
+- $\beta$ は符号付き。`abs_beta_*` を併記
 
 ## 実行
 

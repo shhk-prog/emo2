@@ -1,0 +1,9 @@
+2026-09-17 10:55:20,556 [INFO] Starting Step 7 Confirmatory Replication across families (dry_run=False)
+2026-09-17 10:55:20,561 [INFO] Replicating on Llama (num_layers=16)...
+2026-09-17 10:55:20,561 [INFO] Saved Llama confirmatory results to v3/results/raw/v3_confirmatory_llama.json
+2026-09-17 10:55:20,561 [INFO] Replicating on Gemma (num_layers=26)...
+2026-09-17 10:55:20,562 [INFO] Saved Gemma confirmatory results to v3/results/raw/v3_confirmatory_gemma.json
+2026-09-17 10:55:20,562 [INFO] Replicating on Mistral (num_layers=32)...
+2026-09-17 10:55:20,562 [INFO] Saved Mistral confirmatory results to v3/results/raw/v3_confirmatory_mistral.json
+2026-09-17 10:55:20,563 [INFO] Saved cross-model replication summary to v3/results/derived/v3_cross_model_replication_summary.json
+2026-09-17 10:55:20,563 [INFO] Step 7 Confirmatory replication completed successfully.

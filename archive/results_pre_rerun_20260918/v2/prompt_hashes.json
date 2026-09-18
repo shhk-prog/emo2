@@ -1,0 +1,7 @@
+{
+  "model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "template_name": "strict_val_forcing",
+  "placeholder_text": "<INSERT_TEXT_HERE>",
+  "exact_prompt_string": "<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\nRead the following text and report your affective state.\n\nText: <INSERT_TEXT_HERE>\n\nRespond strictly in JSON format with 'valence' and 'arousal' keys (1-9).<|im_end|>\n<|im_start|>assistant\n{\n  \"valence\": ",
+  "sha256": "645e97c5ee5afde7d322f77684905f71edb9df7af721e553f566686acc8eaf0b"
+}

@@ -1,0 +1,30 @@
+=== Dataset Examples ===
+Condition: affective, Intensity: peak
+Text: The kitchen counter still had the grocery list in his handwriting. Bananas, milk, the kind of bread she never liked. She opened the refrigerator and found the leftovers he'd portioned into containers, labeled with days of the week. Thursday's container was still full. It was now Sunday. She closed the door and stood in the room where everything was exactly where he had put it, and no one was going to move any of it, and no one was going to add to it, ever again.
+----------------------------------------
+Condition: affective, Intensity: peak
+Text: The lab was empty now. Twenty-two years of research. The server room had been cleared by facilities before she'd arrived Monday morning. The backup drives weren't in the cabinet. She found a single Post-it note on the monitor: "Assets transferred per Board directive, 2/14." Her notebooks were still there — they hadn't taken paper. She opened one to a page of handwritten equations from 2009 and ran her finger along the margin where she'd drawn a small star next to the line that would have changed everything, and now never would.
+----------------------------------------
+Condition: affective, Intensity: peak
+Text: He found the key on the kitchen table. Not in the bowl by the door where she always left it, but centered on the table, placed there with intention. The closet was half-empty in a way that was precise — her things, only her things, selected and removed while he was at work. The hangers were still swinging slightly, or he imagined they were. The bathroom mirror had a square of fog from a shower taken hours ago. He sat down on the bed and noticed the indent on her side of the mattress was already starting to level.
+----------------------------------------
+
+=== JSON Metrics ===
+
+--- v2/results/derived/phase7_cross_decoding_controls.json ---
+{
+  "Valence": 0.58,
+  "Arousal": 0.42,
+  "Token Count": 0.05,
+  "Surface VAD": 0.12,
+  "Narrative Richness": 0.08
+}
+
+--- v2/results/derived/phase9_advanced_patching.json ---
+{
+  "10_res": -0.108,
+  "15_res": -0.094,
+  "16_res": -0.094,
+  "10_mlp": -0.091,
+  "WD_recovery_max": 0.15
+}

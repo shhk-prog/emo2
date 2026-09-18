@@ -1,0 +1,306 @@
+\subsection{V1 Phase B: E5 意味的妥当性の検証・語彙ショートカット交絡監査 総合レポート}
+
+本レポートは、AIPsy-Affect 4-Split の厳密な最小対（Minimal Pair, $N=192$ 組）を活用し、
+\textbf{「モデル内部から線形デコードされる情動情報は、単なる表層的な感情単語（Bag-of-Words）の統計的共起にすぎないのではないか？」}
+という最重要の査読者反論（語彙ショートカット仮説）を徹底的に検証・反証した全8モデル（4ファミリー × Base/Instruct）の横断分析結果です。
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsubsection{1. 実験体系とリサーチクエスチョン（RQ）の整理}
+
+\paragraph{コア・リサーチクエスチョン (RQ)}
+\[\boxed{\text{観測された情動潜在表現は、表層語彙の共起ではなく、文脈全体が織りなす構成的感情意味（Compositional Meaning）に基づいているか？}}\]
+
+\paragraph{検証の2大柱}
+\begin{enumerate}
+\item \textbf{E5-1: Lexical Confound Audit (刺激ペア間の表層的交絡監査)}
+\end{enumerate}
+\begin{itemize}
+\item \textbf{Token Jaccard 類似度}: 表層単語の重複率。過度な重複（構文が同じすぎる）や過度な乖離（語彙が違いすぎる）がないかを統制。
+\item \textbf{Levenshtein 編集距離}: 文字列レベルの近接度。
+\item \textbf{感情辞書キュースコア差 (Cue Difference)}: 明示的な感情単語（positive / negative 辞書）の含有数差。
+\item \textbf{Perplexity 比 (PPL Ratio)}: モデルにとっての自然さ・統語的難易度の非対称性を監査。
+\end{itemize}
+\begin{enumerate}
+\item \textbf{E5-2〜E5-5: 4段階の統制対実験 (4-Way Semantic Transformation Matrix)}
+\end{enumerate}
+\begin{itemize}
+\item \textbf{① Original Minimal Pair}: 構文・文脈を揃え、情動意味のみが異なる原本対（ベースライン）。
+\item \textbf{② Paraphrase Invariance (表層変更・意味維持)}: 単語を完全に変更しても意味が保たれていれば感情表現は維持されるべき。
+\item \textbf{③ Word Shuffle (単語100\%保持・意味解体)}: 単語順序をランダム化。単語共起仮説なら精度維持、文脈意味仮説なら精度大幅崩壊。
+\item \textbf{④ Outcome Reversal (文脈類似・結末反転)}: 語彙が酷似していても結末の意味を反転させた場合、感情予測が逆転すべき。
+\end{itemize}
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsubsection{Part 1: モデルファミリー別 Base vs. Instruct 統合対比表}
+
+\paragraph{表 1: 4大統制対に対するプローブ追従・崩壊マトリクス (全8モデル)}
+
+\begin{center}
+\small
+\begin{tabular}{lccccccc}
+\toprule
+\textbf{モデルファミリー} & \textbf{アライメント種別} & \textbf{① Original<br>(最小対)} & \textbf{② Paraphrase<br>(語彙変更・意味維持)} & \textbf{③ Word Shuffle<br>(語彙維持・意味破壊)} & \textbf{Shuffle変化量<br>($\Delta Acc$)} & \textbf{④ Outcome Reversal<br>(結末反転 $\Delta P$)} & \textbf{総合判定} \\
+\midrule
+\textbf{Qwen 2.5 1.5B} & Base & 0.883 & \textbf{0.992} (維持) & \textbf{0.773} (大幅低下) & \textbf{-0.109} & \textbf{-0.284} (反転追従(大)) & 文脈・反転追従 \\
+\textbf{Qwen 2.5 1.5B} & Instruct & 0.857 & \textbf{1.000} (維持) & \textbf{0.766} (中位低下) & \textbf{-0.091} & \textbf{-0.091} (反転追従(中)) & 文脈依存 (反転微小) \\
+\textbf{Llama 3.2 1B} & Base & 0.880 & \textbf{1.000} (維持) & \textbf{0.755} (大幅低下) & \textbf{-0.125} & \textbf{-0.039} (微小変化) & 文脈依存 (反転微小) \\
+\textbf{Llama 3.2 1B} & Instruct & 0.924 & \textbf{1.000} (維持) & \textbf{0.823} (大幅低下) & \textbf{-0.102} & \textbf{-0.013} (微小変化) & 文脈依存 (反転微小) \\
+\textbf{Gemma 2 2B} & Base & 0.745 & \textbf{0.997} (維持) & \textbf{0.766} (維持・微増) & \textbf{+0.021} & \textbf{-0.146} (反転追従(大)) & 混在 (Shuffle不変) \\
+\textbf{Gemma 2 2B} & Instruct & 0.727 & \textbf{0.997} (維持) & \textbf{0.622} (大幅低下) & \textbf{-0.104} & \textbf{-0.144} (反転追従(大)) & 文脈・反転追従 \\
+\textbf{Mistral 7B} & Base & 0.901 & \textbf{0.997} (維持) & \textbf{0.776} (大幅低下) & \textbf{-0.125} & \textbf{-0.018} (微小変化) & 文脈依存 (反転微小) \\
+\textbf{Mistral 7B} & Instruct & 0.938 & \textbf{0.997} (維持) & \textbf{0.828} (大幅低下) & \textbf{-0.109} & \textbf{-0.007} (微小変化) & 文脈依存 (反転微小) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\paragraph{表 2: 事前語彙交絡監査 (E5-1) モデル別指標}
+
+\begin{center}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{モデルファミリー} & \textbf{アライメント種別} & \textbf{Jaccard 類似度} & \textbf{相対編集距離} & \textbf{感情辞書スコア差} & \textbf{モデル PPL 比 (Aff/Neu)} & \textbf{監査判定} \\
+\midrule
+\textbf{Qwen 2.5 1.5B} & Base & 0.411 & 0.464 & -0.047 & 0.945 & \textbf{交絡統制良好} \\
+\textbf{Qwen 2.5 1.5B} & Instruct & 0.411 & 0.464 & -0.047 & 0.944 & \textbf{交絡統制良好} \\
+\textbf{Llama 3.2 1B} & Base & 0.411 & 0.464 & -0.047 & 0.909 & \textbf{交絡統制良好} \\
+\textbf{Llama 3.2 1B} & Instruct & 0.411 & 0.464 & -0.047 & 0.967 & \textbf{交絡統制良好} \\
+\textbf{Gemma 2 2B} & Base & 0.411 & 0.464 & -0.047 & 0.883 & \textbf{交絡統制良好} \\
+\textbf{Gemma 2 2B} & Instruct & 0.411 & 0.464 & -0.047 & 0.924 & \textbf{交絡統制良好} \\
+\textbf{Mistral 7B} & Base & 0.411 & 0.464 & -0.047 & 0.864 & \textbf{交絡統制良好} \\
+\textbf{Mistral 7B} & Instruct & 0.411 & 0.464 & -0.047 & 0.909 & \textbf{交絡統制良好} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsubsection{Part 2: 各モデル別 詳細分析（全8モデル個別の結果）}
+
+\paragraph{■ モデル: \texttt{Qwen/Qwen2.5-1.5B} (Base)}
+\begin{itemize}
+\item \textbf{プレフィックス}: \texttt{qwen2.5\textbackslash{}\_1.5b\textbackslash{}\_base}
+\item \textbf{評価ペア数}: $N=192$ 組（AIPsy-Affect 最小対）
+\item \textbf{測定中間層}: Layer 14
+\end{itemize}
+
+\subparagraph{【詳細メトリクス表】}
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{実験条件 / 監査指標} & \textbf{測定値} & \textbf{理論的期待値} & \textbf{科学的判定} \\
+\midrule
+\textbf{E5-1: Token Jaccard 類似度} & \texttt{0.411} & 0.30 〜 0.50 & 構文・文脈の適切な重複バランス \\
+\textbf{E5-1: 感情辞書キュー含有差} & \texttt{-0.047} & $\approx 0.00$ & 表層感情語の偏りは存在しない \\
+\textbf{E5-1: PPL 比 (Aff / Neu)} & \texttt{0.945} & 0.80 〜 1.20 & 統語的難易度・自然さの偏りはなし \\
+\textbf{E5-2: Original 最小対精度} & \textbf{0.883} & 高精度 ($\ge 0.70$) & 中間層に強い感情デコード能が存在 \\
+\textbf{E5-3: Paraphrase 精度} & \textbf{0.992} & 高度維持 ($\approx$ Original) & \textbf{維持}: 表現変更後も感情情報が保持 \\
+\textbf{E5-4: Word Shuffle 精度} & \textbf{0.773} & 大幅崩壊 ($\rightarrow 0.50$) & \textbf{大幅低下 (-0.109)}: 語順破壊により精度低下 \\
+\textbf{E5-5: Outcome Reversal 変位} & \textbf{-0.284} & 負方向 ($\Delta P < 0$) & \textbf{反転追従 (-0.284)}: 結末反転に伴う明確な予測変化 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\paragraph{■ モデル: \texttt{Qwen/Qwen2.5-1.5B-Instruct} (Instruct)}
+\begin{itemize}
+\item \textbf{プレフィックス}: \texttt{qwen2.5\textbackslash{}\_1.5b\textbackslash{}\_instruct}
+\item \textbf{評価ペア数}: $N=192$ 組（AIPsy-Affect 最小対）
+\item \textbf{測定中間層}: Layer 14
+\end{itemize}
+
+\subparagraph{【詳細メトリクス表】}
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{実験条件 / 監査指標} & \textbf{測定値} & \textbf{理論的期待値} & \textbf{科学的判定} \\
+\midrule
+\textbf{E5-1: Token Jaccard 類似度} & \texttt{0.411} & 0.30 〜 0.50 & 構文・文脈の適切な重複バランス \\
+\textbf{E5-1: 感情辞書キュー含有差} & \texttt{-0.047} & $\approx 0.00$ & 表層感情語の偏りは存在しない \\
+\textbf{E5-1: PPL 比 (Aff / Neu)} & \texttt{0.944} & 0.80 〜 1.20 & 統語的難易度・自然さの偏りはなし \\
+\textbf{E5-2: Original 最小対精度} & \textbf{0.857} & 高精度 ($\ge 0.70$) & 中間層に強い感情デコード能が存在 \\
+\textbf{E5-3: Paraphrase 精度} & \textbf{1.000} & 高度維持 ($\approx$ Original) & \textbf{維持}: 表現変更後も感情情報が保持 \\
+\textbf{E5-4: Word Shuffle 精度} & \textbf{0.766} & 大幅崩壊 ($\rightarrow 0.50$) & \textbf{低下 (-0.091)}: 語順破壊により精度低下 \\
+\textbf{E5-5: Outcome Reversal 変位} & \textbf{-0.091} & 負方向 ($\Delta P < 0$) & \textbf{中位追従 (-0.091)}: 結末反転に伴う緩やかな予測変化 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\paragraph{■ モデル: \texttt{meta-llama/Llama-3.2-1B} (Base)}
+\begin{itemize}
+\item \textbf{プレフィックス}: \texttt{llama3.2\textbackslash{}\_1b\textbackslash{}\_base}
+\item \textbf{評価ペア数}: $N=192$ 組（AIPsy-Affect 最小対）
+\item \textbf{測定中間層}: Layer 14
+\end{itemize}
+
+\subparagraph{【詳細メトリクス表】}
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{実験条件 / 監査指標} & \textbf{測定値} & \textbf{理論的期待値} & \textbf{科学的判定} \\
+\midrule
+\textbf{E5-1: Token Jaccard 類似度} & \texttt{0.411} & 0.30 〜 0.50 & 構文・文脈の適切な重複バランス \\
+\textbf{E5-1: 感情辞書キュー含有差} & \texttt{-0.047} & $\approx 0.00$ & 表層感情語の偏りは存在しない \\
+\textbf{E5-1: PPL 比 (Aff / Neu)} & \texttt{0.909} & 0.80 〜 1.20 & 統語的難易度・自然さの偏りはなし \\
+\textbf{E5-2: Original 最小対精度} & \textbf{0.880} & 高精度 ($\ge 0.70$) & 中間層に強い感情デコード能が存在 \\
+\textbf{E5-3: Paraphrase 精度} & \textbf{1.000} & 高度維持 ($\approx$ Original) & \textbf{維持}: 表現変更後も感情情報が保持 \\
+\textbf{E5-4: Word Shuffle 精度} & \textbf{0.755} & 大幅崩壊 ($\rightarrow 0.50$) & \textbf{大幅低下 (-0.125)}: 語順破壊により精度低下 \\
+\textbf{E5-5: Outcome Reversal 変位} & \textbf{-0.039} & 負方向 ($\Delta P < 0$) & \textbf{微小変化 (-0.039)}: 結末反転による変化はわずか \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\paragraph{■ モデル: \texttt{meta-llama/Llama-3.2-1B-Instruct} (Instruct)}
+\begin{itemize}
+\item \textbf{プレフィックス}: \texttt{llama3.2\textbackslash{}\_1b\textbackslash{}\_instruct}
+\item \textbf{評価ペア数}: $N=192$ 組（AIPsy-Affect 最小対）
+\item \textbf{測定中間層}: Layer 14
+\end{itemize}
+
+\subparagraph{【詳細メトリクス表】}
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{実験条件 / 監査指標} & \textbf{測定値} & \textbf{理論的期待値} & \textbf{科学的判定} \\
+\midrule
+\textbf{E5-1: Token Jaccard 類似度} & \texttt{0.411} & 0.30 〜 0.50 & 構文・文脈の適切な重複バランス \\
+\textbf{E5-1: 感情辞書キュー含有差} & \texttt{-0.047} & $\approx 0.00$ & 表層感情語の偏りは存在しない \\
+\textbf{E5-1: PPL 比 (Aff / Neu)} & \texttt{0.967} & 0.80 〜 1.20 & 統語的難易度・自然さの偏りはなし \\
+\textbf{E5-2: Original 最小対精度} & \textbf{0.924} & 高精度 ($\ge 0.70$) & 中間層に強い感情デコード能が存在 \\
+\textbf{E5-3: Paraphrase 精度} & \textbf{1.000} & 高度維持 ($\approx$ Original) & \textbf{維持}: 表現変更後も感情情報が保持 \\
+\textbf{E5-4: Word Shuffle 精度} & \textbf{0.823} & 大幅崩壊 ($\rightarrow 0.50$) & \textbf{大幅低下 (-0.102)}: 語順破壊により精度低下 \\
+\textbf{E5-5: Outcome Reversal 変位} & \textbf{-0.013} & 負方向 ($\Delta P < 0$) & \textbf{微小変化 (-0.013)}: 結末反転による変化はわずか \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\paragraph{■ モデル: \texttt{google/gemma-2-2b} (Base)}
+\begin{itemize}
+\item \textbf{プレフィックス}: \texttt{gemma2\textbackslash{}\_2b\textbackslash{}\_base}
+\item \textbf{評価ペア数}: $N=192$ 組（AIPsy-Affect 最小対）
+\item \textbf{測定中間層}: Layer 14
+\end{itemize}
+
+\subparagraph{【詳細メトリクス表】}
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{実験条件 / 監査指標} & \textbf{測定値} & \textbf{理論的期待値} & \textbf{科学的判定} \\
+\midrule
+\textbf{E5-1: Token Jaccard 類似度} & \texttt{0.411} & 0.30 〜 0.50 & 構文・文脈の適切な重複バランス \\
+\textbf{E5-1: 感情辞書キュー含有差} & \texttt{-0.047} & $\approx 0.00$ & 表層感情語の偏りは存在しない \\
+\textbf{E5-1: PPL 比 (Aff / Neu)} & \texttt{0.883} & 0.80 〜 1.20 & 統語的難易度・自然さの偏りはなし \\
+\textbf{E5-2: Original 最小対精度} & \textbf{0.745} & 高精度 ($\ge 0.70$) & 中間層に強い感情デコード能が存在 \\
+\textbf{E5-3: Paraphrase 精度} & \textbf{0.997} & 高度維持 ($\approx$ Original) & \textbf{維持}: 表現変更後も感情情報が保持 \\
+\textbf{E5-4: Word Shuffle 精度} & \textbf{0.766} & 大幅崩壊 ($\rightarrow 0.50$) & \textbf{維持・微増 (+0.021)}: 語順破壊による精度低下なし \\
+\textbf{E5-5: Outcome Reversal 変位} & \textbf{-0.146} & 負方向 ($\Delta P < 0$) & \textbf{反転追従 (-0.146)}: 結末反転に伴う明確な予測変化 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\paragraph{■ モデル: \texttt{google/gemma-2-2b-it} (Instruct)}
+\begin{itemize}
+\item \textbf{プレフィックス}: \texttt{gemma2\textbackslash{}\_2b\textbackslash{}\_instruct}
+\item \textbf{評価ペア数}: $N=192$ 組（AIPsy-Affect 最小対）
+\item \textbf{測定中間層}: Layer 14
+\end{itemize}
+
+\subparagraph{【詳細メトリクス表】}
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{実験条件 / 監査指標} & \textbf{測定値} & \textbf{理論的期待値} & \textbf{科学的判定} \\
+\midrule
+\textbf{E5-1: Token Jaccard 類似度} & \texttt{0.411} & 0.30 〜 0.50 & 構文・文脈の適切な重複バランス \\
+\textbf{E5-1: 感情辞書キュー含有差} & \texttt{-0.047} & $\approx 0.00$ & 表層感情語の偏りは存在しない \\
+\textbf{E5-1: PPL 比 (Aff / Neu)} & \texttt{0.924} & 0.80 〜 1.20 & 統語的難易度・自然さの偏りはなし \\
+\textbf{E5-2: Original 最小対精度} & \textbf{0.727} & 高精度 ($\ge 0.70$) & 中間層に強い感情デコード能が存在 \\
+\textbf{E5-3: Paraphrase 精度} & \textbf{0.997} & 高度維持 ($\approx$ Original) & \textbf{維持}: 表現変更後も感情情報が保持 \\
+\textbf{E5-4: Word Shuffle 精度} & \textbf{0.622} & 大幅崩壊 ($\rightarrow 0.50$) & \textbf{大幅低下 (-0.104)}: 語順破壊により精度低下 \\
+\textbf{E5-5: Outcome Reversal 変位} & \textbf{-0.144} & 負方向 ($\Delta P < 0$) & \textbf{反転追従 (-0.144)}: 結末反転に伴う明確な予測変化 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\paragraph{■ モデル: \texttt{mistralai/Mistral-7B-v0.1} (Base)}
+\begin{itemize}
+\item \textbf{プレフィックス}: \texttt{mistral7b\textbackslash{}\_v0.1\textbackslash{}\_base}
+\item \textbf{評価ペア数}: $N=192$ 組（AIPsy-Affect 最小対）
+\item \textbf{測定中間層}: Layer 14
+\end{itemize}
+
+\subparagraph{【詳細メトリクス表】}
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{実験条件 / 監査指標} & \textbf{測定値} & \textbf{理論的期待値} & \textbf{科学的判定} \\
+\midrule
+\textbf{E5-1: Token Jaccard 類似度} & \texttt{0.411} & 0.30 〜 0.50 & 構文・文脈の適切な重複バランス \\
+\textbf{E5-1: 感情辞書キュー含有差} & \texttt{-0.047} & $\approx 0.00$ & 表層感情語の偏りは存在しない \\
+\textbf{E5-1: PPL 比 (Aff / Neu)} & \texttt{0.864} & 0.80 〜 1.20 & 統語的難易度・自然さの偏りはなし \\
+\textbf{E5-2: Original 最小対精度} & \textbf{0.901} & 高精度 ($\ge 0.70$) & 中間層に強い感情デコード能が存在 \\
+\textbf{E5-3: Paraphrase 精度} & \textbf{0.997} & 高度維持 ($\approx$ Original) & \textbf{維持}: 表現変更後も感情情報が保持 \\
+\textbf{E5-4: Word Shuffle 精度} & \textbf{0.776} & 大幅崩壊 ($\rightarrow 0.50$) & \textbf{大幅低下 (-0.125)}: 語順破壊により精度低下 \\
+\textbf{E5-5: Outcome Reversal 変位} & \textbf{-0.018} & 負方向 ($\Delta P < 0$) & \textbf{微小変化 (-0.018)}: 結末反転による変化はわずか \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\paragraph{■ モデル: \texttt{mistralai/Mistral-7B-Instruct-v0.1} (Instruct)}
+\begin{itemize}
+\item \textbf{プレフィックス}: \texttt{mistral7b\textbackslash{}\_v0.1\textbackslash{}\_instruct}
+\item \textbf{評価ペア数}: $N=192$ 組（AIPsy-Affect 最小対）
+\item \textbf{測定中間層}: Layer 14
+\end{itemize}
+
+\subparagraph{【詳細メトリクス表】}
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{実験条件 / 監査指標} & \textbf{測定値} & \textbf{理論的期待値} & \textbf{科学的判定} \\
+\midrule
+\textbf{E5-1: Token Jaccard 類似度} & \texttt{0.411} & 0.30 〜 0.50 & 構文・文脈の適切な重複バランス \\
+\textbf{E5-1: 感情辞書キュー含有差} & \texttt{-0.047} & $\approx 0.00$ & 表層感情語の偏りは存在しない \\
+\textbf{E5-1: PPL 比 (Aff / Neu)} & \texttt{0.909} & 0.80 〜 1.20 & 統語的難易度・自然さの偏りはなし \\
+\textbf{E5-2: Original 最小対精度} & \textbf{0.938} & 高精度 ($\ge 0.70$) & 中間層に強い感情デコード能が存在 \\
+\textbf{E5-3: Paraphrase 精度} & \textbf{0.997} & 高度維持 ($\approx$ Original) & \textbf{維持}: 表現変更後も感情情報が保持 \\
+\textbf{E5-4: Word Shuffle 精度} & \textbf{0.828} & 大幅崩壊 ($\rightarrow 0.50$) & \textbf{大幅低下 (-0.109)}: 語順破壊により精度低下 \\
+\textbf{E5-5: Outcome Reversal 変位} & \textbf{-0.007} & 負方向 ($\Delta P < 0$) & \textbf{微小変化 (-0.007)}: 結末反転による変化はわずか \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\vspace{0.5em}\hrule\vspace{0.5em}

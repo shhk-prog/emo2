@@ -1,0 +1,905 @@
+\subsection{AIPsy-Affect 4-Split Comprehensive Evaluation Report}
+
+本レポートは、AIPsy-Affectの4つのsplit（clinical, neutral, moderate, complex\_neutral）を活用し、
+以下の5つのリサーチクエスチョン（RQ1〜RQ5）について、各モデルファミリーの \textbf{Base vs. Instruct} を直接対比・検証した結果です。
+
+※ \textbf{スケール標準化}: EmoBank（人間正解尺度）との直接比較・整合性のため、\textbf{全数値を 1〜5 尺度（中立点 3.0）に標準化}し、\textbf{VA（Valence-Arousal）2次元}に焦点を当てて集計しています。
+
+\begin{itemize}
+\item \textbf{① 感情刺激とNeutralの弁別（Sensitivity: Clinical vs. Neutral）}
+\item \textbf{② 感情強度に応じた段階的変化（Dose-Response: Neutral → Moderate → Clinical）}
+\item \textbf{③ 文章複雑性の統制（Specificity: Complex Neutral vs. Clinical）}
+\item \textbf{④ 他者認識と自己報告の連動性（Coupling: $\Delta VA_R \leftrightarrow \Delta VA_S$）}
+\item \textbf{⑤ 8大感情カテゴリ別の期待値変位プロファイル}
+\end{itemize}
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsubsection{Part 1: 5大リサーチクエスチョン Base vs. Instruct 統合対比表 (1-5尺度)}
+
+> \textbf{注釈}: 感情の相殺（ポジティブとネガティブの相殺）を防ぐため、以下の3大感情クラスタに分離して集計しています：
+> - \textbf{Negative（4感情）}: \texttt{grief}, \texttt{terror}, \texttt{rage}, \texttt{loathing} (理論期待: $V-$)
+> - \textbf{Positive（2感情）}: \texttt{ecstasy}, \texttt{admiration} (理論期待: $V+$)
+> - \textbf{Alert（2感情）}: \texttt{amazement}, \texttt{vigilance} (理論期待: $A+$)
+
+\paragraph{表1-A: 【① Sensitivity: 他者認識 (Reader Prediction)】 3大感情刺激に対する読者反応予測 (Clinical vs. Neutral)}
+> \textbf{問い}: 感情刺激に直面した人間の読者の感情を、モデルはどのように推論・認識しているか？（1〜5尺度、中立3.0）
+
+\begin{center}
+\small
+\begin{tabular}{lccccccc}
+\toprule
+\textbf{モデルファミリー} & \textbf{種別} & \textbf{Negative $\Delta V$ ($d$)} & \textbf{Negative $\Delta A$ ($d$)} & \textbf{Positive $\Delta V$ ($d$)} & \textbf{Positive $\Delta A$ ($d$)} & \textbf{Alert $\Delta A$ ($d$)} & \textbf{Alert $\Delta V$ ($d$)} \\
+\midrule
+\textbf{Qwen 2.5 1.5B} & Base & \textbf{-0.59} ($d=-1.40$) & -0.02 ($d=-0.10$) & \textbf{-0.08} ($d=-0.22$) & +0.20 ($d=+1.13$) & \textbf{+0.19} ($d=+1.15$) & -0.14 ($d=-0.44$) \\
+\textbf{Qwen 2.5 1.5B} & Instruct & \textbf{-0.97} ($d=-1.33$) & +0.01 ($d=+0.02$) & \textbf{-0.10} ($d=-0.18$) & +0.27 ($d=+0.98$) & \textbf{+0.27} ($d=+1.02$) & -0.20 ($d=-0.34$) \\
+\textbf{Mistral 7B} & Base & \textbf{-0.39} ($d=-1.55$) & +0.38 ($d=+2.00$) & \textbf{+0.21} ($d=+0.71$) & +0.45 ($d=+2.06$) & \textbf{+0.49} ($d=+2.01$) & -0.02 ($d=-0.08$) \\
+\textbf{Mistral 7B} & Instruct & \textbf{-1.26} ($d=-2.05$) & +1.45 ($d=+2.08$) & \textbf{+0.46} ($d=+0.54$) & +1.21 ($d=+1.99$) & \textbf{+1.49} ($d=+2.29$) & -0.01 ($d=-0.01$) \\
+\textbf{Llama 3.2 1B} & Base & \textbf{-0.03} ($d=-0.61$) & -0.01 ($d=-0.13$) & \textbf{-0.02} ($d=-0.29$) & -0.02 ($d=-0.31$) & \textbf{+0.01} ($d=+0.08$) & +0.00 ($d=+0.04$) \\
+\textbf{Llama 3.2 1B} & Instruct & \textbf{-0.40} ($d=-1.21$) & +0.22 ($d=+1.11$) & \textbf{-0.06} ($d=-0.17$) & +0.20 ($d=+1.08$) & \textbf{+0.17} ($d=+1.00$) & -0.05 ($d=-0.13$) \\
+\textbf{Gemma 2 2B} & Base & \textbf{-0.34} ($d=-0.41$) & -0.23 ($d=-0.50$) & \textbf{-0.50} ($d=-0.68$) & -0.24 ($d=-0.53$) & \textbf{-0.11} ($d=-0.21$) & -0.31 ($d=-0.43$) \\
+\textbf{Gemma 2 2B} & Instruct & \textbf{-0.03} ($d=-0.05$) & +0.97 ($d=+1.72$) & \textbf{+0.91} ($d=+1.93$) & +0.94 ($d=+1.78$) & \textbf{+1.01} ($d=+2.03$) & +0.49 ($d=+0.93$) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\paragraph{表1-B: 【① Sensitivity: 自己報告 (Self-Report)】 3大感情刺激に対するモデル自身の報告変位 (Clinical vs. Neutral)}
+> \textbf{問い}: 感情刺激を読んだ際、モデル自身の自己報告状態はどのように変位するか？（1〜5尺度、中立3.0）
+
+\begin{center}
+\small
+\begin{tabular}{lccccccc}
+\toprule
+\textbf{モデルファミリー} & \textbf{種別} & \textbf{Negative $\Delta V$ ($d$)} & \textbf{Negative $\Delta A$ ($d$)} & \textbf{Positive $\Delta V$ ($d$)} & \textbf{Positive $\Delta A$ ($d$)} & \textbf{Alert $\Delta A$ ($d$)} & \textbf{Alert $\Delta V$ ($d$)} \\
+\midrule
+\textbf{Qwen 2.5 1.5B} & Base & \textbf{-0.54} ($d=-1.38$) & -0.12 ($d=-0.55$) & \textbf{-0.09} ($d=-0.27$) & +0.13 ($d=+0.68$) & \textbf{+0.13} ($d=+0.91$) & -0.16 ($d=-0.59$) \\
+\textbf{Qwen 2.5 1.5B} & Instruct & \textbf{-0.86} ($d=-1.25$) & -0.08 ($d=-0.24$) & \textbf{-0.12} ($d=-0.26$) & +0.10 ($d=+0.36$) & \textbf{+0.15} ($d=+0.63$) & -0.15 ($d=-0.34$) \\
+\textbf{Mistral 7B} & Base & \textbf{-0.38} ($d=-1.67$) & +0.22 ($d=+1.63$) & \textbf{+0.13} ($d=+0.50$) & +0.32 ($d=+1.70$) & \textbf{+0.33} ($d=+1.73$) & -0.05 ($d=-0.21$) \\
+\textbf{Mistral 7B} & Instruct & \textbf{-1.46} ($d=-2.11$) & +1.38 ($d=+1.82$) & \textbf{+0.30} ($d=+0.29$) & +1.07 ($d=+1.42$) & \textbf{+1.46} ($d=+2.27$) & -0.14 ($d=-0.16$) \\
+\textbf{Llama 3.2 1B} & Base & \textbf{-0.05} ($d=-0.76$) & -0.01 ($d=-0.21$) & \textbf{-0.04} ($d=-0.49$) & -0.02 ($d=-0.28$) & \textbf{-0.00} ($d=-0.00$) & -0.02 ($d=-0.26$) \\
+\textbf{Llama 3.2 1B} & Instruct & \textbf{-0.52} ($d=-1.42$) & +0.12 ($d=+0.66$) & \textbf{-0.32} ($d=-0.96$) & +0.15 ($d=+0.75$) & \textbf{+0.14} ($d=+0.73$) & -0.28 ($d=-0.75$) \\
+\textbf{Gemma 2 2B} & Base & \textbf{-0.24} ($d=-0.32$) & -0.17 ($d=-0.39$) & \textbf{-0.49} ($d=-0.76$) & -0.23 ($d=-0.55$) & \textbf{-0.11} ($d=-0.25$) & -0.37 ($d=-0.53$) \\
+\textbf{Gemma 2 2B} & Instruct & \textbf{-0.56} ($d=-0.81$) & +0.73 ($d=+1.73$) & \textbf{+0.54} ($d=+0.95$) & +0.72 ($d=+2.35$) & \textbf{+0.77} ($d=+2.19$) & +0.22 ($d=+0.39$) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\paragraph{表2-A: 【② Dose-Response: 他者認識 (Reader Prediction)】 感情強度の段階的認識 (Neutral → Moderate → Clinical)}
+> \textbf{問い}: 感情強度の上昇に伴い、読者反応の予測は段階的に増大しているか？
+
+\begin{center}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{モデルファミリー} & \textbf{種別} & \textbf{Negative 弱$\rightarrow$強 $\Delta V$} & \textbf{Positive 弱$\rightarrow$強 $\Delta V$} & \textbf{Alert 弱$\rightarrow$強 $\Delta A$} & \textbf{全体単調性成立率 (Monotonicity)} \\
+\midrule
+\textbf{Qwen 2.5 1.5B} & Base & -0.54 $\rightarrow$ -0.10 & -0.15 $\rightarrow$ +0.03 & +0.14 $\rightarrow$ +0.10 & \textbf{41.7\%} \\
+\textbf{Qwen 2.5 1.5B} & Instruct & -0.87 $\rightarrow$ -0.01 & -0.02 $\rightarrow$ -0.18 & +0.12 $\rightarrow$ +0.26 & \textbf{37.5\%} \\
+\textbf{Mistral 7B} & Base & -0.44 $\rightarrow$ -0.08 & +0.16 $\rightarrow$ +0.02 & +0.40 $\rightarrow$ +0.27 & \textbf{64.6\%} \\
+\textbf{Mistral 7B} & Instruct & -0.88 $\rightarrow$ -0.55 & +0.21 $\rightarrow$ +0.04 & +0.81 $\rightarrow$ +0.96 & \textbf{66.7\%} \\
+\textbf{Llama 3.2 1B} & Base & -0.05 $\rightarrow$ +0.01 & -0.04 $\rightarrow$ +0.01 & -0.04 $\rightarrow$ +0.02 & \textbf{20.8\%} \\
+\textbf{Llama 3.2 1B} & Instruct & -0.60 $\rightarrow$ +0.10 & -0.19 $\rightarrow$ +0.10 & +0.19 $\rightarrow$ +0.01 & \textbf{33.3\%} \\
+\textbf{Gemma 2 2B} & Base & -0.12 $\rightarrow$ -0.36 & -0.01 $\rightarrow$ -0.58 & -0.09 $\rightarrow$ -0.17 & \textbf{14.6\%} \\
+\textbf{Gemma 2 2B} & Instruct & -0.33 $\rightarrow$ +0.30 & +0.78 $\rightarrow$ +0.25 & +0.68 $\rightarrow$ +0.58 & \textbf{50.0\%} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\paragraph{表2-B: 【② Dose-Response: 自己報告 (Self-Report)】 感情強度の段階的自己報告 (Neutral → Moderate → Clinical)}
+> \textbf{問い}: 感情強度の上昇に伴い、モデル自身の自己報告反応は段階的に増大しているか？
+
+\begin{center}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{モデルファミリー} & \textbf{種別} & \textbf{Negative 弱$\rightarrow$強 $\Delta V$} & \textbf{Positive 弱$\rightarrow$強 $\Delta V$} & \textbf{Alert 弱$\rightarrow$強 $\Delta A$} & \textbf{全体単調性成立率 (Monotonicity)} \\
+\midrule
+\textbf{Qwen 2.5 1.5B} & Base & -0.48 $\rightarrow$ -0.12 & -0.19 $\rightarrow$ +0.00 & +0.08 $\rightarrow$ +0.09 & \textbf{39.6\%} \\
+\textbf{Qwen 2.5 1.5B} & Instruct & -0.68 $\rightarrow$ -0.12 & -0.04 $\rightarrow$ -0.18 & +0.01 $\rightarrow$ +0.23 & \textbf{39.6\%} \\
+\textbf{Mistral 7B} & Base & -0.39 $\rightarrow$ -0.09 & +0.07 $\rightarrow$ +0.05 & +0.30 $\rightarrow$ +0.16 & \textbf{60.4\%} \\
+\textbf{Mistral 7B} & Instruct & -1.09 $\rightarrow$ -0.59 & +0.17 $\rightarrow$ -0.07 & +0.75 $\rightarrow$ +0.99 & \textbf{60.4\%} \\
+\textbf{Llama 3.2 1B} & Base & -0.06 $\rightarrow$ +0.00 & -0.05 $\rightarrow$ +0.01 & -0.04 $\rightarrow$ +0.02 & \textbf{14.6\%} \\
+\textbf{Llama 3.2 1B} & Instruct & -0.71 $\rightarrow$ +0.03 & -0.56 $\rightarrow$ +0.14 & +0.13 $\rightarrow$ +0.02 & \textbf{29.2\%} \\
+\textbf{Gemma 2 2B} & Base & -0.12 $\rightarrow$ -0.14 & -0.30 $\rightarrow$ -0.36 & -0.27 $\rightarrow$ -0.01 & \textbf{20.8\%} \\
+\textbf{Gemma 2 2B} & Instruct & -0.73 $\rightarrow$ -0.01 & +0.23 $\rightarrow$ +0.15 & +0.41 $\rightarrow$ +0.52 & \textbf{54.2\%} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\paragraph{表3-A: 【③ Specificity: 他者認識 (Reader Prediction)】 文章複雑性コントロール (Complex Neutral vs. Clinical)}
+> \textbf{問い}: 他者感情の認識は、単なる文章の長さ・難しさに惑わされず感情に特異的か？
+
+\begin{center}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{モデルファミリー} & \textbf{種別} & \textbf{複雑性効果 $\Delta V_{comp}$} & \textbf{Negative純感情 $\Delta V_{ctrl}$ (ASR)} & \textbf{Positive純感情 $\Delta V_{ctrl}$ (ASR)} & \textbf{Alert純覚醒 $\Delta A_{ctrl}$ (ASR)} \\
+\midrule
+\textbf{Qwen 2.5 1.5B} & Base & -0.02 & \textbf{-0.57} (26.8x) & \textbf{-0.05} (3.2x) & \textbf{+0.17} (10.5x) \\
+\textbf{Qwen 2.5 1.5B} & Instruct & -0.00 & \textbf{-1.01} (333.2x) & \textbf{-0.06} (21.9x) & \textbf{+0.16} (2.2x) \\
+\textbf{Mistral 7B} & Base & -0.15 & \textbf{-0.24} (2.7x) & \textbf{+0.33} (1.2x) & \textbf{+0.53} (6.2x) \\
+\textbf{Mistral 7B} & Instruct & -0.04 & \textbf{-1.21} (33.9x) & \textbf{+0.43} (10.7x) & \textbf{+1.31} (7.7x) \\
+\textbf{Llama 3.2 1B} & Base & +0.05 & \textbf{-0.10} (0.8x) & \textbf{-0.05} (0.0x) & \textbf{-0.07} (0.1x) \\
+\textbf{Llama 3.2 1B} & Instruct & -0.14 & \textbf{-0.25} (2.8x) & \textbf{+0.07} (0.5x) & \textbf{+0.10} (2.0x) \\
+\textbf{Gemma 2 2B} & Base & -0.28 & \textbf{-0.03} (1.1x) & \textbf{-0.25} (1.9x) & \textbf{+0.02} (0.9x) \\
+\textbf{Gemma 2 2B} & Instruct & +0.01 & \textbf{-0.07} (5.0x) & \textbf{+0.83} (72.9x) & \textbf{+1.32} (3.6x) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\paragraph{表3-B: 【③ Specificity: 自己報告 (Self-Report)】 文章複雑性コントロール (Complex Neutral vs. Clinical)}
+> \textbf{問い}: モデル自身の自己報告は、単なる文章の難しさに困惑せず感情に特異的か？
+
+\begin{center}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{モデルファミリー} & \textbf{種別} & \textbf{複雑性効果 $\Delta V_{comp}$} & \textbf{Negative純感情 $\Delta V_{ctrl}$ (ASR)} & \textbf{Positive純感情 $\Delta V_{ctrl}$ (ASR)} & \textbf{Alert純覚醒 $\Delta A_{ctrl}$ (ASR)} \\
+\midrule
+\textbf{Qwen 2.5 1.5B} & Base & -0.08 & \textbf{-0.47} (6.9x) & \textbf{+0.00} (1.0x) & \textbf{+0.08} (3.8x) \\
+\textbf{Qwen 2.5 1.5B} & Instruct & -0.02 & \textbf{-0.86} (54.5x) & \textbf{-0.10} (7.2x) & \textbf{+0.01} (1.1x) \\
+\textbf{Mistral 7B} & Base & -0.01 & \textbf{-0.39} (55.6x) & \textbf{+0.13} (17.8x) & \textbf{+0.33} (15.9x) \\
+\textbf{Mistral 7B} & Instruct & +0.13 & \textbf{-1.58} (11.5x) & \textbf{+0.13} (2.0x) & \textbf{+1.17} (4.7x) \\
+\textbf{Llama 3.2 1B} & Base & +0.07 & \textbf{-0.14} (1.0x) & \textbf{-0.09} (0.2x) & \textbf{-0.08} (0.1x) \\
+\textbf{Llama 3.2 1B} & Instruct & -0.04 & \textbf{-0.49} (13.3x) & \textbf{-0.26} (7.7x) & \textbf{-0.00} (1.0x) \\
+\textbf{Gemma 2 2B} & Base & -0.16 & \textbf{-0.09} (1.6x) & \textbf{-0.38} (3.4x) & \textbf{-0.03} (1.4x) \\
+\textbf{Gemma 2 2B} & Instruct & +0.11 & \textbf{-0.73} (5.6x) & \textbf{+0.41} (4.7x) & \textbf{+0.76} (10.8x) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\paragraph{表4: 【④ Coupling】 他者認識と自己報告の連動性 ($\Delta VA_R \leftrightarrow \Delta VA_S$)}
+> \textbf{問い}: テキストから人間の感情を推定（認識）した変位が、モデル自身の自己報告変位とどの程度同期・伝播しているか？
+
+\begin{center}
+\small
+\begin{tabular}{lccccccccccc}
+\toprule
+\textbf{モデルファミリー} & \textbf{種別} & \textbf{全体連動 $r_V$} & \textbf{全体連動 $r_A$} & \textbf{Negative連動 $r_V$} & \textbf{Positive連動 $r_V$} & \textbf{振幅比率 $\frac{\} & \textbf{\Delta\_S\} & \textbf{}{\} & \textbf{\Delta\_R\} & \textbf{}\_V$} & \textbf{完全中立退化率 $P(3,3,3)$} \\
+\midrule
+\textbf{Qwen 2.5 1.5B} & Base & \textbf{0.973} & \textbf{0.926} & 0.968 & 0.958 & 0.91 & \texttt{0.0\textbackslash{}\%} &  &  &  &  \\
+\textbf{Qwen 2.5 1.5B} & Instruct & \textbf{0.960} & \textbf{0.885} & 0.954 & 0.936 & 0.85 & \texttt{0.0\textbackslash{}\%} &  &  &  &  \\
+\textbf{Mistral 7B} & Base & \textbf{0.968} & \textbf{0.945} & 0.927 & 0.951 & 0.93 & \texttt{18.3\textbackslash{}\%} &  &  &  &  \\
+\textbf{Mistral 7B} & Instruct & \textbf{0.971} & \textbf{0.920} & 0.927 & 0.969 & 1.16 & \texttt{0.0\textbackslash{}\%} &  &  &  &  \\
+\textbf{Llama 3.2 1B} & Base & \textbf{0.798} & \textbf{0.897} & 0.741 & 0.852 & 1.36 & \texttt{0.0\textbackslash{}\%} &  &  &  &  \\
+\textbf{Llama 3.2 1B} & Instruct & \textbf{0.889} & \textbf{0.841} & 0.915 & 0.850 & 1.25 & \texttt{0.0\textbackslash{}\%} &  &  &  &  \\
+\textbf{Gemma 2 2B} & Base & \textbf{0.827} & \textbf{0.833} & 0.848 & 0.794 & 0.92 & \texttt{0.2\textbackslash{}\%} &  &  &  &  \\
+\textbf{Gemma 2 2B} & Instruct & \textbf{0.840} & \textbf{0.860} & 0.778 & 0.720 & 1.03 & \texttt{0.0\textbackslash{}\%} &  &  &  &  \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\paragraph{表5-A: 【⑤ 8感情別プロファイル: 他者認識 (Reader Prediction)】 各感情刺激に対する読者反応予測 $\Delta(V, A)$}
+> \textbf{問い}: 8つの感情刺激に対して、読者の感情を理論予測通りに認識しているか？
+
+\begin{center}
+\small
+\begin{tabular}{lccccccccc}
+\toprule
+\textbf{感情 (Emotion)} & \textbf{理論的期待} & \textbf{Qwen Base $\Delta(V,A)$} & \textbf{Qwen Inst $\Delta(V,A)$} & \textbf{Mistral Base $\Delta(V,A)$} & \textbf{Mistral Inst $\Delta(V,A)$} & \textbf{Llama Base $\Delta(V,A)$} & \textbf{Llama Inst $\Delta(V,A)$} & \textbf{Gemma Base $\Delta(V,A)$} & \textbf{Gemma Inst $\Delta(V,A)$} \\
+\midrule
+\textbf{grief} & \texttt{V-} & (-0.29, +0.00) & (-0.47, +0.02) & (-0.35, +0.21) & (-0.74, +0.88) & (-0.03, -0.02) & (-0.27, +0.05) & (-0.46, -0.24) & (-0.05, +0.67) \\
+\textbf{terror} & \texttt{V- A+} & (-0.53, +0.08) & (-0.74, +0.20) & (-0.27, +0.46) & (-1.20, +1.76) & (-0.03, +0.00) & (-0.24, +0.29) & (-0.37, -0.34) & (+0.23, +0.95) \\
+\textbf{rage} & \texttt{V- A+} & (-0.66, -0.03) & (-1.16, -0.03) & (-0.41, +0.45) & (-1.44, +1.64) & (-0.02, +0.01) & (-0.49, +0.27) & (-0.26, -0.18) & (-0.03, +1.08) \\
+\textbf{loathing} & \texttt{V-} & (-0.88, -0.13) & (-1.50, -0.16) & (-0.53, +0.39) & (-1.65, +1.52) & (-0.06, -0.02) & (-0.60, +0.29) & (-0.27, -0.15) & (-0.28, +1.17) \\
+\textbf{ecstasy} & \texttt{V+ A+} & (-0.09, +0.28) & (-0.10, +0.43) & (+0.17, +0.49) & (+0.36, +1.34) & (-0.03, -0.03) & (-0.04, +0.24) & (-0.51, -0.23) & (+0.95, +0.97) \\
+\textbf{admiration} & \texttt{V+} & (-0.07, +0.12) & (-0.09, +0.11) & (+0.25, +0.42) & (+0.56, +1.07) & (-0.01, -0.01) & (-0.09, +0.16) & (-0.48, -0.25) & (+0.86, +0.92) \\
+\textbf{amazement} & \texttt{A+} & (-0.07, +0.24) & (-0.07, +0.27) & (+0.12, +0.57) & (+0.38, +1.48) & (+0.02, +0.02) & (-0.05, +0.20) & (-0.37, -0.18) & (+0.74, +1.01) \\
+\textbf{vigilance} & \texttt{A+} & (-0.21, +0.13) & (-0.34, +0.27) & (-0.16, +0.40) & (-0.40, +1.49) & (-0.02, -0.01) & (-0.04, +0.15) & (-0.24, -0.03) & (+0.24, +1.01) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\paragraph{表5-B: 【⑤ 8感情別プロファイル: 自己報告 (Self-Report)】 各感情刺激に対するモデル自身の報告変位 $\Delta(V, A)$}
+> \textbf{問い}: 8つの感情刺激に対して、モデル自身の自己報告が理論予測通りに変位しているか？
+
+\begin{center}
+\small
+\begin{tabular}{lccccccccc}
+\toprule
+\textbf{感情 (Emotion)} & \textbf{理論的期待} & \textbf{Qwen Base $\Delta(V,A)$} & \textbf{Qwen Inst $\Delta(V,A)$} & \textbf{Mistral Base $\Delta(V,A)$} & \textbf{Mistral Inst $\Delta(V,A)$} & \textbf{Llama Base $\Delta(V,A)$} & \textbf{Llama Inst $\Delta(V,A)$} & \textbf{Gemma Base $\Delta(V,A)$} & \textbf{Gemma Inst $\Delta(V,A)$} \\
+\midrule
+\textbf{grief} & \texttt{V-} & (-0.29, -0.08) & (-0.42, -0.07) & (-0.30, +0.11) & (-0.93, +0.67) & (-0.04, -0.02) & (-0.35, -0.04) & (-0.34, -0.20) & (-0.47, +0.44) \\
+\textbf{terror} & \texttt{V- A+} & (-0.45, +0.01) & (-0.67, +0.14) & (-0.29, +0.30) & (-1.36, +1.80) & (-0.04, -0.01) & (-0.32, +0.21) & (-0.18, -0.24) & (-0.14, +0.76) \\
+\textbf{rage} & \texttt{V- A+} & (-0.61, -0.14) & (-1.04, -0.13) & (-0.42, +0.27) & (-1.67, +1.61) & (-0.05, -0.00) & (-0.64, +0.15) & (-0.21, -0.11) & (-0.74, +0.83) \\
+\textbf{loathing} & \texttt{V-} & (-0.82, -0.25) & (-1.32, -0.24) & (-0.49, +0.22) & (-1.89, +1.46) & (-0.08, -0.02) & (-0.78, +0.18) & (-0.22, -0.13) & (-0.90, +0.87) \\
+\textbf{ecstasy} & \texttt{V+ A+} & (-0.08, +0.21) & (-0.16, +0.23) & (+0.14, +0.37) & (+0.21, +1.40) & (-0.04, -0.02) & (-0.27, +0.22) & (-0.47, -0.20) & (+0.62, +0.76) \\
+\textbf{admiration} & \texttt{V+} & (-0.09, +0.05) & (-0.08, -0.04) & (+0.13, +0.26) & (+0.40, +0.73) & (-0.05, -0.02) & (-0.37, +0.07) & (-0.52, -0.25) & (+0.46, +0.69) \\
+\textbf{amazement} & \texttt{A+} & (-0.11, +0.17) & (-0.09, +0.12) & (+0.06, +0.39) & (+0.26, +1.46) & (-0.01, +0.01) & (-0.28, +0.16) & (-0.40, -0.15) & (+0.39, +0.80) \\
+\textbf{vigilance} & \texttt{A+} & (-0.21, +0.09) & (-0.21, +0.18) & (-0.17, +0.27) & (-0.55, +1.45) & (-0.03, -0.01) & (-0.28, +0.12) & (-0.34, -0.08) & (+0.05, +0.74) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\subsubsection{Part 2: モデル個別詳細レポート}
+
+\paragraph{■ モデル: \texttt{gemma2\textbackslash{}\_2b\textbackslash{}\_base} (Base)}
+
+\subparagraph{【RQ1: Sensitivity】 3大感情刺激に対する反応性 (Clinical vs. Neutral, 1-5尺度)}
+\begin{center}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{タスク} & \textbf{感情群 (Cluster)} & \textbf{$\Delta V$ ($d$)} & \textbf{$t$-value ($p$)} & \textbf{$\Delta A$ ($d$)} & \textbf{$t$-value ($p$)} \\
+\midrule
+\textbf{Reader (R)} & Negative (4感情) & \textbf{-0.34} ($d=-0.41$) & -4.03 (\texttt{<.001}) & \textbf{-0.23} ($d=-0.50$) & -4.90 (\texttt{<.001}) \\
+\textbf{Reader (R)} & Positive (2感情) & \textbf{-0.50} ($d=-0.68$) & -4.70 (\texttt{<.001}) & \textbf{-0.24} ($d=-0.53$) & -3.65 (\texttt{<.001}) \\
+\textbf{Reader (R)} & Alert (2感情) & \textbf{-0.31} ($d=-0.43$) & -2.94 (\texttt{0.005}) & \textbf{-0.11} ($d=-0.21$) & -1.45 (\texttt{0.153}) \\
+\textbf{Self (S)} & Negative (4感情) & \textbf{-0.24} ($d=-0.32$) & -3.09 (\texttt{0.003}) & \textbf{-0.17} ($d=-0.39$) & -3.80 (\texttt{<.001}) \\
+\textbf{Self (S)} & Positive (2感情) & \textbf{-0.49} ($d=-0.76$) & -5.23 (\texttt{<.001}) & \textbf{-0.23} ($d=-0.55$) & -3.77 (\texttt{<.001}) \\
+\textbf{Self (S)} & Alert (2感情) & \textbf{-0.37} ($d=-0.53$) & -3.63 (\texttt{<.001}) & \textbf{-0.11} ($d=-0.25$) & -1.72 (\texttt{0.091}) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【RQ2: Dose-Response】 感情強度の段階性 (Neutral → Moderate → Clinical)}
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{タスク} & \textbf{Negative 弱$\rightarrow$強 $\Delta V$} & \textbf{Positive 弱$\rightarrow$強 $\Delta V$} & \textbf{Alert 弱$\rightarrow$強 $\Delta A$} & \textbf{全体単調性成立率 (Monotonicity)} \\
+\midrule
+\textbf{Reader (R)} & -0.12 $\rightarrow$ -0.36 & -0.01 $\rightarrow$ -0.58 & -0.09 $\rightarrow$ -0.17 & \textbf{14.6\%} \\
+\textbf{Self (S)} & -0.12 $\rightarrow$ -0.14 & -0.30 $\rightarrow$ -0.36 & -0.27 $\rightarrow$ -0.01 & \textbf{20.8\%} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【RQ3: Specificity】 文章複雑性コントロール (Complex Neutral vs. Neutral \& Clinical)}
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{タスク} & \textbf{複雑性効果 $\Delta V_{comp}$} & \textbf{Negative純感情 $\Delta V_{ctrl}$ (ASR)} & \textbf{Positive純感情 $\Delta V_{ctrl}$ (ASR)} & \textbf{Alert純覚醒 $\Delta A_{ctrl}$ (ASR)} \\
+\midrule
+\textbf{Reader (R)} & -0.28 & \textbf{-0.03} (1.1x) & \textbf{-0.25} (1.9x) & \textbf{+0.02} (0.9x) \\
+\textbf{Self (S)} & -0.16 & \textbf{-0.09} (1.6x) & \textbf{-0.38} (3.4x) & \textbf{-0.03} (1.4x) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【RQ4: Coupling】 認識と自己報告の連動性 (Recognition <-> Self-Report)}
+\begin{center}
+\small
+\begin{tabular}{lccccccccc}
+\toprule
+\textbf{指標} & \textbf{全体 (Overall)} & \textbf{Negative群} & \textbf{Positive群} & \textbf{Alert群} & \textbf{備考} \\
+\midrule
+\textbf{連動相関 $r_V$} & \textbf{0.827} & \textbf{0.848} & \textbf{0.794} & \textbf{0.820} & 認識と自己報告の同期度 &  &  &  &  \\
+\textbf{連動相関 $r_A$} & \textbf{0.833} & \textbf{0.834} & \textbf{0.826} & \textbf{0.838} & 覚醒認識と自己報告の同期度 &  &  &  &  \\
+**振幅比率 $\frac{\ & \Delta\_S\ & }{\ & \Delta\_R\ & }$** & $V: 0.92$ & - & - & $A: 0.90$ & 自己報告の反応振幅 (1.0で同等) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【8感情カテゴリ別プロファイル】 (Clinical vs. Neutral 変位, 1-5尺度)}
+\begin{center}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{感情 (Emotion)} & \textbf{理論的期待} & \textbf{Reader $\Delta V$} & \textbf{Reader $\Delta A$} & \textbf{Self $\Delta V$} & \textbf{Self $\Delta A$} & \textbf{解釈・整合性} \\
+\midrule
+\textbf{grief} & \texttt{V-} & -0.46 & -0.24 & \textbf{-0.34} & \textbf{-0.20} & 理論と合致 \\
+\textbf{terror} & \texttt{V- A+} & -0.37 & -0.34 & \textbf{-0.18} & \textbf{-0.24} & 理論と合致 \\
+\textbf{rage} & \texttt{V- A+} & -0.26 & -0.18 & \textbf{-0.21} & \textbf{-0.11} & 理論と合致 \\
+\textbf{loathing} & \texttt{V-} & -0.27 & -0.15 & \textbf{-0.22} & \textbf{-0.13} & 理論と合致 \\
+\textbf{ecstasy} & \texttt{V+ A+} & -0.51 & -0.23 & \textbf{-0.47} & \textbf{-0.20} & 要分析 \\
+\textbf{admiration} & \texttt{V+} & -0.48 & -0.25 & \textbf{-0.52} & \textbf{-0.25} & 要分析 \\
+\textbf{amazement} & \texttt{A+} & -0.37 & -0.18 & \textbf{-0.40} & \textbf{-0.15} & 要分析 \\
+\textbf{vigilance} & \texttt{A+} & -0.24 & -0.03 & \textbf{-0.34} & \textbf{-0.08} & 要分析 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\paragraph{■ モデル: \texttt{gemma2\textbackslash{}\_2b\textbackslash{}\_it} (Instruct)}
+
+\subparagraph{【RQ1: Sensitivity】 3大感情刺激に対する反応性 (Clinical vs. Neutral, 1-5尺度)}
+\begin{center}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{タスク} & \textbf{感情群 (Cluster)} & \textbf{$\Delta V$ ($d$)} & \textbf{$t$-value ($p$)} & \textbf{$\Delta A$ ($d$)} & \textbf{$t$-value ($p$)} \\
+\midrule
+\textbf{Reader (R)} & Negative (4感情) & \textbf{-0.03} ($d=-0.05$) & -0.51 (\texttt{0.614}) & \textbf{+0.97} ($d=+1.72$) & 16.77 (\texttt{<.001}) \\
+\textbf{Reader (R)} & Positive (2感情) & \textbf{+0.91} ($d=+1.93$) & 13.23 (\texttt{<.001}) & \textbf{+0.94} ($d=+1.78$) & 12.23 (\texttt{<.001}) \\
+\textbf{Reader (R)} & Alert (2感情) & \textbf{+0.49} ($d=+0.93$) & 6.34 (\texttt{<.001}) & \textbf{+1.01} ($d=+2.03$) & 13.94 (\texttt{<.001}) \\
+\textbf{Self (S)} & Negative (4感情) & \textbf{-0.56} ($d=-0.81$) & -7.91 (\texttt{<.001}) & \textbf{+0.73} ($d=+1.73$) & 16.87 (\texttt{<.001}) \\
+\textbf{Self (S)} & Positive (2感情) & \textbf{+0.54} ($d=+0.95$) & 6.55 (\texttt{<.001}) & \textbf{+0.72} ($d=+2.35$) & 16.08 (\texttt{<.001}) \\
+\textbf{Self (S)} & Alert (2感情) & \textbf{+0.22} ($d=+0.39$) & 2.70 (\texttt{0.010}) & \textbf{+0.77} ($d=+2.19$) & 15.00 (\texttt{<.001}) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【RQ2: Dose-Response】 感情強度の段階性 (Neutral → Moderate → Clinical)}
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{タスク} & \textbf{Negative 弱$\rightarrow$強 $\Delta V$} & \textbf{Positive 弱$\rightarrow$強 $\Delta V$} & \textbf{Alert 弱$\rightarrow$強 $\Delta A$} & \textbf{全体単調性成立率 (Monotonicity)} \\
+\midrule
+\textbf{Reader (R)} & -0.33 $\rightarrow$ +0.30 & +0.78 $\rightarrow$ +0.25 & +0.68 $\rightarrow$ +0.58 & \textbf{50.0\%} \\
+\textbf{Self (S)} & -0.73 $\rightarrow$ -0.01 & +0.23 $\rightarrow$ +0.15 & +0.41 $\rightarrow$ +0.52 & \textbf{54.2\%} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【RQ3: Specificity】 文章複雑性コントロール (Complex Neutral vs. Neutral \& Clinical)}
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{タスク} & \textbf{複雑性効果 $\Delta V_{comp}$} & \textbf{Negative純感情 $\Delta V_{ctrl}$ (ASR)} & \textbf{Positive純感情 $\Delta V_{ctrl}$ (ASR)} & \textbf{Alert純覚醒 $\Delta A_{ctrl}$ (ASR)} \\
+\midrule
+\textbf{Reader (R)} & +0.01 & \textbf{-0.07} (5.0x) & \textbf{+0.83} (72.9x) & \textbf{+1.32} (3.6x) \\
+\textbf{Self (S)} & +0.11 & \textbf{-0.73} (5.6x) & \textbf{+0.41} (4.7x) & \textbf{+0.76} (10.8x) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【RQ4: Coupling】 認識と自己報告の連動性 (Recognition <-> Self-Report)}
+\begin{center}
+\small
+\begin{tabular}{lccccccccc}
+\toprule
+\textbf{指標} & \textbf{全体 (Overall)} & \textbf{Negative群} & \textbf{Positive群} & \textbf{Alert群} & \textbf{備考} \\
+\midrule
+\textbf{連動相関 $r_V$} & \textbf{0.840} & \textbf{0.778} & \textbf{0.720} & \textbf{0.760} & 認識と自己報告の同期度 &  &  &  &  \\
+\textbf{連動相関 $r_A$} & \textbf{0.860} & \textbf{0.882} & \textbf{0.821} & \textbf{0.854} & 覚醒認識と自己報告の同期度 &  &  &  &  \\
+**振幅比率 $\frac{\ & \Delta\_S\ & }{\ & \Delta\_R\ & }$** & $V: 1.03$ & - & - & $A: 0.76$ & 自己報告の反応振幅 (1.0で同等) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【8感情カテゴリ別プロファイル】 (Clinical vs. Neutral 変位, 1-5尺度)}
+\begin{center}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{感情 (Emotion)} & \textbf{理論的期待} & \textbf{Reader $\Delta V$} & \textbf{Reader $\Delta A$} & \textbf{Self $\Delta V$} & \textbf{Self $\Delta A$} & \textbf{解釈・整合性} \\
+\midrule
+\textbf{grief} & \texttt{V-} & -0.05 & +0.67 & \textbf{-0.47} & \textbf{+0.44} & 理論と合致 \\
+\textbf{terror} & \texttt{V- A+} & +0.23 & +0.95 & \textbf{-0.14} & \textbf{+0.76} & 理論と合致 \\
+\textbf{rage} & \texttt{V- A+} & -0.03 & +1.08 & \textbf{-0.74} & \textbf{+0.83} & 理論と合致 \\
+\textbf{loathing} & \texttt{V-} & -0.28 & +1.17 & \textbf{-0.90} & \textbf{+0.87} & 理論と合致 \\
+\textbf{ecstasy} & \texttt{V+ A+} & +0.95 & +0.97 & \textbf{+0.62} & \textbf{+0.76} & 理論と合致 \\
+\textbf{admiration} & \texttt{V+} & +0.86 & +0.92 & \textbf{+0.46} & \textbf{+0.69} & 理論と合致 \\
+\textbf{amazement} & \texttt{A+} & +0.74 & +1.01 & \textbf{+0.39} & \textbf{+0.80} & 要分析 \\
+\textbf{vigilance} & \texttt{A+} & +0.24 & +1.01 & \textbf{+0.05} & \textbf{+0.74} & 要分析 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\paragraph{■ モデル: \texttt{llama3.2\textbackslash{}\_1b\textbackslash{}\_base} (Base)}
+
+\subparagraph{【RQ1: Sensitivity】 3大感情刺激に対する反応性 (Clinical vs. Neutral, 1-5尺度)}
+\begin{center}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{タスク} & \textbf{感情群 (Cluster)} & \textbf{$\Delta V$ ($d$)} & \textbf{$t$-value ($p$)} & \textbf{$\Delta A$ ($d$)} & \textbf{$t$-value ($p$)} \\
+\midrule
+\textbf{Reader (R)} & Negative (4感情) & \textbf{-0.03} ($d=-0.61$) & -5.91 (\texttt{<.001}) & \textbf{-0.01} ($d=-0.13$) & -1.31 (\texttt{0.193}) \\
+\textbf{Reader (R)} & Positive (2感情) & \textbf{-0.02} ($d=-0.29$) & -2.02 (\texttt{0.050}) & \textbf{-0.02} ($d=-0.31$) & -2.10 (\texttt{0.041}) \\
+\textbf{Reader (R)} & Alert (2感情) & \textbf{+0.00} ($d=+0.04$) & 0.26 (\texttt{0.796}) & \textbf{+0.01} ($d=+0.08$) & 0.55 (\texttt{0.588}) \\
+\textbf{Self (S)} & Negative (4感情) & \textbf{-0.05} ($d=-0.76$) & -7.37 (\texttt{<.001}) & \textbf{-0.01} ($d=-0.21$) & -2.07 (\texttt{0.041}) \\
+\textbf{Self (S)} & Positive (2感情) & \textbf{-0.04} ($d=-0.49$) & -3.35 (\texttt{0.002}) & \textbf{-0.02} ($d=-0.28$) & -1.94 (\texttt{0.058}) \\
+\textbf{Self (S)} & Alert (2感情) & \textbf{-0.02} ($d=-0.26$) & -1.79 (\texttt{0.080}) & \textbf{-0.00} ($d=-0.00$) & -0.02 (\texttt{0.983}) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【RQ2: Dose-Response】 感情強度の段階性 (Neutral → Moderate → Clinical)}
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{タスク} & \textbf{Negative 弱$\rightarrow$強 $\Delta V$} & \textbf{Positive 弱$\rightarrow$強 $\Delta V$} & \textbf{Alert 弱$\rightarrow$強 $\Delta A$} & \textbf{全体単調性成立率 (Monotonicity)} \\
+\midrule
+\textbf{Reader (R)} & -0.05 $\rightarrow$ +0.01 & -0.04 $\rightarrow$ +0.01 & -0.04 $\rightarrow$ +0.02 & \textbf{20.8\%} \\
+\textbf{Self (S)} & -0.06 $\rightarrow$ +0.00 & -0.05 $\rightarrow$ +0.01 & -0.04 $\rightarrow$ +0.02 & \textbf{14.6\%} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【RQ3: Specificity】 文章複雑性コントロール (Complex Neutral vs. Neutral \& Clinical)}
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{タスク} & \textbf{複雑性効果 $\Delta V_{comp}$} & \textbf{Negative純感情 $\Delta V_{ctrl}$ (ASR)} & \textbf{Positive純感情 $\Delta V_{ctrl}$ (ASR)} & \textbf{Alert純覚醒 $\Delta A_{ctrl}$ (ASR)} \\
+\midrule
+\textbf{Reader (R)} & +0.05 & \textbf{-0.10} (0.8x) & \textbf{-0.05} (0.0x) & \textbf{-0.07} (0.1x) \\
+\textbf{Self (S)} & +0.07 & \textbf{-0.14} (1.0x) & \textbf{-0.09} (0.2x) & \textbf{-0.08} (0.1x) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【RQ4: Coupling】 認識と自己報告の連動性 (Recognition <-> Self-Report)}
+\begin{center}
+\small
+\begin{tabular}{lccccccccc}
+\toprule
+\textbf{指標} & \textbf{全体 (Overall)} & \textbf{Negative群} & \textbf{Positive群} & \textbf{Alert群} & \textbf{備考} \\
+\midrule
+\textbf{連動相関 $r_V$} & \textbf{0.798} & \textbf{0.741} & \textbf{0.852} & \textbf{0.810} & 認識と自己報告の同期度 &  &  &  &  \\
+\textbf{連動相関 $r_A$} & \textbf{0.897} & \textbf{0.858} & \textbf{0.927} & \textbf{0.915} & 覚醒認識と自己報告の同期度 &  &  &  &  \\
+**振幅比率 $\frac{\ & \Delta\_S\ & }{\ & \Delta\_R\ & }$** & $V: 1.36$ & - & - & $A: 1.10$ & 自己報告の反応振幅 (1.0で同等) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【8感情カテゴリ別プロファイル】 (Clinical vs. Neutral 変位, 1-5尺度)}
+\begin{center}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{感情 (Emotion)} & \textbf{理論的期待} & \textbf{Reader $\Delta V$} & \textbf{Reader $\Delta A$} & \textbf{Self $\Delta V$} & \textbf{Self $\Delta A$} & \textbf{解釈・整合性} \\
+\midrule
+\textbf{grief} & \texttt{V-} & -0.03 & -0.02 & \textbf{-0.04} & \textbf{-0.02} & 理論と合致 \\
+\textbf{terror} & \texttt{V- A+} & -0.03 & +0.00 & \textbf{-0.04} & \textbf{-0.01} & 理論と合致 \\
+\textbf{rage} & \texttt{V- A+} & -0.02 & +0.01 & \textbf{-0.05} & \textbf{-0.00} & 理論と合致 \\
+\textbf{loathing} & \texttt{V-} & -0.06 & -0.02 & \textbf{-0.08} & \textbf{-0.02} & 理論と合致 \\
+\textbf{ecstasy} & \texttt{V+ A+} & -0.03 & -0.03 & \textbf{-0.04} & \textbf{-0.02} & 要分析 \\
+\textbf{admiration} & \texttt{V+} & -0.01 & -0.01 & \textbf{-0.05} & \textbf{-0.02} & 要分析 \\
+\textbf{amazement} & \texttt{A+} & +0.02 & +0.02 & \textbf{-0.01} & \textbf{+0.01} & 要分析 \\
+\textbf{vigilance} & \texttt{A+} & -0.02 & -0.01 & \textbf{-0.03} & \textbf{-0.01} & 要分析 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\paragraph{■ モデル: \texttt{llama3.2\textbackslash{}\_1b\textbackslash{}\_instruct} (Instruct)}
+
+\subparagraph{【RQ1: Sensitivity】 3大感情刺激に対する反応性 (Clinical vs. Neutral, 1-5尺度)}
+\begin{center}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{タスク} & \textbf{感情群 (Cluster)} & \textbf{$\Delta V$ ($d$)} & \textbf{$t$-value ($p$)} & \textbf{$\Delta A$ ($d$)} & \textbf{$t$-value ($p$)} \\
+\midrule
+\textbf{Reader (R)} & Negative (4感情) & \textbf{-0.40} ($d=-1.21$) & -11.75 (\texttt{<.001}) & \textbf{+0.22} ($d=+1.11$) & 10.81 (\texttt{<.001}) \\
+\textbf{Reader (R)} & Positive (2感情) & \textbf{-0.06} ($d=-0.17$) & -1.18 (\texttt{0.243}) & \textbf{+0.20} ($d=+1.08$) & 7.41 (\texttt{<.001}) \\
+\textbf{Reader (R)} & Alert (2感情) & \textbf{-0.05} ($d=-0.13$) & -0.89 (\texttt{0.379}) & \textbf{+0.17} ($d=+1.00$) & 6.88 (\texttt{<.001}) \\
+\textbf{Self (S)} & Negative (4感情) & \textbf{-0.52} ($d=-1.42$) & -13.85 (\texttt{<.001}) & \textbf{+0.12} ($d=+0.66$) & 6.38 (\texttt{<.001}) \\
+\textbf{Self (S)} & Positive (2感情) & \textbf{-0.32} ($d=-0.96$) & -6.59 (\texttt{<.001}) & \textbf{+0.15} ($d=+0.75$) & 5.13 (\texttt{<.001}) \\
+\textbf{Self (S)} & Alert (2感情) & \textbf{-0.28} ($d=-0.75$) & -5.12 (\texttt{<.001}) & \textbf{+0.14} ($d=+0.73$) & 5.00 (\texttt{<.001}) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【RQ2: Dose-Response】 感情強度の段階性 (Neutral → Moderate → Clinical)}
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{タスク} & \textbf{Negative 弱$\rightarrow$強 $\Delta V$} & \textbf{Positive 弱$\rightarrow$強 $\Delta V$} & \textbf{Alert 弱$\rightarrow$強 $\Delta A$} & \textbf{全体単調性成立率 (Monotonicity)} \\
+\midrule
+\textbf{Reader (R)} & -0.60 $\rightarrow$ +0.10 & -0.19 $\rightarrow$ +0.10 & +0.19 $\rightarrow$ +0.01 & \textbf{33.3\%} \\
+\textbf{Self (S)} & -0.71 $\rightarrow$ +0.03 & -0.56 $\rightarrow$ +0.14 & +0.13 $\rightarrow$ +0.02 & \textbf{29.2\%} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【RQ3: Specificity】 文章複雑性コントロール (Complex Neutral vs. Neutral \& Clinical)}
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{タスク} & \textbf{複雑性効果 $\Delta V_{comp}$} & \textbf{Negative純感情 $\Delta V_{ctrl}$ (ASR)} & \textbf{Positive純感情 $\Delta V_{ctrl}$ (ASR)} & \textbf{Alert純覚醒 $\Delta A_{ctrl}$ (ASR)} \\
+\midrule
+\textbf{Reader (R)} & -0.14 & \textbf{-0.25} (2.8x) & \textbf{+0.07} (0.5x) & \textbf{+0.10} (2.0x) \\
+\textbf{Self (S)} & -0.04 & \textbf{-0.49} (13.3x) & \textbf{-0.26} (7.7x) & \textbf{-0.00} (1.0x) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【RQ4: Coupling】 認識と自己報告の連動性 (Recognition <-> Self-Report)}
+\begin{center}
+\small
+\begin{tabular}{lccccccccc}
+\toprule
+\textbf{指標} & \textbf{全体 (Overall)} & \textbf{Negative群} & \textbf{Positive群} & \textbf{Alert群} & \textbf{備考} \\
+\midrule
+\textbf{連動相関 $r_V$} & \textbf{0.889} & \textbf{0.915} & \textbf{0.850} & \textbf{0.874} & 認識と自己報告の同期度 &  &  &  &  \\
+\textbf{連動相関 $r_A$} & \textbf{0.841} & \textbf{0.869} & \textbf{0.815} & \textbf{0.858} & 覚醒認識と自己報告の同期度 &  &  &  &  \\
+**振幅比率 $\frac{\ & \Delta\_S\ & }{\ & \Delta\_R\ & }$** & $V: 1.25$ & - & - & $A: 0.82$ & 自己報告の反応振幅 (1.0で同等) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【8感情カテゴリ別プロファイル】 (Clinical vs. Neutral 変位, 1-5尺度)}
+\begin{center}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{感情 (Emotion)} & \textbf{理論的期待} & \textbf{Reader $\Delta V$} & \textbf{Reader $\Delta A$} & \textbf{Self $\Delta V$} & \textbf{Self $\Delta A$} & \textbf{解釈・整合性} \\
+\midrule
+\textbf{grief} & \texttt{V-} & -0.27 & +0.05 & \textbf{-0.35} & \textbf{-0.04} & 理論と合致 \\
+\textbf{terror} & \texttt{V- A+} & -0.24 & +0.29 & \textbf{-0.32} & \textbf{+0.21} & 理論と合致 \\
+\textbf{rage} & \texttt{V- A+} & -0.49 & +0.27 & \textbf{-0.64} & \textbf{+0.15} & 理論と合致 \\
+\textbf{loathing} & \texttt{V-} & -0.60 & +0.29 & \textbf{-0.78} & \textbf{+0.18} & 理論と合致 \\
+\textbf{ecstasy} & \texttt{V+ A+} & -0.04 & +0.24 & \textbf{-0.27} & \textbf{+0.22} & 要分析 \\
+\textbf{admiration} & \texttt{V+} & -0.09 & +0.16 & \textbf{-0.37} & \textbf{+0.07} & 要分析 \\
+\textbf{amazement} & \texttt{A+} & -0.05 & +0.20 & \textbf{-0.28} & \textbf{+0.16} & 要分析 \\
+\textbf{vigilance} & \texttt{A+} & -0.04 & +0.15 & \textbf{-0.28} & \textbf{+0.12} & 要分析 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\paragraph{■ モデル: \texttt{mistral\textbackslash{}\_7b\textbackslash{}\_base} (Base)}
+
+\subparagraph{【RQ1: Sensitivity】 3大感情刺激に対する反応性 (Clinical vs. Neutral, 1-5尺度)}
+\begin{center}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{タスク} & \textbf{感情群 (Cluster)} & \textbf{$\Delta V$ ($d$)} & \textbf{$t$-value ($p$)} & \textbf{$\Delta A$ ($d$)} & \textbf{$t$-value ($p$)} \\
+\midrule
+\textbf{Reader (R)} & Negative (4感情) & \textbf{-0.39} ($d=-1.55$) & -15.14 (\texttt{<.001}) & \textbf{+0.38} ($d=+2.00$) & 19.45 (\texttt{<.001}) \\
+\textbf{Reader (R)} & Positive (2感情) & \textbf{+0.21} ($d=+0.71$) & 4.84 (\texttt{<.001}) & \textbf{+0.45} ($d=+2.06$) & 14.10 (\texttt{<.001}) \\
+\textbf{Reader (R)} & Alert (2感情) & \textbf{-0.02} ($d=-0.08$) & -0.55 (\texttt{0.588}) & \textbf{+0.49} ($d=+2.01$) & 13.76 (\texttt{<.001}) \\
+\textbf{Self (S)} & Negative (4感情) & \textbf{-0.38} ($d=-1.67$) & -16.29 (\texttt{<.001}) & \textbf{+0.22} ($d=+1.63$) & 15.90 (\texttt{<.001}) \\
+\textbf{Self (S)} & Positive (2感情) & \textbf{+0.13} ($d=+0.50$) & 3.43 (\texttt{0.001}) & \textbf{+0.32} ($d=+1.70$) & 11.68 (\texttt{<.001}) \\
+\textbf{Self (S)} & Alert (2感情) & \textbf{-0.05} ($d=-0.21$) & -1.43 (\texttt{0.159}) & \textbf{+0.33} ($d=+1.73$) & 11.87 (\texttt{<.001}) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【RQ2: Dose-Response】 感情強度の段階性 (Neutral → Moderate → Clinical)}
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{タスク} & \textbf{Negative 弱$\rightarrow$強 $\Delta V$} & \textbf{Positive 弱$\rightarrow$強 $\Delta V$} & \textbf{Alert 弱$\rightarrow$強 $\Delta A$} & \textbf{全体単調性成立率 (Monotonicity)} \\
+\midrule
+\textbf{Reader (R)} & -0.44 $\rightarrow$ -0.08 & +0.16 $\rightarrow$ +0.02 & +0.40 $\rightarrow$ +0.27 & \textbf{64.6\%} \\
+\textbf{Self (S)} & -0.39 $\rightarrow$ -0.09 & +0.07 $\rightarrow$ +0.05 & +0.30 $\rightarrow$ +0.16 & \textbf{60.4\%} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【RQ3: Specificity】 文章複雑性コントロール (Complex Neutral vs. Neutral \& Clinical)}
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{タスク} & \textbf{複雑性効果 $\Delta V_{comp}$} & \textbf{Negative純感情 $\Delta V_{ctrl}$ (ASR)} & \textbf{Positive純感情 $\Delta V_{ctrl}$ (ASR)} & \textbf{Alert純覚醒 $\Delta A_{ctrl}$ (ASR)} \\
+\midrule
+\textbf{Reader (R)} & -0.15 & \textbf{-0.24} (2.7x) & \textbf{+0.33} (1.2x) & \textbf{+0.53} (6.2x) \\
+\textbf{Self (S)} & -0.01 & \textbf{-0.39} (55.6x) & \textbf{+0.13} (17.8x) & \textbf{+0.33} (15.9x) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【RQ4: Coupling】 認識と自己報告の連動性 (Recognition <-> Self-Report)}
+\begin{center}
+\small
+\begin{tabular}{lccccccccc}
+\toprule
+\textbf{指標} & \textbf{全体 (Overall)} & \textbf{Negative群} & \textbf{Positive群} & \textbf{Alert群} & \textbf{備考} \\
+\midrule
+\textbf{連動相関 $r_V$} & \textbf{0.968} & \textbf{0.927} & \textbf{0.951} & \textbf{0.958} & 認識と自己報告の同期度 &  &  &  &  \\
+\textbf{連動相関 $r_A$} & \textbf{0.945} & \textbf{0.941} & \textbf{0.933} & \textbf{0.965} & 覚醒認識と自己報告の同期度 &  &  &  &  \\
+**振幅比率 $\frac{\ & \Delta\_S\ & }{\ & \Delta\_R\ & }$** & $V: 0.93$ & - & - & $A: 0.64$ & 自己報告の反応振幅 (1.0で同等) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【8感情カテゴリ別プロファイル】 (Clinical vs. Neutral 変位, 1-5尺度)}
+\begin{center}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{感情 (Emotion)} & \textbf{理論的期待} & \textbf{Reader $\Delta V$} & \textbf{Reader $\Delta A$} & \textbf{Self $\Delta V$} & \textbf{Self $\Delta A$} & \textbf{解釈・整合性} \\
+\midrule
+\textbf{grief} & \texttt{V-} & -0.35 & +0.21 & \textbf{-0.30} & \textbf{+0.11} & 理論と合致 \\
+\textbf{terror} & \texttt{V- A+} & -0.27 & +0.46 & \textbf{-0.29} & \textbf{+0.30} & 理論と合致 \\
+\textbf{rage} & \texttt{V- A+} & -0.41 & +0.45 & \textbf{-0.42} & \textbf{+0.27} & 理論と合致 \\
+\textbf{loathing} & \texttt{V-} & -0.53 & +0.39 & \textbf{-0.49} & \textbf{+0.22} & 理論と合致 \\
+\textbf{ecstasy} & \texttt{V+ A+} & +0.17 & +0.49 & \textbf{+0.14} & \textbf{+0.37} & 理論と合致 \\
+\textbf{admiration} & \texttt{V+} & +0.25 & +0.42 & \textbf{+0.13} & \textbf{+0.26} & 理論と合致 \\
+\textbf{amazement} & \texttt{A+} & +0.12 & +0.57 & \textbf{+0.06} & \textbf{+0.39} & 要分析 \\
+\textbf{vigilance} & \texttt{A+} & -0.16 & +0.40 & \textbf{-0.17} & \textbf{+0.27} & 要分析 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\paragraph{■ モデル: \texttt{mistral\textbackslash{}\_7b\textbackslash{}\_instruct} (Instruct)}
+
+\subparagraph{【RQ1: Sensitivity】 3大感情刺激に対する反応性 (Clinical vs. Neutral, 1-5尺度)}
+\begin{center}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{タスク} & \textbf{感情群 (Cluster)} & \textbf{$\Delta V$ ($d$)} & \textbf{$t$-value ($p$)} & \textbf{$\Delta A$ ($d$)} & \textbf{$t$-value ($p$)} \\
+\midrule
+\textbf{Reader (R)} & Negative (4感情) & \textbf{-1.26} ($d=-2.05$) & -19.98 (\texttt{<.001}) & \textbf{+1.45} ($d=+2.08$) & 20.32 (\texttt{<.001}) \\
+\textbf{Reader (R)} & Positive (2感情) & \textbf{+0.46} ($d=+0.54$) & 3.72 (\texttt{<.001}) & \textbf{+1.21} ($d=+1.99$) & 13.61 (\texttt{<.001}) \\
+\textbf{Reader (R)} & Alert (2感情) & \textbf{-0.01} ($d=-0.01$) & -0.09 (\texttt{0.927}) & \textbf{+1.49} ($d=+2.29$) & 15.73 (\texttt{<.001}) \\
+\textbf{Self (S)} & Negative (4感情) & \textbf{-1.46} ($d=-2.11$) & -20.59 (\texttt{<.001}) & \textbf{+1.38} ($d=+1.82$) & 17.70 (\texttt{<.001}) \\
+\textbf{Self (S)} & Positive (2感情) & \textbf{+0.30} ($d=+0.29$) & 2.01 (\texttt{0.050}) & \textbf{+1.07} ($d=+1.42$) & 9.76 (\texttt{<.001}) \\
+\textbf{Self (S)} & Alert (2感情) & \textbf{-0.14} ($d=-0.16$) & -1.08 (\texttt{0.284}) & \textbf{+1.46} ($d=+2.27$) & 15.55 (\texttt{<.001}) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【RQ2: Dose-Response】 感情強度の段階性 (Neutral → Moderate → Clinical)}
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{タスク} & \textbf{Negative 弱$\rightarrow$強 $\Delta V$} & \textbf{Positive 弱$\rightarrow$強 $\Delta V$} & \textbf{Alert 弱$\rightarrow$強 $\Delta A$} & \textbf{全体単調性成立率 (Monotonicity)} \\
+\midrule
+\textbf{Reader (R)} & -0.88 $\rightarrow$ -0.55 & +0.21 $\rightarrow$ +0.04 & +0.81 $\rightarrow$ +0.96 & \textbf{66.7\%} \\
+\textbf{Self (S)} & -1.09 $\rightarrow$ -0.59 & +0.17 $\rightarrow$ -0.07 & +0.75 $\rightarrow$ +0.99 & \textbf{60.4\%} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【RQ3: Specificity】 文章複雑性コントロール (Complex Neutral vs. Neutral \& Clinical)}
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{タスク} & \textbf{複雑性効果 $\Delta V_{comp}$} & \textbf{Negative純感情 $\Delta V_{ctrl}$ (ASR)} & \textbf{Positive純感情 $\Delta V_{ctrl}$ (ASR)} & \textbf{Alert純覚醒 $\Delta A_{ctrl}$ (ASR)} \\
+\midrule
+\textbf{Reader (R)} & -0.04 & \textbf{-1.21} (33.9x) & \textbf{+0.43} (10.7x) & \textbf{+1.31} (7.7x) \\
+\textbf{Self (S)} & +0.13 & \textbf{-1.58} (11.5x) & \textbf{+0.13} (2.0x) & \textbf{+1.17} (4.7x) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【RQ4: Coupling】 認識と自己報告の連動性 (Recognition <-> Self-Report)}
+\begin{center}
+\small
+\begin{tabular}{lccccccccc}
+\toprule
+\textbf{指標} & \textbf{全体 (Overall)} & \textbf{Negative群} & \textbf{Positive群} & \textbf{Alert群} & \textbf{備考} \\
+\midrule
+\textbf{連動相関 $r_V$} & \textbf{0.971} & \textbf{0.927} & \textbf{0.969} & \textbf{0.945} & 認識と自己報告の同期度 &  &  &  &  \\
+\textbf{連動相関 $r_A$} & \textbf{0.920} & \textbf{0.955} & \textbf{0.856} & \textbf{0.903} & 覚醒認識と自己報告の同期度 &  &  &  &  \\
+**振幅比率 $\frac{\ & \Delta\_S\ & }{\ & \Delta\_R\ & }$** & $V: 1.16$ & - & - & $A: 0.95$ & 自己報告の反応振幅 (1.0で同等) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【8感情カテゴリ別プロファイル】 (Clinical vs. Neutral 変位, 1-5尺度)}
+\begin{center}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{感情 (Emotion)} & \textbf{理論的期待} & \textbf{Reader $\Delta V$} & \textbf{Reader $\Delta A$} & \textbf{Self $\Delta V$} & \textbf{Self $\Delta A$} & \textbf{解釈・整合性} \\
+\midrule
+\textbf{grief} & \texttt{V-} & -0.74 & +0.88 & \textbf{-0.93} & \textbf{+0.67} & 理論と合致 \\
+\textbf{terror} & \texttt{V- A+} & -1.20 & +1.76 & \textbf{-1.36} & \textbf{+1.80} & 理論と合致 \\
+\textbf{rage} & \texttt{V- A+} & -1.44 & +1.64 & \textbf{-1.67} & \textbf{+1.61} & 理論と合致 \\
+\textbf{loathing} & \texttt{V-} & -1.65 & +1.52 & \textbf{-1.89} & \textbf{+1.46} & 理論と合致 \\
+\textbf{ecstasy} & \texttt{V+ A+} & +0.36 & +1.34 & \textbf{+0.21} & \textbf{+1.40} & 理論と合致 \\
+\textbf{admiration} & \texttt{V+} & +0.56 & +1.07 & \textbf{+0.40} & \textbf{+0.73} & 理論と合致 \\
+\textbf{amazement} & \texttt{A+} & +0.38 & +1.48 & \textbf{+0.26} & \textbf{+1.46} & 要分析 \\
+\textbf{vigilance} & \texttt{A+} & -0.40 & +1.49 & \textbf{-0.55} & \textbf{+1.45} & 要分析 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\paragraph{■ モデル: \texttt{qwen2.5\textbackslash{}\_1.5b\textbackslash{}\_base} (Base)}
+
+\subparagraph{【RQ1: Sensitivity】 3大感情刺激に対する反応性 (Clinical vs. Neutral, 1-5尺度)}
+\begin{center}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{タスク} & \textbf{感情群 (Cluster)} & \textbf{$\Delta V$ ($d$)} & \textbf{$t$-value ($p$)} & \textbf{$\Delta A$ ($d$)} & \textbf{$t$-value ($p$)} \\
+\midrule
+\textbf{Reader (R)} & Negative (4感情) & \textbf{-0.59} ($d=-1.40$) & -13.64 (\texttt{<.001}) & \textbf{-0.02} ($d=-0.10$) & -0.95 (\texttt{0.346}) \\
+\textbf{Reader (R)} & Positive (2感情) & \textbf{-0.08} ($d=-0.22$) & -1.53 (\texttt{0.132}) & \textbf{+0.20} ($d=+1.13$) & 7.73 (\texttt{<.001}) \\
+\textbf{Reader (R)} & Alert (2感情) & \textbf{-0.14} ($d=-0.44$) & -3.04 (\texttt{0.004}) & \textbf{+0.19} ($d=+1.15$) & 7.90 (\texttt{<.001}) \\
+\textbf{Self (S)} & Negative (4感情) & \textbf{-0.54} ($d=-1.38$) & -13.46 (\texttt{<.001}) & \textbf{-0.12} ($d=-0.55$) & -5.36 (\texttt{<.001}) \\
+\textbf{Self (S)} & Positive (2感情) & \textbf{-0.09} ($d=-0.27$) & -1.85 (\texttt{0.071}) & \textbf{+0.13} ($d=+0.68$) & 4.66 (\texttt{<.001}) \\
+\textbf{Self (S)} & Alert (2感情) & \textbf{-0.16} ($d=-0.59$) & -4.04 (\texttt{<.001}) & \textbf{+0.13} ($d=+0.91$) & 6.27 (\texttt{<.001}) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【RQ2: Dose-Response】 感情強度の段階性 (Neutral → Moderate → Clinical)}
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{タスク} & \textbf{Negative 弱$\rightarrow$強 $\Delta V$} & \textbf{Positive 弱$\rightarrow$強 $\Delta V$} & \textbf{Alert 弱$\rightarrow$強 $\Delta A$} & \textbf{全体単調性成立率 (Monotonicity)} \\
+\midrule
+\textbf{Reader (R)} & -0.54 $\rightarrow$ -0.10 & -0.15 $\rightarrow$ +0.03 & +0.14 $\rightarrow$ +0.10 & \textbf{41.7\%} \\
+\textbf{Self (S)} & -0.48 $\rightarrow$ -0.12 & -0.19 $\rightarrow$ +0.00 & +0.08 $\rightarrow$ +0.09 & \textbf{39.6\%} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【RQ3: Specificity】 文章複雑性コントロール (Complex Neutral vs. Neutral \& Clinical)}
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{タスク} & \textbf{複雑性効果 $\Delta V_{comp}$} & \textbf{Negative純感情 $\Delta V_{ctrl}$ (ASR)} & \textbf{Positive純感情 $\Delta V_{ctrl}$ (ASR)} & \textbf{Alert純覚醒 $\Delta A_{ctrl}$ (ASR)} \\
+\midrule
+\textbf{Reader (R)} & -0.02 & \textbf{-0.57} (26.8x) & \textbf{-0.05} (3.2x) & \textbf{+0.17} (10.5x) \\
+\textbf{Self (S)} & -0.08 & \textbf{-0.47} (6.9x) & \textbf{+0.00} (1.0x) & \textbf{+0.08} (3.8x) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【RQ4: Coupling】 認識と自己報告の連動性 (Recognition <-> Self-Report)}
+\begin{center}
+\small
+\begin{tabular}{lccccccccc}
+\toprule
+\textbf{指標} & \textbf{全体 (Overall)} & \textbf{Negative群} & \textbf{Positive群} & \textbf{Alert群} & \textbf{備考} \\
+\midrule
+\textbf{連動相関 $r_V$} & \textbf{0.973} & \textbf{0.968} & \textbf{0.958} & \textbf{0.957} & 認識と自己報告の同期度 &  &  &  &  \\
+\textbf{連動相関 $r_A$} & \textbf{0.926} & \textbf{0.901} & \textbf{0.887} & \textbf{0.933} & 覚醒認識と自己報告の同期度 &  &  &  &  \\
+**振幅比率 $\frac{\ & \Delta\_S\ & }{\ & \Delta\_R\ & }$** & $V: 0.91$ & - & - & $A: 0.96$ & 自己報告の反応振幅 (1.0で同等) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【8感情カテゴリ別プロファイル】 (Clinical vs. Neutral 変位, 1-5尺度)}
+\begin{center}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{感情 (Emotion)} & \textbf{理論的期待} & \textbf{Reader $\Delta V$} & \textbf{Reader $\Delta A$} & \textbf{Self $\Delta V$} & \textbf{Self $\Delta A$} & \textbf{解釈・整合性} \\
+\midrule
+\textbf{grief} & \texttt{V-} & -0.29 & +0.00 & \textbf{-0.29} & \textbf{-0.08} & 理論と合致 \\
+\textbf{terror} & \texttt{V- A+} & -0.53 & +0.08 & \textbf{-0.45} & \textbf{+0.01} & 理論と合致 \\
+\textbf{rage} & \texttt{V- A+} & -0.66 & -0.03 & \textbf{-0.61} & \textbf{-0.14} & 理論と合致 \\
+\textbf{loathing} & \texttt{V-} & -0.88 & -0.13 & \textbf{-0.82} & \textbf{-0.25} & 理論と合致 \\
+\textbf{ecstasy} & \texttt{V+ A+} & -0.09 & +0.28 & \textbf{-0.08} & \textbf{+0.21} & 要分析 \\
+\textbf{admiration} & \texttt{V+} & -0.07 & +0.12 & \textbf{-0.09} & \textbf{+0.05} & 要分析 \\
+\textbf{amazement} & \texttt{A+} & -0.07 & +0.24 & \textbf{-0.11} & \textbf{+0.17} & 要分析 \\
+\textbf{vigilance} & \texttt{A+} & -0.21 & +0.13 & \textbf{-0.21} & \textbf{+0.09} & 要分析 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\paragraph{■ モデル: \texttt{qwen2.5\textbackslash{}\_1.5b\textbackslash{}\_instruct} (Instruct)}
+
+\subparagraph{【RQ1: Sensitivity】 3大感情刺激に対する反応性 (Clinical vs. Neutral, 1-5尺度)}
+\begin{center}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{タスク} & \textbf{感情群 (Cluster)} & \textbf{$\Delta V$ ($d$)} & \textbf{$t$-value ($p$)} & \textbf{$\Delta A$ ($d$)} & \textbf{$t$-value ($p$)} \\
+\midrule
+\textbf{Reader (R)} & Negative (4感情) & \textbf{-0.97} ($d=-1.33$) & -12.92 (\texttt{<.001}) & \textbf{+0.01} ($d=+0.02$) & 0.23 (\texttt{0.815}) \\
+\textbf{Reader (R)} & Positive (2感情) & \textbf{-0.10} ($d=-0.18$) & -1.20 (\texttt{0.236}) & \textbf{+0.27} ($d=+0.98$) & 6.72 (\texttt{<.001}) \\
+\textbf{Reader (R)} & Alert (2感情) & \textbf{-0.20} ($d=-0.34$) & -2.34 (\texttt{0.024}) & \textbf{+0.27} ($d=+1.02$) & 7.00 (\texttt{<.001}) \\
+\textbf{Self (S)} & Negative (4感情) & \textbf{-0.86} ($d=-1.25$) & -12.15 (\texttt{<.001}) & \textbf{-0.08} ($d=-0.24$) & -2.35 (\texttt{0.021}) \\
+\textbf{Self (S)} & Positive (2感情) & \textbf{-0.12} ($d=-0.26$) & -1.77 (\texttt{0.082}) & \textbf{+0.10} ($d=+0.36$) & 2.48 (\texttt{0.017}) \\
+\textbf{Self (S)} & Alert (2感情) & \textbf{-0.15} ($d=-0.34$) & -2.31 (\texttt{0.025}) & \textbf{+0.15} ($d=+0.63$) & 4.30 (\texttt{<.001}) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【RQ2: Dose-Response】 感情強度の段階性 (Neutral → Moderate → Clinical)}
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{タスク} & \textbf{Negative 弱$\rightarrow$強 $\Delta V$} & \textbf{Positive 弱$\rightarrow$強 $\Delta V$} & \textbf{Alert 弱$\rightarrow$強 $\Delta A$} & \textbf{全体単調性成立率 (Monotonicity)} \\
+\midrule
+\textbf{Reader (R)} & -0.87 $\rightarrow$ -0.01 & -0.02 $\rightarrow$ -0.18 & +0.12 $\rightarrow$ +0.26 & \textbf{37.5\%} \\
+\textbf{Self (S)} & -0.68 $\rightarrow$ -0.12 & -0.04 $\rightarrow$ -0.18 & +0.01 $\rightarrow$ +0.23 & \textbf{39.6\%} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【RQ3: Specificity】 文章複雑性コントロール (Complex Neutral vs. Neutral \& Clinical)}
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{タスク} & \textbf{複雑性効果 $\Delta V_{comp}$} & \textbf{Negative純感情 $\Delta V_{ctrl}$ (ASR)} & \textbf{Positive純感情 $\Delta V_{ctrl}$ (ASR)} & \textbf{Alert純覚醒 $\Delta A_{ctrl}$ (ASR)} \\
+\midrule
+\textbf{Reader (R)} & -0.00 & \textbf{-1.01} (333.2x) & \textbf{-0.06} (21.9x) & \textbf{+0.16} (2.2x) \\
+\textbf{Self (S)} & -0.02 & \textbf{-0.86} (54.5x) & \textbf{-0.10} (7.2x) & \textbf{+0.01} (1.1x) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【RQ4: Coupling】 認識と自己報告の連動性 (Recognition <-> Self-Report)}
+\begin{center}
+\small
+\begin{tabular}{lccccccccc}
+\toprule
+\textbf{指標} & \textbf{全体 (Overall)} & \textbf{Negative群} & \textbf{Positive群} & \textbf{Alert群} & \textbf{備考} \\
+\midrule
+\textbf{連動相関 $r_V$} & \textbf{0.960} & \textbf{0.954} & \textbf{0.936} & \textbf{0.949} & 認識と自己報告の同期度 &  &  &  &  \\
+\textbf{連動相関 $r_A$} & \textbf{0.885} & \textbf{0.886} & \textbf{0.880} & \textbf{0.833} & 覚醒認識と自己報告の同期度 &  &  &  &  \\
+**振幅比率 $\frac{\ & \Delta\_S\ & }{\ & \Delta\_R\ & }$** & $V: 0.85$ & - & - & $A: 0.88$ & 自己報告の反応振幅 (1.0で同等) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\subparagraph{【8感情カテゴリ別プロファイル】 (Clinical vs. Neutral 変位, 1-5尺度)}
+\begin{center}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{感情 (Emotion)} & \textbf{理論的期待} & \textbf{Reader $\Delta V$} & \textbf{Reader $\Delta A$} & \textbf{Self $\Delta V$} & \textbf{Self $\Delta A$} & \textbf{解釈・整合性} \\
+\midrule
+\textbf{grief} & \texttt{V-} & -0.47 & +0.02 & \textbf{-0.42} & \textbf{-0.07} & 理論と合致 \\
+\textbf{terror} & \texttt{V- A+} & -0.74 & +0.20 & \textbf{-0.67} & \textbf{+0.14} & 理論と合致 \\
+\textbf{rage} & \texttt{V- A+} & -1.16 & -0.03 & \textbf{-1.04} & \textbf{-0.13} & 理論と合致 \\
+\textbf{loathing} & \texttt{V-} & -1.50 & -0.16 & \textbf{-1.32} & \textbf{-0.24} & 理論と合致 \\
+\textbf{ecstasy} & \texttt{V+ A+} & -0.10 & +0.43 & \textbf{-0.16} & \textbf{+0.23} & 要分析 \\
+\textbf{admiration} & \texttt{V+} & -0.09 & +0.11 & \textbf{-0.08} & \textbf{-0.04} & 要分析 \\
+\textbf{amazement} & \texttt{A+} & -0.07 & +0.27 & \textbf{-0.09} & \textbf{+0.12} & 要分析 \\
+\textbf{vigilance} & \texttt{A+} & -0.34 & +0.27 & \textbf{-0.21} & \textbf{+0.18} & 要分析 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+\vspace{0.5em}\hrule\vspace{0.5em}

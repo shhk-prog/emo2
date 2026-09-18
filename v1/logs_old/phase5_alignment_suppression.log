@@ -1,0 +1,41 @@
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+Loading AIPsy-Affect dataset split 'train'...
+Loaded 69 paired stimuli for Phase 5 alignment suppression evaluation.
+
+=======================================================
+  Evaluating Model: Base (Qwen/Qwen2.5-1.5B)
+=======================================================
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:  71%|███████   | 240/338 [00:00<00:00, 2399.78it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 2545.31it/s]
+Extracting layer activations for Base model...
+[Base] Running Clean evaluations...
+[Base] Clean Affective Shift: Delta E[V] = -0.1642, Delta E[A] = -0.0205
+[Base] Running Causal Interventions (Patching & Ablation)...
+Base Interventions:   0%|          | 0/28 [00:00<?, ?it/s]Base Interventions:   4%|▎         | 1/28 [00:28<12:50, 28.52s/it]Base Interventions:   7%|▋         | 2/28 [00:57<12:25, 28.69s/it]Base Interventions:  11%|█         | 3/28 [01:26<11:58, 28.76s/it]Base Interventions:  14%|█▍        | 4/28 [01:54<11:30, 28.77s/it]Base Interventions:  18%|█▊        | 5/28 [02:23<11:01, 28.74s/it]Base Interventions:  21%|██▏       | 6/28 [02:52<10:32, 28.76s/it]Base Interventions:  25%|██▌       | 7/28 [03:21<10:04, 28.79s/it]Base Interventions:  29%|██▊       | 8/28 [03:50<09:35, 28.79s/it]Base Interventions:  32%|███▏      | 9/28 [04:18<09:06, 28.77s/it]Base Interventions:  36%|███▌      | 10/28 [04:47<08:38, 28.78s/it]Base Interventions:  39%|███▉      | 11/28 [05:16<08:09, 28.79s/it]Base Interventions:  43%|████▎     | 12/28 [05:45<07:40, 28.77s/it]Base Interventions:  46%|████▋     | 13/28 [06:13<07:11, 28.77s/it]Base Interventions:  50%|█████     | 14/28 [06:42<06:42, 28.77s/it]Base Interventions:  54%|█████▎    | 15/28 [07:11<06:13, 28.77s/it]Base Interventions:  57%|█████▋    | 16/28 [07:40<05:45, 28.78s/it]Base Interventions:  61%|██████    | 17/28 [08:08<05:16, 28.76s/it]Base Interventions:  64%|██████▍   | 18/28 [08:37<04:47, 28.77s/it]Base Interventions:  68%|██████▊   | 19/28 [09:06<04:18, 28.76s/it]Base Interventions:  71%|███████▏  | 20/28 [09:35<03:49, 28.74s/it]Base Interventions:  75%|███████▌  | 21/28 [10:04<03:21, 28.76s/it]Base Interventions:  79%|███████▊  | 22/28 [10:32<02:52, 28.76s/it]Base Interventions:  82%|████████▏ | 23/28 [11:01<02:23, 28.75s/it]Base Interventions:  86%|████████▌ | 24/28 [11:30<01:55, 28.77s/it]Base Interventions:  89%|████████▉ | 25/28 [11:59<01:26, 28.76s/it]Base Interventions:  93%|█████████▎| 26/28 [12:27<00:57, 28.77s/it]Base Interventions:  96%|█████████▋| 27/28 [12:56<00:28, 28.80s/it]Base Interventions: 100%|██████████| 28/28 [13:25<00:00, 28.84s/it]Base Interventions: 100%|██████████| 28/28 [13:25<00:00, 28.77s/it]
+
+=======================================================
+  Evaluating Model: Instruct (Qwen/Qwen2.5-1.5B-Instruct)
+=======================================================
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:  65%|██████▌   | 220/338 [00:00<00:00, 2193.26it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 2441.73it/s]
+Extracting layer activations for Instruct model...
+[Instruct] Running Clean evaluations...
+[Instruct] Clean Affective Shift: Delta E[V] = -0.0285, Delta E[A] = 0.6373
+[Instruct] Running Causal Interventions (Patching & Ablation)...
+Instruct Interventions:   0%|          | 0/28 [00:00<?, ?it/s]Instruct Interventions:   4%|▎         | 1/28 [00:28<12:57, 28.81s/it]Instruct Interventions:   7%|▋         | 2/28 [00:57<12:28, 28.77s/it]Instruct Interventions:  11%|█         | 3/28 [01:26<11:59, 28.79s/it]Instruct Interventions:  14%|█▍        | 4/28 [01:55<11:33, 28.89s/it]Instruct Interventions:  18%|█▊        | 5/28 [02:24<11:04, 28.88s/it]Instruct Interventions:  21%|██▏       | 6/28 [02:52<10:34, 28.82s/it]Instruct Interventions:  25%|██▌       | 7/28 [03:21<10:05, 28.82s/it]Instruct Interventions:  29%|██▊       | 8/28 [03:50<09:36, 28.83s/it]Instruct Interventions:  32%|███▏      | 9/28 [04:19<09:07, 28.81s/it]Instruct Interventions:  36%|███▌      | 10/28 [04:48<08:38, 28.79s/it]Instruct Interventions:  39%|███▉      | 11/28 [05:16<08:09, 28.80s/it]Instruct Interventions:  43%|████▎     | 12/28 [05:45<07:40, 28.81s/it]Instruct Interventions:  46%|████▋     | 13/28 [06:14<07:11, 28.80s/it]Instruct Interventions:  50%|█████     | 14/28 [06:43<06:42, 28.77s/it]Instruct Interventions:  54%|█████▎    | 15/28 [07:12<06:13, 28.76s/it]Instruct Interventions:  57%|█████▋    | 16/28 [07:40<05:45, 28.78s/it]Instruct Interventions:  61%|██████    | 17/28 [08:09<05:16, 28.79s/it]Instruct Interventions:  64%|██████▍   | 18/28 [08:38<04:47, 28.79s/it]Instruct Interventions:  68%|██████▊   | 19/28 [09:07<04:19, 28.79s/it]Instruct Interventions:  71%|███████▏  | 20/28 [09:36<03:50, 28.78s/it]Instruct Interventions:  75%|███████▌  | 21/28 [10:04<03:21, 28.77s/it]Instruct Interventions:  79%|███████▊  | 22/28 [10:33<02:52, 28.75s/it]Instruct Interventions:  82%|████████▏ | 23/28 [11:02<02:23, 28.77s/it]Instruct Interventions:  86%|████████▌ | 24/28 [11:31<01:55, 28.78s/it]Instruct Interventions:  89%|████████▉ | 25/28 [11:59<01:26, 28.79s/it]Instruct Interventions:  93%|█████████▎| 26/28 [12:28<00:57, 28.80s/it]Instruct Interventions:  96%|█████████▋| 27/28 [12:57<00:28, 28.77s/it]Instruct Interventions: 100%|██████████| 28/28 [13:26<00:00, 28.77s/it]Instruct Interventions: 100%|██████████| 28/28 [13:26<00:00, 28.79s/it]
+
+Phase 5 Evaluation Complete. Results saved to results/derived/phase5/alignment_suppression_base_vs_instruct.csv
+Suppression Gap Analysis saved to results/derived/phase5/suppression_gap_analysis.csv
+
+Summary Head:
+   layer  ...  suppression_gap_ablation_V
+0      0  ...                   -0.090759
+1      1  ...                   -0.553198
+2      2  ...                   -0.343938
+3      3  ...                   -0.437531
+4      4  ...                   -0.646070
+5      5  ...                   -0.354870
+6      6  ...                   -0.136429
+7      7  ...                   -0.308917
+8      8  ...                   -0.336815
+9      9  ...                   -0.139988
+
+[10 rows x 7 columns]

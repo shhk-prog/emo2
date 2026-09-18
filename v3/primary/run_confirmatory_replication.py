@@ -36,7 +36,11 @@ from affective_empathy_eval.likelihood import (
     compute_expected_va,
     compute_sequence_likelihoods_for_candidates,
 )
-from affective_empathy_eval.data import describe_loaded_frame
+from affective_empathy_eval.data import (
+    describe_loaded_frame,
+    load_v3_matched_pair_table,
+    resolve_matched_neutral_text,
+)
 from affective_empathy_eval.models.registry import (
     add_model_selection_args,
     get_registry,
@@ -251,31 +255,32 @@ def run_real_model_confirmatory(
     alphas = [-1.0, -0.5, 0.0, 0.5, 1.0]
     shifts_v = []
     shifts_a = []
-    for alpha in alphas:
-        p_vec = torch.tensor(alpha * d_v, dtype=torch.float32, device=device)
-        shifts_alpha_v = []
-        shifts_alpha_a = []
-        with torch.no_grad():
-            for idx in range(min(5, N)):
-                text = str(eval_df.loc[idx, "text"])
-                prompt = build_prompt(text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
-                enc = encode_prompt_canonical(tokenizer, prompt, device=device)
-                anchors = find_semantic_anchors(enc["input_ids"][0].tolist(), tokenizer, text)
-                with ActivationHookManager(adapter) as hook_mgr:
-                    hook_mgr.register_patch_hook(
-                        layer_idx=mid_layer,
-                        patch_tensor=p_vec,
-                        token_indices=anchors["prompt_end"],
-                        hook_point=HookPoint.POST_MLP_RESID,
-                    )
-                    _, probs_p = compute_sequence_likelihoods_for_candidates(
-                        model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device, batch_size=81
-                    )
-                ev_p, ea_p = compute_expected_va(probs_p, candidates)
-                shifts_alpha_v.append(ev_p - clean_ev_list[idx])
-                shifts_alpha_a.append(ea_p - clean_ea_list[idx])
-        shifts_v.append(float(np.mean(shifts_alpha_v)))
-        shifts_a.append(float(np.mean(shifts_alpha_a)))
+    for direction, collect, clean_list in (
+        (d_v, shifts_v, clean_ev_list),
+        (d_a, shifts_a, clean_ea_list),
+    ):
+        for alpha in alphas:
+            p_vec = torch.tensor(alpha * direction, dtype=torch.float32, device=device)
+            axis_shifts = []
+            with torch.no_grad():
+                for idx in range(min(5, N)):
+                    text = str(eval_df.loc[idx, "text"])
+                    prompt = build_prompt(text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
+                    enc = encode_prompt_canonical(tokenizer, prompt, device=device)
+                    anchors = find_semantic_anchors(enc["input_ids"][0].tolist(), tokenizer, text)
+                    with ActivationHookManager(adapter) as hook_mgr:
+                        hook_mgr.register_patch_hook(
+                            layer_idx=mid_layer,
+                            patch_tensor=p_vec,
+                            token_indices=anchors["prompt_end"],
+                            hook_point=HookPoint.POST_MLP_RESID,
+                        )
+                        _, probs_p = compute_sequence_likelihoods_for_candidates(
+                            model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device, batch_size=81
+                        )
+                    ev_p, ea_p = compute_expected_va(probs_p, candidates)
+                    axis_shifts.append((ev_p if collect is shifts_v else ea_p) - clean_list[idx])
+            collect.append(float(np.mean(axis_shifts)))
 
     slope_v = estimate_interventional_slope(alphas, shifts_v)
     slope_a = estimate_interventional_slope(alphas, shifts_a)
@@ -334,7 +339,7 @@ def run_real_model_confirmatory(
     neutral_reps = []
     neutral_baselines = []
     for row_i, (_, row) in enumerate(causal_sub_df.iterrows()):
-        neu_text = str(row.get("text_neu", row.get("matched_neutral_text", row.get("neutral_text", ""))))
+        neu_text = resolve_matched_neutral_text(row, df)
         if neu_text.strip():
             p_neu = build_prompt(neu_text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
             enc_neu = encode_prompt_canonical(tokenizer, p_neu, device=device)
@@ -492,8 +497,8 @@ def main():
 
     with open(args.config, "r", encoding="utf-8") as f:
         v3_cfg = yaml.safe_load(f)
-    df = pd.read_csv(v3_cfg["dataset"]["path"])
-    logger.info(describe_loaded_frame(df, "V3 confirmatory dataset", v3_cfg["dataset"]["path"]))
+    df = load_v3_matched_pair_table(v3_cfg["dataset"]["path"])
+    logger.info(describe_loaded_frame(df, "V3 confirmatory matched-pair table", v3_cfg["dataset"]["path"]))
     # レジストリから動的解決
     conf_families_list = v3_cfg.get("confirmatory_families", ["llama", "gemma", "olmo"])
     registered_models = load_model_set(Path(args.models_config), model_set=args.model_set)

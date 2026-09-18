@@ -1,0 +1,46 @@
+==================================================================
+Starting Production Behavioral Evaluation
+Timestamp : 2026-09-18T09:48:07Z
+Device    : cpu
+Log File  : results/logs/production_behavioral_20260918_184807.log
+Cohort    : primary_small (4 families, 8 models)
+Datasets  : EmoBank + AIPsy (actual counts logged by the Python runner)
+Runtime   : unmeasured (do not use pre-benchmark hour estimates)
+==================================================================
+2026-09-18 18:48:09,811 [INFO] Affective Empathy Evaluation Unified Runner
+2026-09-18 18:48:09,811 [INFO] Stage: behavioral | Cohort: primary_small | Dry-run: True
+2026-09-18 18:48:09,811 [INFO] Wall-clock estimates are unmeasured until a Qwen-family benchmark is recorded.
+2026-09-18 18:48:09,811 [INFO] Dataset inventory (actual loaded counts; wall-clock time is unmeasured):
+2026-09-18 18:48:09,817 [INFO] EmoBank 3-way: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-18 18:48:09,823 [INFO] AIPsy 4-split: n_rows=480 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=480 | split_counts={'clinical': 192, 'neutral': 192, 'moderate': 48, 'complex_neutral': 48}
+2026-09-18 18:48:09,828 [INFO] V1 Phase B rule-based controls: n_rows=192 | path=v1/data/processed/v1_e5_semantic_controls.csv | n_unique_pair_id=192
+2026-09-18 18:48:09,829 [INFO] === Running Behavioral Stage (model-set: primary_small) ===
+2026-09-18 18:48:09,830 [INFO] Running behavioral evaluation for qwen_base (Qwen/Qwen2.5-1.5B)...
+2026-09-18 18:48:09,830 [INFO] [Dry-run] Simulated EmoBank execution for Qwen/Qwen2.5-1.5B (tag=qwen_base)
+2026-09-18 18:48:09,830 [INFO] [Dry-run] Simulated AIPsy execution for Qwen/Qwen2.5-1.5B (tag=qwen_base)
+2026-09-18 18:48:09,830 [INFO] Running behavioral evaluation for qwen_instruct (Qwen/Qwen2.5-1.5B-Instruct)...
+2026-09-18 18:48:09,830 [INFO] [Dry-run] Simulated EmoBank execution for Qwen/Qwen2.5-1.5B-Instruct (tag=qwen_instruct)
+2026-09-18 18:48:09,830 [INFO] [Dry-run] Simulated AIPsy execution for Qwen/Qwen2.5-1.5B-Instruct (tag=qwen_instruct)
+2026-09-18 18:48:09,830 [INFO] Running behavioral evaluation for llama_base (meta-llama/Llama-3.2-1B)...
+2026-09-18 18:48:09,831 [INFO] [Dry-run] Simulated EmoBank execution for meta-llama/Llama-3.2-1B (tag=llama_base)
+2026-09-18 18:48:09,831 [INFO] [Dry-run] Simulated AIPsy execution for meta-llama/Llama-3.2-1B (tag=llama_base)
+2026-09-18 18:48:09,831 [INFO] Running behavioral evaluation for llama_instruct (meta-llama/Llama-3.2-1B-Instruct)...
+2026-09-18 18:48:09,831 [INFO] [Dry-run] Simulated EmoBank execution for meta-llama/Llama-3.2-1B-Instruct (tag=llama_instruct)
+2026-09-18 18:48:09,831 [INFO] [Dry-run] Simulated AIPsy execution for meta-llama/Llama-3.2-1B-Instruct (tag=llama_instruct)
+2026-09-18 18:48:09,831 [INFO] Running behavioral evaluation for gemma_base (google/gemma-3-1b-pt)...
+2026-09-18 18:48:09,831 [INFO] [Dry-run] Simulated EmoBank execution for google/gemma-3-1b-pt (tag=gemma_base)
+2026-09-18 18:48:09,831 [INFO] [Dry-run] Simulated AIPsy execution for google/gemma-3-1b-pt (tag=gemma_base)
+2026-09-18 18:48:09,831 [INFO] Running behavioral evaluation for gemma_instruct (google/gemma-3-1b-it)...
+2026-09-18 18:48:09,831 [INFO] [Dry-run] Simulated EmoBank execution for google/gemma-3-1b-it (tag=gemma_instruct)
+2026-09-18 18:48:09,831 [INFO] [Dry-run] Simulated AIPsy execution for google/gemma-3-1b-it (tag=gemma_instruct)
+2026-09-18 18:48:09,831 [INFO] Running behavioral evaluation for olmo_base (allenai/OLMo-2-0425-1B)...
+2026-09-18 18:48:09,831 [INFO] [Dry-run] Simulated EmoBank execution for allenai/OLMo-2-0425-1B (tag=olmo_base)
+2026-09-18 18:48:09,831 [INFO] [Dry-run] Simulated AIPsy execution for allenai/OLMo-2-0425-1B (tag=olmo_base)
+2026-09-18 18:48:09,831 [INFO] Running behavioral evaluation for olmo_instruct (allenai/OLMo-2-0425-1B-Instruct)...
+2026-09-18 18:48:09,831 [INFO] [Dry-run] Simulated EmoBank execution for allenai/OLMo-2-0425-1B-Instruct (tag=olmo_instruct)
+2026-09-18 18:48:09,831 [INFO] [Dry-run] Simulated AIPsy execution for allenai/OLMo-2-0425-1B-Instruct (tag=olmo_instruct)
+2026-09-18 18:48:09,831 [INFO] All requested stages completed successfully!
+==================================================================
+Behavioral Evaluation completed successfully!
+Elapsed Time: 3 seconds
+==================================================================

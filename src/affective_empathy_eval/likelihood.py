@@ -319,6 +319,25 @@ def prepare_joint_sequence_with_boundary(
     return full_ids, match_len
 
 
+def resolve_joint_stage_index(
+    cand_start: int,
+    stage_name: str,
+    stage_offsets: dict[str, int],
+    seq_len: int,
+) -> int:
+    """生成段階の絶対 token 位置。prompt_end への丸めはしない。"""
+    key = "candidate_start" if stage_name == "response_start" else stage_name
+    if key not in stage_offsets:
+        raise KeyError(f"Unknown generation stage {stage_name!r}; available={sorted(stage_offsets)}")
+    t_idx = int(cand_start) + int(stage_offsets[key])
+    if t_idx < 0 or t_idx >= int(seq_len):
+        raise ValueError(
+            f"Generation-stage index {t_idx} is outside joint sequence [0, {seq_len}). "
+            "Do not clamp to prompt_end."
+        )
+    return t_idx
+
+
 def compute_sequence_likelihoods_for_candidates(
     model: Any,
     tokenizer: Any,
@@ -328,6 +347,7 @@ def compute_sequence_likelihoods_for_candidates(
     batch_size: int = 81,
     normalize_length: bool = False,
     delimiter: str = "",
+    generation_patch: dict[str, Any] | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     プロンプトに続く各候補文字列（81通りのVA JSON、729通りのVAD JSON等）について、
@@ -388,7 +408,25 @@ def compute_sequence_likelihoods_for_candidates(
         attn_tensor = torch.tensor(batch_attention_mask, dtype=torch.long, device=model_device)
 
         with torch.no_grad():
-            outputs = model(input_ids=inp_tensor, attention_mask=attn_tensor)
+            if generation_patch is None:
+                outputs = model(input_ids=inp_tensor, attention_mask=attn_tensor)
+            else:
+                from affective_empathy_eval.models.hooks import ActivationHookManager, HookPoint
+
+                token_index = int(generation_patch["token_index"])
+                for seq in b_full_ids:
+                    if token_index >= len(seq):
+                        raise ValueError(
+                            f"Generation-stage patch index {token_index} exceeds joint length {len(seq)}."
+                        )
+                with ActivationHookManager(generation_patch["adapter"]) as hook_mgr:
+                    hook_mgr.register_patch_hook(
+                        layer_idx=int(generation_patch["layer_idx"]),
+                        patch_tensor=generation_patch["patch_tensor"],
+                        token_indices=token_index,
+                        hook_point=generation_patch.get("hook_point", HookPoint.POST_MLP_RESID),
+                    )
+                    outputs = model(input_ids=inp_tensor, attention_mask=attn_tensor)
             logits = outputs.logits  # (batch_size, max_seq_len, vocab_size)
             log_probs = F.log_softmax(logits[:, :-1, :].float(), dim=-1)
 

@@ -29,6 +29,7 @@ fi
 
 DEVICE="${1:-cuda:0}"
 DRY_RUN="${2:-}"
+FORCE_AFTER_NO_GO="${3:-}"
 
 LOG_DIR="results/logs"
 mkdir -p "${LOG_DIR}"
@@ -49,6 +50,9 @@ echo "==================================================================" | tee 
 CMD=(python -m affective_empathy_eval.run --stage v3 --model-set primary_small --device "${DEVICE}")
 if [ "${DRY_RUN}" = "--dry-run" ]; then
     CMD+=(--dry-run)
+fi
+if [ "${DRY_RUN}" = "--force-after-no-go" ] || [ "${FORCE_AFTER_NO_GO}" = "--force-after-no-go" ]; then
+    CMD+=(--force-after-no-go)
 fi
 
 START_SEC=$(date +%s)

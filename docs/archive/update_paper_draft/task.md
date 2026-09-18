@@ -1,0 +1,4 @@
+- [x] `v1/docs/paper_draft.md` の 5.1章 に予備実験の詳細（認識タスクでの相関、自己報告の完全なニュートラル収束など）を追記する。
+- [x] `v1/docs/paper_draft.md` の本実験結果部分（5.4章付近）に、因果介入（Activation Patching）の具体的な仕組み、プロンプト推移の表、Recoveryスコアの詳細な解釈を追記する。
+- [x] `v1/docs/paper_draft.md` の 4.1章 に EmoBank と AIPsy-Affect の詳細な内容とデータ例（最小対ペアなど）の表を追記する。
+- [x] 完了後、変更内容を `walkthrough.md` に追記する。

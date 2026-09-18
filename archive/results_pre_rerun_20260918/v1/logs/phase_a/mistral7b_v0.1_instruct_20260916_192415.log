@@ -1,0 +1,6 @@
+usage: run_v1_phase_a_probe.py [-h] [--model-id MODEL_ID]
+                               [--model-prefix MODEL_PREFIX]
+                               [--dataset {emobank,aipsy,both}]
+                               [--limit LIMIT] [--batch-size BATCH_SIZE]
+                               [--device DEVICE] [--out-dir OUT_DIR]
+run_v1_phase_a_probe.py: error: unrecognized arguments: --is-instruct --is-instruct

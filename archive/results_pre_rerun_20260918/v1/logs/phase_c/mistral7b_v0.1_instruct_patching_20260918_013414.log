@@ -1,0 +1,4 @@
+  File "/mnt/nas/home/hiromi/src/emo/v1/scripts/run_v1_phase_c_causal_patching.py", line 515
+    f.write(f"- **Mean Pairwise Directional Cosine**: $\\text{{mean}}\\{\\cos(C_{{R,i}}, C_{{S,i}})\\} = {mean_pairwise_cos:.3f}$\n\n")
+                                                                         ^
+SyntaxError: unexpected character after line continuation character

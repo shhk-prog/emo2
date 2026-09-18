@@ -33,7 +33,12 @@ from affective_empathy_eval.likelihood import (
 )
 from affective_empathy_eval.models.adapters import get_model_adapter
 from affective_empathy_eval.models.hooks import ActivationHookManager, HookPoint
-from affective_empathy_eval.data import describe_loaded_frame
+from affective_empathy_eval.data import (
+    describe_loaded_frame,
+    dry_run_va_label_vector,
+    load_v3_matched_pair_table,
+    resolve_matched_neutral_text,
+)
 from affective_empathy_eval.models.registry import (
     add_model_selection_args,
     get_registry,
@@ -86,8 +91,8 @@ def simulate_mock_intervention_responses(
     """
     rng = np.random.default_rng(42)
     N = len(df)
-    v_clean = df["reader_V"].values
-    a_clean = df["reader_A"].values
+    v_clean = dry_run_va_label_vector(df, "reader_V", N)
+    a_clean = dry_run_va_label_vector(df, "reader_A", N)
 
     # 1. Dose-response: alpha に応じて報告値が線形シフト
     dose_responses_v = []
@@ -229,6 +234,9 @@ def run_real_state_induction(
     # 2. Train split による情動方向 d_V, d_A の推定
     logger.info(f"Extracting target layer {target_layer} representations on train split...")
     train_hiddens = []
+    train_ev: List[float] = []
+    train_ea: List[float] = []
+    train_candidates = build_va_candidates()
     with torch.no_grad():
         for _, row in train_df.iterrows():
             text = str(row["text"])
@@ -246,10 +254,21 @@ def run_real_state_induction(
                 )
                 _ = model(**enc)
                 train_hiddens.append(hook_mgr.captured_activations["train_h"].cpu().float().numpy().ravel())
+            _, tr_probs = compute_sequence_likelihoods_for_candidates(
+                model=model, tokenizer=tokenizer, prompt=prompt, candidates=train_candidates, device=device, batch_size=batch_size
+            )
+            ev_tr, ea_tr = compute_expected_va(tr_probs, train_candidates)
+            train_ev.append(float(ev_tr))
+            train_ea.append(float(ea_tr))
 
     H_train = np.array(train_hiddens)  # (N_train, D)
-    y_v_train = train_df["reader_V"].values
-    y_a_train = train_df["reader_A"].values
+    if "reader_V" in train_df.columns and "reader_A" in train_df.columns:
+        y_v_train = train_df["reader_V"].to_numpy()
+        y_a_train = train_df["reader_A"].to_numpy()
+    else:
+        logger.info("No human reader_V/A; using train-set model self-report as direction targets.")
+        y_v_train = np.array(train_ev, dtype=np.float64)
+        y_a_train = np.array(train_ea, dtype=np.float64)
 
     directions = extract_conditional_directions(H_train, y_v_train, y_a_train, method="ridge", alpha=1.0)
     d_v = directions["direction_v"]  # (D,)
@@ -259,26 +278,15 @@ def run_real_state_induction(
     d_rand = controls["random_directions"][0]
     d_perp = controls["orthogonal_directions"][0]
 
-    h_std_v = float(np.std(H_train @ d_v))
+    h_std_v = float(np.std(H_train @ d_v)) or 1.0
+    h_std_a = float(np.std(H_train @ d_a)) or 1.0
 
     # train split から matched-neutral 表現を抽出し mu_neu を算出
     logger.info(f"Extracting target layer {target_layer} matched-neutral representations on train split...")
     train_neutral_hiddens = []
     with torch.no_grad():
         for _, row in train_df.iterrows():
-            neu_text = None
-            if "neutral_text" in row and str(row["neutral_text"]).strip():
-                neu_text = str(row["neutral_text"])
-            elif "text_neutral" in row and str(row["text_neutral"]).strip():
-                neu_text = str(row["text_neutral"])
-            elif "pair_id" in train_df.columns:
-                pair_matches = df[(df["pair_id"] == row["pair_id"]) & (df.get("condition", pd.Series()) == "neutral")]
-                if len(pair_matches) > 0:
-                    neu_text = str(pair_matches.iloc[0]["text"])
-
-            if neu_text is None and row.get("condition") == "neutral":
-                neu_text = str(row["text"])
-
+            neu_text = resolve_matched_neutral_text(row, df)
             if neu_text is not None and len(neu_text.strip()) > 0:
                 p_neu = build_prompt(neu_text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
                 enc_neu = encode_prompt_canonical(tokenizer, p_neu, device=device)
@@ -293,23 +301,13 @@ def run_real_state_induction(
                     _ = model(**enc_neu)
                     train_neutral_hiddens.append(hook_mgr.captured_activations["train_h_neu"].cpu().float().numpy().ravel())
 
-    if len(train_neutral_hiddens) > 0:
-        mu_neu = np.mean(train_neutral_hiddens, axis=0)  # (D,)
-        logger.info(f"Computed mu_neu from {len(train_neutral_hiddens)} matched-neutral train samples")
-    else:
-        logger.warning("No matched-neutral stimuli found in train split; extracting from standard neutral prompt")
-        p_neu = build_prompt("This is a neutral and ordinary statement.", task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
-        enc_neu = encode_prompt_canonical(tokenizer, p_neu, device=device)
-        anchors_neu = find_semantic_anchors(enc_neu["input_ids"][0].tolist(), tokenizer, "This is a neutral and ordinary statement.")
-        with ActivationHookManager(adapter) as hook_mgr:
-            hook_mgr.register_capture_hook(
-                layer_idx=target_layer,
-                hook_point=HookPoint.POST_MLP_RESID,
-                token_indices=anchors_neu["prompt_end"],
-                key="train_h_neu_fallback",
-            )
-            _ = model(**enc_neu)
-            mu_neu = hook_mgr.captured_activations["train_h_neu_fallback"].cpu().float().numpy().ravel()
+    if len(train_neutral_hiddens) == 0:
+        raise ValueError(
+            "No matched-neutral stimuli found in the V3 train split. "
+            "Generic neutral prompts are forbidden in Primary."
+        )
+    mu_neu = np.mean(train_neutral_hiddens, axis=0)  # (D,)
+    logger.info(f"Computed mu_neu from {len(train_neutral_hiddens)} matched-neutral train samples")
 
     # 3. Held-out test split における実介入実験
     logger.info(f"Running causal state induction interventions on {len(test_df)} test samples...")
@@ -345,28 +343,29 @@ def run_real_state_induction(
             )
             ev_clean, ea_clean = compute_expected_va(probs_clean, candidates)
 
-            # b. Dose-response alpha sweep (d_V 注入)
+            # b. Dose-response: d_V → ΔV, d_A → ΔA（軸を混ぜない）
             alpha_shifts_v = []
             alpha_shifts_a = []
             for alpha in alpha_grid:
-                patch_vec = torch.tensor(alpha * h_std_v * d_v, dtype=torch.float32, device=device)
-                with ActivationHookManager(adapter) as hook_mgr:
-                    hook_mgr.register_patch_hook(
-                        layer_idx=target_layer,
-                        patch_tensor=patch_vec,
-                        token_indices=patch_pos_self,
-                        hook_point=HookPoint.POST_MLP_RESID,
-                    )
-                    _, probs_patch = compute_sequence_likelihoods_for_candidates(
-                        model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
-                    )
-                ev_p, ea_p = compute_expected_va(probs_patch, candidates)
-                shift_v = ev_p - ev_clean
-                shift_a = ea_p - ea_clean
-                alpha_shifts_v.append(shift_v)
-                alpha_shifts_a.append(shift_a)
-                dose_curves_v[alpha].append(shift_v)
-                dose_curves_a[alpha].append(shift_a)
+                for axis_name, direction, h_std, clean_val, collect, curves in (
+                    ("v", d_v, h_std_v, ev_clean, alpha_shifts_v, dose_curves_v),
+                    ("a", d_a, h_std_a, ea_clean, alpha_shifts_a, dose_curves_a),
+                ):
+                    patch_vec = torch.tensor(alpha * h_std * direction, dtype=torch.float32, device=device)
+                    with ActivationHookManager(adapter) as hook_mgr:
+                        hook_mgr.register_patch_hook(
+                            layer_idx=target_layer,
+                            patch_tensor=patch_vec,
+                            token_indices=patch_pos_self,
+                            hook_point=HookPoint.POST_MLP_RESID,
+                        )
+                        _, probs_patch = compute_sequence_likelihoods_for_candidates(
+                            model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
+                        )
+                    ev_p, ea_p = compute_expected_va(probs_patch, candidates)
+                    shift = (ev_p if axis_name == "v" else ea_p) - clean_val
+                    collect.append(shift)
+                    curves[alpha].append(shift)
 
             sample_slopes_v.append(estimate_interventional_slope(alpha_grid, alpha_shifts_v))
             sample_slopes_a.append(estimate_interventional_slope(alpha_grid, alpha_shifts_a))
@@ -433,16 +432,13 @@ def run_real_state_induction(
                 )
             ev_abl, _ = compute_expected_va(probs_abl, candidates)
 
-            # Necessity: matched-neutral baseline shift vs after projection removal
-            if "neutral_expected_v" in row and not pd.isna(row["neutral_expected_v"]):
-                neutral_base = float(row["neutral_expected_v"])
-            elif "reader_V_neutral" in row and not pd.isna(row["reader_V_neutral"]):
-                neutral_base = float(row["reader_V_neutral"])
-            else:
-                raise ValueError(
-                    f"Missing matched-neutral baseline for stimulus {row.get('stimulus_id', row.get('id', 'unknown'))}. "
-                    "Primary analysis forbids falling back to arbitrary 5.0."
-                )
+            # Necessity: matched-neutral 自己報告を実測して baseline にする
+            neu_text = resolve_matched_neutral_text(row, df)
+            p_neu_base = build_prompt(neu_text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
+            _, probs_neu_base = compute_sequence_likelihoods_for_candidates(
+                model=model, tokenizer=tokenizer, prompt=p_neu_base, candidates=candidates, device=device, batch_size=batch_size
+            )
+            neutral_base, _ = compute_expected_va(probs_neu_base, candidates)
             nat_dev = abs(ev_clean - neutral_base)
             abl_dev = abs(ev_abl - neutral_base)
             att_ratio = (nat_dev - abl_dev) / (nat_dev + 1e-6) if nat_dev > 0.05 else 0.0
@@ -606,8 +602,8 @@ def main():
     raw_dir.mkdir(parents=True, exist_ok=True)
     derived_dir.mkdir(parents=True, exist_ok=True)
 
-    df = pd.read_csv(v3_cfg["dataset"]["path"])
-    logger.info(describe_loaded_frame(df, "V3-RQ1 dataset", v3_cfg["dataset"]["path"]))
+    df = load_v3_matched_pair_table(v3_cfg["dataset"]["path"])
+    logger.info(describe_loaded_frame(df, "V3-RQ1 matched-pair table", v3_cfg["dataset"]["path"]))
     if args.pilot:
         df = df.iloc[: v3_cfg["dataset"].get("pilot_size", 50)].copy()
         logger.info(f"Running Pilot mode with {len(df)} rows")
@@ -678,9 +674,13 @@ def main():
     logger.info(f"Saved gate decision to {out_gate}")
 
     if gate_decision["decision"] == "GO":
-        logger.info(">>> GATE STATUS: GO! Proceeding to Step 6 (Spatiotemporal Full Exploration).")
+        logger.info(">>> GATE STATUS: GO. Production pipeline may continue to RQ2/RQ3/Confirmatory.")
     else:
-        logger.warning(">>> GATE STATUS: NO-GO! Do NOT proceed to Step 6. Record as useful Negative Result.")
+        logger.warning(
+            f">>> GATE STATUS: {gate_decision['decision']}. "
+            "Production pipeline stops unless --force-after-no-go is set. "
+            "Only exact GO continues; Valence-only / Arousal-only are not GO."
+        )
 
 
 if __name__ == "__main__":

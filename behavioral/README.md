@@ -2,6 +2,15 @@
 
 Behavioral Stage は、内部表現や因果介入の前に、**モデル出力として得られる自己報告 VA（Valence–Arousal）および認識 VA が、人間評定済み刺激に対してどう変位するか**を測定する独立パイプラインである。
 
+中心の問いは **Do Reader and Self covary?** である。
+
+操作定義:
+
+- **Reader**: 平均的読者の VA を推定する認識課題
+- **Self**: 刺激提示後の自己報告 / 反応性課題
+
+Reader を認知的共感、Self を情動的共感と一対一対応させない。共感概念との関係は Discussion に留める。
+
 本研究は、LLM が主観的な感情を経験していることを検証しない。測定対象は次に限る。
 
 - `self-reported affective state`（自己報告情動状態）
@@ -21,9 +30,11 @@ Behavioral  →  V1  →  V2  →  V3
 ```
 
 - **Behavioral**: 出力分布の行動的変位（認識と自己報告を独立セッションで測定）
-- **V1**: その行動が、共有表現・文脈統制（rule-based perturbation）・共有因果実装で支えられるか
+- **V1**: その行動が、共有表現・文脈統制（rule-based perturbation）・共有因果実装で支えられるか（比較軸は Reader ↔ Self）
 - **V2**: Base ↔ Instruct の事後学習で幾何と因果回路がどう再編されるか
-- **V3**: 内部状態から自己報告へ至る時空間経路と mediated attenuation
+- **V3**: AIPsy matched-neutral 上で、内部方向が自己報告へ因果的に使われる層と生成段階
+
+V3 は EmoBank 3-way を使わない。Behavioral の EmoBank 数字を V3 の matched-neutral 指標と混ぜない。
 
 Behavioral の結果を、認識測定の代替値として post 自己報告に流用してはならない。Recognition と Reactivity はデータ・指標・表を分離する。
 
@@ -60,6 +71,7 @@ E[D] = \sum_{d=1}^{9} d\, P(D=d)
 $$
 
 - Valence / Arousal が主対象。Dominance は補助次元。
+- この 729 VAD 空間は Behavioral / V1 Primary の測定空間である。V2 / V3 は 81 VA を使う。両空間の $E[V], E[A]$ は同一尺度として比較しない。
 - 許容範囲は整数 $[1, 9]$。解析時に $[-1, 1]$ へ変換する場合の式は共通プロトコルに従う。
 - `exact_neutral_argmax`（例: $(5,5,5)$ への縮約率）は主指標ではなく補助診断である。
 
@@ -215,7 +227,9 @@ python behavioral/analysis/summarize_behavioral_aipsy.py \
 ## 9. 解釈上の禁止事項
 
 - 高い $r$ を「共感」や「主観的感情」と読まない
+- Reader–Self coupling を認知的共感と情動的共感の一致と読まない
 - Recognition（$W$, $R$）と Reactivity（$S$）を同じ列に混ぜない
 - 失敗応答を無記録で落とさない
 - 結果を見てから除外閾値を動かさない
 - Behavioral の数字を V1 の内部表現指標の代替にしない
+- 729 VAD の $E[V], E[A]$ を V2 / V3 の 81 VA 期待値と直接比較しない

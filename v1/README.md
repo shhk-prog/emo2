@@ -10,6 +10,8 @@ $$
 
 測定対象はモデル出力と内部活性化の変位である。「モデルが感情を経験する」とは書かない。
 
+Reader は操作的な認識課題、Self は操作的な自己報告課題である。認知的共感 / 情動的共感との一対一対応はしない。仮説は一直線ではなく、共有表現から Reader readout と Self readout が分岐する形である。
+
 ---
 
 ## 1. 位置づけ
@@ -19,7 +21,7 @@ Behavioral  →  V1  →  V2  →  V3
 ```
 
 - Behavioral は出力レベルの連動を測る。V1 は「同じ場所から読めるか」「同じ幾何か」「同じ因果サイトか」を測る。
-- V1 の比較軸は **Reader ↔ Self**（同一モデル内）。Base ↔ Instruct は V2 の軸であり混ぜない。
+- V1 の比較軸は **Reader ↔ Self**（同一モデル内）。Base / Instruct の 8 条件は「各モデル内で V1 を再現する」ためのものであり、Base↔Instruct 差そのものの解釈は V2 でのみ行う。
 - 認識用プローブの出力を post 自己報告の代替にしてはならない。
 
 ---
@@ -51,7 +53,7 @@ Phase C  因果
 
 ## 3. 共通プロトコル
 
-- **Sequence-Likelihood**: 主測定は 729 候補（$V,A,D \in \{1..9\}^3$）の条件付き対数尤度と $E[V], E[A]$。
+- **Sequence-Likelihood**: 主測定は 729 候補（$V,A,D \in \{1..9\}^3$）の条件付き対数尤度と $E[V], E[A]$。V2 / V3 の 81 VA 空間とは混ぜない。
 - **Prompt-End Normalized**: `add_special_tokens=False`、介入位置は `prompt_end = len(prompt_ids) - 1`。
 - **相対深度**: $0 \le l < L$ に対し $d = l / (L-1)$（0-based）。論文・表は層番号ではなく $d$ で横断比較する。
 - **独立セッション**: Reader と Self は別フォワードパス。
@@ -207,13 +209,24 @@ $$
 
 **問い**: Reader-site と Self-site に課題特異的な因果があるか。
 
-E3/E4 で決めたサイトを targeted ablation し、
+サイトは E3 Discovery の因果変位から、タスク選択性コントラストで選ぶ。
+
+$$
+S_R(l) = C_R(l) - C_S(l),\qquad S_S(l) = C_S(l) - C_R(l)
+$$
+
+- Reader site = $\arg\max_l S_R(l)$、Self site = $\arg\max_l S_S(l)$
+- 同一層、または最大選択性が正でない場合は **No-Go**（`status: no_distinct_sites_identified`）。第2ピークへの差し替えはしない
+- E3 Discovery CSV が無いときは heuristic fallback（例: $0.5(L-1)$）を使わずエラーにする
+- Discovery / Confirmation を分ける。探索で見たペアを確認に再利用しない
+
+Confirmation でそのサイトを targeted ablation し、
 
 $$
 \mathrm{Outcome} \sim \mathrm{Task} \times \mathrm{SiteType} + (1 \mid \mathrm{pair})
 $$
 
-交互作用を Primary 検定とする。有意でも「完全独立回路」ではなく、因果的特異化 / 部分解離と書く。LMM が singular なときは診断を残し、事前に決めた fallback（ペア差分の $t$ 検定）を明示する。
+交互作用を Primary 検定とする。有意でも「完全独立回路」ではなく、因果的特異化 / 部分解離と書く。LMM が singular なときは診断を残し、事前に決めた fallback（ペア差分の $t$ 検定）を明示する。旧称 Double Dissociation は使わない。
 
 ---
 
@@ -231,6 +244,7 @@ $$
 v1/
 ├── README.md
 ├── primary/
+│   ├── README.md
 │   ├── run_phase_a.py
 │   ├── run_phase_b.py
 │   ├── run_phase_c.py
@@ -304,6 +318,8 @@ python v1/primary/phase_c/run_e6_specialization.py \
 
 - E1 の高い $R^2$ を「同じ回路」と読まない
 - E4 不成立を「感情が無い」と読まない
+- E6 No-Go を「回路が無い」ではなく「distinct site がこの選定規則では取れない」と書く
 - Phase B で語彙統制が効いても、人間の意味理解と同定しない
 - Behavioral の coupling $r$ を V1 指標に代入しない
-- 主仮説を結果の後から変えない。変更は `v1/docs/decision_log.md` と別実験として残す
+- Base / Instruct 差を V1 の主解釈にしない（V2 の軸）
+- 主仮説を結果の後から変えない。変更は `docs/decision_log.md` と別実験として残す

@@ -1,0 +1,9 @@
+==================================================================
+Starting Production Behavioral Evaluation
+Timestamp : 2026-09-18T09:03:34Z
+Device    : cuda:0
+Log File  : results/logs/production_behavioral_20260918_180334.log
+Cohort    : primary_small (4 families, 8 models)
+Datasets  : EmoBank + AIPsy (actual counts logged by the Python runner)
+Runtime   : unmeasured (do not use pre-benchmark hour estimates)
+==================================================================

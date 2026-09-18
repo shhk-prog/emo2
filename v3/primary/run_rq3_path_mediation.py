@@ -37,7 +37,11 @@ from affective_empathy_eval.likelihood import (
 )
 from affective_empathy_eval.manifests import create_run_manifest
 from affective_empathy_eval.models.adapters import get_model_adapter
-from affective_empathy_eval.data import describe_loaded_frame
+from affective_empathy_eval.data import (
+    describe_loaded_frame,
+    load_v3_matched_pair_table,
+    resolve_matched_neutral_text,
+)
 from affective_empathy_eval.models.registry import (
     add_model_selection_args,
     get_registry,
@@ -211,7 +215,23 @@ def run_real_path_mediation(
     c_gen_profile = []
 
     disc_texts = [str(t) for t in disc_df["text"]]
-    y_v_disc = disc_df["reader_V"].values
+    if "reader_V" in disc_df.columns:
+        y_v_disc = disc_df["reader_V"].to_numpy()
+        y_a_disc = disc_df["reader_A"].to_numpy() if "reader_A" in disc_df.columns else y_v_disc
+    else:
+        logger.info("No human reader_V/A on discovery; using model self-report targets.")
+        y_v_list, y_a_list = [], []
+        with torch.no_grad():
+            for text in disc_texts:
+                p = build_prompt(text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
+                _, probs = compute_sequence_likelihoods_for_candidates(
+                    model=model, tokenizer=tokenizer, prompt=p, candidates=candidates, device=device, batch_size=81
+                )
+                ev, ea = compute_expected_va(probs, candidates)
+                y_v_list.append(ev)
+                y_a_list.append(ea)
+        y_v_disc = np.array(y_v_list, dtype=np.float64)
+        y_a_disc = np.array(y_a_list, dtype=np.float64)
     disc_groups = disc_df["pair_id"].values if "pair_id" in disc_df.columns else disc_df["id"].values
 
     for l in range(num_layers):
@@ -334,24 +354,14 @@ def run_real_path_mediation(
                 h_med_disc.append(hook_mgr.captured_activations["h_med"].cpu().float().numpy().ravel())
 
     H_med = np.array(h_med_disc)
-    dirs = extract_conditional_directions(H_med, disc_df["reader_V"].values, disc_df["reader_A"].values, alpha=1.0)
+    dirs = extract_conditional_directions(H_med, y_v_disc, y_a_disc, alpha=1.0)
     Q_sub = compute_orthonormal_subspace([dirs["direction_v"], dirs["direction_a"]])  # (D, 2)
 
     # matched-neutral 表現の抽出 (Discovery split)
     disc_neu_hiddens = []
     with torch.no_grad():
         for _, row in disc_df.iterrows():
-            neu_text = None
-            if "neutral_text" in row and str(row["neutral_text"]).strip():
-                neu_text = str(row["neutral_text"])
-            elif "text_neutral" in row and str(row["text_neutral"]).strip():
-                neu_text = str(row["text_neutral"])
-            elif "pair_id" in disc_df.columns:
-                pair_matches = df[(df["pair_id"] == row["pair_id"]) & (df.get("condition", pd.Series()) == "neutral")]
-                if len(pair_matches) > 0:
-                    neu_text = str(pair_matches.iloc[0]["text"])
-            if neu_text is None and row.get("condition") == "neutral":
-                neu_text = str(row["text"])
+            neu_text = resolve_matched_neutral_text(row, df)
             if neu_text is not None and len(neu_text.strip()) > 0:
                 p_neu = build_prompt(neu_text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
                 enc_neu = encode_prompt_canonical(tokenizer, p_neu, device=device)
@@ -383,16 +393,7 @@ def run_real_path_mediation(
             patch_pos = anchors["prompt_end"]
 
             # matched-neutral の特定と baseline 自己報告の計測
-            neutral_text = None
-            if "neutral_text" in row and str(row["neutral_text"]).strip():
-                neutral_text = str(row["neutral_text"])
-            elif "text_neutral" in row and str(row["text_neutral"]).strip():
-                neutral_text = str(row["text_neutral"])
-            elif "pair_id" in conf_df.columns:
-                pair_matches = df[(df["pair_id"] == row["pair_id"]) & (df.get("condition", pd.Series()) == "neutral")]
-                if len(pair_matches) > 0:
-                    neutral_text = str(pair_matches.iloc[0]["text"])
-
+            neutral_text = resolve_matched_neutral_text(row, df)
             if neutral_text is not None and len(neutral_text.strip()) > 0:
                 p_neu = build_prompt(neutral_text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
                 _, probs_neu = compute_sequence_likelihoods_for_candidates(
@@ -498,8 +499,8 @@ def main():
     raw_dir.mkdir(parents=True, exist_ok=True)
     derived_dir.mkdir(parents=True, exist_ok=True)
 
-    df = pd.read_csv(v3_cfg["dataset"]["path"])
-    logger.info(describe_loaded_frame(df, "V3-RQ3 dataset", v3_cfg["dataset"]["path"]))
+    df = load_v3_matched_pair_table(v3_cfg["dataset"]["path"])
+    logger.info(describe_loaded_frame(df, "V3-RQ3 matched-pair table", v3_cfg["dataset"]["path"]))
 
     bootstrap_n = v3_cfg.get("path_mediation", {}).get("eval_bootstrap_n", 1000)
 

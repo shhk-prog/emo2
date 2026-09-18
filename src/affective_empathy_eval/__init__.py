@@ -20,6 +20,8 @@ from affective_empathy_eval.data import (
     load_aipsy_csv,
     load_emobank,
     load_emobank_csv,
+    load_v3_matched_pair_table,
+    resolve_matched_neutral_text,
     scale_vad,
     split_aipsy_affect,
     stratify_stimuli,
@@ -92,6 +94,7 @@ from affective_empathy_eval.likelihood import (
     evaluate_expected_vad_from_prompt,
     get_euclidean_ground_cost_matrix,
     prepare_joint_sequence_with_boundary,
+    resolve_joint_stage_index,
 )
 
 # Manifests
@@ -172,6 +175,8 @@ __all__ = [
     "scale_vad",
     "load_emobank",
     "load_emobank_csv",
+    "load_v3_matched_pair_table",
+    "resolve_matched_neutral_text",
     "stratify_stimuli",
     "load_aipsy_affect",
     "load_aipsy_csv",
@@ -221,6 +226,7 @@ __all__ = [
     "compute_emd_recovery_ratio",
     "compute_distribution_metrics",
     "prepare_joint_sequence_with_boundary",
+    "resolve_joint_stage_index",
     "compute_sequence_likelihoods_for_candidates",
     "evaluate_expected_va_from_prompt",
     "evaluate_expected_vad_from_prompt",

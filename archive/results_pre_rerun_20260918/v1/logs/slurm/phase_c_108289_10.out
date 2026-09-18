@@ -1,0 +1,17 @@
+Working directory: /mnt/nas/home/hiromi/src/emo
+========================================================================
+Starting Slurm Task: Array ID 10 / Job ID 108334
+Running on Host: iag-03 | GPU: NVIDIA H100 NVL
+========================================================================
+
+========================================================================
+Executing Job 10: gemma2_2b_base_ablation
+Command: python v1/scripts/run_v1_phase_c_targeted_ablation.py --model-id "google/gemma-2-2b" --model-prefix "gemma2_2b_base" --reader-layer 6 --self-layer 18 --limit 0 --device "cuda" --sub-batch-size 81
+Log:     v1/results/logs/phase_c/gemma2_2b_base_ablation_20260917_124344.log
+========================================================================
+=== Starting V1 Phase C E6 Double Dissociation for Model: google/gemma-2-2b ===
+Reader-Site Layer: 6 | Self-Site Layer: 18 | Limit: 0 pairs | Sub-batch: 81
+Loaded 192 matched clinical-neutral pairs.
+
+Loading Model and Tokenizer...
+Loading weights:   0%|          | 0/288 [00:00<?, ?it/s]

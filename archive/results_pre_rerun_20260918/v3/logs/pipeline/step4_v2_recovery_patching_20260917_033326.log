@@ -1,0 +1,50 @@
+2026-09-17 04:50:20,182 [INFO] Starting V2-RQ4 Distribution Recovery Patching (dry_run=False)
+2026-09-17 04:50:20,190 [INFO] --- Running Recovery Patching for Family: Qwen ---
+2026-09-17 04:50:20,190 [INFO] Loading Base (Qwen/Qwen2.5-1.5B) and Instruct (Qwen/Qwen2.5-1.5B-Instruct)...
+2026-09-17 04:50:20,446 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-17 04:50:20,456 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B/8faed761d45a263340a0528343f099c05c9a4323/config.json?%2FQwen%2FQwen2.5-1.5B%2Fresolve%2Fmain%2Fconfig.json=&etag=%22169d606d5cf502a5628a52381586679a6d0caaab%22 "HTTP/1.1 200 OK"
+2026-09-17 04:50:20,717 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-17 04:50:20,726 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B/8faed761d45a263340a0528343f099c05c9a4323/tokenizer_config.json?%2FQwen%2FQwen2.5-1.5B%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%22ba7e4c5637b9732dadcd66286ce48334e8b31e9e%22 "HTTP/1.1 200 OK"
+2026-09-17 04:50:20,903 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-17 04:50:21,079 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-17 04:50:21,426 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B "HTTP/1.1 200 OK"
+2026-09-17 04:50:21,603 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-17 04:50:21,612 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%22f81ead14ab072d65a07817f83a3ee0e5a1890d10%22 "HTTP/1.1 200 OK"
+2026-09-17 04:50:21,831 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-17 04:50:21,839 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/tokenizer_config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%2207bfe0640cb5a0037f9322287fbfc682806cf672%22 "HTTP/1.1 200 OK"
+2026-09-17 04:50:22,014 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-17 04:50:22,188 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-17 04:50:22,532 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct "HTTP/1.1 200 OK"
+2026-09-17 04:50:22,707 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-17 04:50:22,717 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B/8faed761d45a263340a0528343f099c05c9a4323/config.json?%2FQwen%2FQwen2.5-1.5B%2Fresolve%2Fmain%2Fconfig.json=&etag=%22169d606d5cf502a5628a52381586679a6d0caaab%22 "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 16243.95it/s]
+2026-09-17 04:50:23,110 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-17 04:50:23,119 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B/8faed761d45a263340a0528343f099c05c9a4323/generation_config.json?%2FQwen%2FQwen2.5-1.5B%2Fresolve%2Fmain%2Fgeneration_config.json=&etag=%22cbbb3133034e192527e5321b4c679154e4819ab8%22 "HTTP/1.1 200 OK"
+2026-09-17 04:50:23,870 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-17 04:50:23,880 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%22f81ead14ab072d65a07817f83a3ee0e5a1890d10%22 "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 14551.45it/s]
+2026-09-17 04:50:24,294 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-17 04:50:24,303 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/generation_config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Fgeneration_config.json=&etag=%22dfc11073787daf1b0f9c0f1499487ab5f4c93738%22 "HTTP/1.1 200 OK"
+/mnt/nas/home/hiromi/src/emo/.venv/lib/python3.12/site-packages/ot/lp/_network_simplex.py:880: UserWarning: Problem infeasible. Check that a and b are in the simplex
+  check_result(result_code)
+Traceback (most recent call last):
+  File "/mnt/nas/home/hiromi/src/emo/v2/scripts/run_v2_recovery_patching.py", line 206, in <module>
+    main()
+  File "/mnt/nas/home/hiromi/src/emo/v2/scripts/run_v2_recovery_patching.py", line 183, in main
+    res = run_recovery_patching_for_family(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/nas/home/hiromi/src/emo/v2/scripts/run_v2_recovery_patching.py", line 120, in run_recovery_patching_for_family
+    initial_metrics = compute_distribution_metrics(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/nas/home/hiromi/src/emo/src/affective_empathy_eval/likelihood.py", line 186, in compute_distribution_metrics
+    w1_v = float(wasserstein_distance(coords_1d, coords_1d, p_v, q_v))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/nas/home/hiromi/src/emo/.venv/lib/python3.12/site-packages/scipy/stats/_stats_py.py", line 10008, in wasserstein_distance
+    return _cdf_distance(1, u_values, v_values, u_weights, v_weights)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/nas/home/hiromi/src/emo/.venv/lib/python3.12/site-packages/scipy/stats/_stats_py.py", line 10143, in _cdf_distance
+    v_values, v_weights = _validate_distribution(v_values, v_weights)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/nas/home/hiromi/src/emo/.venv/lib/python3.12/site-packages/scipy/stats/_stats_py.py", line 10216, in _validate_distribution
+    raise ValueError('All weights must be non-negative.')
+ValueError: All weights must be non-negative.

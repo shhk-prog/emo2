@@ -1,0 +1,194 @@
+==================================================================
+Starting Production V1 Pipeline Evaluation
+Timestamp : 2026-09-18T09:48:10Z
+Device    : cpu
+Log File  : results/logs/production_v1_20260918_184810.log
+Cohort    : primary_small (4 families, 8 models)
+Pipeline  : Phase A -> Phase B -> Phase C (E3/E4) -> E6 -> Summarize
+Data Scale: Full production CSVs (actual counts logged by the Python runner)
+Runtime   : unmeasured (do not use pre-benchmark hour estimates)
+==================================================================
+2026-09-18 18:48:12,270 [INFO] Affective Empathy Evaluation Unified Runner
+2026-09-18 18:48:12,270 [INFO] Stage: v1 | Cohort: primary_small | Dry-run: True
+2026-09-18 18:48:12,270 [INFO] Wall-clock estimates are unmeasured until a Qwen-family benchmark is recorded.
+2026-09-18 18:48:12,270 [INFO] Dataset inventory (actual loaded counts; wall-clock time is unmeasured):
+2026-09-18 18:48:12,276 [INFO] EmoBank 3-way: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-18 18:48:12,281 [INFO] AIPsy 4-split: n_rows=480 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=480 | split_counts={'clinical': 192, 'neutral': 192, 'moderate': 48, 'complex_neutral': 48}
+2026-09-18 18:48:12,287 [INFO] V1 Phase B rule-based controls: n_rows=192 | path=v1/data/processed/v1_e5_semantic_controls.csv | n_unique_pair_id=192
+2026-09-18 18:48:12,287 [INFO] === Running V1 Stage Pipeline (model-set: primary_small) ===
+2026-09-18 18:48:12,289 [INFO] --- Running V1 Pipeline for qwen_base (Qwen/Qwen2.5-1.5B) ---
+2026-09-18 18:48:12,289 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_a.py --model-id Qwen/Qwen2.5-1.5B --model-prefix qwen_base --device cpu --dry-run
+[DRY-RUN] V1 Phase A Probing for Model: Qwen/Qwen2.5-1.5B (Instruct=False)
+[DRY-RUN] Completed Phase A mock output in v1/results/derived/v1_phase_a/qwen_base
+2026-09-18 18:48:18,623 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_b.py --model-id Qwen/Qwen2.5-1.5B --model-prefix qwen_base --device cpu --dry-run
+=== Starting V1 Phase B Semantic Audit: Qwen/Qwen2.5-1.5B ===
+Data Path: v1/data/processed/v1_e5_semantic_controls.csv | Target Layer: 14 (relative_depth=0.50)
+[DRY-RUN] V1 Phase B for Model: Qwen/Qwen2.5-1.5B (Instruct=False)
+[DRY-RUN] Completed Phase B mock output in v1/results/derived/v1_phase_b/qwen_base
+2026-09-18 18:48:24,029 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_c.py --model-id Qwen/Qwen2.5-1.5B --model-prefix qwen_base --device cpu --dry-run
+=== Starting V1 Phase C Causal Intervention (Prompt-End Normalized) ===
+Model ID: Qwen/Qwen2.5-1.5B | Mode: all
+[DRY-RUN] V1 Phase C for Model: Qwen/Qwen2.5-1.5B
+[DRY-RUN] Completed Phase C mock output in v1/results/derived/v1_phase_c_prompt_end/qwen_base
+2026-09-18 18:48:29,026 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/phase_c/run_e6_specialization.py --model-id Qwen/Qwen2.5-1.5B --model-prefix qwen_base --device cpu --dry-run
+=== Starting V1 Phase C E6 Causal Specialization: Qwen/Qwen2.5-1.5B ===
+Site Selection: e3_discovery_peak (Source: v1/results/derived/v1_phase_c_prompt_end/qwen_base/e3_causal_map.csv)
+Reader-Site Layer: 14 | Self-Site Layer: 0
+Evaluation Split: confirmation (Seed: 42)
+[DRY-RUN] V1 Phase C E6 for Model: Qwen/Qwen2.5-1.5B
+[DRY-RUN] Completed E6 mock output in v1/results/derived/v1_phase_c_prompt_end/qwen_base
+2026-09-18 18:48:34,343 [INFO] --- Running V1 Pipeline for qwen_instruct (Qwen/Qwen2.5-1.5B-Instruct) ---
+2026-09-18 18:48:34,343 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_a.py --model-id Qwen/Qwen2.5-1.5B-Instruct --model-prefix qwen_instruct --device cpu --is-instruct --dry-run
+[DRY-RUN] V1 Phase A Probing for Model: Qwen/Qwen2.5-1.5B-Instruct (Instruct=True)
+[DRY-RUN] Completed Phase A mock output in v1/results/derived/v1_phase_a/qwen_instruct
+2026-09-18 18:48:39,287 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_b.py --model-id Qwen/Qwen2.5-1.5B-Instruct --model-prefix qwen_instruct --device cpu --is-instruct --dry-run
+=== Starting V1 Phase B Semantic Audit: Qwen/Qwen2.5-1.5B-Instruct ===
+Data Path: v1/data/processed/v1_e5_semantic_controls.csv | Target Layer: 14 (relative_depth=0.50)
+[DRY-RUN] V1 Phase B for Model: Qwen/Qwen2.5-1.5B-Instruct (Instruct=True)
+[DRY-RUN] Completed Phase B mock output in v1/results/derived/v1_phase_b/qwen_instruct
+2026-09-18 18:48:44,837 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_c.py --model-id Qwen/Qwen2.5-1.5B-Instruct --model-prefix qwen_instruct --device cpu --is-instruct --dry-run
+=== Starting V1 Phase C Causal Intervention (Prompt-End Normalized) ===
+Model ID: Qwen/Qwen2.5-1.5B-Instruct | Mode: all
+[DRY-RUN] V1 Phase C for Model: Qwen/Qwen2.5-1.5B-Instruct
+[DRY-RUN] Completed Phase C mock output in v1/results/derived/v1_phase_c_prompt_end/qwen_instruct
+2026-09-18 18:48:49,979 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/phase_c/run_e6_specialization.py --model-id Qwen/Qwen2.5-1.5B-Instruct --model-prefix qwen_instruct --device cpu --is-instruct --dry-run
+=== Starting V1 Phase C E6 Causal Specialization: Qwen/Qwen2.5-1.5B-Instruct ===
+Site Selection: e3_discovery_peak (Source: v1/results/derived/v1_phase_c_prompt_end/qwen_instruct/e3_causal_map.csv)
+Reader-Site Layer: 14 | Self-Site Layer: 0
+Evaluation Split: confirmation (Seed: 42)
+[DRY-RUN] V1 Phase C E6 for Model: Qwen/Qwen2.5-1.5B-Instruct
+[DRY-RUN] Completed E6 mock output in v1/results/derived/v1_phase_c_prompt_end/qwen_instruct
+2026-09-18 18:48:55,163 [INFO] --- Running V1 Pipeline for llama_base (meta-llama/Llama-3.2-1B) ---
+2026-09-18 18:48:55,163 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_a.py --model-id meta-llama/Llama-3.2-1B --model-prefix llama_base --device cpu --dry-run
+[DRY-RUN] V1 Phase A Probing for Model: meta-llama/Llama-3.2-1B (Instruct=False)
+[DRY-RUN] Completed Phase A mock output in v1/results/derived/v1_phase_a/llama_base
+2026-09-18 18:49:00,062 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_b.py --model-id meta-llama/Llama-3.2-1B --model-prefix llama_base --device cpu --dry-run
+=== Starting V1 Phase B Semantic Audit: meta-llama/Llama-3.2-1B ===
+Data Path: v1/data/processed/v1_e5_semantic_controls.csv | Target Layer: 8 (relative_depth=0.50)
+[DRY-RUN] V1 Phase B for Model: meta-llama/Llama-3.2-1B (Instruct=False)
+[DRY-RUN] Completed Phase B mock output in v1/results/derived/v1_phase_b/llama_base
+2026-09-18 18:49:05,265 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_c.py --model-id meta-llama/Llama-3.2-1B --model-prefix llama_base --device cpu --dry-run
+=== Starting V1 Phase C Causal Intervention (Prompt-End Normalized) ===
+Model ID: meta-llama/Llama-3.2-1B | Mode: all
+[DRY-RUN] V1 Phase C for Model: meta-llama/Llama-3.2-1B
+[DRY-RUN] Completed Phase C mock output in v1/results/derived/v1_phase_c_prompt_end/llama_base
+2026-09-18 18:49:10,416 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/phase_c/run_e6_specialization.py --model-id meta-llama/Llama-3.2-1B --model-prefix llama_base --device cpu --dry-run
+=== Starting V1 Phase C E6 Causal Specialization: meta-llama/Llama-3.2-1B ===
+Site Selection: e3_discovery_peak (Source: v1/results/derived/v1_phase_c_prompt_end/llama_base/e3_causal_map.csv)
+Reader-Site Layer: 14 | Self-Site Layer: 0
+Evaluation Split: confirmation (Seed: 42)
+[DRY-RUN] V1 Phase C E6 for Model: meta-llama/Llama-3.2-1B
+[DRY-RUN] Completed E6 mock output in v1/results/derived/v1_phase_c_prompt_end/llama_base
+2026-09-18 18:49:15,921 [INFO] --- Running V1 Pipeline for llama_instruct (meta-llama/Llama-3.2-1B-Instruct) ---
+2026-09-18 18:49:15,921 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_a.py --model-id meta-llama/Llama-3.2-1B-Instruct --model-prefix llama_instruct --device cpu --is-instruct --dry-run
+[DRY-RUN] V1 Phase A Probing for Model: meta-llama/Llama-3.2-1B-Instruct (Instruct=True)
+[DRY-RUN] Completed Phase A mock output in v1/results/derived/v1_phase_a/llama_instruct
+2026-09-18 18:49:22,162 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_b.py --model-id meta-llama/Llama-3.2-1B-Instruct --model-prefix llama_instruct --device cpu --is-instruct --dry-run
+=== Starting V1 Phase B Semantic Audit: meta-llama/Llama-3.2-1B-Instruct ===
+Data Path: v1/data/processed/v1_e5_semantic_controls.csv | Target Layer: 8 (relative_depth=0.50)
+[DRY-RUN] V1 Phase B for Model: meta-llama/Llama-3.2-1B-Instruct (Instruct=True)
+[DRY-RUN] Completed Phase B mock output in v1/results/derived/v1_phase_b/llama_instruct
+2026-09-18 18:49:27,535 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_c.py --model-id meta-llama/Llama-3.2-1B-Instruct --model-prefix llama_instruct --device cpu --is-instruct --dry-run
+=== Starting V1 Phase C Causal Intervention (Prompt-End Normalized) ===
+Model ID: meta-llama/Llama-3.2-1B-Instruct | Mode: all
+[DRY-RUN] V1 Phase C for Model: meta-llama/Llama-3.2-1B-Instruct
+[DRY-RUN] Completed Phase C mock output in v1/results/derived/v1_phase_c_prompt_end/llama_instruct
+2026-09-18 18:49:32,468 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/phase_c/run_e6_specialization.py --model-id meta-llama/Llama-3.2-1B-Instruct --model-prefix llama_instruct --device cpu --is-instruct --dry-run
+=== Starting V1 Phase C E6 Causal Specialization: meta-llama/Llama-3.2-1B-Instruct ===
+Site Selection: e3_discovery_peak (Source: v1/results/derived/v1_phase_c_prompt_end/llama_instruct/e3_causal_map.csv)
+Reader-Site Layer: 14 | Self-Site Layer: 0
+Evaluation Split: confirmation (Seed: 42)
+[DRY-RUN] V1 Phase C E6 for Model: meta-llama/Llama-3.2-1B-Instruct
+[DRY-RUN] Completed E6 mock output in v1/results/derived/v1_phase_c_prompt_end/llama_instruct
+2026-09-18 18:49:37,837 [INFO] --- Running V1 Pipeline for gemma_base (google/gemma-3-1b-pt) ---
+2026-09-18 18:49:37,837 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_a.py --model-id google/gemma-3-1b-pt --model-prefix gemma_base --device cpu --dry-run
+[DRY-RUN] V1 Phase A Probing for Model: google/gemma-3-1b-pt (Instruct=False)
+[DRY-RUN] Completed Phase A mock output in v1/results/derived/v1_phase_a/gemma_base
+2026-09-18 18:49:42,798 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_b.py --model-id google/gemma-3-1b-pt --model-prefix gemma_base --device cpu --dry-run
+=== Starting V1 Phase B Semantic Audit: google/gemma-3-1b-pt ===
+Data Path: v1/data/processed/v1_e5_semantic_controls.csv | Target Layer: 12 (relative_depth=0.50)
+[DRY-RUN] V1 Phase B for Model: google/gemma-3-1b-pt (Instruct=False)
+[DRY-RUN] Completed Phase B mock output in v1/results/derived/v1_phase_b/gemma_base
+2026-09-18 18:49:47,985 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_c.py --model-id google/gemma-3-1b-pt --model-prefix gemma_base --device cpu --dry-run
+=== Starting V1 Phase C Causal Intervention (Prompt-End Normalized) ===
+Model ID: google/gemma-3-1b-pt | Mode: all
+[DRY-RUN] V1 Phase C for Model: google/gemma-3-1b-pt
+[DRY-RUN] Completed Phase C mock output in v1/results/derived/v1_phase_c_prompt_end/gemma_base
+2026-09-18 18:49:52,897 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/phase_c/run_e6_specialization.py --model-id google/gemma-3-1b-pt --model-prefix gemma_base --device cpu --dry-run
+=== Starting V1 Phase C E6 Causal Specialization: google/gemma-3-1b-pt ===
+Site Selection: e3_discovery_peak (Source: v1/results/derived/v1_phase_c_prompt_end/gemma_base/e3_causal_map.csv)
+Reader-Site Layer: 14 | Self-Site Layer: 0
+Evaluation Split: confirmation (Seed: 42)
+[DRY-RUN] V1 Phase C E6 for Model: google/gemma-3-1b-pt
+[DRY-RUN] Completed E6 mock output in v1/results/derived/v1_phase_c_prompt_end/gemma_base
+2026-09-18 18:49:58,224 [INFO] --- Running V1 Pipeline for gemma_instruct (google/gemma-3-1b-it) ---
+2026-09-18 18:49:58,225 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_a.py --model-id google/gemma-3-1b-it --model-prefix gemma_instruct --device cpu --is-instruct --dry-run
+[DRY-RUN] V1 Phase A Probing for Model: google/gemma-3-1b-it (Instruct=True)
+[DRY-RUN] Completed Phase A mock output in v1/results/derived/v1_phase_a/gemma_instruct
+2026-09-18 18:50:03,139 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_b.py --model-id google/gemma-3-1b-it --model-prefix gemma_instruct --device cpu --is-instruct --dry-run
+=== Starting V1 Phase B Semantic Audit: google/gemma-3-1b-it ===
+Data Path: v1/data/processed/v1_e5_semantic_controls.csv | Target Layer: 12 (relative_depth=0.50)
+[DRY-RUN] V1 Phase B for Model: google/gemma-3-1b-it (Instruct=True)
+[DRY-RUN] Completed Phase B mock output in v1/results/derived/v1_phase_b/gemma_instruct
+2026-09-18 18:50:08,320 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_c.py --model-id google/gemma-3-1b-it --model-prefix gemma_instruct --device cpu --is-instruct --dry-run
+=== Starting V1 Phase C Causal Intervention (Prompt-End Normalized) ===
+Model ID: google/gemma-3-1b-it | Mode: all
+[DRY-RUN] V1 Phase C for Model: google/gemma-3-1b-it
+[DRY-RUN] Completed Phase C mock output in v1/results/derived/v1_phase_c_prompt_end/gemma_instruct
+2026-09-18 18:50:13,406 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/phase_c/run_e6_specialization.py --model-id google/gemma-3-1b-it --model-prefix gemma_instruct --device cpu --is-instruct --dry-run
+=== Starting V1 Phase C E6 Causal Specialization: google/gemma-3-1b-it ===
+Site Selection: e3_discovery_peak (Source: v1/results/derived/v1_phase_c_prompt_end/gemma_instruct/e3_causal_map.csv)
+Reader-Site Layer: 14 | Self-Site Layer: 0
+Evaluation Split: confirmation (Seed: 42)
+[DRY-RUN] V1 Phase C E6 for Model: google/gemma-3-1b-it
+[DRY-RUN] Completed E6 mock output in v1/results/derived/v1_phase_c_prompt_end/gemma_instruct
+2026-09-18 18:50:18,889 [INFO] --- Running V1 Pipeline for olmo_base (allenai/OLMo-2-0425-1B) ---
+2026-09-18 18:50:18,889 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_a.py --model-id allenai/OLMo-2-0425-1B --model-prefix olmo_base --device cpu --dry-run
+[DRY-RUN] V1 Phase A Probing for Model: allenai/OLMo-2-0425-1B (Instruct=False)
+[DRY-RUN] Completed Phase A mock output in v1/results/derived/v1_phase_a/olmo_base
+2026-09-18 18:50:24,963 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_b.py --model-id allenai/OLMo-2-0425-1B --model-prefix olmo_base --device cpu --dry-run
+=== Starting V1 Phase B Semantic Audit: allenai/OLMo-2-0425-1B ===
+Data Path: v1/data/processed/v1_e5_semantic_controls.csv | Target Layer: 8 (relative_depth=0.50)
+[DRY-RUN] V1 Phase B for Model: allenai/OLMo-2-0425-1B (Instruct=False)
+[DRY-RUN] Completed Phase B mock output in v1/results/derived/v1_phase_b/olmo_base
+2026-09-18 18:50:30,119 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_c.py --model-id allenai/OLMo-2-0425-1B --model-prefix olmo_base --device cpu --dry-run
+=== Starting V1 Phase C Causal Intervention (Prompt-End Normalized) ===
+Model ID: allenai/OLMo-2-0425-1B | Mode: all
+[DRY-RUN] V1 Phase C for Model: allenai/OLMo-2-0425-1B
+[DRY-RUN] Completed Phase C mock output in v1/results/derived/v1_phase_c_prompt_end/olmo_base
+2026-09-18 18:50:35,209 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/phase_c/run_e6_specialization.py --model-id allenai/OLMo-2-0425-1B --model-prefix olmo_base --device cpu --dry-run
+=== Starting V1 Phase C E6 Causal Specialization: allenai/OLMo-2-0425-1B ===
+Site Selection: e3_discovery_peak (Source: v1/results/derived/v1_phase_c_prompt_end/olmo_base/e3_causal_map.csv)
+Reader-Site Layer: 14 | Self-Site Layer: 0
+Evaluation Split: confirmation (Seed: 42)
+[DRY-RUN] V1 Phase C E6 for Model: allenai/OLMo-2-0425-1B
+[DRY-RUN] Completed E6 mock output in v1/results/derived/v1_phase_c_prompt_end/olmo_base
+2026-09-18 18:50:40,577 [INFO] --- Running V1 Pipeline for olmo_instruct (allenai/OLMo-2-0425-1B-Instruct) ---
+2026-09-18 18:50:40,577 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_a.py --model-id allenai/OLMo-2-0425-1B-Instruct --model-prefix olmo_instruct --device cpu --is-instruct --dry-run
+[DRY-RUN] V1 Phase A Probing for Model: allenai/OLMo-2-0425-1B-Instruct (Instruct=True)
+[DRY-RUN] Completed Phase A mock output in v1/results/derived/v1_phase_a/olmo_instruct
+2026-09-18 18:50:45,551 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_b.py --model-id allenai/OLMo-2-0425-1B-Instruct --model-prefix olmo_instruct --device cpu --is-instruct --dry-run
+=== Starting V1 Phase B Semantic Audit: allenai/OLMo-2-0425-1B-Instruct ===
+Data Path: v1/data/processed/v1_e5_semantic_controls.csv | Target Layer: 8 (relative_depth=0.50)
+[DRY-RUN] V1 Phase B for Model: allenai/OLMo-2-0425-1B-Instruct (Instruct=True)
+[DRY-RUN] Completed Phase B mock output in v1/results/derived/v1_phase_b/olmo_instruct
+2026-09-18 18:50:50,853 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_c.py --model-id allenai/OLMo-2-0425-1B-Instruct --model-prefix olmo_instruct --device cpu --is-instruct --dry-run
+=== Starting V1 Phase C Causal Intervention (Prompt-End Normalized) ===
+Model ID: allenai/OLMo-2-0425-1B-Instruct | Mode: all
+[DRY-RUN] V1 Phase C for Model: allenai/OLMo-2-0425-1B-Instruct
+[DRY-RUN] Completed Phase C mock output in v1/results/derived/v1_phase_c_prompt_end/olmo_instruct
+2026-09-18 18:50:55,728 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/phase_c/run_e6_specialization.py --model-id allenai/OLMo-2-0425-1B-Instruct --model-prefix olmo_instruct --device cpu --is-instruct --dry-run
+=== Starting V1 Phase C E6 Causal Specialization: allenai/OLMo-2-0425-1B-Instruct ===
+Site Selection: e3_discovery_peak (Source: v1/results/derived/v1_phase_c_prompt_end/olmo_instruct/e3_causal_map.csv)
+Reader-Site Layer: 14 | Self-Site Layer: 0
+Evaluation Split: confirmation (Seed: 42)
+[DRY-RUN] V1 Phase C E6 for Model: allenai/OLMo-2-0425-1B-Instruct
+[DRY-RUN] Completed E6 mock output in v1/results/derived/v1_phase_c_prompt_end/olmo_instruct
+2026-09-18 18:51:00,909 [INFO] --- Summarizing V1 Phase C Results ---
+2026-09-18 18:51:00,909 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/phase_c/summarize_phase_c.py
+Saved Phase C summary to v1/results/derived/v1_phase_c_summary/phase_c_cross_model_summary.csv
+2026-09-18 18:51:06,512 [INFO] All requested stages completed successfully!
+==================================================================
+V1 Pipeline Evaluation completed successfully!
+Elapsed Time: 177 seconds
+==================================================================

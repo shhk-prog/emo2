@@ -72,6 +72,11 @@ def parse_args():
         help="Limit number of dataset samples for rapid testing",
     )
     add_model_selection_args(parser)
+    parser.add_argument(
+        "--force-after-no-go",
+        action="store_true",
+        help="Continue V3 RQ2/RQ3/Confirmatory even if RQ1 gate is NO_GO",
+    )
     return parser.parse_args()
 
 
@@ -120,6 +125,29 @@ def run_v2(args, python_bin: str):
     run_command([python_bin, "v2/primary/run_rq4_recovery_patching.py"] + common_flags)
 
 
+def v3_gate_allows_continuation(
+    gate_path: str | Path = "v3/results/derived/v3_gate_decision.json",
+    force: bool = False,
+) -> bool:
+    """RQ1 の Go/No-Go を production 経路で実際に適用する。"""
+    import json
+
+    path = Path(gate_path)
+    if not path.exists():
+        logger.error(f"V3 gate file not found: {path}")
+        return False
+    with open(path, encoding="utf-8") as f:
+        payload = json.load(f)
+    decision = str(payload.get("decision", "")).upper()
+    logger.info(f"V3 RQ1 gate decision from {path}: {decision}")
+    if decision == "GO":
+        return True
+    if force:
+        logger.warning("V3 gate is not GO, but --force-after-no-go was set. Continuing.")
+        return True
+    return False
+
+
 def run_v3(args, python_bin: str):
     logger.info(f"=== Running V3 Stage (model-set: {args.model_set}) ===")
     common_flags = ["--models-config", "configs/models.yaml", "--model-set", args.model_set, "--device", args.device]
@@ -147,6 +175,12 @@ def run_v3(args, python_bin: str):
         cmd_rq4.extend(["--subsample", str(args.max_samples)])
 
     run_command(cmd_rq1)
+    if not v3_gate_allows_continuation(force=args.force_after_no_go):
+        logger.error(
+            "V3 RQ1 gate is NO_GO. Stopping before RQ2/RQ3/Confirmatory. "
+            "Pass --force-after-no-go only for an explicit override."
+        )
+        sys.exit(2)
     run_command(cmd_rq2)
     run_command(cmd_rq3)
     run_command(cmd_rq4)

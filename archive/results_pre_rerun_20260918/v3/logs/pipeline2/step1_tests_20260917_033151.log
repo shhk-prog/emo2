@@ -1,0 +1,13 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0
+rootdir: /mnt/nas/home/hiromi/src/emo
+plugins: anyio-4.15.1
+collected 21 items
+
+tests/test_geometry.py .....                                             [ 23%]
+tests/test_interventions.py .....                                        [ 47%]
+tests/test_likelihood.py .....                                           [ 71%]
+tests/test_models_hooks.py .                                             [ 76%]
+tests/test_statistics.py .....                                           [100%]
+
+============================== 21 passed in 2.41s ==============================

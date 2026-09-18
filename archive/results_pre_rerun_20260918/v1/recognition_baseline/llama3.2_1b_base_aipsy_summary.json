@@ -1,0 +1,18 @@
+{
+  "dataset": "aipsy",
+  "num_samples": 144,
+  "num_affective": 96,
+  "num_neutral": 48,
+  "recognition_mean_ev_affective": 5.248782360380857,
+  "recognition_mean_ev_neutral": 5.405721707729403,
+  "recognition_abs_diff_aff_neu": 0.15693934734854587,
+  "self_report_mean_ev_affective": 5.410448018905565,
+  "self_report_mean_ev_neutral": 5.583387653364061,
+  "self_report_abs_diff_aff_neu": 0.17293963445849592,
+  "self_report_exact_55_neutral_pct": 0.6944444444444444,
+  "self_report_mean_p55_pct": 1.7119295452327272,
+  "self_report_mean_entropy": 4.216774835190293,
+  "model": "meta-llama/Llama-3.2-1B",
+  "is_instruct": false,
+  "tag": "llama3.2_1b_base"
+}

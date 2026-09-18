@@ -1,0 +1,22 @@
+# タスクリスト: データセット拡張と多層パッチング・多変量OOD診断の実装
+
+- [x] 1. 厳密最小対データセットの拡張スクリプト実装 <!-- id: 0 -->
+    - [x] データプール（`v1/data/processed/aipsy/` 等）から条件完全一致（peak / neutral / moderate）トリプレットを網羅探索・抽出するロジック実装 <!-- id: 1 -->
+    - [x] 語彙・文字数・構文の統制基準検証とフィルタリング <!-- id: 2 -->
+    - [x] `v3/scripts/expand_strict_dataset.py` の完成（厳密3分割 Train 40%, Dev 30%, Test 30% のゼロリーク検証付き） <!-- id: 3 -->
+    - [x] `v3/data/aipsy_strict_expanded.csv` の生成完了（192完全ペア / 422サンプル） <!-- id: 4 -->
+- [x] 2. 多変量 OOD 診断（Mahalanobis 距離）の実装 <!-- id: 5 -->
+    - [x] ターゲット層の自然活性化分布（平均 $\mu$, 共分散 $\Sigma$）の統計量算出ロジック実装 <!-- id: 6 -->
+    - [x] Ledoit-Wolf正則化共分散逆行列に基づく Mahalanobis 距離 $D_M$ 計算モジュール（`v3/src/diagnostics.py`）の作成 <!-- id: 7 -->
+    - [x] ノルム比、コサイン類似度、PCA射影誤差の包括診断関数の実装 <!-- id: 8 -->
+- [x] 3. Multi-layer Simultaneous Patching の実装 <!-- id: 9 -->
+    - [x] 複数層（ブロック単位: 1層, 2層, 4層, 8層）へ同時フック・パッチを注入するモジュール実装 <!-- id: 10 -->
+    - [x] 各ブロックサイズにおける Normalized 2D EMD Recovery 算出ロジックの統合 <!-- id: 11 -->
+    - [x] `v3/scripts/run_multilayer_aligned_patching.py` の完成 <!-- id: 12 -->
+- [x] 4. 仮想環境でのスクリプト実行と実験結果記録 <!-- id: 13 -->
+    - [x] ターミナルでのデータセット拡張スクリプト実行 (`source .venv/bin/activate && python v3/scripts/expand_strict_dataset.py`) <!-- id: 14 -->
+    - [x] ターミナルでの多層パッチング・OOD診断実験実行 (`source .venv/bin/activate && python v3/scripts/run_multilayer_aligned_patching.py`) <!-- id: 15 -->
+    - [x] 実験結果の集計（`v3/results/multilayer_patching_results.json`, `summary_table.md`） <!-- id: 16 -->
+- [x] 5. 論文原稿 (`v3/docs/paper.md`) への反映と成果まとめ (`walkthrough.md`) <!-- id: 17 -->
+    - [x] 実験結果（新テーブル表3・表4・表5および本文記述）を論文原稿へ統合 <!-- id: 18 -->
+    - [x] `walkthrough.md` の作成と完了報告 <!-- id: 19 -->

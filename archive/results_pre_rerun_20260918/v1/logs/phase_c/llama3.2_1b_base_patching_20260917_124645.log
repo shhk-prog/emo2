@@ -1,0 +1,20 @@
+=== Starting V1 Phase C Causal Intervention for Model: meta-llama/Llama-3.2-1B ===
+Alphas: [-1.0, 0.0, 0.5, 1.0, 1.5] | Limit: 0 pairs | Sub-batch: 81 | Output: v1/results/derived/v1_phase_c/llama3.2_1b_base
+Loaded 192 matched clinical-neutral pairs.
+
+Loading Tokenizer and Model...
+Loading weights:   0%|          | 0/146 [00:00<?, ?it/s]Loading weights:   1%|          | 1/146 [00:01<03:26,  1.43s/it]Loading weights:  51%|█████▏    | 75/146 [00:01<00:01, 64.48it/s]Loading weights:  71%|███████   | 103/146 [00:01<00:00, 69.02it/s]Loading weights:  84%|████████▎ | 122/146 [00:02<00:00, 74.37it/s]Loading weights:  94%|█████████▍| 137/146 [00:02<00:00, 81.10it/s]Loading weights: 100%|██████████| 146/146 [00:02<00:00, 62.36it/s]
+Evaluating target layers: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] (total architecture layers: 16)
+
+[1/3] Computing Clean Baselines (No Intervention)...
+Clean Shift Self:   mean Delta V = -0.086, mean Delta A = -0.024
+Clean Shift Reader: mean Delta V = -0.046, mean Delta A = -0.014
+
+[2/3] Extracting Hidden States across Target Layers...
+
+[3/3] Running Interventions (E3 & E4) across Layers and Alphas...
+Target Layers:   0%|          | 0/16 [00:00<?, ?it/s]Target Layers:   6%|▋         | 1/16 [45:29<11:22:19, 2729.27s/it]Target Layers:  12%|█▎        | 2/16 [1:30:59<10:37:01, 2730.09s/it]Target Layers:  19%|█▉        | 3/16 [2:16:28<9:51:22, 2729.39s/it] Target Layers:  25%|██▌       | 4/16 [3:01:57<9:05:49, 2729.10s/it]Target Layers:  31%|███▏      | 5/16 [3:47:24<8:20:12, 2728.43s/it]Target Layers:  38%|███▊      | 6/16 [4:32:50<7:34:36, 2727.63s/it]Target Layers:  44%|████▍     | 7/16 [5:18:16<6:49:03, 2727.10s/it]Target Layers:  50%|█████     | 8/16 [6:03:41<6:03:30, 2726.35s/it]Target Layers:  56%|█████▋    | 9/16 [6:49:08<5:18:06, 2726.67s/it]Target Layers:  62%|██████▎   | 10/16 [7:34:37<4:32:43, 2727.21s/it]Target Layers:  69%|██████▉   | 11/16 [8:20:03<3:47:15, 2727.10s/it]Target Layers:  75%|███████▌  | 12/16 [9:05:30<3:01:47, 2726.99s/it]Target Layers:  81%|████████▏ | 13/16 [9:50:58<2:16:21, 2727.24s/it]Target Layers:  88%|████████▊ | 14/16 [10:36:25<1:30:54, 2727.24s/it]Target Layers:  94%|█████████▍| 15/16 [11:21:51<45:26, 2726.92s/it]  Target Layers: 100%|██████████| 16/16 [12:07:20<00:00, 2727.47s/it]Target Layers: 100%|██████████| 16/16 [12:07:20<00:00, 2727.54s/it]
+
+Phase C results saved to v1/results/derived/v1_phase_c/llama3.2_1b_base/
+Summary report written to v1/results/derived/v1_phase_c/llama3.2_1b_base/phase_c_summary.md
+=== Phase C Causal Intervention Completed Successfully! ===

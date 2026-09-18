@@ -1,0 +1,6 @@
+=== Starting V1 Phase C Causal Intervention for Model: Qwen/Qwen2.5-1.5B-Instruct ===
+Alphas: [-1.0, 0.0, 0.5, 1.0, 1.5] | Limit: 0 pairs | Sub-batch: 81 | Output: v1/results/derived/v1_phase_c/qwen2.5_1.5b_instruct
+Loaded 192 matched clinical-neutral pairs.
+
+Loading Tokenizer and Model...
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:   4%|▍         | 15/338 [00:00<00:03, 97.97it/s]Loading weights:  15%|█▌        | 51/338 [00:00<00:01, 223.81it/s]Loading weights:  23%|██▎       | 77/338 [00:00<00:01, 220.54it/s]Loading weights:  33%|███▎      | 112/338 [00:00<00:00, 249.19it/s]Loading weights:  43%|████▎     | 147/338 [00:00<00:00, 256.95it/s]Loading weights:  56%|█████▌    | 189/338 [00:00<00:00, 303.85it/s]Loading weights:  65%|██████▌   | 221/338 [00:00<00:00, 285.19it/s]Loading weights:  75%|███████▌  | 255/338 [00:01<00:00, 263.18it/s]Loading weights:  86%|████████▌ | 291/338 [00:01<00:00, 285.67it/s]Loading weights:  97%|█████████▋| 327/338 [00:01<00:00, 283.31it/s]Loading weights: 100%|██████████| 338/338 [00:01<00:00, 273.51it/s]

@@ -35,6 +35,7 @@ from affective_empathy_eval.likelihood import (
 from affective_empathy_eval.models.registry import (
     add_model_selection_args,
     get_registry,
+    load_model_set,
     resolve_architecture_dims,
     resolve_models_from_args,
 )
@@ -57,7 +58,7 @@ def parse_args():
     parser.add_argument("--models-config", type=str, default="configs/models.yaml", help="Path to models config")
     parser.add_argument("--dry-run", action="store_true", help="Run in mock/dry-run mode")
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu", help="Device to use")
-    parser.add_argument("--subsample", type=int, default=20, help="Number of pairs per model for confirmatory evaluation")
+    parser.add_argument("--subsample", type=int, default=0, help="Number of pairs per model for confirmatory evaluation (0 for full dataset)")
     add_model_selection_args(parser)
     return parser.parse_args()
 
@@ -143,7 +144,7 @@ def run_real_model_confirmatory(
     model_id: str,
     df: pd.DataFrame,
     device: str = "cpu",
-    subsample: int = 20,
+    subsample: int = 0,
 ) -> Dict[str, Any]:
     """
     実モデル (Llama, Gemma, Mistral) に対する 4大仮説の Confirmatory 検証
@@ -167,7 +168,10 @@ def run_real_model_confirmatory(
     num_layers = fam_cfg.num_layers
     relative_depths = [l / (num_layers - 1) if num_layers > 1 else 0.0 for l in range(num_layers)]
 
-    eval_df = df.head(subsample).copy().reset_index(drop=True)
+    if subsample is not None and subsample > 0:
+        eval_df = df.head(subsample).copy().reset_index(drop=True)
+    else:
+        eval_df = df.copy().reset_index(drop=True)
     N = len(eval_df)
     candidates = build_va_candidates()
 
@@ -482,7 +486,25 @@ def main():
         models_cfg = yaml.safe_load(f)
 
     df = pd.read_csv(v3_cfg["dataset"]["path"])
-    conf_models = v3_cfg.get("confirmatory_models", [])
+    # レジストリから動的解決
+    conf_families_list = v3_cfg.get("confirmatory_families", ["llama", "gemma", "olmo"])
+    registered_models = load_model_set(Path(args.models_config), model_set=args.model_set)
+
+    conf_models = []
+    for fam_key in conf_families_list:
+        fam_lower = fam_key.lower()
+        if fam_lower in registered_models:
+            fam_cfg = registered_models[fam_lower]
+            conf_models.append({
+                "family": fam_cfg.family_name,
+                "model_id": fam_cfg.instruct_model.model_id,
+            })
+        else:
+            # 後方互換フォールバック
+            for old_item in v3_cfg.get("confirmatory_models", []):
+                if old_item["family"].lower() == fam_lower:
+                    conf_models.append(old_item)
+                    break
     semantic_stages = v3_cfg["spatiotemporal"]["semantic_stages"]
     normalized_stages = [s if s != "response_start" else "candidate_start" for s in semantic_stages]
 

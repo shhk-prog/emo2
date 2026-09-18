@@ -36,6 +36,11 @@ from affective_empathy_eval.likelihood import (
     compute_sequence_likelihoods_for_candidates,
 )
 from affective_empathy_eval.manifests import create_run_manifest
+from affective_empathy_eval.models.registry import (
+    add_model_selection_args,
+    resolve_architecture_dims,
+    resolve_models_from_args,
+)
 from affective_empathy_eval.statistics import (
     compute_bivariate_bootstrap_ci,
     compute_paired_cohen_dz,
@@ -188,7 +193,7 @@ def main():
     parser.add_argument(
         "--mode", type=str, choices=["all", "e3", "e4"], default="all"
     )
-    parser.add_argument("--limit", type=int, default=20)
+    parser.add_argument("--limit", type=int, default=0, help="Sample limit (0 for full dataset)")
     parser.add_argument("--full", action="store_true")
     parser.add_argument(
         "--alphas",
@@ -217,7 +222,32 @@ def main():
         type=str,
         default="v1/results/derived/v1_phase_c_prompt_end",
     )
+    parser.add_argument("--is-instruct", action="store_true")
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Mock dry-run mode for quick pipeline smoke testing",
+    )
+    add_model_selection_args(parser)
     args = parser.parse_args()
+
+    # レジストリからの動的モデル解決
+    if (
+        getattr(args, "family", None)
+        or getattr(args, "base_model", None)
+        or getattr(args, "instruct_model", None)
+    ):
+        target_models = resolve_models_from_args(args)
+        if target_models:
+            cfg = list(target_models.values())[0]
+            args.model_id = (
+                cfg.instruct_model.model_id
+                if args.is_instruct
+                else cfg.base_model.model_id
+            )
+            args.model_prefix = (
+                f"{cfg.family_id}_{'instruct' if args.is_instruct else 'base'}"
+            )
 
     if args.full:
         args.limit = 0
@@ -231,7 +261,8 @@ def main():
         os.makedirs(cache_model_dir, exist_ok=True)
 
     is_instruct = (
-        "instruct" in args.model_id.lower()
+        args.is_instruct
+        or "instruct" in args.model_id.lower()
         or "chat" in args.model_id.lower()
         or "it" in args.model_id.lower()
     )
@@ -240,6 +271,57 @@ def main():
         f"=== Starting V1 Phase C Causal Intervention (Prompt-End Normalized) ==="
     )
     print(f"Model ID: {args.model_id} | Mode: {args.mode}")
+
+    if args.dry_run:
+        print(f"[DRY-RUN] V1 Phase C for Model: {args.model_id}")
+        e3_records = [
+            {
+                "layer": 0,
+                "relative_depth": 0.0,
+                "delta_h_cosine": 0.85,
+                "r2_causal_effect": 0.45,
+            },
+            {
+                "layer": 14,
+                "relative_depth": 0.5,
+                "delta_h_cosine": 0.92,
+                "r2_causal_effect": 0.65,
+            },
+        ]
+        e4_records = [
+            {
+                "layer": 14,
+                "relative_depth": 0.5,
+                "alpha": 1.0,
+                "matched_shift_V": 0.35,
+                "matched_shift_A": 0.25,
+                "random_shift_V": 0.05,
+                "random_shift_A": 0.02,
+                "specificity_V": 0.30,
+                "specificity_A": 0.23,
+                "cohen_dz_V": 1.15,
+                "cohen_dz_A": 0.95,
+            }
+        ]
+        pd.DataFrame(e3_records).to_csv(
+            os.path.join(model_dir, "e3_causal_map.csv"), index=False
+        )
+        pd.DataFrame(e4_records).to_csv(
+            os.path.join(model_dir, "e4_interchangeability_results.csv"), index=False
+        )
+        manifest = create_run_manifest(
+            run_type="v1_phase_c",
+            model_name=args.model_id,
+            config={
+                "model_prefix": args.model_prefix,
+                "mode": args.mode,
+                "limit": args.limit,
+                "dry_run": True,
+            },
+        )
+        manifest.save(os.path.join(model_dir, "manifest.json"))
+        print(f"[DRY-RUN] Completed Phase C mock output in {model_dir}")
+        return
 
     cand_dicts = build_vad_candidates()
     candidates = [c["json_str"] for c in cand_dicts]

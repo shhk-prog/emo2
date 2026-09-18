@@ -1,9 +1,0 @@
-{
-  "model_base": "mistralai/Mistral-7B-v0.3",
-  "model_instruct": "mistralai/Mistral-7B-Instruct-v0.3",
-  "num_layers": 32,
-  "status": "dry_run_simulation",
-  "valence_causal_peak_depth": 0.65,
-  "decodability_peak_depth": 0.48,
-  "dissociation_delta_d_peak": 0.17
-}

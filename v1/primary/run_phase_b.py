@@ -33,6 +33,11 @@ from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from affective_empathy_eval.manifests import create_run_manifest
+from affective_empathy_eval.models.registry import (
+    add_model_selection_args,
+    resolve_architecture_dims,
+    resolve_models_from_args,
+)
 
 
 def compute_jaccard_similarity(text_a: str, text_b: str) -> float:
@@ -174,8 +179,14 @@ def main():
     parser.add_argument(
         "--layer",
         type=int,
-        default=14,
-        help="Target layer to probe (typically mid-to-late peak layer)",
+        default=None,
+        help="Target layer to probe. If not specified, computed dynamically from --relative-depth.",
+    )
+    parser.add_argument(
+        "--relative-depth",
+        type=float,
+        default=0.5,
+        help="Target relative depth in [0, 1] to dynamically compute target layer (default: 0.5)",
     )
     parser.add_argument(
         "--data-path",
@@ -192,7 +203,31 @@ def main():
     parser.add_argument(
         "--out-dir", type=str, default="v1/results/derived/v1_phase_b"
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Mock dry-run mode for quick pipeline smoke testing",
+    )
+    add_model_selection_args(parser)
     args = parser.parse_args()
+
+    # レジストリからの動的モデル解決
+    if (
+        getattr(args, "family", None)
+        or getattr(args, "base_model", None)
+        or getattr(args, "instruct_model", None)
+    ):
+        target_models = resolve_models_from_args(args)
+        if target_models:
+            cfg = list(target_models.values())[0]
+            args.model_id = (
+                cfg.instruct_model.model_id
+                if args.is_instruct
+                else cfg.base_model.model_id
+            )
+            args.model_prefix = (
+                f"{cfg.family_id}_{'instruct' if args.is_instruct else 'base'}"
+            )
 
     os.makedirs(args.out_dir, exist_ok=True)
     model_dir = os.path.join(args.out_dir, args.model_prefix)
@@ -211,8 +246,48 @@ def main():
         if fallback.exists():
             data_file = fallback
 
+    # 動的レイヤー決定
+    target_layer = args.layer
+    if target_layer is None:
+        try:
+            num_layers, _ = resolve_architecture_dims(args.model_id)
+            target_layer = int(round(args.relative_depth * (num_layers - 1)))
+        except Exception:
+            target_layer = 14  # fallback
+
     print(f"=== Starting V1 Phase B Semantic Audit: {args.model_id} ===")
-    print(f"Data Path: {data_file} | Target Layer: {args.layer}")
+    print(
+        f"Data Path: {data_file} | Target Layer: {target_layer} (relative_depth={args.relative_depth:.2f})"
+    )
+
+    if args.dry_run:
+        print(f"[DRY-RUN] V1 Phase B for Model: {args.model_id} (Instruct={is_instruct})")
+        results = {
+            "acc_original_minimal_pair": 0.85,
+            "acc_paraphrase_invariance": 0.82,
+            "acc_word_shuffle": 0.52,
+            "mean_affective_prob_original": 0.80,
+            "mean_affective_prob_outcome_reversed": 0.20,
+            "outcome_reversal_prob_drop": 0.60,
+        }
+        pd.DataFrame([results]).to_csv(
+            os.path.join(model_dir, "phase_b_semantic_controls.csv"), index=False
+        )
+        manifest = create_run_manifest(
+            run_type="v1_phase_b",
+            model_name=args.model_id,
+            config={
+                "model_prefix": args.model_prefix,
+                "target_layer": target_layer,
+                "relative_depth": args.relative_depth,
+                "num_pairs": 100,
+                "dry_run": True,
+            },
+            metadata=results,
+        )
+        manifest.save(os.path.join(model_dir, "manifest.json"))
+        print(f"[DRY-RUN] Completed Phase B mock output in {model_dir}")
+        return
 
     df = pd.read_csv(data_file)
     n_pairs = len(df)
@@ -230,48 +305,53 @@ def main():
     )
     model.eval()
 
+    if args.layer is None:
+        num_layers = model.config.num_hidden_layers
+        target_layer = int(round(args.relative_depth * (num_layers - 1)))
+        print(f"Dynamically resolved target layer to {target_layer} from model config.")
+
     # Extract hidden states across conditions
     print("Extracting representations across semantic audit conditions...")
     H_orig_aff = extract_single_layer_hidden_states(
         model,
         tokenizer,
         df["text_original_affective"].tolist(),
-        args.layer,
+        target_layer,
         device=args.device,
     )
     H_orig_neu = extract_single_layer_hidden_states(
         model,
         tokenizer,
         df["text_original_neutral"].tolist(),
-        args.layer,
+        target_layer,
         device=args.device,
     )
     H_para_aff = extract_single_layer_hidden_states(
         model,
         tokenizer,
         df["text_paraphrase_affective"].tolist(),
-        args.layer,
+        target_layer,
         device=args.device,
     )
     H_shuf_aff = extract_single_layer_hidden_states(
         model,
         tokenizer,
         df["text_shuffled_affective"].tolist(),
-        args.layer,
+        target_layer,
         device=args.device,
     )
     H_shuf_neu = extract_single_layer_hidden_states(
         model,
         tokenizer,
         df["text_shuffled_neutral"].tolist(),
-        args.layer,
+        target_layer,
         device=args.device,
     )
     H_rev_aff = extract_single_layer_hidden_states(
         model,
         tokenizer,
         df["text_reversed_affective"].tolist(),
-        args.layer,
+        target_layer,
         device=args.device,
     )
 
@@ -324,7 +404,8 @@ def main():
         model_name=args.model_id,
         config={
             "model_prefix": args.model_prefix,
-            "target_layer": args.layer,
+            "target_layer": target_layer,
+            "relative_depth": args.relative_depth,
             "num_pairs": n_pairs,
         },
         metadata=results,

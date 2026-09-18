@@ -44,6 +44,10 @@ from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from affective_empathy_eval.manifests import create_run_manifest
+from affective_empathy_eval.models.registry import (
+    add_model_selection_args,
+    resolve_models_from_args,
+)
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
@@ -411,7 +415,31 @@ def main():
     parser.add_argument(
         "--out-dir", type=str, default="v1/results/derived/v1_phase_a"
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Mock dry-run mode for quick pipeline smoke testing",
+    )
+    add_model_selection_args(parser)
     args = parser.parse_args()
+
+    # レジストリからの動的モデル解決
+    if (
+        getattr(args, "family", None)
+        or getattr(args, "base_model", None)
+        or getattr(args, "instruct_model", None)
+    ):
+        target_models = resolve_models_from_args(args)
+        if target_models:
+            cfg = list(target_models.values())[0]
+            args.model_id = (
+                cfg.instruct_model.model_id
+                if args.is_instruct
+                else cfg.base_model.model_id
+            )
+            args.model_prefix = (
+                f"{cfg.family_id}_{'instruct' if args.is_instruct else 'base'}"
+            )
 
     os.makedirs(args.out_dir, exist_ok=True)
     model_dir = os.path.join(args.out_dir, args.model_prefix)
@@ -423,6 +451,43 @@ def main():
         or "chat" in args.model_id.lower()
         or "it" in args.model_id.lower()
     )
+
+    if args.dry_run:
+        print(f"[DRY-RUN] V1 Phase A Probing for Model: {args.model_id} (Instruct={is_instruct})")
+        # Generate dummy outputs for downstream testing
+        dummy_layers = 4
+        e1_records = [
+            {
+                "layer": l,
+                "relative_depth": l / (dummy_layers - 1),
+                "dataset": "EmoBank",
+                "target_V_human_r2_reader": 0.5,
+                "target_V_human_r2_self": 0.4,
+                "target_V_human_pr_reader": 0.7,
+                "target_V_human_pr_self": 0.6,
+                "target_A_human_r2_reader": 0.3,
+                "target_A_human_r2_self": 0.2,
+                "target_A_human_pr_reader": 0.5,
+                "target_A_human_pr_self": 0.4,
+            }
+            for l in range(dummy_layers)
+        ]
+        pd.DataFrame(e1_records).to_csv(
+            os.path.join(model_dir, "e1_emobank_decodability.csv"), index=False
+        )
+        manifest = create_run_manifest(
+            run_type="v1_phase_a",
+            model_name=args.model_id,
+            config={
+                "model_prefix": args.model_prefix,
+                "dataset": args.dataset,
+                "limit": args.limit,
+                "dry_run": True,
+            },
+        )
+        manifest.save(os.path.join(model_dir, "manifest.json"))
+        print(f"[DRY-RUN] Completed Phase A mock output in {model_dir}")
+        return
 
     print(
         f"=== Starting V1 Phase A Probing for Model: {args.model_id} (Instruct={is_instruct}) ==="

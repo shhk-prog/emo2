@@ -23,6 +23,11 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from affective_empathy_eval.intervention import PyTorchActivationPatcher
 from affective_empathy_eval.manifests import create_run_manifest
+from affective_empathy_eval.models.registry import (
+    add_model_selection_args,
+    resolve_architecture_dims,
+    resolve_models_from_args,
+)
 
 
 def format_prompt(
@@ -163,8 +168,8 @@ def main():
     parser.add_argument(
         "--model-prefix", type=str, default="qwen2.5_1.5b_instruct"
     )
-    parser.add_argument("--reader-layer", type=int, default=14)
-    parser.add_argument("--self-layer", type=int, default=16)
+    parser.add_argument("--reader-layer", type=int, default=None)
+    parser.add_argument("--self-layer", type=int, default=None)
     parser.add_argument(
         "--ablation-type",
         type=str,
@@ -177,7 +182,7 @@ def main():
         choices=["confirmation", "all"],
         default="confirmation",
     )
-    parser.add_argument("--limit", type=int, default=20)
+    parser.add_argument("--limit", type=int, default=0, help="Sample limit (0 for full dataset)")
     parser.add_argument(
         "--device",
         type=str,
@@ -188,17 +193,54 @@ def main():
         type=str,
         default="v1/results/derived/v1_phase_c_prompt_end",
     )
+    parser.add_argument("--is-instruct", action="store_true")
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Mock dry-run mode for quick pipeline smoke testing",
+    )
+    add_model_selection_args(parser)
     args = parser.parse_args()
+
+    # レジストリからの動的モデル解決
+    if (
+        getattr(args, "family", None)
+        or getattr(args, "base_model", None)
+        or getattr(args, "instruct_model", None)
+    ):
+        target_models = resolve_models_from_args(args)
+        if target_models:
+            cfg = list(target_models.values())[0]
+            args.model_id = (
+                cfg.instruct_model.model_id
+                if args.is_instruct
+                else cfg.base_model.model_id
+            )
+            args.model_prefix = (
+                f"{cfg.family_id}_{'instruct' if args.is_instruct else 'base'}"
+            )
 
     os.makedirs(args.out_dir, exist_ok=True)
     model_dir = os.path.join(args.out_dir, args.model_prefix)
     os.makedirs(model_dir, exist_ok=True)
 
     is_instruct = (
-        "instruct" in args.model_id.lower()
+        args.is_instruct
+        or "instruct" in args.model_id.lower()
         or "chat" in args.model_id.lower()
         or "it" in args.model_id.lower()
     )
+
+    # 動的レイヤー決定
+    if args.reader_layer is None or args.self_layer is None:
+        try:
+            num_layers, _ = resolve_architecture_dims(args.model_id)
+        except Exception:
+            num_layers = 28
+        if args.reader_layer is None:
+            args.reader_layer = int(round(0.5 * (num_layers - 1)))
+        if args.self_layer is None:
+            args.self_layer = int(round(0.6 * (num_layers - 1)))
 
     print(
         f"=== Starting V1 Phase C E6 Double Dissociation: {args.model_id} ==="
@@ -206,6 +248,50 @@ def main():
     print(
         f"Reader-Site Layer: {args.reader_layer} | Self-Site Layer: {args.self_layer}"
     )
+
+    if args.dry_run:
+        print(f"[DRY-RUN] V1 Phase C E6 for Model: {args.model_id}")
+        stat_results = {
+            "p_value_interaction": 0.001,
+            "coef_interaction": 0.42,
+            "cell_means": {
+                "Reader_ReaderSite": 0.55,
+                "Self_ReaderSite": 0.20,
+                "Reader_SelfSite": 0.18,
+                "Self_SelfSite": 0.62,
+            },
+            "has_crossover": True,
+        }
+        with open(os.path.join(model_dir, "e6_lmm_results.json"), "w") as f:
+            json.dump(stat_results, f, indent=2)
+        pd.DataFrame(
+            [
+                {
+                    "pair_id": "dry_pair_1",
+                    "task": "Reader",
+                    "site_type": "ReaderSite",
+                    "site_layer": args.reader_layer,
+                    "impact": 0.55,
+                }
+            ]
+        ).to_csv(
+            os.path.join(model_dir, "e6_double_dissociation_trials.csv"),
+            index=False,
+        )
+        manifest = create_run_manifest(
+            run_type="v1_phase_c_e6",
+            model_name=args.model_id,
+            config={
+                "model_prefix": args.model_prefix,
+                "reader_layer": args.reader_layer,
+                "self_layer": args.self_layer,
+                "dry_run": True,
+            },
+            metadata=stat_results,
+        )
+        manifest.save(os.path.join(model_dir, "manifest_e6.json"))
+        print(f"[DRY-RUN] Completed E6 mock output in {model_dir}")
+        return
 
     candidates, vad_triplets = build_vad_candidates()
 

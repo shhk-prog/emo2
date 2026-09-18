@@ -109,19 +109,25 @@ def main():
         }
 
         if df_e3 is not None and not df_e3.empty:
-            peak_r_idx = int(df_e3["magnitude_reader"].idxmax())
-            peak_s_idx = int(df_e3["magnitude_self"].idxmax())
-            row["e3_peak_reader_layer"] = int(df_e3.loc[peak_r_idx, "layer"])
-            row["e3_peak_self_layer"] = int(df_e3.loc[peak_s_idx, "layer"])
-            row["e3_peak_reader_depth"] = float(
-                df_e3.loc[peak_r_idx, "relative_depth"]
-            )
-            row["e3_peak_self_depth"] = float(
-                df_e3.loc[peak_s_idx, "relative_depth"]
-            )
-            row["e3_mean_directional_cosine"] = float(
-                df_e3["directional_cosine_similarity"].mean()
-            )
+            if "magnitude_reader" in df_e3.columns and "magnitude_self" in df_e3.columns:
+                peak_r_idx = int(df_e3["magnitude_reader"].idxmax())
+                peak_s_idx = int(df_e3["magnitude_self"].idxmax())
+                row["e3_peak_reader_layer"] = int(df_e3.loc[peak_r_idx, "layer"])
+                row["e3_peak_self_layer"] = int(df_e3.loc[peak_s_idx, "layer"])
+                row["e3_peak_reader_depth"] = float(
+                    df_e3.loc[peak_r_idx, "relative_depth"]
+                )
+                row["e3_peak_self_depth"] = float(
+                    df_e3.loc[peak_s_idx, "relative_depth"]
+                )
+            if "directional_cosine_similarity" in df_e3.columns:
+                row["e3_mean_directional_cosine"] = float(
+                    df_e3["directional_cosine_similarity"].mean()
+                )
+            elif "delta_h_cosine" in df_e3.columns:
+                row["e3_mean_directional_cosine"] = float(
+                    df_e3["delta_h_cosine"].mean()
+                )
 
         if df_e4 is not None and not df_e4.empty:
             df_a1 = df_e4[df_e4["alpha"] == 1.0]

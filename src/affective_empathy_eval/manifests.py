@@ -57,3 +57,51 @@ class ManifestManager:
                 if line.strip():
                     records.append(json.loads(line))
         return pd.DataFrame(records)
+
+
+@dataclass
+class RunManifest:
+    """Run manifest storing metadata for reproducibility."""
+    run_type: str
+    model_name: str
+    config: Dict[str, Any]
+    metadata: Dict[str, Any]
+    timestamp_utc: str
+    git_commit: str
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+    def save(self, filepath: str):
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(self.to_dict(), f, indent=2)
+
+
+def create_run_manifest(
+    run_type: str,
+    model_name: str,
+    config: Optional[Dict[str, Any]] = None,
+    metadata: Optional[Dict[str, Any]] = None,
+) -> RunManifest:
+    from datetime import datetime, timezone
+    import subprocess
+
+    try:
+        git_sha = (
+            subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], stderr=subprocess.DEVNULL)
+            .decode("utf-8")
+            .strip()
+        )
+    except Exception:
+        git_sha = "unknown"
+
+    return RunManifest(
+        run_type=run_type,
+        model_name=model_name,
+        config=config or {},
+        metadata=metadata or {},
+        timestamp_utc=datetime.now(timezone.utc).isoformat(),
+        git_commit=git_sha,
+    )
+

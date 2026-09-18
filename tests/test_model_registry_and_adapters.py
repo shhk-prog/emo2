@@ -89,7 +89,7 @@ def test_resolve_models_from_args():
     assert len(models) == 1
     assert "qwen" in models
 
-    # 3. CLI override
+    # 3. CLI override (family 指定あり -> 成功)
     args = parser.parse_args([
         "--family", "gemma",
         "--base-model", "custom/gemma-base",
@@ -98,6 +98,16 @@ def test_resolve_models_from_args():
     models = resolve_models_from_args(args)
     assert models["gemma"].base_model.model_id == "custom/gemma-base"
     assert models["gemma"].instruct_model.model_id == "custom/gemma-it"
+
+    # 4. CLI override (family 指定なし -> ValueError)
+    args_invalid = parser.parse_args(["--base-model", "custom/base"])
+    with pytest.raises(ValueError, match="requires explicit --family"):
+        resolve_models_from_args(args_invalid)
+
+
+def test_unknown_model_dimension_raises_error():
+    with pytest.raises(ValueError, match="Unable to resolve architecture dimensions"):
+        resolve_architecture_dims("completely_unknown_nonexistent_model_xyz_123")
 
 
 # --- Mock Models for Adapter Testing ---

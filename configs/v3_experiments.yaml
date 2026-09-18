@@ -13,9 +13,8 @@ dataset:
     valence: "reader_V"
     arousal: "reader_A"
 
-# モデル設定
-target_model: "Qwen/Qwen2.5-1.5B-Instruct"
-family_id: "Qwen"
+# モデル設定 (レジストリ動的解決: configs/models.yaml)
+target_family: "qwen"
 
 # 介入パラメータ
 interventions:
@@ -64,13 +63,10 @@ path_mediation:
   candidate_mediator_layers: "auto"  # Discovery セットで causal peak を自動選定
 
 # Step 7: 他3モデル Confirmatory 再現設定 (Primary 1-1.5B Cohort)
-confirmatory_models:
-  - family: "Llama"
-    model_id: "meta-llama/Llama-3.2-1B-Instruct"
-  - family: "Gemma"
-    model_id: "google/gemma-3-1b-it"
-  - family: "OLMo"
-    model_id: "allenai/OLMo-2-0425-1B-Instruct"
+confirmatory_families:
+  - "llama"
+  - "gemma"
+  - "olmo"
 
 # 出力設定
 output:

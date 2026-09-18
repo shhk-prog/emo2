@@ -109,17 +109,63 @@ def run_v3(args, python_bin: str):
         common_flags.extend(["--instruct-model", args.instruct_model])
 
     # 1. RQ1 State Induction & Go/No-Go Gate
-    run_command([python_bin, "v3/primary/run_rq1_state_induction.py"] + common_flags)
+    cmd_rq1 = [python_bin, "v3/primary/run_rq1_state_induction.py"] + common_flags
     # 2. RQ2 Spatiotemporal Maps
-    run_command([python_bin, "v3/primary/run_rq2_spatiotemporal_maps.py"] + common_flags)
+    cmd_rq2 = [python_bin, "v3/primary/run_rq2_spatiotemporal_maps.py"] + common_flags
     # 3. RQ3 Path Mediation
-    run_command([python_bin, "v3/primary/run_rq3_path_mediation.py"] + common_flags)
+    cmd_rq3 = [python_bin, "v3/primary/run_rq3_path_mediation.py"] + common_flags
     # 4. Confirmatory Replication
-    run_command([python_bin, "v3/primary/run_confirmatory_replication.py"] + common_flags)
+    cmd_rq4 = [python_bin, "v3/primary/run_confirmatory_replication.py"] + common_flags
+
+    if args.max_samples:
+        cmd_rq2.extend(["--subsample", str(args.max_samples)])
+        cmd_rq3.extend(["--subsample", str(args.max_samples)])
+        cmd_rq4.extend(["--subsample", str(args.max_samples)])
+
+    run_command(cmd_rq1)
+    run_command(cmd_rq2)
+    run_command(cmd_rq3)
+    run_command(cmd_rq4)
 
 
 def run_v1(args, python_bin: str):
-    logger.info(f"=== Running V1 Stage Summary ===")
+    logger.info(f"=== Running V1 Stage Pipeline (model-set: {args.model_set}) ===")
+    models = resolve_models_from_args(args)
+
+    for fid, cfg in models.items():
+        # Iterate over both Base and Instruct models
+        variants = [
+            (cfg.base_model.model_id, f"{fid.lower()}_base", False),
+            (cfg.instruct_model.model_id, f"{fid.lower()}_instruct", True),
+        ]
+        for model_id, prefix, is_instruct in variants:
+            logger.info(f"--- Running V1 Pipeline for {prefix} ({model_id}) ---")
+            common_flags = [
+                "--model-id", model_id,
+                "--model-prefix", prefix,
+                "--device", args.device,
+            ]
+            if is_instruct:
+                common_flags.append("--is-instruct")
+            if args.dry_run:
+                common_flags.append("--dry-run")
+            if args.max_samples:
+                common_flags.extend(["--limit", str(args.max_samples)])
+
+            # 1. Phase A: Probing & Geometry
+            run_command([python_bin, "v1/primary/run_phase_a.py"] + common_flags)
+
+            # 2. Phase B: Semantic vs Lexical Controls Audit
+            run_command([python_bin, "v1/primary/run_phase_b.py"] + common_flags)
+
+            # 3. Phase C: Causal Interventions (E3/E4)
+            run_command([python_bin, "v1/primary/run_phase_c.py"] + common_flags)
+
+            # 4. Phase C E6: Double Dissociation & LMM
+            run_command([python_bin, "v1/primary/phase_c/run_e6_specialization.py"] + common_flags)
+
+    # 5. Summarize Phase C
+    logger.info("--- Summarizing V1 Phase C Results ---")
     run_command([python_bin, "v1/primary/phase_c/summarize_phase_c.py"])
 
 
@@ -127,21 +173,45 @@ def run_behavioral(args, python_bin: str):
     logger.info(f"=== Running Behavioral Stage (model-set: {args.model_set}) ===")
     models = resolve_models_from_args(args)
     for fid, cfg in models.items():
-        logger.info(f"Running behavioral evaluation for {fid} ({cfg.instruct_model.model_id})...")
-        cmd = [
-            python_bin,
-            "behavioral/primary/run_behavioral_emobank.py",
-            "--model", cfg.instruct_model.model_id,
-            "--is_instruct",
-            "--tag", f"{fid.lower()}_instruct",
+        variants = [
+            (cfg.base_model.model_id, f"{fid.lower()}_base", False),
+            (cfg.instruct_model.model_id, f"{fid.lower()}_instruct", True),
         ]
-        if args.max_samples:
-            cmd.extend(["--limit", str(args.max_samples)])
-        # dry-run の場合はスキップまたは警告
-        if args.dry_run:
-            logger.info(f"[Dry-run] Simulated behavioral execution for {cfg.instruct_model.model_id}")
-        else:
-            run_command(cmd)
+        for model_id, tag, is_instruct in variants:
+            logger.info(f"Running behavioral evaluation for {tag} ({model_id})...")
+
+            # 1. EmoBank 3-Way VAD
+            cmd_emobank = [
+                python_bin,
+                "behavioral/primary/run_behavioral_emobank.py",
+                "--model", model_id,
+                "--tag", tag,
+                "--device", args.device,
+            ]
+            if is_instruct:
+                cmd_emobank.append("--is_instruct")
+            if args.max_samples:
+                cmd_emobank.extend(["--limit", str(args.max_samples)])
+
+            # 2. AIPsy-Affect 4-Split
+            cmd_aipsy = [
+                python_bin,
+                "behavioral/primary/run_behavioral_aipsy.py",
+                "--model", model_id,
+                "--tag", tag,
+                "--device", args.device,
+            ]
+            if is_instruct:
+                cmd_aipsy.append("--is-instruct")
+            if args.max_samples:
+                cmd_aipsy.extend(["--limit", str(args.max_samples)])
+
+            if args.dry_run:
+                logger.info(f"[Dry-run] Simulated EmoBank execution for {model_id} (tag={tag})")
+                logger.info(f"[Dry-run] Simulated AIPsy execution for {model_id} (tag={tag})")
+            else:
+                run_command(cmd_emobank)
+                run_command(cmd_aipsy)
 
 
 def run_scale_validation(args, python_bin: str):

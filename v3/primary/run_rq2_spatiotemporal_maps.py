@@ -53,7 +53,7 @@ def parse_args():
     parser.add_argument("--models-config", type=str, default="configs/models.yaml", help="Path to models config")
     parser.add_argument("--dry-run", action="store_true", help="Run in mock/dry-run mode")
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu", help="Device to use")
-    parser.add_argument("--subsample", type=int, default=30, help="Number of pairs to evaluate across layers x stages")
+    parser.add_argument("--subsample", type=int, default=0, help="Number of pairs to evaluate across layers x stages (0 for full dataset)")
     add_model_selection_args(parser)
     return parser.parse_args()
 
@@ -154,7 +154,7 @@ def run_real_spatiotemporal_maps(
     semantic_stages: List[str],
     alpha_sweep: List[float],
     device: str = "cpu",
-    subsample: int = 30,
+    subsample: int = 0,
 ) -> Dict[str, Any]:
     """
     実モデルを用いた時空間 4-Map 解析 (Layer x Stage Grid)
@@ -183,7 +183,10 @@ def run_real_spatiotemporal_maps(
     relative_depths = [l / (num_layers - 1) if num_layers > 1 else 0.0 for l in range(num_layers)]
     num_stages = len(semantic_stages)
 
-    eval_df = df.head(subsample).copy().reset_index(drop=True)
+    if subsample is not None and subsample > 0:
+        eval_df = df.head(subsample).copy().reset_index(drop=True)
+    else:
+        eval_df = df.copy().reset_index(drop=True)
     N = len(eval_df)
     logger.info(f"Evaluating {N} samples across {num_layers} layers x {num_stages} semantic stages...")
 
@@ -403,8 +406,9 @@ def main():
         fam_key = list(target_models.keys())[0]
         target_model_id = list(target_models.values())[0].instruct_model.model_id
     else:
-        fam_key = "qwen"
-        target_model_id = v3_cfg.get("target_model", "Qwen/Qwen2.5-1.5B-Instruct")
+        fam_key = v3_cfg.get("target_family", "qwen").lower()
+        registered = load_model_set(Path(args.models_config), model_set=args.model_set)
+        target_model_id = registered[fam_key].instruct_model.model_id if fam_key in registered else "Qwen/Qwen2.5-1.5B-Instruct"
 
     num_layers = resolve_architecture_dims(target_model_id)[0]
 

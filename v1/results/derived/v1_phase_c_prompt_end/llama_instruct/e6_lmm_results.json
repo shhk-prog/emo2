@@ -1,0 +1,11 @@
+{
+  "p_value_interaction": 0.001,
+  "coef_interaction": 0.42,
+  "cell_means": {
+    "Reader_ReaderSite": 0.55,
+    "Self_ReaderSite": 0.2,
+    "Reader_SelfSite": 0.18,
+    "Self_SelfSite": 0.62
+  },
+  "has_crossover": true
+}

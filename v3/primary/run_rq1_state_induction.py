@@ -424,11 +424,14 @@ def run_real_state_induction(
             sample_att_ratios.append(float(np.clip(att_ratio, 0.0, 1.0)))
 
             # e. Task selectivity (Self vs Topic Control)
-            # Self: |Delta E[V]| / 4.0 in [0, 1]
+            # NOTE: Topic Control serves as a non-specific exclusion control (非特異的除外統制)
+            # to verify that activation patching specifically shifts affective self-reports
+            # rather than causing generic non-specific disruptions to model task execution.
+            # Self: |Delta E[V]| / 4.0 normalized in [0, 1]
             self_norm_eff = eff_affect / 4.0
             sample_self_eff.append(self_norm_eff)
 
-            # Topic control: sequence likelihood based Total Variation Distance in [0, 1]
+            # Topic control: sequence likelihood based Total Variation Distance (TVD) in [0, 1]
             enc_ctrl = encode_prompt_canonical(tokenizer, prompt_ctrl, device=device)
             anchors_ctrl = find_semantic_anchors(enc_ctrl["input_ids"][0].tolist(), tokenizer, text)
             patch_pos_ctrl = anchors_ctrl["prompt_end"]
@@ -576,7 +579,9 @@ def main():
     elif list(target_models.values()):
         target_model_id = list(target_models.values())[0].instruct_model.model_id
     else:
-        target_model_id = v3_cfg.get("target_model", "Qwen/Qwen2.5-1.5B-Instruct")
+        fam_key = v3_cfg.get("target_family", "qwen").lower()
+        registered = load_model_set(Path(args.models_config), model_set=args.model_set)
+        target_model_id = registered[fam_key].instruct_model.model_id if fam_key in registered else "Qwen/Qwen2.5-1.5B-Instruct"
 
     alpha_grid = v3_cfg["interventions"]["alpha_grid"]
 

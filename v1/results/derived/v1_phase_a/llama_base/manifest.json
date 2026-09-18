@@ -1,0 +1,13 @@
+{
+  "run_type": "v1_phase_a",
+  "model_name": "meta-llama/Llama-3.2-1B",
+  "config": {
+    "model_prefix": "llama_base",
+    "dataset": "both",
+    "limit": 0,
+    "dry_run": true
+  },
+  "metadata": {},
+  "timestamp_utc": "2026-09-18T06:12:58.014429+00:00",
+  "git_commit": "1e6547c"
+}

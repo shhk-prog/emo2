@@ -12,13 +12,16 @@ Mistral 7B (Base vs. Instruct) の表現幾何・因果回路・分布回復を�
 """
 
 import argparse
-import json
 import logging
 from pathlib import Path
+import subprocess
 import sys
 import yaml
 
-from affective_empathy_eval.models.registry import ModelFamilyConfig, ModelSpec, resolve_architecture_dims
+from affective_empathy_eval.models.registry import (
+    load_model_set,
+    resolve_architecture_dims,
+)
 
 # ログ設定
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -27,14 +30,20 @@ logger = logging.getLogger(__name__)
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Run Scale Validation & Ablation Experiment (Mistral 7B)",
+        description="Run Scale Validation & Ablation Experiment (Mistral 7B) via V2 Pipeline",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
-        "--config",
+        "--models-config",
         type=str,
-        default="configs/scale_validation.yaml",
-        help="Path to scale validation config",
+        default="configs/models.yaml",
+        help="Path to models config",
+    )
+    parser.add_argument(
+        "--model-set",
+        type=str,
+        default="scale_validation",
+        help="Model set name in models.yaml",
     )
     parser.add_argument(
         "--dry-run",
@@ -56,108 +65,52 @@ def parse_args():
     return parser.parse_args()
 
 
+def run_command(cmd):
+    logger.info(f"Executing: {' '.join(cmd)}")
+    res = subprocess.run(cmd)
+    if res.returncode != 0:
+        logger.error(f"Command failed with exit code {res.returncode}: {' '.join(cmd)}")
+        sys.exit(res.returncode)
+
+
 def main():
     args = parse_args()
-    logger.info(f"=== Starting Scale Validation Ablation (Mistral 7B) ===")
-    logger.info(f"Config: {args.config} | Dry-run: {args.dry_run} | Device: {args.device}")
+    python_bin = sys.executable
+    logger.info(f"=== Starting Scale Validation Ablation (Model Set: {args.model_set}) ===")
+    logger.info(f"Config: {args.models_config} | Dry-run: {args.dry_run} | Device: {args.device}")
 
-    config_path = Path(args.config)
-    if not config_path.exists():
-        logger.error(f"Config file not found: {config_path}")
+    # レジストリ確認
+    registered_models = load_model_set(Path(args.models_config), model_set=args.model_set)
+    if not registered_models:
+        logger.error(f"No models found for model_set '{args.model_set}' in {args.models_config}")
         sys.exit(1)
 
-    with open(config_path, "r", encoding="utf-8") as f:
-        cfg = yaml.safe_load(f)
+    for fam_key, fam_cfg in registered_models.items():
+        logger.info(f"Scale validation target: {fam_cfg.family_name} ({fam_cfg.scale})")
+        logger.info(f"  Base: {fam_cfg.base_model.model_id}")
+        logger.info(f"  Instruct: {fam_cfg.instruct_model.model_id}")
 
-    model_info = cfg["model"]
-    base_id = model_info["base"]
-    inst_id = model_info["instruct"]
-    adapter_name = model_info.get("adapter", "mistral")
-    fam_name = model_info.get("family_name", "Mistral")
+    common_flags = [
+        "--models-config", args.models_config,
+        "--model-set", args.model_set,
+        "--device", args.device,
+    ]
+    if args.dry_run:
+        common_flags.append("--dry-run")
+    if args.max_samples:
+        common_flags.extend(["--max-samples", str(args.max_samples)])
 
-    raw_dir = Path(cfg["output"]["raw_dir"])
-    derived_dir = Path(cfg["output"]["derived_dir"])
-    raw_dir.mkdir(parents=True, exist_ok=True)
-    derived_dir.mkdir(parents=True, exist_ok=True)
-
-    num_layers, hidden_dim = resolve_architecture_dims(inst_id)
-    logger.info(f"Resolved architecture for {inst_id}: {num_layers} layers, {hidden_dim} hidden dim")
-
-    # 1. クロスデコード・表現幾何 (RQ1 & RQ2 相当)
+    # 1. クロスデコード・表現幾何 (RQ1 & RQ2)
     logger.info("--- Step 1: Geometry & Held-out Cross-decoding ---")
-    geom_res = {
-        "model_base": base_id,
-        "model_instruct": inst_id,
-        "num_layers": num_layers,
-        "status": "dry_run_simulation" if args.dry_run else "real_execution",
-        "delta_sharing_peak": 0.62,
-        "mean_delta_sharing": 0.38,
-        "reader_distortion_com": 0.45,
-        "self_distortion_com": 0.48,
-    }
-    geom_out_path = raw_dir / "scale_validation_geometry_mistral.json"
-    with open(geom_out_path, "w", encoding="utf-8") as f:
-        json.dump(geom_res, f, indent=2)
-    logger.info(f"Saved geometry results to {geom_out_path}")
+    run_command([python_bin, "v2/primary/run_rq1_rq2_cross_decoding.py"] + common_flags)
 
-    # 2. 因果マッピング (RQ3 相当)
+    # 2. 因果マッピング (RQ3)
     logger.info("--- Step 2: Causal Leverage & Peak Dissociation ---")
-    causal_res = {
-        "model_base": base_id,
-        "model_instruct": inst_id,
-        "num_layers": num_layers,
-        "status": "dry_run_simulation" if args.dry_run else "real_execution",
-        "valence_causal_peak_depth": 0.65,
-        "decodability_peak_depth": 0.48,
-        "dissociation_delta_d_peak": 0.17,
-    }
-    causal_out_path = raw_dir / "scale_validation_causal_mistral.json"
-    with open(causal_out_path, "w", encoding="utf-8") as f:
-        json.dump(causal_res, f, indent=2)
-    logger.info(f"Saved causal map results to {causal_out_path}")
+    run_command([python_bin, "v2/primary/run_rq3_causal_map.py"] + common_flags)
 
-    # 3. 分布回復パッチング (RQ4 相当)
+    # 3. 分布回復パッチング (RQ4)
     logger.info("--- Step 3: Distribution Recovery Patching ---")
-    recovery_res = {
-        "model_base": base_id,
-        "model_instruct": inst_id,
-        "num_layers": num_layers,
-        "status": "dry_run_simulation" if args.dry_run else "real_execution",
-        "self_task": {
-            "max_recovery_ratio": 0.844,
-            "best_recovery_depth": 0.61,
-        },
-        "reader_task": {
-            "max_recovery_ratio": 0.706,
-            "best_recovery_depth": 0.61,
-        },
-    }
-    recovery_out_path = raw_dir / "scale_validation_recovery_mistral.json"
-    with open(recovery_out_path, "w", encoding="utf-8") as f:
-        json.dump(recovery_res, f, indent=2)
-    logger.info(f"Saved recovery results to {recovery_out_path}")
-
-    # 統合要約レポートの作成
-    summary_report = {
-        "ablation_title": "External-Scale Robustness Replication (Mistral 7B)",
-        "base_model": base_id,
-        "instruct_model": inst_id,
-        "findings": {
-            "h1_geometry_reorganization": "Supported: Base to Instruct reorganizes late layers",
-            "h2_cross_decoding_peak": "Supported: Shared representation shifts to mid-late layers",
-            "h3_causal_dissociation": "Supported: Decodability peak precedes causal intervention peak",
-            "h4_distribution_recovery": "Supported: Self recovery exceeds Reader recovery with Wasserstein/EMD",
-        },
-        "metrics_summary": {
-            "geometry": geom_res,
-            "causal": causal_res,
-            "recovery": recovery_res,
-        },
-    }
-    summary_path = derived_dir / "scale_validation_summary.json"
-    with open(summary_path, "w", encoding="utf-8") as f:
-        json.dump(summary_report, f, indent=2)
-    logger.info(f"Saved scale validation summary to {summary_path}")
+    run_command([python_bin, "v2/primary/run_rq4_recovery_patching.py"] + common_flags)
 
     logger.info("=== Scale Validation Ablation completed successfully! ===")
 

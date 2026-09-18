@@ -83,11 +83,11 @@ def resolve_architecture_dims(model_id: str) -> Tuple[int, int]:
             _DIMS_CACHE[model_id] = dims
             return dims
 
-    # 4. デフォルトフォールバック
-    logger.warning(f"Unable to resolve architecture dimensions for {model_id}. Defaulting to (28, 1536).")
-    dims = (28, 1536)
-    _DIMS_CACHE[model_id] = dims
-    return dims
+    # 4. 未知モデルの場合は安全のため例外を送出
+    raise ValueError(
+        f"Unable to resolve architecture dimensions for model '{model_id}'. "
+        f"Please register it in KNOWN_MODEL_DIMS or ensure HuggingFace config is accessible."
+    )
 
 
 @dataclass
@@ -351,6 +351,11 @@ def resolve_models_from_args(
 
     # CLI によるモデルID override
     if base_override or inst_override:
+        if not family_filter:
+            raise ValueError(
+                "CLI model override (--base-model or --instruct-model) requires explicit --family argument "
+                "to prevent ambiguous or unintended overwriting across multiple model families."
+            )
         for fid, cfg in families.items():
             if base_override:
                 cfg.base_model = ModelSpec(model_id=base_override, format=cfg.base_model.format)

@@ -136,6 +136,13 @@ def test_all_dispatched_commands_argparse_compatibility(monkeypatch):
         elif stage == "v3":
             runner.run_v3(args, sys.executable)
 
+    import os
+    repo_root = Path(__file__).resolve().parent.parent
+    src_path = str(repo_root / "src")
+    env = os.environ.copy()
+    existing_pythonpath = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = f"{src_path}:{existing_pythonpath}" if existing_pythonpath else src_path
+
     # Check each dispatched script's parser against all passed flags
     for cmd in executed_cmds:
         if len(cmd) < 2 or not cmd[1].endswith(".py"):
@@ -146,6 +153,8 @@ def test_all_dispatched_commands_argparse_compatibility(monkeypatch):
             capture_output=True,
             text=True,
             timeout=10,
+            env=env,
+            cwd=str(repo_root),
         )
         assert res.returncode == 0, f"Failed to run --help on {script_path}: {res.stderr}"
         help_text = res.stdout

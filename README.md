@@ -1,15 +1,62 @@
 # Affective Empathy Evaluation（LLM 情動反応性評価実験）
 
-人間評定済みの感情刺激（EmoBank VAD、AIPsy 4-split）に対して、大規模言語モデルの **操作的な認識出力** と **操作的な自己報告出力** を測り、その内部表現と因果利用を段階的に調べる実験基盤である。
+人間評定済みの感情刺激（EmoBank VAD、AIPsy 4-split）に対して、大規模言語モデルの **操作的な認識出力** と **操作的な自己報告出力** を測り、その内部表現と因果利用を一続きの証拠階層として段階的に解明する実験基盤である。
 
 本研究は、モデルが主観的な感情を経験すること、あるいは認知的共感 / 情動的共感を持つことを検証しない。論文構成の正本は現行 README 群であり、旧 `iclr2027/iclr2027_conference2.tex` は旧稿である。構成メモは [`docs/v3_prerun_five_fixes/paper_outline.md`](docs/v3_prerun_five_fixes/paper_outline.md)。
 
-操作定義:
+---
 
-- **Reader**: 平均的読者の VA を推定する認識課題
-- **Self**: 刺激提示後の自己報告 / 反応性課題
+## 1. 中心リサーチクエスチョン (Central RQ)
 
-仮説図は一直線（刺激 → 認識 → 内部状態 → 自己報告）ではなく、共有表現からの分岐である。
+> **Central RQ**:  
+> **How are affect-relevant internal representations coupled to LLM self-reports, and how does this relationship vary across tasks, post-training, and stages of computation?**  
+> （LLMの情動関連内部表現は自己報告とどのように結びついており、その関係はタスク、事後学習（post-training）、および計算過程を通じてどのように変化するのか。）
+
+### 中心的主張 (Core Thesis)
+
+> **LLMの自己報告は、単なる出力上の模倣でも、内部でデコード可能な情動情報の直接的な読み出しでもない。自己報告は情動関連内部表現と系統的に結びつくが、その結びつきは部分的かつタスク依存であり、post-trainingによって再編され、計算過程の特定の位置で初めて因果的利用可能性を持つ。**
+
+---
+
+## 2. 証拠階層と論文構造 (4-Stage Evidence Hierarchy)
+
+本研究は、中心 RQ に対する一続きの証拠階層として 4 つの Stage を配備し、論文の主要章（Section 3〜6）に対応させています。
+
+```text
+Covariation  →  Representation / Causality  →  Reorganization  →  Utilization
+(Behavioral)               (V1)                         (V2)                (V3)
+```
+
+| Stage | 概念的役割 | 論文 Section | 中心的な科学的問い | 主な検証・比較軸 |
+|---|---|---|---|---|
+| **Behavioral** | **Covariation** (相関・導入現象) | §3. Behavioral Characterization | *Do Reader and Self covary?* | 出力レベルの相関（認識と自己報告は独立セッション） |
+| **V1** | **Representation / Causality** (表現・因果共有) | §4. Internal Representation and Causal Sharing | *What do Reader and Self share internally?* | 同一モデル内の Reader ↔ Self 内部表現と因果介入 |
+| **V2** | **Reorganization** (事後学習再編) | §5. Post-training Reorganization | *What does post-training reorganize?* | 同一ファミリーの Base ↔ Instruct 幾何・共有性・回復 |
+| **V3** | **Utilization** (因果的利用可能性) | §6. From Representation to Causal Utilization | *When/where does information acquire causal leverage?* | Instruct 側の層 × 生成段階（時空間介入・媒介減衰） |
+
+- **Behavioral** (`behavioral/`): EmoBank 3-Way と AIPsy 4-Split。4軸は correspondence, Sensitivity, Dose-response / Specificity, Reader–Self coupling。[`behavioral/README.md`](behavioral/README.md)
+- **V1** (`v1/`): decodability / 幾何（E1/E2）、rule-based 文脈統制（Phase B）、因果マップと交換可能性（E3/E4）、課題特異化（E6）。Base / Instruct 8 条件は各モデル内の再現であり、差の解釈は V2。[`v1/README.md`](v1/README.md)
+- **V2** (`v2/`): 幾何再編、ピーク解離、2D OT 分布回復（RQ1〜RQ4）。[`v2/README.md`](v2/README.md)
+- **V3** (`v3/`): AIPsy matched-neutral 192 pair での状態誘導ゲート、時空間 4-Map、mediated attenuation、確証的再現。EmoBank 3-way は使わない。RQ1 が完全一致の `GO` のときだけ RQ2 以降へ進む。[`v3/README.md`](v3/README.md)
+
+### 3つの学術的貢献 (Main Contributions)
+
+1. **Behavioral + V1 (Covariation & Shared Mechanism)**:  
+   Reader Prediction（読者感情の推定）と Self-Report（提示後自己報告）が行動レベルで covary することを示し、その背後に部分的に共有された affect-relevant internal representation と因果機構が存在することを実証する。
+2. **V2 (Post-training Reorganization)**:  
+   事後学習（Post-training）がその情動情報を単純に消去するのではなく、表現幾何・Reader/Self 共有性・因果的利用パターンを系統的に再編することを示す。
+3. **V3 (Separation of Decodability and Causal Utilization)**:  
+   内部からデコード可能な情報（Decodable information）と実際に因果的役割を果たす情報（Causally utilized information）を分離し、自己報告に対する因果力がモデル内部のどの層・どの生成段階で現れるかを検証する。
+
+---
+
+## 3. 操作的定義とモデル・データ構成
+
+### 操作定義
+- **Reader**: 平均的読者の VA を推定する認識課題（Cognitive estimation）
+- **Self**: 刺激提示後の自己報告 / 反応性課題（Self-reported affective response）
+
+仮説図は一直線（刺激 → 認識 → 内部状態 → 自己報告）ではなく、共有内部表現からのタスク分岐である。
 
 ```text
 Stimulus
@@ -18,35 +65,18 @@ Stimulus
      → Self readout
 ```
 
----
-
-## 1. 研究階段
-
-```text
-Behavioral  →  V1  →  V2  →  V3
-```
-
-| Stage | 問い | 比較軸 |
-|---|---|---|
-| Behavioral | Do Reader and Self covary? | 出力分布。認識と自己報告は独立セッション |
-| V1 | What do Reader and Self share internally? | 同一モデル内の Reader ↔ Self |
-| V2 | What does post-training reorganize? | 同一ファミリーの Base ↔ Instruct |
-| V3 | When/where does information acquire causal leverage? | Instruct 側の層 × 生成段階 |
-
-- **Behavioral** (`behavioral/`): EmoBank 3-Way と AIPsy 4-Split。4軸は correspondence, Sensitivity, Dose-response / Specificity, Reader–Self coupling。[`behavioral/README.md`](behavioral/README.md)
-- **V1** (`v1/`): decodability / 幾何（E1/E2）、rule-based 文脈統制（Phase B）、因果マップと交換可能性（E3/E4）、課題特異化（E6）。Base / Instruct 8 条件は各モデル内の再現であり、差の解釈は V2。[`v1/README.md`](v1/README.md)
-- **V2** (`v2/`): 幾何再編、ピーク解離、2D OT 分布回復（RQ1〜RQ4）。[`v2/README.md`](v2/README.md)
-- **V3** (`v3/`): AIPsy matched-neutral 192 pair での状態誘導ゲート、時空間 4-Map、mediated attenuation、確証的再現。EmoBank 3-way は使わない。RQ1 が完全一致の `GO` のときだけ RQ2 以降へ進む。[`v3/README.md`](v3/README.md)
-
-候補空間（数値を Stage 間で直接比較しない）:
-
-- Behavioral / V1 Primary: $9^3=729$ VAD（Dominance は補助次元）
-- V2 / V3 Primary: $9^2=81$ VA
-- 729 空間の $E[V],E[A]$ と 81 空間のそれを同一尺度として混ぜない。
+### 候補空間とスケーリング（729 VAD vs 81 VA）
+論文 Methods における設計根拠：
+- **Behavioral / V1 Primary: $9^3 = 729$ VAD**  
+  先行研究および人間評価アノテーション（EmoBank 等）のプロトコルを忠実に保持。※ Dominance は Behavioral / V1 の補助次元とし、最終主張には直接寄与しないため Appendix で補足する。
+- **V2 / V3 Primary: $9^2 = 81$ VA**  
+  層 × 生成段階にわたる網羅的因果スイープの計算量を実行可能範囲に抑え、Primary endpoint を Valence / Arousal に限定。
+- **注意**: 729 空間の $E[V], E[A]$ と 81 空間の数値を同一尺度として直接比較・混在させない。
 
 ### 対象モデル構成（コホート設計）
-モデルサイズ差交絡を排除し、事後学習（Post-training）による幾何・因果再編を純粋に検証するため、狭い 1〜1.5B パラメータ帯の 4 大ファミリーを Primary コホートとしています：
-- **Primary 1–1.5B Cohort (`primary_small`)**:
+モデルサイズ差交絡を排除し、事後学習（Post-training）による幾何・因果再編を純粋に検証するため、狭い 1〜1.5B パラメータ帯の 4 大独立ファミリーを Primary コホートとしています：
+- **Primary 1–1.5B Cohort (`primary_small`)**:  
+  *four independently developed model families in the 1–1.5B regime*
   - **Qwen 2.5 (1.5B)**: `Qwen/Qwen2.5-1.5B` $\leftrightarrow$ `Qwen/Qwen2.5-1.5B-Instruct`
   - **Llama 3.2 (1.23B)**: `meta-llama/Llama-3.2-1B` $\leftrightarrow$ `meta-llama/Llama-3.2-1B-Instruct`
   - **Gemma 3 (1B)**: `google/gemma-3-1b-pt` $\leftrightarrow$ `google/gemma-3-1b-it`
@@ -56,11 +86,11 @@ Behavioral  →  V1  →  V2  →  V3
 
 ---
 
-## 2. 統一実験枠組み
+## 4. 統一実験枠組み
 
 全 Stage で共有する規則である。詳細は [`AGENTS.md`](AGENTS.md) と各 Stage README。
 
-### 2.1 測定対象
+### 4.1 測定対象
 
 測るのはプロンプトへのモデル出力と、その隠れ状態・介入応答である。主観的感情の有無は仮説にしない。
 
@@ -111,7 +141,7 @@ V3 は AIPsy の clinical–neutral 192 pair だけを wide 化する。EmoBank 
 
 ---
 
-## 3. 環境構築とセットアップ
+## 5. 環境構築とセットアップ
 
 AGENTS.md の規定に従い、必ずプロジェクト専用の仮想環境（`.venv`）を構築して実行してください。
 
@@ -131,7 +161,7 @@ uv pip install -e ".[dev]"
 
 ---
 
-## 4. テストの実行
+## 6. テストの実行
 
 仮想環境を有効化（または `.venv/bin/pytest` を直接指定）してテストを実行します：
 
@@ -141,11 +171,11 @@ uv pip install -e ".[dev]"
 
 ---
 
-## 5. 実行方法
+## 7. 実行方法
 
 所要時間は未計測。本番は **stage 分割** を推奨する。`run_production_all.sh` より、Behavioral → V1 を完走してから V2 → V3 の方が障害切り分けと resume が容易である。
 
-### 5.1 production bash と統合 CLI の違い
+### 7.1 production bash と統合 CLI の違い
 
 | 項目 | `scripts/run_production_*.sh` | `python -m affective_empathy_eval.run` |
 |---|---|---|
@@ -158,7 +188,7 @@ uv pip install -e ".[dev]"
 
 本番 GPU では bash script を使う。確認や 1 family だけなら統合 CLI。
 
-### 5.2 本番（4 family）
+### 7.2 本番（4 family）
 
 ```bash
 source .venv/bin/activate
@@ -174,7 +204,7 @@ V3 の RQ1 が完全一致の `GO` でないと RQ2 以降は走らない。明�
 bash scripts/run_production_v3.sh cuda:0 --force-after-no-go
 ```
 
-### 5.3 統合 CLI
+### 7.3 統合 CLI
 
 `--stage all` も Behavioral → V1 → V2 → V3 の順（`PRODUCTION_STAGE_ORDER`）。
 
@@ -190,13 +220,13 @@ python -m affective_empathy_eval.run --stage v3 --model-set primary_small --dry-
 
 `--dry-run` はモデル重みを載せない。transformers 未導入でも Primary は起動する。
 
-### 5.4 論文
+### 7.4 論文
 
 現行 README 群が設計の正本である。`iclr2027/iclr2027_conference.tex` はテンプレート、`iclr2027_conference2.tex` は旧稿である。構成メモは [`docs/v3_prerun_five_fixes/paper_outline.md`](docs/v3_prerun_five_fixes/paper_outline.md)。再実行前の数値を本文に入れない。
 
 ---
 
-## 6. ディレクトリ構成
+## 8. ディレクトリ構成
 
 ```text
 ├── README.md                      # 本ドキュメント

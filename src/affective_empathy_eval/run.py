@@ -18,6 +18,7 @@ affective_empathy_eval.run: リポジトリ全体の統合 CLI エントリポ�
 
 import argparse
 import logging
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -97,7 +98,12 @@ def log_production_dataset_inventory() -> None:
 
 def run_command(cmd: List[str]):
     logger.info(f"Executing: {' '.join(cmd)}")
-    res = subprocess.run(cmd)
+    env = os.environ.copy()
+    repo_root = Path(__file__).resolve().parent.parent.parent
+    src_path = str(repo_root / "src")
+    existing_pythonpath = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = f"{src_path}:{existing_pythonpath}" if existing_pythonpath else src_path
+    res = subprocess.run(cmd, env=env)
     if res.returncode != 0:
         logger.error(f"Command failed with exit code {res.returncode}: {' '.join(cmd)}")
         sys.exit(res.returncode)

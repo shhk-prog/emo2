@@ -18,7 +18,7 @@ from affective_empathy_eval.likelihood import (
 )
 from affective_empathy_eval.models.adapters import get_model_adapter
 from affective_empathy_eval.models.hooks import ActivationHookManager, HookPoint
-from affective_empathy_eval.models.registry import get_registry
+from affective_empathy_eval.data import describe_loaded_frame
 from affective_empathy_eval.models.registry import (
     add_model_selection_args,
     get_registry,
@@ -376,8 +376,10 @@ def main():
     derived_dir.mkdir(parents=True, exist_ok=True)
 
     df = pd.read_csv(v2_config["dataset"]["path"])
+    logger.info(describe_loaded_frame(df, "V2-RQ4 dataset", v2_config["dataset"]["path"]))
     if args.max_samples is not None:
         df = df.iloc[:args.max_samples].copy()
+        logger.info(f"Applied max_samples={args.max_samples}: n_rows={len(df)}")
 
     n_boot = v2_config.get("statistics", {}).get("n_boot", 1000)
     all_recovery_results = {}

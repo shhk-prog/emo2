@@ -16,11 +16,9 @@ import logging
 from pathlib import Path
 import subprocess
 import sys
-import yaml
 
 from affective_empathy_eval.models.registry import (
     load_model_set,
-    resolve_architecture_dims,
 )
 
 # ログ設定

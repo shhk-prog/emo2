@@ -17,3 +17,9 @@
    - 情動介入強度 $\alpha$ の掃引に対する単調な反応および、Matched vs. Random / Orthogonal コントロールに対する特異度（Specificity）。
 4. **Reader–Self Coupling / Dissociation**:
    - 人間感情推定（Reader）と自己報告（Self）の表現共有・因果的交差互換性（E4）および課題特異的因果分離（E6, V3）。
+
+## 用語の固定（現行導線）
+
+- V3-RQ3 の主指標名は **mediated attenuation**（および residual shift / attenuation ratio）である。Pearl 流の NDE/NIE は用いない。
+- V3-RQ1 の Topic control は Self VA shift と同尺度の効果量ではない。Topic 課題への非特異的摂動が小さいことを確認する統制として扱う。
+

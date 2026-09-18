@@ -3,6 +3,8 @@
 v1/primary/run_phase_b.py
 
 V1 Phase B Primary Script: Semantic vs. Lexical Controls Audit
+Target layer is a priori mid-depth: l = round(d * (L - 1)) with d=0.5.
+This does not use the Phase A decodability peak.
 Evaluates whether affective decodability reflects compositional semantic understanding
 or mere surface-level lexical shortcuts through:
   - Lexical Confound Audit (Jaccard similarity, Levenshtein distance)
@@ -32,11 +34,12 @@ import torch
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
+from affective_empathy_eval.data import describe_loaded_frame
 from affective_empathy_eval.manifests import create_run_manifest
 from affective_empathy_eval.models.registry import (
     add_model_selection_args,
     resolve_architecture_dims,
-    resolve_models_from_args,
+    resolve_single_model_from_args,
 )
 
 
@@ -171,10 +174,16 @@ def main():
         description="V1 Primary Phase B: Semantic vs Lexical Controls Audit"
     )
     parser.add_argument(
-        "--model-id", type=str, default="Qwen/Qwen2.5-1.5B-Instruct"
+        "--model-id",
+        type=str,
+        default=None,
+        help="Hugging Face model ID. Required unless --family is set.",
     )
     parser.add_argument(
-        "--model-prefix", type=str, default="qwen2.5_1.5b_instruct"
+        "--model-prefix",
+        type=str,
+        default=None,
+        help="Output prefix. Derived from --family or --model-id if omitted.",
     )
     parser.add_argument(
         "--layer",
@@ -210,24 +219,7 @@ def main():
     )
     add_model_selection_args(parser)
     args = parser.parse_args()
-
-    # レジストリからの動的モデル解決
-    if (
-        getattr(args, "family", None)
-        or getattr(args, "base_model", None)
-        or getattr(args, "instruct_model", None)
-    ):
-        target_models = resolve_models_from_args(args)
-        if target_models:
-            cfg = list(target_models.values())[0]
-            args.model_id = (
-                cfg.instruct_model.model_id
-                if args.is_instruct
-                else cfg.base_model.model_id
-            )
-            args.model_prefix = (
-                f"{cfg.family_id}_{'instruct' if args.is_instruct else 'base'}"
-            )
+    args.model_id, args.model_prefix = resolve_single_model_from_args(args)
 
     os.makedirs(args.out_dir, exist_ok=True)
     model_dir = os.path.join(args.out_dir, args.model_prefix)
@@ -252,8 +244,11 @@ def main():
         try:
             num_layers, _ = resolve_architecture_dims(args.model_id)
             target_layer = int(round(args.relative_depth * (num_layers - 1)))
-        except Exception:
-            target_layer = 14  # fallback
+        except Exception as exc:
+            raise ValueError(
+                f"Unable to resolve Phase B target layer from relative_depth={args.relative_depth} "
+                f"for model '{args.model_id}'. Specify --layer explicitly."
+            ) from exc
 
     print(f"=== Starting V1 Phase B Semantic Audit: {args.model_id} ===")
     print(
@@ -291,7 +286,7 @@ def main():
 
     df = pd.read_csv(data_file)
     n_pairs = len(df)
-    print(f"Loaded {n_pairs} matched semantic control pairs.")
+    print(describe_loaded_frame(df, "V1 Phase B semantic controls", str(data_file)))
 
     tokenizer = AutoTokenizer.from_pretrained(args.model_id, trust_remote_code=True)
     if tokenizer.pad_token is None:

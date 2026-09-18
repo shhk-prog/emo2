@@ -25,12 +25,21 @@ from typing import List
 
 from affective_empathy_eval.models.registry import (
     add_model_selection_args,
-    load_model_set,
     resolve_models_from_args,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
+
+# run_production_all.sh と同一の本番実行順。--stage all もこの順に従う。
+PRODUCTION_STAGE_ORDER = ("behavioral", "v1", "v2", "v3")
+
+# 件数は手書きせず、実行時に実ファイルを読んでログする。
+PRODUCTION_DATASET_INVENTORY = (
+    ("EmoBank 3-way", "v1/data/processed/stimuli_vad_3way_test1k.csv"),
+    ("AIPsy 4-split", "v1/data/processed/aipsy_4split_all.csv"),
+    ("V1 Phase B semantic controls", "v1/data/processed/v1_e5_semantic_controls.csv"),
+)
 
 
 def parse_args():
@@ -64,6 +73,21 @@ def parse_args():
     )
     add_model_selection_args(parser)
     return parser.parse_args()
+
+
+def log_production_dataset_inventory() -> None:
+    """固定件数コメントの代わりに、実CSVの行数・pair数をログする。"""
+    from affective_empathy_eval.data import describe_loaded_frame
+    import pandas as pd
+
+    logger.info("Dataset inventory (actual loaded counts; wall-clock time is unmeasured):")
+    for name, path in PRODUCTION_DATASET_INVENTORY:
+        csv_path = Path(path)
+        if not csv_path.exists():
+            logger.warning(f"Dataset not found for inventory logging: {path}")
+            continue
+        df = pd.read_csv(csv_path)
+        logger.info(describe_loaded_frame(df, name, path))
 
 
 def run_command(cmd: List[str]):
@@ -228,20 +252,26 @@ def main():
     args = parse_args()
     python_bin = sys.executable
 
-    logger.info(f"Affective Empathy Evaluation Unified Runner")
+    logger.info("Affective Empathy Evaluation Unified Runner")
     logger.info(f"Stage: {args.stage} | Cohort: {args.model_set} | Dry-run: {args.dry_run}")
+    logger.info("Wall-clock estimates are unmeasured until a Qwen-family benchmark is recorded.")
+    log_production_dataset_inventory()
+
+    stage_runners = {
+        "behavioral": run_behavioral,
+        "v1": run_v1,
+        "v2": run_v2,
+        "v3": run_v3,
+    }
 
     if args.stage == "scale_validation":
         run_scale_validation(args, python_bin)
+    elif args.stage == "all":
+        logger.info(f"Running all stages in order: {' -> '.join(PRODUCTION_STAGE_ORDER)}")
+        for stage in PRODUCTION_STAGE_ORDER:
+            stage_runners[stage](args, python_bin)
     else:
-        if args.stage in ("v2", "all"):
-            run_v2(args, python_bin)
-        if args.stage in ("v3", "all"):
-            run_v3(args, python_bin)
-        if args.stage in ("v1", "all"):
-            run_v1(args, python_bin)
-        if args.stage in ("behavioral", "all"):
-            run_behavioral(args, python_bin)
+        stage_runners[args.stage](args, python_bin)
 
     logger.info("All requested stages completed successfully!")
 

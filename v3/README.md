@@ -1,201 +1,234 @@
-# LLM情動反応性評価実験 v3 (Causal Mechanisms: State-to-Report & Mood Congruency)
+# V3 Stage: 時空間経路と mediated attenuation
 
-本リポジトリ (`v3`) は、v1（行動連動および表現存在の解明）および v2（事後学習による表現幾何・因果回路の変容）の知見を受け、**「モデル内部で形成された情動状態は、どのような時空間経路を経て自己報告として出力されるのか？」**、そして **「内部情動状態の操作は、他者認識や認知的判断を因果的にバイアスするのか（気分一致効果）？」** という高度な因果的メカニズムを解明するための第3フェーズ実験環境です。
+V3 は、刺激提示で作られた内部情動方向が、**どの層・どの生成段階を経て自己報告分布を動かすか**を測る。主指標は Pearl 流の NDE/NIE ではなく **mediated attenuation**（媒介減衰）である。
 
-単一トークンのプロービングにとどまらず、生成プロセス全体（autoregressive generation）における意味的アンカーごとの介入、全層コンポーネント（MLP, Attention, Residual）網羅的因果局在化スイープ、最適輸送（Optimal Transport）多様体整列パッチング、および気分一致因果実験（Mood Congruency Experiment）を実装しています。
+測定対象は介入前後の自己報告 VA 変位と、統制課題への非特異的摂動である。「内部に感情状態が宿る」「媒介因果が証明された」とは書かない。
 
 ---
 
-## 1. 核心的リサーチクエスチョン (Core Research Questions)
-
-v3では、設定ファイル `configs/v3_experiments.yaml` および ICLR 投稿論文の構成に基づき、以下の主要課題を検証します：
+## 1. 位置づけ
 
 ```text
-【V3-RQ1: 内部情動状態の誘導と Go/No-Go ゲート判定 (State Induction & Gate)】
-  問い: 外部刺激ラベルから抽出された感情方向ベクトル (d_V, d_A) の注入によって、
-        自己報告を因果的かつ選択的に誘導できるか？
-  判定基準: 5大厳格基準 (Sufficiency, Necessity, Specificity, Dose-response, Selectivity)
-
-【V3-RQ2 & RQ3: 時空間全探索とパス仲介分析 (Spatiotemporal 4-Map & Path Mediation)】
-  問い: 情動情報は、推論プロンプト時および生成プロセスのどの層・どの意味段階を経て出力へ伝播するか？
-        中間層の特定コンポーネントが、最終出力への直接経路・間接経路として機能しているか？
-  手法: 28層 × 6意味段階の時空間パッチング（探索的 Discovery マッピング: 全層・全位置探索後、主要候補ウィンドウを Confirmation 拡大サンプルで再検証）, Discovery / Confirmation 分割パス仲介分析
-
-【発展課題 1: 気分一致因果実験 (Mood Congruency Causal Experiment)】
-  問い: 内部感情状態（Induced Mood）のステアリングは、感情認識（他者予測）を因果的に歪めるか？
-  手法: 感情状態注入下の Reader 推論評価, 気分一致バイアス係数・相関分析
-
-【発展課題 2: デコード可能性と因果的影響の解離 (Causal Localization Sweep)】
-  問い: 線形プローブで感情情報が最も強く読み出せる層（argmax D_l）は、
-        出力を最も強く動かす因果的層（argmax C_l）と一致するのか？
-  仮説: Decodability != Causal Influence (相関 rho ≈ 0 による完全な解離の立証)
-
-【発展課題 3: 最適輸送による多層多様体整列パッチング (Multilayer Aligned Patching)】
-  問い: モデル間で異なる座標系を持つ中間表現を、多様体整列（Procrustes / OT）によって移植し、
-        多層同時に因果的介入を行うことは可能か？
+Behavioral  →  V1  →  V2  →  V3
 ```
+
+- V1: 同一モデル内の表現と因果サイト
+- V2: Base ↔ Instruct の再編
+- V3: Instruct（主に target family）で、状態誘導 → 時空間 map → 部分空間遮断による減衰 → 他 family での確認
+
+Target family の既定は `configs/v3_experiments.yaml` の `target_family: qwen`。ID は `configs/models.yaml` から解決する。registry に無い family は Qwen 文字列へ落とさず `KeyError` にする。
 
 ---
 
-## 2. ディレクトリ構成とモジュール設計
+## 2. 正本と legacy
 
-v3は、共通基盤ライブラリ (`src/affective_empathy_eval`) と連携しつつ、高速バッチ処理と最適輸送距離計算に最適化された独自のモジュール群と解析スクリプト群で構成されています。
+正本は `v3/primary/` である。`v3/scripts/legacy/` は旧稿・探索であり、主解析に使わない。気分一致実験や旧 NDE/NIE スクリプトはここに属する。
 
 ```text
 v3/
-├── README.md                          # 本ドキュメント
-├── src/                               # v3 専用コアモジュール群
-│   ├── batch_likelihood.py            # 高速バッチ化 81候補対数尤度計算 (厳密な数値一致を保証)
-│   ├── ot_utils.py                    # 2次元最適輸送 (2D Optimal Transport / EMD), 周辺WD, 回復率計算
-│   ├── model_utils.py                 # レイヤー・コンポーネント (MLP/Attn/Resid) 抽出, パッチフック管理
-│   └── diagnostics.py                 # 介入安定性・確率質量・境界条件の診断関数
-│
-├── scripts/
-│   ├── # --- V3 中核パイプライン (run_v2_v3_full_pipeline.sh 対応) ---
-│   ├── run_v3_state_induction.py      # V3-RQ1: 内部情動状態誘導と Go/No-Go ゲート判定
-│   ├── run_v3_spatiotemporal_maps.py  # V3-RQ2: 時空間 4-Map (全層 × 6生成ステージ)
-│   ├── run_v3_path_mediation.py       # V3-RQ3: パス仲介分析 (Discovery/Confirmation)
-│   ├── run_v3_confirmatory_replication.py # 他3モデル (Llama, Gemma, OLMo: Primary 1-1.5B コホート) 確証的再現
-│   ├── run_v2_v3_full_pipeline.sh     # V2 & V3 統合パイプライン実行シェルスクリプト
-│   │
-│   ├── # --- 気分一致因果実験 (Mood Congruency) ---
-│   ├── run_mood_congruency_experiment.py # 内部情動ステアリング下での他者感情認識バイアス測定
-│   ├── analyze_mood_congruency.py     # 気分一致効果の統計解析・可視化
-│   │
-│   ├── # --- 因果局在化スイープ (Causal Localization Sweep) ---
-│   ├── run_causal_localization_sweep.py # 全層 (MLP/Attn/Resid) デコード能 vs 因果影響の解離
-│   ├── run_generation_time_causal_sweep.py # 生成時マルチレイヤー因果スイープ
-│   ├── run_focused_39pairs_sweep.py   # 絞り込みペアに対する詳細スイープ
-│   │
-│   ├── # --- 多層・多様体整列パッチング ---
-│   ├── run_multilayer_aligned_patching.py # 多層同時整列パッチング
-│   ├── run_aligned_cross_model_patching.py # モデル横断 最適輸送 (OT) 多様体整列パッチング
-│   ├── run_probe_aligned_necessity_sweep.py # プローブ整列部分空間の除去による必要性検証
-│   ├── run_focused_necessity_n100.py  # 厳密 N=100 ペアでの必要性検証
-│   │
-│   ├── # --- ベースライン・統制検証 ---
-│   ├── run_within_model_positive_control.py # モデル内ポジティブコントロール
-│   ├── run_qwen_recognition_baseline.py # Qwen 感情認識ベースライン評価
-│   ├── run_dual_outcome_behavior.py   # 二重アウトカム行動評価
-│   ├── run_ridge_alpha_sweep.py       # Ridge 正則化パラメータ α スイープ
-│   ├── expand_strict_dataset.py       # 厳密データセットの拡張
-│   ├── analyze_alignment_fidelity_and_manifold.py # 整列忠実度・多様体幾何解析
-│   │
-│   └── # --- 論文用図版・付録図版・統計要約 ---
-│       ├── plot_main_figure1.py       # 論文 Main Figure 1 生成
-│       ├── plot_paper_figures.py      # 本文掲載図版の一括生成
-│       ├── plot_appendix_figures.py   # 付録図版の一括生成
-│       ├── compute_bootstrap_ci.py    # ブートストラップ 95% 信頼区間計算
-│       ├── print_all_cis.py           # 全信頼区間のコンソール出力
-│       └── summarize_results.py       # 全実験結果の要約テーブル出力
-│
-├── data/                              # v3 前処理済み刺激データ
+├── README.md
+├── primary/
+│   ├── README.md
+│   ├── run_rq1_state_induction.py
+│   ├── run_rq2_spatiotemporal_maps.py
+│   ├── run_rq3_path_mediation.py
+│   └── run_confirmatory_replication.py
+├── docs/                    # 現行導線。legacy/ は旧ドラフト
+├── scripts/legacy/
 └── results/
-    ├── raw/                           # 介入生ログ・尤度分布キャッシュ
-    └── derived/                       # 仲介効果、OT回復率、気分一致効果等の集計表
+    ├── raw/
+    └── derived/
 ```
 
 ---
 
-## 3. 評価プロトコルと主要評価指標
+## 3. RQ1: State Induction と Go/No-Go
 
-### 3.1 2次元最適輸送回復率 (Joint 2D Optimal Transport Recovery)
-離散化された81候補の確率分布 $P$ に対し、Wasserstein-1 距離（Earth Mover's Distance）に基づく回復率を定義します：
-$$\text{Recovery}_{\text{OT}}(P_{\text{patch}}) = \frac{\text{OT}(P_{\text{clean}}, P_{\text{target}}) - \text{OT}(P_{\text{patch}}, P_{\text{target}})}{\text{OT}(P_{\text{clean}}, P_{\text{target}})}$$
-- `clean`: 介入前の基準状態（例: Neutral）
-- `target`: 到達目標の情動状態（例: Peak / Clinical）
-- `patch`: 活性化パッチング適用後の分布
+正本: `v3/primary/run_rq1_state_induction.py`
 
-### 3.2 意味的生成アンカー (Semantic Generation Stages)
-JSONフォーマット `{"valence": V, "arousal": A}` の自己報告生成時において、以下の6段階のトークン位置を動的に同定し、段階特異的な因果効果を測定します：
-1. `response_start`: JSON生成開始直後
-2. `pre_V`: Valence キー出力直後（値の直前トークン）
-3. `V_value`: Valence 数値トークン位置
-4. `pre_A`: Arousal キー出力直後（値の直前トークン）
-5. `A_value`: Arousal 数値トークン位置
-6. `response_end`: JSON終了トークン
+**問い**: 外部ラベルから推定した方向 $d_V, d_A$ を入れたとき、自己報告は単調かつ特異的に動くか。動かなければ RQ2/RQ3 の主解釈を進めるゲートを通さない。
 
-### 3.3 気分一致効果指標 (Mood Congruency Index)
-内部感情状態を正/負にステアリングした状態で客観的感情認識（他者予測）を行わせ、注入強度 $\alpha$ に対する推定値の回帰勾配 $\beta_{\text{mood}}$ および Pearson 相関係数 $r$ を算出します。
+### 3.1 手順
+
+1. pair_id Group split。train で人間 `reader_V`, `reader_A` に対する方向を推定。
+2. 中立平均 $\mu_{\mathrm{neu}}$ を matched-neutral から取る。固定 $5.0$ は使わない。
+3. QR で 2D 情動部分空間 $Q$ を作る。
+4. test で次を測る。
+   - $\alpha$ sweep（用量反応）
+   - centered projection removal: $h' = h - QQ^\top(h-\mu_{\mathrm{neu}})$
+   - random control
+   - orthogonal / perpendicular control
+   - Topic control
+
+層は `--layer` が無ければ相対深度 $d=0.5$ から $l=\operatorname{round}(d(L-1))$ で決める（Qwen の 14 層固定ではない）。
+
+### 3.2 ゲート（Bootstrap 95% CI）
+
+`configs/v3_experiments.yaml` の `gate_criteria`:
+
+| 判定 | 内容 |
+|---|---|
+| Sufficiency / dose-response | slope の CI 下限が正 |
+| Specificity | matched 効果が random / orthogonal を上回る |
+| Necessity | 射影除去による attenuation の CI 下限が閾値超 |
+| Topic control | Topic 課題の TVD 上限が `max_topic_tvd` 未満 |
+
+### 3.3 Topic control の位置づけ
+
+Self は正規化 VA shift、Topic は分類確率の TVD である。どちらも $[0,1]$ だが **同じ構成概念ではない**。
+
+「Self effect − Control effect」を主効果量にしない。Topic は、**非特異的な課題崩壊が小さいこと**を見る統制である。差は補助記録に留める。
 
 ---
 
-## 4. 実行手順 (How to Run)
+## 4. RQ2: Spatiotemporal 4-Maps
 
-### 4.1 環境準備
-共通の仮想環境を有効化し、プロジェクトルートから実行します。
+正本: `v3/primary/run_rq2_spatiotemporal_maps.py`
+
+**問い**: デコード可能性 $D$ と因果力 $C$ は、層 × 意味段階の格子上でどこにピークを持つか。
+
+意味段階（JSON 自己報告）:
+
+1. `response_start`（内部では `candidate_start` に正規化）
+2. `pre_V`
+3. `V_value`
+4. `pre_A`
+5. `A_value`
+6. `response_end`
+
+$C(l,t)$ は実介入の $\alpha$ sweep から測る。プローブ係数で代用しない。
+
+記述上の見込み（仮説であり結果ではない）: 刺激提示時の $D$ は中間層、生成時の $C$ は後期の pre-value トークンに寄る。これを時空間ピーク解離と呼ぶ。
+
+本番は全層探索。`--subsample` は確認用。
+
+---
+
+## 5. RQ3: Mediated attenuation
+
+正本: `v3/primary/run_rq3_path_mediation.py`
+
+**問い**: 刺激提示時にできた情動部分空間を中間層で遮断すると、自己報告シフトはどれだけ残るか。
+
+使わない用語: Natural Direct Effect (NDE), Natural Indirect Effect (NIE)。
+
+使う量:
+
+| 名前 | 定義の要点 |
+|---|---|
+| Total affective shift | matched-neutral 基準の $|E[V]_{\mathrm{aff}}-E[V]_{\mathrm{neu}}|$（$A$ も同様） |
+| Residual shift after blocking | 部分空間除去後の同じ量 |
+| Mediated attenuation | Total − Residual（または比） |
+| Attenuation ratio | 減衰の割合。Bootstrap CI |
+
+手順:
+
+1. pair_id で Discovery 50% / Confirmation 50%
+2. Discovery で mediator 層 $l_{\mathrm{med}}^*$ を実介入プロファイルから選ぶ
+3. Confirmation でその層だけを固定して遮断する
+4. matched-neutral baseline 必須
+5. 探索で見た split を確認に再利用しない
+
+「完全な因果媒介が証明された」ではなく、「遮断後に自己報告変位が減衰した」と書く。
+
+---
+
+## 6. Confirmatory replication
+
+正本: `v3/primary/run_confirmatory_replication.py`
+
+Target（Qwen）で立てた 4 仮説を、Llama 3.2 / Gemma 3 / OLMo 2 の Instruct で追試する。family が registry に無ければ落とす。
+
+仮説の骨格:
+
+1. Dissociation: $d_C$ が $d_D$ より深い
+2. Sufficiency: 介入 slope が正
+3. Necessity: attenuation が閾値を超える
+4. Temporal emergence: `pre_V` 付近の因果が `response_start` より大きい
+
+確認側でも GroupKFold / pair split を保つ。Discovery の数字を確認に再利用しない。
+
+---
+
+## 7. データと設定
+
+| 項目 | 値 |
+|---|---|
+| データ | `v1/data/processed/stimuli_vad_3way_test1k.csv`（実件数はログ） |
+| 実験設定 | `configs/v3_experiments.yaml` |
+| モデル | `configs/models.yaml` |
+| $\alpha$ grid（RQ1） | $-1.0,-0.5,0.0,0.5,1.0$ |
+| $\alpha$ sweep（RQ2） | $-2.0$ から $2.0$ |
+| Confirmatory families | `llama`, `gemma`, `olmo` |
+
+---
+
+## 8. 実行方法
+
+所要時間は未計測。V3 は探索が重いので、一括 `all` より単独 stage を推奨する。
 
 ```bash
-cd /mnt/nas/home/hiromi/src/emo
-source .venv/bin/activate
+bash scripts/run_production_v3.sh cuda:0
 ```
 
-### 4.2 統合パイプライン (V2 & V3 Full Pipeline) の実行
-`run_v2_v3_full_pipeline.sh` を用いることで、V2の解析からV3の全実験までを順次自動実行できます。
+統合 CLI:
 
 ```bash
-# 全ステップ (Step 1〜7) の実行
-bash v3/scripts/run_v2_v3_full_pipeline.sh --device cuda
-
-# V3 のステップのみを実行する場合 (例: Step 5〜7)
-bash v3/scripts/run_v2_v3_full_pipeline.sh --device cuda --from-step 5
-
-# 動作確認 (ドライランモード)
-bash v3/scripts/run_v2_v3_full_pipeline.sh --dry-run
+python -m affective_empathy_eval.run --stage v3 --model-set primary_small --device cuda:0
 ```
 
-### 4.3 主要な個別実験スクリプトの実行
+個別:
 
-#### ① V3-RQ1: 内部情動状態の誘導と Go/No-Go ゲート
 ```bash
-python v3/scripts/run_v3_state_induction.py --device cuda --layer 14
+python v3/primary/run_rq1_state_induction.py \
+    --config configs/v3_experiments.yaml \
+    --models-config configs/models.yaml \
+    --family qwen --device cuda:0
+
+python v3/primary/run_rq2_spatiotemporal_maps.py \
+    --config configs/v3_experiments.yaml \
+    --models-config configs/models.yaml \
+    --family qwen --device cuda:0
+
+python v3/primary/run_rq3_path_mediation.py \
+    --config configs/v3_experiments.yaml \
+    --models-config configs/models.yaml \
+    --family qwen --device cuda:0
+
+python v3/primary/run_confirmatory_replication.py \
+    --config configs/v3_experiments.yaml \
+    --models-config configs/models.yaml \
+    --device cuda:0
 ```
 
-#### ② V3-RQ2 & RQ3: 時空間全探索とパス仲介分析
+確認:
+
 ```bash
-# 全層 × 生成ステージの時空間マップ探索
-python v3/scripts/run_v3_spatiotemporal_maps.py --device cuda
-
-# パス仲介分析 (Discovery / Confirmation)
-python v3/scripts/run_v3_path_mediation.py --device cuda
+python v3/primary/run_rq1_state_induction.py --dry-run --family qwen
 ```
 
-#### ③ 気分一致因果実験 (Mood Congruency)
-```bash
-# 気分一致実験の実行 (内部ステアリング下での認識評価)
-python v3/scripts/run_mood_congruency_experiment.py
+`--pilot` は 50 行スモーク。`--subsample` は RQ2/RQ3/Confirmatory の確認用。本番では 0（全件）。
 
-# 結果の統計分析とプロット
-python v3/scripts/analyze_mood_congruency.py
-```
+---
 
-#### ④ 因果局在化スイープ (Decodability vs Causal Influence)
-```bash
-# MLP / Attention / Residual stream の全層因果スイープ
-python v3/scripts/run_causal_localization_sweep.py --device cuda
+## 9. 出力
 
-# 生成時マルチレイヤー因果スイープ
-python v3/scripts/run_generation_time_causal_sweep.py --device cuda
-```
+| ファイル | 内容 |
+|---|---|
+| `v3/results/raw/v3_rq1_results.json` | 用量反応、specificity、attenuation、Topic TVD、ゲート |
+| `v3/results/derived/v3_gate_decision.json` | GO / NO_GO |
+| `v3/results/raw/v3_spatiotemporal_maps_{family}.json` | $D,C$ の層×段階格子 |
+| `v3/results/raw/v3_path_mediation_{family}.json` | Discovery 層、Confirmation の attenuation |
+| `v3/results/raw/v3_confirmatory_{family}.json` | 4 仮説の合否 |
+| `v3/results/derived/v3_*_summary.json` | 横断要約 |
 
-#### ⑤ 多層多様体整列パッチング
-```bash
-python v3/scripts/run_multilayer_aligned_patching.py --device cuda
-python v3/scripts/run_aligned_cross_model_patching.py --device cuda
-```
+---
 
-### 4.4 論文用図版・結果要約の生成
-```bash
-# 論文 Main Figure 1 の生成
-python v3/scripts/plot_main_figure1.py
+## 10. 解釈
 
-# 論文本文掲載図版の一括生成
-python v3/scripts/plot_paper_figures.py
-
-# 付録用図版の生成
-python v3/scripts/plot_appendix_figures.py
-
-# 全実験の統計的信頼区間出力と結果要約
-python v3/scripts/print_all_cis.py
-python v3/scripts/summarize_results.py
-```
+- ゲート GO は「主観が確認された」ではなく「誘導が特異的で、Topic 崩壊が小さい」
+- 時空間解離は記述であり、二過程心理理論の証明ではない
+- mediated attenuation は遮断後の減衰であり、NDE/NIE ではない
+- Topic TVD と Self shift を引き算して主効果にしない
+- Confirmatory 不成立を「Qwen だけが感情を持つ」と読まない
+- `v3/docs/legacy/` の neutralization / greedy collapse ストーリーは主筋ではない

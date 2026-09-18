@@ -1,5 +1,23 @@
+from typing import Optional
+
 import pandas as pd
 import numpy as np
+
+
+def describe_loaded_frame(df: pd.DataFrame, name: str, path: Optional[str] = None) -> str:
+    """実ロード件数をログ用に整形する。固定件数文字列の代替。"""
+    parts = [f"{name}: n_rows={len(df)}"]
+    if path:
+        parts.append(f"path={path}")
+    if "pair_id" in df.columns:
+        parts.append(f"n_unique_pair_id={int(df['pair_id'].nunique())}")
+    if "stimulus_id" in df.columns:
+        parts.append(f"n_unique_stimulus_id={int(df['stimulus_id'].nunique())}")
+    if "id" in df.columns and "stimulus_id" not in df.columns:
+        parts.append(f"n_unique_id={int(df['id'].nunique())}")
+    if "split" in df.columns:
+        parts.append(f"split_counts={df['split'].value_counts().to_dict()}")
+    return " | ".join(parts)
 
 def scale_vad(raw_value: float) -> float:
     """Scales EmoBank 5-point rating to approximately [-1, 1]."""

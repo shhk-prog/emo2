@@ -5,8 +5,9 @@
 # Production Behavioral Evaluation Runner across 4 Primary Small Families
 # (Qwen 1.5B, Llama 3.2 1B, Gemma 3 1B, OLMo 2 1B: 8 models total)
 # Evaluates:
-#   1. EmoBank 3-Way VAD (1,000 stimuli full)
-#   2. AIPsy-Affect 4-Split (480 stimuli full)
+#   1. EmoBank 3-Way VAD (full CSV; row counts are logged at load time)
+#   2. AIPsy-Affect 4-Split (full CSV; row/pair counts are logged at load time)
+# Wall-clock time: unmeasured until a Qwen-family benchmark is recorded.
 # ==============================================================================
 
 set -euo pipefail
@@ -40,7 +41,8 @@ echo "Timestamp : $(date -u +"%Y-%m-%dT%H:%M:%SZ")" | tee -a "${LOG_FILE}"
 echo "Device    : ${DEVICE}" | tee -a "${LOG_FILE}"
 echo "Log File  : ${LOG_FILE}" | tee -a "${LOG_FILE}"
 echo "Cohort    : primary_small (4 families, 8 models)" | tee -a "${LOG_FILE}"
-echo "Datasets  : EmoBank (1,000 full), AIPsy (480 full)" | tee -a "${LOG_FILE}"
+echo "Datasets  : EmoBank + AIPsy (actual counts logged by the Python runner)" | tee -a "${LOG_FILE}"
+echo "Runtime   : unmeasured (do not use pre-benchmark hour estimates)" | tee -a "${LOG_FILE}"
 echo "==================================================================" | tee -a "${LOG_FILE}"
 
 CMD=(python -m affective_empathy_eval.run --stage behavioral --model-set primary_small --device "${DEVICE}")

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Step 7: 他3モデル (Llama, Gemma, Mistral) における主要 V3 因果機構の Confirmatory 再現
+Step 7: 他3モデル (Llama 3.2, Gemma 3, OLMo 2) における主要 V3 因果機構の Confirmatory 再現
 検証対象の4大仮説:
   1. Hypothesis 1 (Dissociation): デコードピークと因果ピークの解離 (Δd_peak > 0, Δd_center > 0)
   2. Hypothesis 2 (Sufficiency): 内部情動方向 d_V, d_A への介入による単調誘導 (gamma > 0)
@@ -32,12 +32,12 @@ from affective_empathy_eval.likelihood import (
     compute_expected_va,
     compute_sequence_likelihoods_for_candidates,
 )
+from affective_empathy_eval.data import describe_loaded_frame
 from affective_empathy_eval.models.registry import (
     add_model_selection_args,
     get_registry,
     load_model_set,
     resolve_architecture_dims,
-    resolve_models_from_args,
 )
 from affective_empathy_eval.prompts import (
     TaskType,
@@ -147,7 +147,7 @@ def run_real_model_confirmatory(
     subsample: int = 0,
 ) -> Dict[str, Any]:
     """
-    実モデル (Llama, Gemma, Mistral) に対する 4大仮説の Confirmatory 検証
+    実モデル (Llama 3.2, Gemma 3, OLMo 2) に対する 4大仮説の Confirmatory 検証
     """
     logger.info(f"Loading {family} model: {model_id} on {device}...")
     tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
@@ -482,10 +482,8 @@ def main():
 
     with open(args.config, "r", encoding="utf-8") as f:
         v3_cfg = yaml.safe_load(f)
-    with open(args.models_config, "r", encoding="utf-8") as f:
-        models_cfg = yaml.safe_load(f)
-
     df = pd.read_csv(v3_cfg["dataset"]["path"])
+    logger.info(describe_loaded_frame(df, "V3 confirmatory dataset", v3_cfg["dataset"]["path"]))
     # レジストリから動的解決
     conf_families_list = v3_cfg.get("confirmatory_families", ["llama", "gemma", "olmo"])
     registered_models = load_model_set(Path(args.models_config), model_set=args.model_set)
@@ -493,18 +491,16 @@ def main():
     conf_models = []
     for fam_key in conf_families_list:
         fam_lower = fam_key.lower()
-        if fam_lower in registered_models:
-            fam_cfg = registered_models[fam_lower]
-            conf_models.append({
-                "family": fam_cfg.family_name,
-                "model_id": fam_cfg.instruct_model.model_id,
-            })
-        else:
-            # 後方互換フォールバック
-            for old_item in v3_cfg.get("confirmatory_models", []):
-                if old_item["family"].lower() == fam_lower:
-                    conf_models.append(old_item)
-                    break
+        if fam_lower not in registered_models:
+            raise KeyError(
+                f"Confirmatory family '{fam_key}' not found in model-set '{args.model_set}'. "
+                f"Available: {list(registered_models.keys())}"
+            )
+        fam_cfg = registered_models[fam_lower]
+        conf_models.append({
+            "family": fam_cfg.family_name,
+            "model_id": fam_cfg.instruct_model.model_id,
+        })
     semantic_stages = v3_cfg["spatiotemporal"]["semantic_stages"]
     normalized_stages = [s if s != "response_start" else "candidate_start" for s in semantic_stages]
 

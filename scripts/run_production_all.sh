@@ -42,7 +42,8 @@ echo "Device    : ${DEVICE}" | tee -a "${MASTER_LOG}"
 echo "Dry Run   : ${DRY_RUN:-false}" | tee -a "${MASTER_LOG}"
 echo "Master Log: ${MASTER_LOG}" | tee -a "${MASTER_LOG}"
 echo "Cohort    : primary_small (4 families, 8 models total)" | tee -a "${MASTER_LOG}"
-echo "Stages    : Behavioral -> V1 -> V2 -> V3 (All with full production data)" | tee -a "${MASTER_LOG}"
+echo "Stages    : Behavioral -> V1 -> V2 -> V3 (full production CSVs; counts logged at load)" | tee -a "${MASTER_LOG}"
+echo "Runtime   : unmeasured. Prefer stage scripts over this master run for recoverability." | tee -a "${MASTER_LOG}"
 echo "==================================================================" | tee -a "${MASTER_LOG}"
 
 GLOBAL_START=$(date +%s)

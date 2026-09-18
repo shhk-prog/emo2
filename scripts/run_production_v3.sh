@@ -5,10 +5,11 @@
 # Production V3 Evaluation Runner across 4 Primary Small Families
 # (Target: Qwen 1.5B, Confirmatory: Llama 3.2 1B, Gemma 3 1B, OLMo 2 1B)
 # Evaluates:
-#   1. RQ1: State Induction & Go/No-Go Gate (1,000 full)
-#   2. RQ2: Spatiotemporal 4-Maps (1,000 full across layers x semantic stages)
-#   3. RQ3: Path Mediation (1,000 full: 500 Discovery / 500 Confirmation)
-#   4. Step 7: Confirmatory Cross-Architecture Replication (4 families full)
+#   1. RQ1: State Induction & Go/No-Go Gate
+#   2. RQ2: Spatiotemporal 4-Maps
+#   3. RQ3: Mediated attenuation (Discovery / Confirmation split)
+#   4. Step 7: Confirmatory Cross-Architecture Replication
+# Dataset sizes are logged from the loaded CSVs. Wall-clock time is unmeasured.
 # ==============================================================================
 
 set -euo pipefail
@@ -41,7 +42,8 @@ echo "Device    : ${DEVICE}" | tee -a "${LOG_FILE}"
 echo "Log File  : ${LOG_FILE}" | tee -a "${LOG_FILE}"
 echo "Cohort    : primary_small (Target: Qwen | Confirmatory: Llama, Gemma, OLMo)" | tee -a "${LOG_FILE}"
 echo "Pipeline  : RQ1 (Gate) -> RQ2 (4-Maps) -> RQ3 (Mediation) -> Confirmatory" | tee -a "${LOG_FILE}"
-echo "Data Scale: Full production datasets (no subsample limits)" | tee -a "${LOG_FILE}"
+echo "Data Scale: Full production CSVs (actual counts logged by the Python runner)" | tee -a "${LOG_FILE}"
+echo "Runtime   : unmeasured (do not use pre-benchmark hour estimates)" | tee -a "${LOG_FILE}"
 echo "==================================================================" | tee -a "${LOG_FILE}"
 
 CMD=(python -m affective_empathy_eval.run --stage v3 --model-set primary_small --device "${DEVICE}")

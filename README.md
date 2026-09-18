@@ -8,10 +8,10 @@
 
 本研究は、行動実験（Behavioral Stage）から内部メカニズム解明（V1, V2, V3 Stage）まで一貫した理論・測定基盤に基づき構成されています：
 
-- **Behavioral Stage (`behavioral/`)**: 3-Way VAD 評価、AIPsy 評価（4大 Primary 評価軸：Human-affect correspondence, Affective sensitivity, Dose-response, Reader–Self coupling）
-- **V1 Stage (`v1/`)**: 表現空間の幾何構造（E1/E2）、Prompt-End Normalized Causal Map（E3）、因果的交換可能性（E4）、Task-Specific Causal Specialization（E6）
-- **V2 Stage (`v2/`)**: 4モデルファミリー横断（Base ↔ Instruct）幾何・因果結合マッピング、Matched-plain 統制、EMD 分布回復パッチング（RQ1〜RQ4）
-- **V3 Stage (`v3/`)**: 時空間ダイナミクス、実モデル情動状態誘導、共変量統制偏回帰 $\beta(l,t)$、媒介分析（Path Mediation）、確証的再現性（Confirmatory Replication）
+- **Behavioral Stage (`behavioral/`)**: 3-Way VAD と AIPsy 4-Split。4軸は Human-affect correspondence, Sensitivity, Dose-response / Specificity, Reader–Self coupling。詳細は [`behavioral/README.md`](behavioral/README.md)。
+- **V1 Stage (`v1/`)**: Reader ↔ Self の decodability / 幾何（E1/E2）、意味統制（Phase B）、因果マップと交換可能性（E3/E4）、課題特異化（E6）。詳細は [`v1/README.md`](v1/README.md)。
+- **V2 Stage (`v2/`)**: Base ↔ Instruct の幾何再編、ピーク解離、2D OT 分布回復（RQ1〜RQ4）。詳細は [`v2/README.md`](v2/README.md)。
+- **V3 Stage (`v3/`)**: 状態誘導ゲート、時空間 4-Map、mediated attenuation、確証的再現。詳細は [`v3/README.md`](v3/README.md)。
 
 ### 対象モデル構成（コホート設計）
 モデルサイズ差交絡を排除し、事後学習（Post-training）による幾何・因果再編を純粋に検証するため、狭い 1〜1.5B パラメータ帯の 4 大ファミリーを Primary コホートとしています：
@@ -61,10 +61,14 @@ uv pip install -e ".[dev]"
 
 ```bash
 # Primary 1-1.5B コホートで各ステージを実行
+# --stage all も Behavioral → V1 → V2 → V3 の順。所要時間は未計測。
+# 本番は stage 分割スクリプトの方が安全（途中失敗時の切り分けが容易）。
 python -m affective_empathy_eval.run --stage behavioral --model-set primary_small
 python -m affective_empathy_eval.run --stage v1 --model-set primary_small
 python -m affective_empathy_eval.run --stage v2 --model-set primary_small
 python -m affective_empathy_eval.run --stage v3 --model-set primary_small
+python -m affective_empathy_eval.run --stage all --model-set primary_small
+
 
 # Supplementary 7B 外部スケール検証 (Mistral 7B)
 python -m affective_empathy_eval.run --stage v2 --model-set scale_validation

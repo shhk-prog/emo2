@@ -26,7 +26,7 @@ from affective_empathy_eval.manifests import create_run_manifest
 from affective_empathy_eval.models.registry import (
     add_model_selection_args,
     resolve_architecture_dims,
-    resolve_models_from_args,
+    resolve_single_model_from_args,
 )
 
 
@@ -163,10 +163,16 @@ def main():
         description="V1 Primary Phase C: E6 Targeted Ablation & Double Dissociation"
     )
     parser.add_argument(
-        "--model-id", type=str, default="Qwen/Qwen2.5-1.5B-Instruct"
+        "--model-id",
+        type=str,
+        default=None,
+        help="Hugging Face model ID. Required unless --family is set.",
     )
     parser.add_argument(
-        "--model-prefix", type=str, default="qwen2.5_1.5b_instruct"
+        "--model-prefix",
+        type=str,
+        default=None,
+        help="Output prefix. Derived from --family or --model-id if omitted.",
     )
     parser.add_argument("--reader-layer", type=int, default=None)
     parser.add_argument("--self-layer", type=int, default=None)
@@ -201,24 +207,7 @@ def main():
     )
     add_model_selection_args(parser)
     args = parser.parse_args()
-
-    # レジストリからの動的モデル解決
-    if (
-        getattr(args, "family", None)
-        or getattr(args, "base_model", None)
-        or getattr(args, "instruct_model", None)
-    ):
-        target_models = resolve_models_from_args(args)
-        if target_models:
-            cfg = list(target_models.values())[0]
-            args.model_id = (
-                cfg.instruct_model.model_id
-                if args.is_instruct
-                else cfg.base_model.model_id
-            )
-            args.model_prefix = (
-                f"{cfg.family_id}_{'instruct' if args.is_instruct else 'base'}"
-            )
+    args.model_id, args.model_prefix = resolve_single_model_from_args(args)
 
     os.makedirs(args.out_dir, exist_ok=True)
     model_dir = os.path.join(args.out_dir, args.model_prefix)

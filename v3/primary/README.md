@@ -1,88 +1,25 @@
-# V3 Primary Pipeline (時空間ダイナミクスと因果媒介回路)
+# V3 Primary
 
-本ディレクトリ (`v3/primary/`) は、LLMにおける情動状態の誘発（State Induction）から生成時トークン予測に至る**時空間ダイナミクス（Spatiotemporal Dynamics）**と**因果媒介メカニズム（Path Mediation Mechanism）**を解明するための正式な Primary 実験スイートです。
+V3 の正式実行面。設計・指標・解釈の本文は親の [`v3/README.md`](../README.md) を正本とする。
 
----
+## スクリプト
 
-## 1. 論文の主筋：3大リサーチクエスチョン (RQ1〜RQ3)
+| ファイル | 内容 |
+|---|---|
+| `run_rq1_state_induction.py` | 状態誘導と Go/No-Go。Topic は非特異的摂動の確認統制 |
+| `run_rq2_spatiotemporal_maps.py` | 層 × 意味段階の $D$ / $C$ 格子 |
+| `run_rq3_path_mediation.py` | mediated attenuation（NDE/NIE は使わない） |
+| `run_confirmatory_replication.py` | Llama / Gemma 3 / OLMo 2 での追試 |
 
-1. **V3-RQ1: State Induction & Subspace Geometry (情動状態の持続と部分空間幾何)**
-   - 刺激提示によって形成された情動表現は、後続プロンプト（指示文・フォーマット指定）の伝播中も持続するか？
-   - 状態ベクトルはタスク中立な情動部分空間（Affective Subspace）に直交射影可能か？
-2. **V3-RQ2: Spatiotemporal 4-Maps & Peak Dissociation (4-Map 時空間マッピングとピーク解離)**
-   - 表現のデコーダビリティ（$D_V, D_A$）と介入因果力（$C_V, C_A$）は、層（Layer）× 意味論的トークンステージ（Semantic Stage: `stimulus_end`, `task_desc`, `format_inst`, `pre_json`, `pre_val`）の 2D 格子上でどのように変移するか？
-   - **二段階検証構造**: 全層・全トークン位置の全格子探索（default subsample=30）を探索的 **Discovery マッピング**として位置づけ、そこで同定された候補ウィンドウ（Causal Peak Window）について、独立分割の拡大サンプル（Confirmation）で確証的再検証を行う設計を採用。
-   - 刺激提示時は中間層でデコードピーク、生成時は後期層プレトークン位置で因果ピークという「時空間ピーク解離」を同定。
-3. **V3-RQ3: Causal Mediation & Circuit Mechanism (因果媒介と回路メカニズム)**
-   - 刺激受容層（Stimulus Encoding Layer）から出力決定層（Output Generation Layer）への因果的情報伝播において、中間層の情動状態は真の媒介変数（Mediator）として機能しているか？
-   - 中心化直交射影除去（Centered Projection Removal: $h - Q Q^\top (h - \mu_{\text{neu}})$）による自然度を保った媒介効果の遮断。
+モデルは `configs/models.yaml`。未知 family は `KeyError`。層は指定が無ければ $d=0.5$ から $l=\operatorname{round}(d(L-1))$。
 
----
+## 実行
 
-## 2. Confirmatory Replication (厳密な事前登録プロトコル追試)
-
-探索的発見（Discovery）を別モデルファミリーおよび独立分割データセット（Confirmation）上で厳密に追試・反証するためのスクリプト：
-- **`run_confirmatory_replication.py`**:
-  - 5-fold Cross-Validation による held-out $R^2$ 評価
-  - 実測ベースラインとの比較
-  - 統計的二重解離（Dissociation Metric）の検定
-
----
-
-## 3. スクリプト構成
-
-```text
-v3/primary/
-├── README.md                          # 本ドキュメント
-├── run_rq1_state_induction.py         # V3-RQ1: 状態誘発と部分空間幾何
-├── run_rq2_spatiotemporal_maps.py     # V3-RQ2: 時空間4-Map構築とピーク解離
-├── run_rq3_path_mediation.py          # V3-RQ3: 因果媒介解析
-└── run_confirmatory_replication.py    # Confirmatory 追試・反証実験
-```
-
----
-
-## 4. 実行方法
-
-### 4.1 RQ1: 状態誘発
 ```bash
+python -m affective_empathy_eval.run --stage v3 --model-set primary_small --device cuda:0
+
 python v3/primary/run_rq1_state_induction.py \
     --config configs/v3_experiments.yaml \
     --models-config configs/models.yaml \
-    --device cuda
+    --family qwen --device cuda:0
 ```
-
-### 4.2 RQ2: 時空間4-Mapマッピング
-```bash
-python v3/primary/run_rq2_spatiotemporal_maps.py \
-    --config configs/v3_experiments.yaml \
-    --models-config configs/models.yaml \
-    --device cuda
-```
-
-### 4.3 RQ3: 因果媒介解析
-```bash
-python v3/primary/run_rq3_path_mediation.py \
-    --config configs/v3_experiments.yaml \
-    --models-config configs/models.yaml \
-    --device cuda
-```
-
-### 4.4 Confirmatory 追試・反証実験
-```bash
-python v3/primary/run_confirmatory_replication.py \
-    --config configs/v3_experiments.yaml \
-    --models-config configs/models.yaml \
-    --device cuda
-```
-
----
-
-## 5. 評価指標と標準化
-
-- **相対計算深度**:
-  - 全モデル共通で $d = \frac{l}{L - 1}$（0-based）を使用。
-- **2D Joint Optimal Transport**:
-  - `affective_empathy_eval.optimal_transport` による厳密な Wasserstein $W_1$ 距離。
-- **多変量 OOD 診断**:
-  - Ledoit-Wolf 共分散推定量によるマハラノビス距離 $D_M$、PCA 再構成誤差。

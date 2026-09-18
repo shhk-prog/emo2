@@ -6,7 +6,7 @@ V3-RQ3: 刺激提示時情動表現から自己報告ロジットへの Path Med
   - 刺激データを Discovery (50%) と Confirmation (50%) に厳格分割 (Data-splitting)
   - Discovery セットで Mediator 層 (l_med*) を自動選定
   - Confirmation セットで固定した Mediator 層を 2D 部分空間除去 (P_A = Q Q^T) で遮断
-  - Total Effect (TE), Natural Direct Effect (NDE), Natural Indirect Effect (NIE), Mediation Ratio を算出
+  - [DEPRECATED] 現行 Primary は NDE/NIE を使わない。指標は Total affective shift / residual shift / mediated attenuation。
   - Bootstrap 95% 信頼区間による統計的検証
 """
 

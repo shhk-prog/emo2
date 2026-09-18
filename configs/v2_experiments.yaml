@@ -12,12 +12,12 @@ dataset:
     valence: "reader_V"
     arousal: "reader_A"
 
-# 4モデルファミリー設定
+# 4モデルファミリー設定 (正本は configs/models.yaml の primary_small)
 families:
   - "Qwen"
   - "Llama"
   - "Gemma"
-  - "Mistral"
+  - "OLMo"
 
 # プロンプト形式交絡統制
 formats:

@@ -5,9 +5,10 @@
 # Production V2 Evaluation Runner across 4 Primary Small Families
 # (Qwen 1.5B, Llama 3.2 1B, Gemma 3 1B, OLMo 2 1B: Base vs Instruct comparisons)
 # Evaluates:
-#   1. RQ1 & RQ2: Cross-decoding & Intrinsic Representation Geometry (EmoBank 1,000 full)
-#   2. RQ3: Causal Mapping & Peak Dissociation (1,000 full)
-#   3. RQ4: Distribution Recovery Patching & Optimal Transport (1,000 full)
+#   1. RQ1 & RQ2: Cross-decoding & Intrinsic Representation Geometry
+#   2. RQ3: Causal Mapping & Peak Dissociation
+#   3. RQ4: Distribution Recovery Patching & Optimal Transport
+# Dataset sizes are logged from the loaded CSVs. Wall-clock time is unmeasured.
 # ==============================================================================
 
 set -euo pipefail
@@ -40,7 +41,8 @@ echo "Device    : ${DEVICE}" | tee -a "${LOG_FILE}"
 echo "Log File  : ${LOG_FILE}" | tee -a "${LOG_FILE}"
 echo "Cohort    : primary_small (4 families: Qwen, Llama, Gemma, OLMo)" | tee -a "${LOG_FILE}"
 echo "Pipeline  : RQ1/RQ2 (Cross-decoding) -> RQ3 (Causal Map) -> RQ4 (Recovery Patching)" | tee -a "${LOG_FILE}"
-echo "Data Scale: EmoBank 1,000 full (700 train / 300 test, all layers)" | tee -a "${LOG_FILE}"
+echo "Data Scale: Full production CSVs (actual counts logged by the Python runner)" | tee -a "${LOG_FILE}"
+echo "Runtime   : unmeasured (do not use pre-benchmark hour estimates)" | tee -a "${LOG_FILE}"
 echo "==================================================================" | tee -a "${LOG_FILE}"
 
 CMD=(python -m affective_empathy_eval.run --stage v2 --model-set primary_small --device "${DEVICE}")

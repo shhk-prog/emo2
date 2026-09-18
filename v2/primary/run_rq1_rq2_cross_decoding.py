@@ -3,7 +3,7 @@
 v2/primary/run_rq1_rq2_cross_decoding.py
 
 V2-RQ1 & RQ2: Post-training による表現幾何の変化と Reader–Self 共有性の再編
-4モデルファミリー (Qwen 2.5, Llama 3.2, Gemma 2, Mistral) × 2水準 (Base, Instruct)
+4モデルファミリー (Qwen 2.5, Llama 3.2, Gemma 3, OLMo 2) × 2水準 (Base, Instruct)
 """
 
 import argparse
@@ -18,6 +18,7 @@ import torch
 import yaml
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
+from affective_empathy_eval.data import describe_loaded_frame
 from affective_empathy_eval.geometry import (
     compute_center_of_mass,
     compute_peak_depth,
@@ -29,10 +30,7 @@ from affective_empathy_eval.geometry import (
 )
 from affective_empathy_eval.models.adapters import get_model_adapter
 from affective_empathy_eval.models.hooks import ActivationHookManager, HookPoint
-from affective_empathy_eval.models.registry import get_registry
 from affective_empathy_eval.models.registry import (
-    ModelFamilyConfig,
-    ModelRegistry,
     add_model_selection_args,
     get_registry,
     resolve_models_from_args,
@@ -62,8 +60,10 @@ def parse_args():
 
 def load_dataset(csv_path: str, max_samples: int | None = None) -> pd.DataFrame:
     df = pd.read_csv(csv_path)
+    logger.info(describe_loaded_frame(df, "V2-RQ1/RQ2 dataset", csv_path))
     if max_samples is not None and len(df) > max_samples:
         df = df.iloc[:max_samples].copy()
+        logger.info(f"Applied max_samples={max_samples}: n_rows={len(df)}")
     return df
 
 

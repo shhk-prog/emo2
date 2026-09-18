@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 V2-RQ3: Post-training による因果回路の再配置とピーク解離解析
-4モデルファミリー (Qwen 2.5, Llama 3.2, Gemma 2, Mistral) × 4条件 (Base/Inst × Reader/Self)
+4モデルファミリー (Qwen 2.5, Llama 3.2, Gemma 3, OLMo 2) × 4条件 (Base/Inst × Reader/Self)
 """
 
 import argparse
@@ -28,6 +28,7 @@ from affective_empathy_eval.likelihood import (
     compute_expected_va,
     compute_sequence_likelihoods_for_candidates,
 )
+from affective_empathy_eval.data import describe_loaded_frame
 from affective_empathy_eval.models.adapters import get_model_adapter
 from affective_empathy_eval.models.hooks import ActivationHookManager, HookPoint
 from affective_empathy_eval.models.registry import (
@@ -228,8 +229,10 @@ def main():
 
     # 刺激データセット読み込み
     df = pd.read_csv(v2_config["dataset"]["path"])
+    logger.info(describe_loaded_frame(df, "V2-RQ3 dataset", v2_config["dataset"]["path"]))
     if args.max_samples is not None:
         df = df.iloc[: args.max_samples].copy()
+        logger.info(f"Applied max_samples={args.max_samples}: n_rows={len(df)}")
 
     all_causal_results = {}
     all_pair_level_records = []

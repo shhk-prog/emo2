@@ -240,6 +240,82 @@ def load_model_set(
     return families
 
 
+def _slug_model_prefix(model_id: str) -> str:
+    return model_id.split("/")[-1].lower().replace(".", "_").replace("-", "_")
+
+
+def resolve_single_model_from_args(
+    args,
+    config_path: Optional[Path] = None,
+) -> Tuple[str, str]:
+    """
+    単一モデル実行用 (V1 Primary 等) に (model_id, model_prefix) を解決する。
+
+    優先順位:
+      1. --family / --base-model / --instruct-model によるレジストリ解決
+      2. 明示的な --model-id
+
+    どちらも無い場合は例外を送出する。Qwen 等への静かな default は持たない。
+    """
+    family = getattr(args, "family", None)
+    base_override = getattr(args, "base_model", None)
+    inst_override = getattr(args, "instruct_model", None)
+    model_id = getattr(args, "model_id", None)
+    model_prefix = getattr(args, "model_prefix", None)
+    is_instruct = bool(getattr(args, "is_instruct", False))
+
+    if family or base_override or inst_override:
+        target_models = resolve_models_from_args(args, config_path=config_path)
+        if not target_models:
+            raise KeyError("No models resolved from configs/models.yaml for the given selection.")
+        if len(target_models) != 1:
+            raise ValueError(
+                "Multiple families resolved. Specify --family or --model-id to select exactly one model."
+            )
+        cfg = next(iter(target_models.values()))
+        resolved_id = cfg.instruct_model.model_id if is_instruct else cfg.base_model.model_id
+        resolved_prefix = model_prefix or f"{cfg.family_id}_{'instruct' if is_instruct else 'base'}"
+        return resolved_id, resolved_prefix
+
+    if model_id:
+        resolved_prefix = model_prefix or _slug_model_prefix(model_id)
+        return model_id, resolved_prefix
+
+    raise ValueError(
+        "Standalone execution requires --model-id or --family. "
+        "Silent default to Qwen/Qwen2.5-1.5B-Instruct is disabled; "
+        "use configs/models.yaml as the sole model source of truth."
+    )
+
+
+def resolve_instruct_target_from_args(
+    args,
+    config_path: Optional[Path] = None,
+    fallback_family: Optional[str] = None,
+) -> Tuple[str, str]:
+    """
+    (family_id, instruct_model_id) をレジストリから解決する。
+
+    family が見つからない場合はハードコード Qwen ID へ落とさず KeyError を送出する。
+    """
+    target_models = resolve_models_from_args(args, config_path)
+    family_filter = getattr(args, "family", None) or fallback_family
+    if family_filter:
+        fam_key = family_filter.lower()
+        cfg = target_models.get(fam_key)
+        if cfg is None:
+            raise KeyError(
+                f"Family '{family_filter}' not found in model-set "
+                f"'{getattr(args, 'model_set', 'primary_small')}'. "
+                f"Available: {list(target_models.keys())}"
+            )
+        return cfg.family_id, cfg.instruct_model.model_id
+    if not target_models:
+        raise KeyError("No models resolved from registry. Check --model-set and configs/models.yaml.")
+    cfg = next(iter(target_models.values()))
+    return cfg.family_id, cfg.instruct_model.model_id
+
+
 class ModelRegistry:
     def __init__(self, config_path: Optional[Path] = None, model_set: str = "primary_small"):
         if config_path is None:

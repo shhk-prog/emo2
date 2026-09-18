@@ -1,5 +1,6 @@
 import argparse
 import pytest
+import pandas as pd
 import torch
 import torch.nn as nn
 from pathlib import Path
@@ -10,7 +11,11 @@ from affective_empathy_eval.models.registry import (
     resolve_architecture_dims,
     add_model_selection_args,
     resolve_models_from_args,
+    resolve_single_model_from_args,
+    resolve_instruct_target_from_args,
 )
+from affective_empathy_eval.run import PRODUCTION_STAGE_ORDER
+from affective_empathy_eval.data import describe_loaded_frame
 from affective_empathy_eval.models.adapters import (
     get_model_adapter,
     LlamaFamilyAdapter,
@@ -103,6 +108,46 @@ def test_resolve_models_from_args():
     args_invalid = parser.parse_args(["--base-model", "custom/base"])
     with pytest.raises(ValueError, match="requires explicit --family"):
         resolve_models_from_args(args_invalid)
+
+
+def test_production_stage_order_is_behavioral_then_v1_v2_v3():
+    assert PRODUCTION_STAGE_ORDER == ("behavioral", "v1", "v2", "v3")
+
+
+def test_resolve_single_model_requires_model_id_or_family():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model-id", type=str, default=None)
+    parser.add_argument("--model-prefix", type=str, default=None)
+    parser.add_argument("--is-instruct", action="store_true")
+    add_model_selection_args(parser)
+
+    with pytest.raises(ValueError, match="requires --model-id or --family"):
+        resolve_single_model_from_args(parser.parse_args([]))
+
+    args = parser.parse_args(["--family", "llama", "--is-instruct"])
+    model_id, prefix = resolve_single_model_from_args(args)
+    assert model_id == "meta-llama/Llama-3.2-1B-Instruct"
+    assert prefix == "llama_instruct"
+
+
+def test_resolve_instruct_target_unknown_family_raises_keyerror():
+    parser = argparse.ArgumentParser()
+    add_model_selection_args(parser)
+    args = parser.parse_args(["--family", "not_a_real_family"])
+    with pytest.raises(KeyError, match="not_a_real_family"):
+        resolve_instruct_target_from_args(args)
+
+
+def test_describe_loaded_frame_reports_actual_counts():
+    df = pd.DataFrame({
+        "pair_id": [1, 1, 2, 2],
+        "stimulus_id": ["a", "b", "c", "d"],
+        "split": ["clinical", "neutral", "clinical", "neutral"],
+    })
+    text = describe_loaded_frame(df, "AIPsy", "dummy.csv")
+    assert "n_rows=4" in text
+    assert "n_unique_pair_id=2" in text
+    assert "n_unique_stimulus_id=4" in text
 
 
 def test_unknown_model_dimension_raises_error():

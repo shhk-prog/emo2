@@ -1,17 +1,10 @@
 # 外部スケール検証・アブレーション実験設定ファイル (Mistral 7B)
-# 本設定は Primary 1-1.5B コホートから完全に分離された Ablation / Supplementary 用です。
+# モデルIDの正本は configs/models.yaml の model_set: scale_validation。
+# 本ファイルはデータセット・復号・統計・出力先のみを保持する。
 
 description: "Scale validation and ablation: 7B regime (Base vs. Instruct)"
 
-model:
-  family: "mistral"
-  family_name: "Mistral"
-  scale: "7B"
-  base: "mistralai/Mistral-7B-v0.3"
-  instruct: "mistralai/Mistral-7B-Instruct-v0.3"
-  adapter: "mistral"
-  role: "scale_validation"
-  enabled: true
+model_set: scale_validation
 
 dataset:
   path: "data/processed/stimuli_matched_clean.csv"

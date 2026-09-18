@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 V2-RQ3: Post-training による因果回路の再配置とピーク解離解析
-4モデルファミリー (Qwen 2.5, Llama 3.2, Gemma 2, Mistral) × 4条件 (Base/Inst × Reader/Self)
+4モデルファミリー (Qwen 2.5, Llama 3.2, Gemma 3, OLMo 2) × 4条件 (Base/Inst × Reader/Self)
 """
 
 import argparse

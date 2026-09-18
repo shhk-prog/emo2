@@ -29,11 +29,12 @@ from affective_empathy_eval.likelihood import (
     compute_expected_va,
     compute_sequence_likelihoods_for_candidates,
 )
+from affective_empathy_eval.data import describe_loaded_frame
 from affective_empathy_eval.models.registry import (
     add_model_selection_args,
     get_registry,
     resolve_architecture_dims,
-    resolve_models_from_args,
+    resolve_instruct_target_from_args,
 )
 from affective_empathy_eval.prompts import (
     TaskType,
@@ -392,23 +393,18 @@ def main():
     derived_dir.mkdir(parents=True, exist_ok=True)
 
     df = pd.read_csv(v3_cfg["dataset"]["path"])
+    logger.info(describe_loaded_frame(df, "V3-RQ2 dataset", v3_cfg["dataset"]["path"]))
     semantic_stages = v3_cfg["spatiotemporal"]["semantic_stages"]
     alpha_sweep = v3_cfg["spatiotemporal"]["alpha_sweep"]
 
     # 命名の正規化 ("response_start" -> "candidate_start")
     normalized_stages = [s if s != "response_start" else "candidate_start" for s in semantic_stages]
 
-    target_models = resolve_models_from_args(args, Path(args.models_config))
-    if args.family and args.family.lower() in target_models:
-        fam_key = args.family.lower()
-        target_model_id = target_models[fam_key].instruct_model.model_id
-    elif list(target_models.values()):
-        fam_key = list(target_models.keys())[0]
-        target_model_id = list(target_models.values())[0].instruct_model.model_id
-    else:
-        fam_key = v3_cfg.get("target_family", "qwen").lower()
-        registered = load_model_set(Path(args.models_config), model_set=args.model_set)
-        target_model_id = registered[fam_key].instruct_model.model_id if fam_key in registered else "Qwen/Qwen2.5-1.5B-Instruct"
+    fam_key, target_model_id = resolve_instruct_target_from_args(
+        args,
+        Path(args.models_config),
+        fallback_family=v3_cfg.get("target_family"),
+    )
 
     num_layers = resolve_architecture_dims(target_model_id)[0]
 

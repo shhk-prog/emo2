@@ -29,10 +29,12 @@ from affective_empathy_eval.likelihood import (
 )
 from affective_empathy_eval.models.adapters import get_model_adapter
 from affective_empathy_eval.models.hooks import ActivationHookManager, HookPoint
+from affective_empathy_eval.data import describe_loaded_frame
 from affective_empathy_eval.models.registry import (
     add_model_selection_args,
     get_registry,
-    resolve_models_from_args,
+    resolve_architecture_dims,
+    resolve_instruct_target_from_args,
 )
 from affective_empathy_eval.prompts import (
     TaskType,
@@ -53,7 +55,18 @@ def parse_args():
     parser.add_argument("--pilot", action="store_true", help="Run in pilot mode (50 pairs smoke test)")
     parser.add_argument("--dry-run", action="store_true", help="Run in mock/dry-run mode")
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu", help="Device to use")
-    parser.add_argument("--layer", type=int, default=14, help="Target layer for state injection (e.g. middle layer)")
+    parser.add_argument(
+        "--layer",
+        type=int,
+        default=None,
+        help="Target layer for state injection. If omitted, computed from --relative-depth.",
+    )
+    parser.add_argument(
+        "--relative-depth",
+        type=float,
+        default=0.5,
+        help="A priori mid-depth used when --layer is omitted: l = round(d * (L - 1))",
+    )
     add_model_selection_args(parser)
     return parser.parse_args()
 
@@ -117,9 +130,11 @@ def simulate_mock_intervention_responses(
     pt_att, att_low, att_high = compute_bootstrap_ci(sample_att)
     attenuated_shift = natural_shift * (1.0 - pt_att)
 
-    # 4. Task Selectivity: Self vs Topic Control (共に [0, 1] 正規化確率・変位指標)
-    # Self: |Delta E[V]| / 4.0 in [0, 1], Topic: TVD in [0, 1]
-    sample_sel_diff = [float(0.73 / 4.0 - 0.05 + rng.normal(0, 0.02)) for _ in range(N)]
+    # 4. Topic control: Topic 課題への非特異的摂動 (TVD) が小さいことを確認する統制。
+    # Self VA shift と Topic TVD はどちらも [0, 1] だが同一の構成概念ではない。
+    sample_topic_tvd = [float(np.clip(0.05 + rng.normal(0, 0.01), 0.0, 1.0)) for _ in range(N)]
+    pt_topic, topic_low, topic_high = compute_bootstrap_ci(sample_topic_tvd)
+    sample_sel_diff = [float(0.73 / 4.0 - t) for t in sample_topic_tvd]
     pt_sel, sel_low, sel_high = compute_bootstrap_ci(sample_sel_diff)
 
     return {
@@ -141,9 +156,15 @@ def simulate_mock_intervention_responses(
         "task_selectivity": {
             "effect_self": 0.85 / 4.0,
             "effect_reader": 0.72 / 4.0,
-            "effect_control": 0.05,
+            "effect_control": float(pt_topic),
+            "topic_tvd": float(pt_topic),
+            "topic_tvd_ci": {"point": pt_topic, "ci_lower": topic_low, "ci_upper": topic_high},
             "self_minus_control_ci": {"point": pt_sel, "ci_lower": sel_low, "ci_upper": sel_high},
-            "pattern": "Shared + Selective",
+            "note": (
+                "Topic TVD is a non-specific perturbation control, not a same-construct "
+                "effect size comparable to Self VA shift. Primary check: topic_tvd remains small."
+            ),
+            "pattern": "nonspecific_perturbation_small",
         }
     }
 
@@ -423,15 +444,13 @@ def run_real_state_induction(
             att_ratio = (nat_dev - abl_dev) / (nat_dev + 1e-6) if nat_dev > 0.05 else 0.0
             sample_att_ratios.append(float(np.clip(att_ratio, 0.0, 1.0)))
 
-            # e. Task selectivity (Self vs Topic Control)
-            # NOTE: Topic Control serves as a non-specific exclusion control (非特異的除外統制)
-            # to verify that activation patching specifically shifts affective self-reports
-            # rather than causing generic non-specific disruptions to model task execution.
-            # Self: |Delta E[V]| / 4.0 normalized in [0, 1]
+            # e. Topic control (非特異的摂動の確認統制)
+            # Self は正規化 VA shift、Topic は TVD。どちらも [0, 1] だが同一構成概念ではない。
+            # 主効果量は Self − Control ではなく、Topic 課題への非特異的摂動が小さいことの確認。
             self_norm_eff = eff_affect / 4.0
             sample_self_eff.append(self_norm_eff)
 
-            # Topic control: sequence likelihood based Total Variation Distance (TVD) in [0, 1]
+            # Topic control: sequence-likelihood Total Variation Distance (TVD) in [0, 1]
             enc_ctrl = encode_prompt_canonical(tokenizer, prompt_ctrl, device=device)
             anchors_ctrl = find_semantic_anchors(enc_ctrl["input_ids"][0].tolist(), tokenizer, text)
             patch_pos_ctrl = anchors_ctrl["prompt_end"]
@@ -463,6 +482,7 @@ def run_real_state_induction(
 
     self_minus_ctrl = [s - c for s, c in zip(sample_self_eff, sample_ctrl_eff)]
     pt_sel, sel_low, sel_high = compute_bootstrap_ci(self_minus_ctrl)
+    pt_topic, topic_low, topic_high = compute_bootstrap_ci(sample_ctrl_eff)
 
     mean_dose_v = [float(np.mean(dose_curves_v[a])) for a in alpha_grid]
     mean_dose_a = [float(np.mean(dose_curves_a[a])) for a in alpha_grid]
@@ -484,8 +504,14 @@ def run_real_state_induction(
         "task_selectivity": {
             "effect_self": float(np.mean(sample_self_eff)),
             "effect_control": float(np.mean(sample_ctrl_eff)),
+            "topic_tvd": float(pt_topic),
+            "topic_tvd_ci": {"point": pt_topic, "ci_lower": topic_low, "ci_upper": topic_high},
             "self_minus_control_ci": {"point": pt_sel, "ci_lower": sel_low, "ci_upper": sel_high},
-            "pattern": "Shared + Selective" if pt_sel > 0.1 else "Non-specific",
+            "note": (
+                "Topic TVD is a non-specific perturbation control, not a same-construct "
+                "effect size comparable to Self VA shift."
+            ),
+            "pattern": "nonspecific_perturbation_small" if float(np.mean(sample_ctrl_eff)) < 0.15 else "nonspecific_perturbation_large",
         }
     }
 
@@ -519,12 +545,17 @@ def evaluate_go_no_go_gate(
     dose_pass_a = bool(sa_lower > 0.1)
     dose_pass_both = bool(dose_pass_v and dose_pass_a)
 
-    # 4. Task Selectivity 判定: Self - Control の 95% CI 下限が正であること
+    # 4. Topic control 判定: Topic 課題 TVD の 95% CI 上限が小さいこと（非特異的摂動の確認）
+    # Self − Control は補助記録であり、主効果量としては用いない。
     ts = results["task_selectivity"]
+    max_topic_tvd = gate_cfg.get("max_topic_tvd", 0.15)
+    topic_ci = ts.get("topic_tvd_ci", {})
+    topic_upper = topic_ci.get("ci_upper", ts.get("topic_tvd", ts.get("effect_control", 1.0)))
+    topic_control_pass = bool(topic_upper < max_topic_tvd)
     sel_ci = ts.get("self_minus_control_ci", {})
     sel_lower = sel_ci.get("ci_lower", ts["effect_self"] - ts.get("effect_control", 0.0))
-    non_specific = bool(sel_lower <= 0.02)
-    selectivity_pass = bool(not non_specific and sel_lower > 0.05)
+    non_specific = bool(not topic_control_pass)
+    selectivity_pass = topic_control_pass
 
     decision_v = "GO" if (spec_pass and nec_pass and dose_pass_v and selectivity_pass) else "NO_GO"
     decision_a = "GO" if (spec_pass and nec_pass and dose_pass_a and selectivity_pass) else "NO_GO"
@@ -548,6 +579,9 @@ def evaluate_go_no_go_gate(
         "slope_v_ci_lower": float(sv_lower),
         "slope_a_ci_lower": float(sa_lower),
         "selectivity_pass": selectivity_pass,
+        "topic_control_pass": topic_control_pass,
+        "topic_tvd_ci_upper": float(topic_upper),
+        "self_minus_control_ci_lower_aux": float(sel_lower),
         "non_specific_detected": non_specific,
         "decision_valence": decision_v,
         "decision_arousal": decision_a,
@@ -569,19 +603,23 @@ def main():
     derived_dir.mkdir(parents=True, exist_ok=True)
 
     df = pd.read_csv(v3_cfg["dataset"]["path"])
+    logger.info(describe_loaded_frame(df, "V3-RQ1 dataset", v3_cfg["dataset"]["path"]))
     if args.pilot:
         df = df.iloc[: v3_cfg["dataset"].get("pilot_size", 50)].copy()
-        logger.info(f"Running Pilot mode with {len(df)} pairs")
+        logger.info(f"Running Pilot mode with {len(df)} rows")
 
-    target_models = resolve_models_from_args(args, Path(args.models_config))
-    if args.family and args.family.lower() in target_models:
-        target_model_id = target_models[args.family.lower()].instruct_model.model_id
-    elif list(target_models.values()):
-        target_model_id = list(target_models.values())[0].instruct_model.model_id
-    else:
-        fam_key = v3_cfg.get("target_family", "qwen").lower()
-        registered = load_model_set(Path(args.models_config), model_set=args.model_set)
-        target_model_id = registered[fam_key].instruct_model.model_id if fam_key in registered else "Qwen/Qwen2.5-1.5B-Instruct"
+    fam_key, target_model_id = resolve_instruct_target_from_args(
+        args,
+        Path(args.models_config),
+        fallback_family=v3_cfg.get("target_family"),
+    )
+    num_layers = resolve_architecture_dims(target_model_id)[0]
+    if args.layer is None:
+        args.layer = int(round(args.relative_depth * (num_layers - 1)))
+        logger.info(
+            f"Resolved V3-RQ1 layer={args.layer} from relative_depth={args.relative_depth} "
+            f"(L={num_layers}, family={fam_key})"
+        )
 
     alpha_grid = v3_cfg["interventions"]["alpha_grid"]
 

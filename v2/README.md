@@ -1,101 +1,192 @@
-# V2 Stage: Mechanistic Reorganization (Post-training Analysis: Base vs. Instruct)
+# V2 Stage: 事後学習による幾何・因果の再編
 
-本ディレクトリ (`v2/`) は、事前学習モデル（Base）から指示チューニングモデル（Instruct）への事後学習（Post-training）を通じて、大規模言語モデル（LLM）内部の情動表現幾何（Representational Geometry）と因果回路（Causal Circuits）がどのように再編されるかを解明するための実験スイートです。
+V2 は、**同一ファミリーの Base と Instruct** を対にして、情動情報の表現幾何と因果回路が事後学習（instruction tuning）でどう再編されるかを測る。
 
-4大モデルファミリー（Qwen 2.5 1.5B, Llama 3.2 1B, Gemma 3 1B, OLMo 2 1B: Primary 1–1.5B コホート）および外部スケール検証（Mistral 7B v0.3）× 2水準（Base, Instruct）を対象とし、他者感情認識（Reader）と自己報告（Self）の共有性および介入可能性を包括的に比較・検証します。
+比較軸は Base ↔ Instruct である。Reader ↔ Self の同一モデル内比較は V1 の軸であり、混ぜない。
 
----
-
-## 1. 4大リサーチクエスチョン (RQ1〜RQ4)
-
-一本化した現在の V2 実験パイプラインは、以下の 4 つの核心的リサーチクエスチョンを中心に設計されています：
-
-1. **V2-RQ1: Post-training による表現幾何の変容**
-   - 事後学習によって、情動情報（Valence / Arousal）のデコード可能層や内部幾何構造（Procrustes 歪み、RSA相関）はどう再編されるか？
-2. **V2-RQ2: Reader–Self 共有性の幾何学的再編**
-   - 他者感情認識（Reader）と自己報告（Self）の表現空間は共有されているか？ 事後学習によってその共有度（Held-out Cross-decoding, $\Delta \text{Sharing}$）はどう変化するか？
-3. **V2-RQ3: 因果回路の再配置とピーク解離**
-   - 表現のデコードピーク（Decodability Peak）と、出力変位を引き起こす因果ピーク（Causal Peak）の間に層解離（Dissociation）が存在するか？
-4. **V2-RQ4: 因果的復元（Distribution Recovery Patching）**
-   - 中立文脈において感情活性化を注入することで、自然な情動刺激提示時と同等の自己報告分布を真に復元できるか？（Wasserstein / EMD 距離に基づく回復率）
+測定対象は自己報告・認識の出力変位と、その内部表現 / 介入応答である。「Instruct 化で共感が生まれた」とは書かない。
 
 ---
 
-## 2. Primary 実験スイート (`v2/primary/`)
+## 1. 位置づけ
 
-本リポジトリの正式な正本実装は `v2/primary/` 配下に集約されています：
-
-- **`v2/primary/run_rq1_rq2_cross_decoding.py`**:
-  - V2-RQ1 & RQ2: 表現幾何・交差デコード解析（Held-out Cross-decoding, RSA, Procrustes Alignment, $\Delta \text{Sharing}$）
-- **`v2/primary/run_rq3_causal_map.py`**:
-  - V2-RQ3: 因果回路再配置・ピーク解離解析（Interchangeability, Reader $\rightarrow$ Self パッチング）
-- **`v2/primary/run_rq4_recovery_patching.py`**:
-  - V2-RQ4: 分布復元パッチング（EMD / Wasserstein 距離による分布回復度評価）
-- **`v2/primary/run_confirmatory_analysis.py`**:
-  - 確証的仮説検証（線形混合効果モデル LMM, FDR 多重比較補正）
-
----
-
-## 3. 実行方法 (Quick Start)
-
-### 3.1 統合ランナーによる一括実行（推奨）
-```bash
-# Primary 1-1.5B コホートの全 RQ1〜RQ4 を一括実行
-python -m affective_empathy_eval.run --stage v2 --model-set primary_small --device cuda
-
-# Supplementary 7B 外部スケール検証 (Mistral 7B)
-python -m affective_empathy_eval.run --stage v2 --model-set scale_validation --device cuda
+```text
+Behavioral  →  V1  →  V2  →  V3
 ```
 
-### 3.2 個別スクリプト実行（特定ファミリーのみ）
+V1 が「1 モデル内で Reader と Self は共有か」を問うのに対し、V2 は「事後学習でその幾何と因果ピークはどう動くか」を問う。V3 は Instruct 側の状態誘導と時空間経路に進む。
+
+---
+
+## 2. 対象モデル
+
+正本は `configs/models.yaml`。
+
+**Primary `primary_small`**（サイズ帯を 1–1.5B に揃えてサイズ交絡を抑える）:
+
+| Family | Base | Instruct |
+|---|---|---|
+| Qwen 2.5 | `Qwen/Qwen2.5-1.5B` | `Qwen/Qwen2.5-1.5B-Instruct` |
+| Llama 3.2 | `meta-llama/Llama-3.2-1B` | `meta-llama/Llama-3.2-1B-Instruct` |
+| Gemma 3 | `google/gemma-3-1b-pt` | `google/gemma-3-1b-it` |
+| OLMo 2 | `allenai/OLMo-2-0425-1B` | `allenai/OLMo-2-0425-1B-Instruct` |
+
+**Supplementary `scale_validation`**: Mistral 7B v0.3 Base / Instruct。Primary コホートには入れない。`configs/scale_validation.yaml` は `model_set: scale_validation` のみを持ち、ID は重複定義しない。
+
+旧稿の Gemma 2 / Primary Mistral は現行コホートではない。
+
+---
+
+## 3. 4つの RQ
+
+正本実装は `v2/primary/`。設定は `configs/v2_experiments.yaml`。
+
+### 3.1 RQ1: 表現幾何の変容
+
+事後学習で Valence / Arousal の decodability 曲線、ピーク相対深度、ノルム、RSA、Procrustes 歪みはどう変わるか。
+
+- ラベルは外部人間評定（既定: `reader_V`, `reader_A`）
+- 層ごとに held-out Ridge。相対深度 $d=l/(L-1)$
+- Base と Instruct を対にして $\Delta$ を取る
+
+### 3.2 RQ2: Reader–Self 共有性の再編
+
+Reader と Self の共有度は、事後学習で上がるか下がるか。
+
+- Held-out cross-decoding
+- RSA
+- Procrustes alignment 後の転移
+- $\Delta \mathrm{Sharing}$（Instruct − Base）
+
+train/test は `pair_id` があるとき Group split する。同一ヴィネットが両側に入らないようにする。
+
+### 3.3 RQ3: 因果回路の再配置とピーク解離
+
+Decodability peak $d_D$ と causal peak $d_C$ は同じ層か。
+
+$$
+\Delta d_{\mathrm{peak}} = d_C - d_D
+$$
+
+因果力 $C(l)$ は実介入（活性化の差し替え / 差分注入）で測る。プローブ係数の大きさで代用しない。
+
+条件は Family × (Base, Instruct) × (Reader, Self)。matched-plain 形式も走らせ、chat template だけの見かけの差かを見る。
+
+### 3.4 RQ4: Distribution Recovery Patching
+
+中立文脈に感情活性化を入れたとき、情動刺激提示時の自己報告分布に近づくか。
+
+$9\times 9$ の結合分布間 Wasserstein $W_1$（EMD）を使う。
+
+$$
+\mathrm{Recovery} = \frac{W_1(P_{\mathrm{clean}}, P_{\mathrm{target}}) - W_1(P_{\mathrm{patch}}, P_{\mathrm{target}})}{W_1(P_{\mathrm{clean}}, P_{\mathrm{target}})}
+$$
+
+- `clean`: 中立 + 介入なし
+- `target`: 情動刺激の自然な自己報告分布
+- `patch`: 中立 + 介入
+
+周辺 1D の一致だけでは「分布が復元した」と書かない。2D joint OT を主指標にする。
+
+---
+
+## 4. 共通設計
+
+- Prompt-end normalized（トークン境界のずれを防ぐ）
+- 相対深度でファミリー横断
+- 形式統制: `native`（Instruct は chat）と `matched_plain`（両方 plain）
+- Bootstrap 95% CI（既定 $n=1000$）
+- 対比較は family 内 Base vs Instruct（paired）
+- 確証的統合: `v2/primary/run_confirmatory_analysis.py`（LMM, FDR）
+- データ既定: `v1/data/processed/stimuli_vad_3way_test1k.csv`。件数はロード時にログする。固定の「1,000 件」は書かない。
+
+---
+
+## 5. ディレクトリ
+
+```text
+v2/
+├── README.md
+├── primary/                         # 正本
+│   ├── README.md
+│   ├── run_rq1_rq2_cross_decoding.py
+│   ├── run_rq3_causal_map.py
+│   ├── run_rq4_recovery_patching.py
+│   └── run_confirmatory_analysis.py
+├── scripts/                         # 旧抽出・探索。主解析に使わない
+├── scripts/legacy/
+└── results/
+    ├── raw/                         # v2_geometry_{family}.json 等
+    └── derived/                     # 横断 summary, LMM
+```
+
+---
+
+## 6. 実行方法
+
+所要時間は未計測。stage 分割を推奨する。
+
+```bash
+bash scripts/run_production_v2.sh cuda:0
+```
+
+統合 CLI:
+
+```bash
+python -m affective_empathy_eval.run --stage v2 --model-set primary_small --device cuda:0
+```
+
+Scale validation（Mistral 7B、Primary と分離）:
+
+```bash
+python -m affective_empathy_eval.run --stage scale_validation --device cuda:0
+```
+
+1 family:
+
 ```bash
 python v2/primary/run_rq1_rq2_cross_decoding.py \
     --config configs/v2_experiments.yaml \
     --models-config configs/models.yaml \
-    --family qwen \
-    --device cuda
-```
+    --family qwen --device cuda:0
 
-### 3.2 RQ3: 因果マッピングとピーク解離
-```bash
 python v2/primary/run_rq3_causal_map.py \
     --config configs/v2_experiments.yaml \
     --models-config configs/models.yaml \
-    --family Qwen \
-    --device cuda
-```
+    --family qwen --device cuda:0
 
-### 3.3 RQ4: 因果的復元パッチング
-```bash
 python v2/primary/run_rq4_recovery_patching.py \
     --config configs/v2_experiments.yaml \
     --models-config configs/models.yaml \
-    --family Qwen \
-    --device cuda
+    --family qwen --device cuda:0
 ```
 
-### 3.4 Dry-run（軽量シミュレーション検証）
+確認:
+
 ```bash
-python v2/primary/run_rq1_rq2_cross_decoding.py --dry-run
-python v2/primary/run_rq3_causal_map.py --dry-run
-python v2/primary/run_rq4_recovery_patching.py --dry-run
+python v2/primary/run_rq1_rq2_cross_decoding.py --dry-run --family qwen
 ```
 
----
-
-## 4. 出力成果物構造 (`v2/results/`)
-
-- **`v2/results/raw/`**:
-  - `v2_geometry_{family}.json`: 各モデルファミリーの幾何・クロスデコード生データ
-  - `v2_causal_{family}.json`: 因果マッピング生データ
-  - `v2_recovery_{family}.json`: 分布復元パッチング生データ
-- **`v2/results/derived/`**:
-  - `v2_cross_family_summary.json`: 4ファミリー統合の Bootstrap 95% CI および Paired 比較サマリー
-  - `v2_lmm_confirmatory.json`: 確証的 LMM 解析結果
+`--max-samples` は確認用。本番では付けない。
 
 ---
 
-## 5. Legacy / Exploratory Experiments (`v2/scripts/`)
+## 7. 出力
 
-以前の探索的実験（コンポーネント別アブレーション、経路分析、旧プロトタイプスクリプト）は `v2/scripts/` に保持されています。
-これらは後方互換性および追加の感度分析用途であり、主論文の検証には上記の Primary スイートを使用してください。
+| ファイル | 内容 |
+|---|---|
+| `v2/results/raw/v2_geometry_{family}.json` | RQ1/RQ2 層別 $R^2$, RSA, Procrustes, sharing |
+| `v2/results/raw/v2_causal_map_{family}.json` | RQ3 の $D(l)$, $C(l)$, ピーク相対深度 |
+| `v2/results/raw/v2_recovery_{family}.json` | RQ4 の $W_1$ と recovery |
+| `v2/results/derived/v2_cross_family_summary.json` | 対比較と CI |
+| `v2/results/derived/v2_lmm_confirmatory.json` | 確証的 LMM（実行した場合） |
+
+---
+
+## 8. 解釈
+
+- Instruct で decodability が上がっても「感情理解が獲得された」と書かない
+- $d_C > d_D$ は層解離の記述であり、意識や主観の証拠ではない
+- Recovery が高くても「内部に感情がある」ではなく「分布が介入で近づいた」
+- matched-plain で差が消えるなら、template 交絡を先に疑う
+- Primary 4 family と Mistral 7B を同じ主表に混ぜない

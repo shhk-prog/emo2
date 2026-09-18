@@ -36,6 +36,7 @@ semantic_generation_stages:
 gate_criteria:
   min_specificity_diff: 0.05
   min_necessity_attenuation: 0.05
+  max_topic_tvd: 0.15
   bootstrap_n: 1000
   ci_level: 0.95
 

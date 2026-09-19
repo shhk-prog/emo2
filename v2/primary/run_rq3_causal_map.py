@@ -33,7 +33,12 @@ from affective_empathy_eval.likelihood import (
     compute_sequence_likelihoods_for_candidates,
 )
 from affective_empathy_eval.data import describe_loaded_frame
-from affective_empathy_eval.manifests import create_run_manifest, is_manifest_matching
+from affective_empathy_eval.manifests import (
+    create_run_manifest,
+    is_manifest_matching,
+    compute_string_or_dict_hash,
+    DEFAULT_CODE_VERSION,
+)
 from affective_empathy_eval.models.adapters import get_model_adapter
 from affective_empathy_eval.models.hooks import ActivationHookManager, HookPoint
 from affective_empathy_eval.models.registry import (
@@ -430,14 +435,32 @@ def main():
         manifest_path = raw_dir / f"manifest_causal_map_{fam_id}.json"
         fam_pair_path = pair_dir / f"v2_causal_pair_level_{fam_id}.csv"
 
+        manifest_config = {
+            "v2_config": v2_config,
+            "family_id": fam_id,
+            "family_name": fam_cfg.family_name,
+            "model_set": args.model_set,
+            "max_samples": args.max_samples,
+            "dry_run": bool(args.dry_run),
+            "base_model_id": fam_cfg.base_model.model_id,
+            "instruct_model_id": fam_cfg.instruct_model.model_id,
+            "dataset_path": str(v2_config["dataset"]["path"]),
+            "seed": v2_config.get("seed", 42),
+        }
+
         if out_path.exists() and not args.dry_run:
             try:
                 with open(out_path, "r", encoding="utf-8") as f:
                     cached = json.load(f)
                 if cached and "causal_maps" in cached:
+                    expected_config_hash = compute_string_or_dict_hash(manifest_config)
+                    expected_dataset_hash = compute_string_or_dict_hash(str(v2_config["dataset"]["path"]))
                     if not cached.get("dry_run", False) and is_manifest_matching(
                         str(manifest_path),
                         expected_model_name=fam_cfg.family_name,
+                        expected_config_hash=expected_config_hash,
+                        expected_dataset_hash=expected_dataset_hash,
+                        expected_code_version=DEFAULT_CODE_VERSION,
                         expected_dry_run=False,
                     ):
                         if fam_pair_path.exists():
@@ -503,11 +526,12 @@ def main():
                 }
                 fam_causal[cond_key] = causal_entry
 
-                # 後方互換性エイリアス
+                # 後方互換性エイリアス (matched と native を厳密に分離)
                 if format_cond == "plain" and align_prefix == "base":
                     fam_causal[f"base_{task_str}"] = causal_entry
                 elif format_cond == "native_chat" and align_prefix == "inst":
-                    fam_causal[f"inst_{task_str}"] = causal_entry
+                    fam_causal[f"inst_native_{task_str}"] = causal_entry
+                    fam_causal[f"deprecated_inst_{task_str}_native_alias"] = causal_entry
                 elif format_cond == "matched_plain" and align_prefix == "inst":
                     fam_causal[f"inst_matched_{task_str}"] = causal_entry
 
@@ -551,8 +575,8 @@ def main():
                     ("base_self", "base_r2_self", "base_self"),
                     ("inst_matched_reader", "inst_matched_r2_reader", "inst_matched_reader"),
                     ("inst_matched_self", "inst_matched_r2_self", "inst_matched_self"),
-                    ("inst_native_reader", "inst_native_r2_reader", "inst_reader"),
-                    ("inst_native_self", "inst_native_r2_self", "inst_self"),
+                    ("inst_native_reader", "inst_native_r2_reader", "inst_native_reader"),
+                    ("inst_native_self", "inst_native_r2_self", "inst_native_self"),
                 ]
                 for cond_name, d_key, c_key in conditions_map:
                     if d_key in axis_sharing and c_key in fam_causal:
@@ -591,7 +615,9 @@ def main():
                         "diff_of_diffs_peak": float((delta_d_is - delta_d_bs) - (delta_d_ir - delta_d_br)),
                         "diff_of_diffs_com": float((delta_bar_is - delta_bar_bs) - (delta_bar_ir - delta_bar_br)),
                     }
-                    dissoc_results[axis]["post_training_comparison"] = dissoc_results[axis]["post_training_comparison_matched"]
+                    dissoc_results[axis]["post_training_comparison"] = {
+                        "deprecated_alias_of": "post_training_comparison_matched"
+                    }
                     logger.info(
                         f"Matched dissociation changes ({fam_id} {axis}): Self Delta d* shift={delta_d_is - delta_d_bs:.3f}, Reader Delta d* shift={delta_d_ir - delta_d_br:.3f}"
                     )
@@ -638,9 +664,9 @@ def main():
                 "base_self_c_v_com": compute_center_of_mass(fam_causal["base_self"]["c_v"], depths),
                 "inst_matched_self_c_v_com": compute_center_of_mass(fam_causal["inst_matched_self"]["c_v"], depths),
                 # Secondary: native-chat
-                "inst_native_reader_c_v_peak": compute_peak_depth(fam_causal["inst_reader"]["c_v"], depths),
-                "inst_native_self_c_v_peak": compute_peak_depth(fam_causal["inst_self"]["c_v"], depths),
-                "inst_native_self_c_v_com": compute_center_of_mass(fam_causal["inst_self"]["c_v"], depths),
+                "inst_native_reader_c_v_peak": compute_peak_depth(fam_causal["inst_native_reader"]["c_v"], depths),
+                "inst_native_self_c_v_peak": compute_peak_depth(fam_causal["inst_native_self"]["c_v"], depths),
+                "inst_native_self_c_v_com": compute_center_of_mass(fam_causal["inst_native_self"]["c_v"], depths),
             },
         }
         fam_output["dry_run"] = bool(args.dry_run)
@@ -660,20 +686,12 @@ def main():
             logger.info(f"Saved family pair-level records ({len(fam_pair_df)} rows) to {fam_pair_path}")
 
         # Manifest 保存
-        manifest_config = {
-            "family_id": fam_id,
-            "model_set": args.model_set,
-            "max_samples": args.max_samples,
-            "dry_run": bool(args.dry_run),
-            "base_model_id": fam_cfg.base_model.model_id,
-            "instruct_model_id": fam_cfg.instruct_model.model_id,
-        }
         manifest = create_run_manifest(
             run_type="v2_causal_map",
             model_name=fam_cfg.family_name,
             config=manifest_config,
             metadata={"num_layers": eff_num_layers},
-            dataset_path=v2_config["dataset"]["path"],
+            dataset_path=str(v2_config["dataset"]["path"]),
             dry_run=bool(args.dry_run),
         )
         manifest.save(str(raw_dir / f"manifest_causal_map_{fam_id}.json"))

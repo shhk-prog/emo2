@@ -35,7 +35,12 @@ from affective_empathy_eval.likelihood import (
     compute_expected_va,
     compute_sequence_likelihoods_for_candidates,
 )
-from affective_empathy_eval.manifests import create_run_manifest, is_manifest_matching
+from affective_empathy_eval.manifests import (
+    create_run_manifest,
+    is_manifest_matching,
+    compute_string_or_dict_hash,
+    DEFAULT_CODE_VERSION,
+)
 from affective_empathy_eval.models.adapters import get_model_adapter
 from affective_empathy_eval.data import (
     describe_loaded_frame,
@@ -120,18 +125,43 @@ def simulate_path_mediation_confirmation(
     atten_samples_v = te_samples_v - residual_samples_v
     atten_samples_a = te_samples_a - residual_samples_a
 
-    ratio_samples_v = atten_samples_v / np.clip(te_samples_v, 1e-5, None)
-    ratio_samples_a = atten_samples_a / np.clip(te_samples_a, 1e-5, None)
+    MIN_NATURAL_SHIFT = 0.05
+    valid_v = te_samples_v > MIN_NATURAL_SHIFT
+    valid_a = te_samples_a > MIN_NATURAL_SHIFT
+
+    n_valid_v = int(np.sum(valid_v))
+    n_valid_a = int(np.sum(valid_a))
+
+    ratio_samples_v = (
+        atten_samples_v[valid_v] / te_samples_v[valid_v]
+        if n_valid_v > 0
+        else np.array([], dtype=float)
+    )
+    ratio_samples_a = (
+        atten_samples_a[valid_a] / te_samples_a[valid_a]
+        if n_valid_a > 0
+        else np.array([], dtype=float)
+    )
 
     te_v_mean, te_v_low, te_v_high = compute_bootstrap_ci(te_samples_v, n_boot=bootstrap_n)
     res_v_mean, res_v_low, res_v_high = compute_bootstrap_ci(residual_samples_v, n_boot=bootstrap_n)
     atten_v_mean, atten_v_low, atten_v_high = compute_bootstrap_ci(atten_samples_v, n_boot=bootstrap_n)
-    ratio_v_mean, ratio_v_low, ratio_v_high = compute_bootstrap_ci(ratio_samples_v, n_boot=bootstrap_n)
+    if n_valid_v >= 2:
+        ratio_v_mean, ratio_v_low, ratio_v_high = compute_bootstrap_ci(ratio_samples_v, n_boot=bootstrap_n)
+    elif n_valid_v == 1:
+        ratio_v_mean, ratio_v_low, ratio_v_high = float(ratio_samples_v[0]), float(ratio_samples_v[0]), float(ratio_samples_v[0])
+    else:
+        ratio_v_mean, ratio_v_low, ratio_v_high = np.nan, np.nan, np.nan
 
     te_a_mean, te_a_low, te_a_high = compute_bootstrap_ci(te_samples_a, n_boot=bootstrap_n)
     res_a_mean, res_a_low, res_a_high = compute_bootstrap_ci(residual_samples_a, n_boot=bootstrap_n)
     atten_a_mean, atten_a_low, atten_a_high = compute_bootstrap_ci(atten_samples_a, n_boot=bootstrap_n)
-    ratio_a_mean, ratio_a_low, ratio_a_high = compute_bootstrap_ci(ratio_samples_a, n_boot=bootstrap_n)
+    if n_valid_a >= 2:
+        ratio_a_mean, ratio_a_low, ratio_a_high = compute_bootstrap_ci(ratio_samples_a, n_boot=bootstrap_n)
+    elif n_valid_a == 1:
+        ratio_a_mean, ratio_a_low, ratio_a_high = float(ratio_samples_a[0]), float(ratio_samples_a[0]), float(ratio_samples_a[0])
+    else:
+        ratio_a_mean, ratio_a_low, ratio_a_high = np.nan, np.nan, np.nan
 
     med_depth = float(mediator_layer / (num_layers - 1)) if num_layers > 1 else 0.68
 
@@ -603,15 +633,30 @@ def main():
     out_raw = raw_dir / f"v3_path_mediation_{fam_key}.json"
     manifest_path = raw_dir / f"manifest_rq3_{fam_key}.json"
 
+    manifest_config = {
+        "analysis_role": "discovery_mediation",
+        "family": fam_key,
+        "model_id": target_model_id,
+        "dataset_path": str(v3_cfg["dataset"]["path"]),
+        "subsample": args.subsample,
+        "bootstrap_n": bootstrap_n,
+        "seed": v3_cfg.get("seed", 42),
+        "dry_run": bool(args.dry_run),
+    }
+
     if out_raw.exists() and not args.dry_run:
         try:
             with open(out_raw, "r", encoding="utf-8") as f:
                 cached = json.load(f)
             if cached and "confirmation" in cached:
+                expected_config_hash = compute_string_or_dict_hash(manifest_config)
+                expected_dataset_hash = compute_string_or_dict_hash(str(v3_cfg["dataset"]["path"]))
                 if not cached.get("dry_run", False) and is_manifest_matching(
                     str(manifest_path),
                     expected_model_name=target_model_id,
-                    expected_intervention_version="v3_additive_injection_v2",
+                    expected_config_hash=expected_config_hash,
+                    expected_dataset_hash=expected_dataset_hash,
+                    expected_code_version=DEFAULT_CODE_VERSION,
                     expected_dry_run=False,
                 ):
                     logger.info(f"Loaded existing results from {out_raw}. Skipping computation.")
@@ -663,15 +708,7 @@ def main():
         manifest = create_run_manifest(
             run_type="v3_rq3_path_mediation",
             model_name=target_model_id,
-            config={
-                "family": fam_key,
-                "model_id": target_model_id,
-                "dataset_path": str(v3_cfg["dataset"]["path"]),
-                "subsample": args.subsample,
-                "bootstrap_n": bootstrap_n,
-                "seed": v3_cfg.get("seed", 42),
-                "dry_run": bool(args.dry_run),
-            },
+            config=manifest_config,
             metadata={
                 "n_dataset_total": int(len(df)),
                 "n_intervention_samples": n_intervention_manifest,

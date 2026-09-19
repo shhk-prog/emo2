@@ -80,9 +80,16 @@ confirmatory_families:
   - "olmo"
 
 confirmatory:
+  # Frozen before confirmatory-family evaluation.
+  # Values must not be re-selected using Llama/Gemma/OLMo outcomes.
+  selection_source: "qwen_discovery_frozen"
   sufficiency_relative_depth: 0.5
   temporal_relative_depth: 0.65
   mediation_relative_depth: 0.65
+  qc:
+    min_sufficiency_slope: 0.1
+    min_mediated_attenuation_ci_lower: 0.0
+    min_temporal_contrast: 0.0
 
 # 出力設定
 output:

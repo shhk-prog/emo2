@@ -43,8 +43,8 @@ Covariation  →  Representation & Overlap  →  Reorganization  →  Causal Lev
 - **V2** (`v2/`): 幾何再編、ピーク解離、2D OT 分布回復（RQ1〜RQ4。直交 Procrustes アラインメント統制）。各モデル内部の活性化操作（RQ3/RQ4）は**モデル内因果介入（within-model causal characterization）**として同定し、Base と Instruct のモデル間比較は**事後学習に伴う再編（post-training-associated reorganization）**として観察的に帰属（訓練過程そのものへの直接的因果介入ではないため過大主張を避ける）。[`v2/README.md`](v2/README.md)
 - **V3** (`v3/`): AIPsy matched-neutral 192 pair での状態誘導ゲート、時空間 4-Map、mediated attenuation、確証的再現。
   - **Direction Injection**: 中立文への方向加算注入（$h + \alpha \sigma_h \hat{d}$）による十分性と因果的影響力（*sufficiency / causal leverage*）
-  - **Subspace Removal**: 情動文に対する中心化2D直交部分空間除去による内生的な関連性・必然性（*necessity / endogenous relevance*）
-  - 因果的影響力が特定の層・生成段階に集中（*concentrated at particular layers and generation stages*）することを実証。[`v3/README.md`](v3/README.md)
+  - **Subspace Removal**: 情動文に対する中心化2D直交部分空間除去による内生的な関連性（*endogenous relevance*）
+  - 因果的影響は特定の層、および teacher-forced candidate sequence 上の特定の計算段階に集中（*concentrated at particular layers and stages along the teacher-forced candidate sequence*）することを実証。[`v3/README.md`](v3/README.md)
 
 ### 3つの学術的貢献 (Main Contributions)
 
@@ -53,7 +53,7 @@ Covariation  →  Representation & Overlap  →  Reorganization  →  Causal Lev
 2. **V2 (Post-training-Associated Reorganization)**:  
    Base–Instruct 比較は単純な情動情報の消去説（simple complete-erasure account）と整合せず、表現幾何、Reader–Self 共有性、および介入感受性回路の系統的な再編（*changes in representational geometry, Reader–Self sharing, and intervention-sensitive organization*）が post-training 条件間で生じていることを明らかにする。
 3. **V3 (Distinguishing Decodability from Causal Leverage)**:  
-   内部でデコード可能な情動情報（*decodable affect-relevant information*）と介入によって実証される因果的関連性（*interventionally demonstrated causal relevance*）を明確に区別し、自己報告に対する測定可能な因果的影響力（*causal leverage*）がどの層および生成段階に集中しているかを時空間的に特定する。
+   内部でデコード可能な情動情報（*decodable affect-relevant information*）と介入によって実証される因果的関連性（*interventionally demonstrated causal relevance*）を明確に区別し、自己報告に対する測定可能な因果的影響力（*causal leverage*）がどの層および teacher-forced candidate sequence 上の計算段階に集中しているかを時空間的に特定する。
 
 ---
 

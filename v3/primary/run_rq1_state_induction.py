@@ -791,6 +791,12 @@ def evaluate_go_no_go_gate(
         "specificity_pass": bool(specificity_v_pass and specificity_a_pass),
         "specificity_v_ci_lower": float(spec_v_lower),
         "specificity_a_ci_lower": float(spec_a_lower),
+        "endogenous_relevance_v_pass": necessity_v_pass,
+        "endogenous_relevance_a_pass": necessity_a_pass,
+        "endogenous_relevance_pass": bool(necessity_v_pass and necessity_a_pass),
+        "endogenous_relevance_v_ci_lower": float(nec_v_lower),
+        "endogenous_relevance_a_ci_lower": float(nec_a_lower),
+        # 互換用非推奨キー (deprecated compatibility aliases)
         "necessity_v_pass": necessity_v_pass,
         "necessity_a_pass": necessity_a_pass,
         "necessity_pass": bool(necessity_v_pass and necessity_a_pass),

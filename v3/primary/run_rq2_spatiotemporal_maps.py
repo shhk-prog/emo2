@@ -35,7 +35,12 @@ from affective_empathy_eval.likelihood import (
     prepare_joint_sequence_with_boundary,
     resolve_joint_stage_index,
 )
-from affective_empathy_eval.manifests import create_run_manifest
+from affective_empathy_eval.manifests import (
+    create_run_manifest,
+    is_manifest_matching,
+    compute_string_or_dict_hash,
+    DEFAULT_CODE_VERSION,
+)
 from affective_empathy_eval.data import (
     describe_loaded_frame,
     load_v3_matched_pair_table,
@@ -550,6 +555,20 @@ def main():
     results = None
     cache_hit = False
 
+    manifest_config = {
+        "analysis_role": "discovery",
+        "family": fam_key,
+        "model_id": target_model_id,
+        "dataset_path": str(v3_cfg["dataset"]["path"]),
+        "semantic_stages": normalized_stages,
+        "alpha_sweep": alpha_sweep,
+        "causal_reference_alpha": causal_ref_alpha,
+        "n_causal_samples": n_causal_cfg,
+        "seed": v3_cfg.get("seed", 42),
+        "subsample": args.subsample,
+        "dry_run": bool(args.dry_run),
+    }
+
     out_raw = raw_dir / f"v3_discovery_spatiotemporal_maps_{fam_key}.json"
     manifest_path = raw_dir / f"manifest_rq2_{fam_key}.json"
     if out_raw.exists() and not args.dry_run:
@@ -557,9 +576,14 @@ def main():
             with open(out_raw, "r", encoding="utf-8") as f:
                 cached = json.load(f)
             if cached and "maps" in cached:
+                expected_config_hash = compute_string_or_dict_hash(manifest_config)
+                expected_dataset_hash = compute_string_or_dict_hash(str(v3_cfg["dataset"]["path"]))
                 if not cached.get("dry_run", False) and is_manifest_matching(
                     str(manifest_path),
                     expected_model_name=target_model_id,
+                    expected_config_hash=expected_config_hash,
+                    expected_dataset_hash=expected_dataset_hash,
+                    expected_code_version=DEFAULT_CODE_VERSION,
                     expected_dry_run=False,
                 ):
                     logger.info(f"Loaded existing discovery 4-maps from {out_raw}. Skipping computation.")
@@ -608,18 +632,7 @@ def main():
         manifest = create_run_manifest(
             run_type="v3_rq2_discovery_spatiotemporal_maps",
             model_name=target_model_id,
-            config={
-                "analysis_role": "discovery",
-                "family": fam_key,
-                "model_id": target_model_id,
-                "dataset_path": str(v3_cfg["dataset"]["path"]),
-                "semantic_stages": normalized_stages,
-                "alpha_sweep": alpha_sweep,
-                "causal_reference_alpha": causal_ref_alpha,
-                "seed": v3_cfg.get("seed", 42),
-                "subsample": args.subsample,
-                "dry_run": bool(args.dry_run),
-            },
+            config=manifest_config,
             metadata={
                 "analysis_role": "discovery",
                 "n_dataset_total": int(len(df)),

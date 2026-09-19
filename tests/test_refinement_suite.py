@@ -197,3 +197,88 @@ def test_config_propagation():
     }
     fallback_n_boot = (fallback_config.get("bootstrap", {}).get("n_boot") or fallback_config.get("statistics", {}).get("n_boot", 1000))
     assert fallback_n_boot == 300
+
+
+def test_rq2_cache_hit_does_not_recompute(tmp_path, monkeypatch):
+    """
+    7. V3 RQ2 cache hit test:
+    有効な結果 JSON と一致する RunManifest が存在する場合、
+    is_manifest_matching が True を返し、再計算を行わずキャッシュからロードすること。
+    """
+    from affective_empathy_eval.manifests import (
+        create_run_manifest,
+        is_manifest_matching,
+        compute_string_or_dict_hash,
+        DEFAULT_CODE_VERSION,
+    )
+    import v3.primary.run_rq2_spatiotemporal_maps as rq2_mod
+
+    # is_manifest_matching がモジュール名前空間に正しくインポートされていることの検証 (NameError 防止)
+    assert hasattr(rq2_mod, "is_manifest_matching")
+    assert rq2_mod.is_manifest_matching is is_manifest_matching
+
+    fam_key = "qwen25_15b"
+    model_id = "Qwen/Qwen2.5-1.5B-Instruct"
+    dataset_path = str(tmp_path / "dataset.csv")
+
+    manifest_config = {
+        "analysis_role": "discovery",
+        "family": fam_key,
+        "model_id": model_id,
+        "dataset_path": dataset_path,
+        "semantic_stages": ["candidate_start", "candidate_end"],
+        "alpha_sweep": [-1.0, 0.0, 1.0],
+        "causal_reference_alpha": 1.0,
+        "n_causal_samples": 5,
+        "seed": 42,
+        "subsample": 10,
+        "dry_run": False,
+    }
+
+    manifest = create_run_manifest(
+        run_type="v3_rq2_discovery_spatiotemporal_maps",
+        model_name=model_id,
+        config=manifest_config,
+        metadata={"dissociation_summary": {"valence": {"delta_d_peak": 0.35}, "arousal": {"delta_d_peak": 0.40}}},
+        dry_run=False,
+    )
+
+    manifest_path = tmp_path / f"manifest_rq2_{fam_key}.json"
+    manifest.save(manifest_path)
+
+    out_raw = tmp_path / f"v3_discovery_spatiotemporal_maps_{fam_key}.json"
+    cached_data = {
+        "maps": {"d_v": [[0.5]], "d_a": [[0.5]]},
+        "dry_run": False,
+        "dissociation_summary": {"valence": {"delta_d_peak": 0.35}, "arousal": {"delta_d_peak": 0.40}},
+    }
+    with open(out_raw, "w", encoding="utf-8") as f:
+        json.dump(cached_data, f)
+
+    expected_config_hash = compute_string_or_dict_hash(manifest_config)
+    expected_dataset_hash = compute_string_or_dict_hash(dataset_path)
+
+    # 1. manifest matching check
+    is_valid = rq2_mod.is_manifest_matching(
+        str(manifest_path),
+        expected_model_name=model_id,
+        expected_config_hash=expected_config_hash,
+        expected_dataset_hash=expected_dataset_hash,
+        expected_code_version=DEFAULT_CODE_VERSION,
+        expected_dry_run=False,
+    )
+    assert is_valid, "Valid manifest and cache should be accepted"
+
+    # 2. Config が変更された場合は cache invalid となること
+    altered_config = dict(manifest_config, seed=999)
+    altered_config_hash = compute_string_or_dict_hash(altered_config)
+    is_invalid = rq2_mod.is_manifest_matching(
+        str(manifest_path),
+        expected_model_name=model_id,
+        expected_config_hash=altered_config_hash,
+        expected_dataset_hash=expected_dataset_hash,
+        expected_code_version=DEFAULT_CODE_VERSION,
+        expected_dry_run=False,
+    )
+    assert not is_invalid, "Altered config must invalidate cache"
+

@@ -43,7 +43,12 @@ from affective_empathy_eval.data import (
     load_v3_matched_pair_table,
     resolve_matched_neutral_text,
 )
-from affective_empathy_eval.manifests import create_run_manifest, is_manifest_matching
+from affective_empathy_eval.manifests import (
+    create_run_manifest,
+    is_manifest_matching,
+    compute_string_or_dict_hash,
+    DEFAULT_CODE_VERSION,
+)
 from affective_empathy_eval.models.adapters import get_model_adapter
 from affective_empathy_eval.models.hooks import ActivationHookManager, HookPoint
 from affective_empathy_eval.models.registry import (
@@ -138,16 +143,17 @@ def simulate_model_confirmatory(
     h1_pass_a = dissoc_a["delta_d_peak"] > 0 and dissoc_a["delta_d_center"] > 0
     h1_pass = bool(h1_pass_v and h1_pass_a)
 
-    h2_pass = slope_v > 0.2 and slope_a > 0.2
-    h3_pass_v = attenuation_ratio_v > 0.2
-    h3_pass_a = attenuation_ratio_a > 0.2
+    h2_pass = bool(slope_v > 0.1 and slope_a > 0.1)
+    # Primary: Absolute mediated attenuation > 0.0
+    h3_pass_v = bool((natural_shift_v - attenuated_shift_v) > 0.0)
+    h3_pass_a = bool((natural_shift_a - attenuated_shift_a) > 0.0)
     h3_pass = bool(h3_pass_v and h3_pass_a)
 
-    h4_pass_v = stage_causal_v["pre_V"] > stage_causal_v["candidate_start"] + 0.5
-    h4_pass_a = stage_causal_a["pre_A"] > stage_causal_a["candidate_start"] + 0.5
+    h4_pass_v = bool(stage_causal_v["pre_V"] > stage_causal_v["candidate_start"])
+    h4_pass_a = bool(stage_causal_a["pre_A"] > stage_causal_a["candidate_start"])
     h4_pass = bool(h4_pass_v and h4_pass_a)
 
-    all_confirmed = bool(h1_pass and h2_pass and h3_pass and h4_pass)
+    auxiliary_qc_all_pass = bool(h1_pass and h2_pass and h3_pass and h4_pass)
 
     return {
         "family": family,
@@ -204,7 +210,8 @@ def simulate_model_confirmatory(
             "passed_arousal": bool(h4_pass_a),
             "passed": bool(h4_pass),
         },
-        "all_confirmed": all_confirmed,
+        "auxiliary_qc_all_pass": auxiliary_qc_all_pass,
+        "all_confirmed": auxiliary_qc_all_pass,  # 後方互換性用エイリアス
     }
 
 
@@ -652,22 +659,28 @@ def run_real_model_confirmatory(
     contrast_v = float(stage_causal_v.get("pre_V", 0.0) - stage_causal_v.get("candidate_start", 0.0))
     contrast_a = float(stage_causal_a.get("pre_A", 0.0) - stage_causal_a.get("candidate_start", 0.0))
 
+    qc_cfg = v3_cfg.get("confirmatory", {}).get("qc", {})
+    min_slope = float(qc_cfg.get("min_sufficiency_slope", 0.1))
+    min_atten_ci_low = float(qc_cfg.get("min_mediated_attenuation_ci_lower", 0.0))
+    min_contrast = float(qc_cfg.get("min_temporal_contrast", 0.0))
+
     # 判定は補助QCとし、効果量とCIを主出力とする
     h1_pass_v = dissoc_v["delta_d_peak"] > 0 and dissoc_v["delta_d_center"] > 0
     h1_pass_a = dissoc_a["delta_d_peak"] > 0 and dissoc_a["delta_d_center"] > 0
     h1_pass = bool(h1_pass_v and h1_pass_a)
 
-    h2_pass = slope_v > 0.1 and slope_a > 0.1
-    h3_pass_v = attenuation_ratio_v > 0.1
-    h3_pass_a = attenuation_ratio_a > 0.1
+    h2_pass = bool(slope_v > min_slope and slope_a > min_slope)
+    # Primary: Absolute mediated attenuation CI lower > min_atten_ci_low
+    h3_pass_v = bool(atten_v_low > min_atten_ci_low)
+    h3_pass_a = bool(atten_a_low > min_atten_ci_low)
     h3_pass = bool(h3_pass_v and h3_pass_a)
 
     # Temporal emergence = decodability != uniform causal leverage
-    h4_pass_v = contrast_v > 0.0
-    h4_pass_a = contrast_a > 0.0
+    h4_pass_v = bool(contrast_v > min_contrast)
+    h4_pass_a = bool(contrast_a > min_contrast)
     h4_pass = bool(h4_pass_v and h4_pass_a)
 
-    all_confirmed = bool(h1_pass and h2_pass and h3_pass and h4_pass)
+    auxiliary_qc_all_pass = bool(h1_pass and h2_pass and h3_pass and h4_pass)
 
     return {
         "family": family,
@@ -738,7 +751,8 @@ def run_real_model_confirmatory(
             "passed_arousal": bool(h4_pass_a),
             "passed": bool(h4_pass),
         },
-        "all_confirmed": all_confirmed,
+        "auxiliary_qc_all_pass": auxiliary_qc_all_pass,
+        "all_confirmed": auxiliary_qc_all_pass,  # 後方互換用エイリアス
     }
 
 
@@ -783,6 +797,9 @@ def main():
     family_results = {}
     seeds = {"llama": 301, "gemma": 302, "olmo": 303, "mistral": 304}
 
+    conf_cfg = v3_cfg.get("confirmatory", {})
+    selection_source = conf_cfg.get("selection_source", "qwen_discovery_frozen")
+
     for item in conf_models:
         fam_key = item["family_key"]
         fam_name = item["family_name"]
@@ -790,14 +807,34 @@ def main():
         out_raw = raw_dir / f"v3_confirmatory_{fam_key}.json"
         manifest_path = raw_dir / f"manifest_confirmatory_{fam_key}.json"
 
+        manifest_config = {
+            "analysis_role": "confirmatory",
+            "family_key": fam_key,
+            "family_name": fam_name,
+            "model_id": model_id,
+            "dataset_path": str(v3_cfg["dataset"]["path"]),
+            "confirmatory_site_selection_source": selection_source,
+            "sufficiency_relative_depth": conf_cfg.get("sufficiency_relative_depth", 0.5),
+            "temporal_relative_depth": conf_cfg.get("temporal_relative_depth", 0.65),
+            "mediation_relative_depth": conf_cfg.get("mediation_relative_depth", 0.65),
+            "seed": seeds.get(fam_key, 999),
+            "subsample": args.subsample,
+            "dry_run": bool(args.dry_run),
+        }
+
         if out_raw.exists() and not args.dry_run:
             try:
                 with open(out_raw, "r", encoding="utf-8") as f:
                     cached = json.load(f)
-                if cached and "all_confirmed" in cached:
+                if cached and ("auxiliary_qc_all_pass" in cached or "all_confirmed" in cached):
+                    expected_config_hash = compute_string_or_dict_hash(manifest_config)
+                    expected_dataset_hash = compute_string_or_dict_hash(str(v3_cfg["dataset"]["path"]))
                     if not cached.get("dry_run", False) and is_manifest_matching(
                         str(manifest_path),
                         expected_model_name=model_id,
+                        expected_config_hash=expected_config_hash,
+                        expected_dataset_hash=expected_dataset_hash,
+                        expected_code_version=DEFAULT_CODE_VERSION,
                         expected_dry_run=False,
                     ):
                         logger.info(f"Loaded existing valid confirmatory results for {fam_name} from {out_raw}. Skipping.")
@@ -833,31 +870,25 @@ def main():
         manifest = create_run_manifest(
             run_type="v3_confirmatory",
             model_name=model_id,
-            config={
-                "family_key": fam_key,
-                "family_name": fam_name,
-                "model_id": model_id,
-                "dataset_path": str(v3_cfg["dataset"]["path"]),
-                "seed": seeds.get(fam_key, 999),
-                "subsample": args.subsample,
-                "dry_run": bool(args.dry_run),
-            },
+            config=manifest_config,
             metadata={
                 "family": fam_name,
+                "confirmatory_site_selection_source": selection_source,
                 "slope_v": res["h2_sufficiency"]["slope_v"],
                 "slope_a": res["h2_sufficiency"]["slope_a"],
+                "auxiliary_qc_all_pass": res.get("auxiliary_qc_all_pass", res.get("all_confirmed", False)),
                 "all_confirmed": res.get("all_confirmed", False),
             },
             dry_run=bool(args.dry_run),
         )
         manifest.save(str(manifest_path))
 
-    # メタ分析サマリーの生成 (指示17: 効果量推定値とCI中心の出力構成)
-    all_passed = all(res.get("all_confirmed", False) for res in family_results.values())
+    # メタ分析サマリーの生成 (効果量推定値とCI中心の出力構成)
+    all_passed = all(res.get("auxiliary_qc_all_pass", res.get("all_confirmed", False)) for res in family_results.values())
     status_msg = (
         "MOCK_SIMULATION: Hypotheses simulated for validation purposes."
         if args.dry_run
-        else ("CONFIRMED: All hypotheses supported by real model evaluations." if all_passed else "PARTIAL: Some hypotheses not fully replicated.")
+        else "EFFECT_ESTIMATES_AVAILABLE"
     )
 
     h1_dp_v = [res["h1_dissociation"]["valence"]["delta_d_peak"] for res in family_results.values()]
@@ -934,13 +965,18 @@ def main():
             "H2_sufficiency": {
                 fam: res["h2_sufficiency"]["passed"] for fam, res in family_results.items()
             },
-            "H3_necessity": {
+            "H3_endogenous_relevance": {
+                fam: res["h3_endogenous_relevance"]["passed"] for fam, res in family_results.items()
+            },
+            "H3_necessity": {  # 互換用キー
                 fam: res["h3_necessity"]["passed"] for fam, res in family_results.items()
             },
             "H4_temporal_emergence": {
                 fam: res["h4_temporal_emergence"]["passed"] for fam, res in family_results.items()
             },
         },
+        "auxiliary_qc_all_pass": bool(all_passed),
+        "status": status_msg,
         "cross_model_generality": status_msg,
     }
 

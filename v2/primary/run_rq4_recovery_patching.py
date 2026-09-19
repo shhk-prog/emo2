@@ -24,7 +24,12 @@ from affective_empathy_eval.likelihood import (
 from affective_empathy_eval.models.adapters import get_model_adapter
 from affective_empathy_eval.models.hooks import ActivationHookManager, HookPoint
 from affective_empathy_eval.data import describe_loaded_frame
-from affective_empathy_eval.manifests import create_run_manifest, is_manifest_matching
+from affective_empathy_eval.manifests import (
+    create_run_manifest,
+    is_manifest_matching,
+    compute_string_or_dict_hash,
+    DEFAULT_CODE_VERSION,
+)
 
 from affective_empathy_eval.models.registry import (
     add_model_selection_args,
@@ -520,9 +525,27 @@ def run_recovery_patching_for_family(
             torch.cuda.empty_cache()
 
     # タスク間比較 (Self vs Reader 回復率の差)
-    diff_max_ratio = float(res_self["max_recovery_ratio"] - res_reader["max_recovery_ratio"])
+    # 1. Primary: Matched-Plain
+    diff_max_ratio_matched = float(
+        res_self["max_recovery_ratio_matched_plain"]
+        - res_reader["max_recovery_ratio_matched_plain"]
+    )
+    diff_auc_matched = float(
+        res_self["auc_recovery_matched_plain"]
+        - res_reader["auc_recovery_matched_plain"]
+    )
+
+    # 2. Secondary: Direct Native-Chat
+    diff_max_ratio_native = float(
+        res_self["max_recovery_ratio"]
+        - res_reader["max_recovery_ratio"]
+    )
+    diff_auc_native = float(
+        res_self["auc_recovery"]
+        - res_reader["auc_recovery"]
+    )
+
     diff_best_depth = float(res_self["best_recovery_depth"] - res_reader["best_recovery_depth"])
-    diff_auc = float(res_self["auc_recovery"] - res_reader["auc_recovery"])
 
     return {
         "family_id": fam_id,
@@ -531,10 +554,21 @@ def run_recovery_patching_for_family(
         "reader": res_reader,
         "self": res_self,
         "task_comparison": {
-            "diff_max_recovery_self_vs_reader": diff_max_ratio,
-            "diff_auc_recovery_self_vs_reader": diff_auc,
+            "primary_matched_plain": {
+                "diff_max_recovery_self_vs_reader": diff_max_ratio_matched,
+                "diff_auc_recovery_self_vs_reader": diff_auc_matched,
+                "self_exceeds_reader": bool(diff_max_ratio_matched > 0),
+            },
+            "secondary_native_chat": {
+                "diff_max_recovery_self_vs_reader": diff_max_ratio_native,
+                "diff_auc_recovery_self_vs_reader": diff_auc_native,
+                "self_exceeds_reader": bool(diff_max_ratio_native > 0),
+            },
+            # Generic keys explicitly point to primary matched-plain for clarity and backwards compatibility
+            "diff_max_recovery_self_vs_reader": diff_max_ratio_matched,
+            "diff_auc_recovery_self_vs_reader": diff_auc_matched,
             "diff_best_recovery_depth_self_vs_reader": diff_best_depth,
-            "self_exceeds_reader": bool(diff_max_ratio > 0),
+            "self_exceeds_reader": bool(diff_max_ratio_matched > 0),
         },
     }
 
@@ -570,14 +604,35 @@ def main():
     for fam_id, fam_cfg in target_models.items():
         out_path = raw_dir / f"v2_recovery_{fam_id}.json"
         manifest_path = raw_dir / f"manifest_recovery_{fam_id}.json"
+
+        spec_base = fam_cfg.get_model_spec("base")
+        spec_inst = fam_cfg.get_model_spec("instruct")
+        manifest_config = {
+            "v2_config": v2_config,
+            "family_id": fam_id,
+            "family_name": fam_cfg.family_name,
+            "base_model_id": spec_base.model_id if spec_base else None,
+            "instruct_model_id": spec_inst.model_id if spec_inst else None,
+            "dataset_path": str(v2_config["dataset"]["path"]),
+            "seed": v2_config.get("seed", 42),
+            "n_boot": n_boot,
+            "max_samples": args.max_samples,
+            "dry_run": bool(args.dry_run),
+        }
+
         if out_path.exists() and not args.dry_run:
             try:
                 with open(out_path, "r", encoding="utf-8") as f:
                     cached = json.load(f)
                 if cached and "self" in cached and "reader" in cached:
+                    expected_config_hash = compute_string_or_dict_hash(manifest_config)
+                    expected_dataset_hash = compute_string_or_dict_hash(str(v2_config["dataset"]["path"]))
                     if not cached.get("dry_run", False) and is_manifest_matching(
                         str(manifest_path),
                         expected_model_name=fam_cfg.family_name,
+                        expected_config_hash=expected_config_hash,
+                        expected_dataset_hash=expected_dataset_hash,
+                        expected_code_version=DEFAULT_CODE_VERSION,
                         expected_dry_run=False,
                     ):
                         logger.info(f"Loaded existing results for {fam_id} from {out_path}. Skipping computation.")
@@ -606,21 +661,10 @@ def main():
         logger.info(f"Saved family recovery result to {out_path}")
 
         # Manifest 保存
-        spec_base = fam_cfg.get_model_spec("base")
-        spec_inst = fam_cfg.get_model_spec("instruct")
         manifest = create_run_manifest(
             run_type="v2_recovery",
             model_name=fam_cfg.family_name,
-            config={
-                "family_id": fam_id,
-                "family_name": fam_cfg.family_name,
-                "base_model_id": spec_base.model_id if spec_base else None,
-                "instruct_model_id": spec_inst.model_id if spec_inst else None,
-                "dataset_path": str(v2_config["dataset"]["path"]),
-                "seed": v2_config.get("seed", 42),
-                "n_boot": n_boot,
-                "dry_run": bool(args.dry_run),
-            },
+            config=manifest_config,
             metadata={
                 "best_self_layer": res["self"]["best_recovery_layer"],
                 "best_reader_layer": res["reader"]["best_recovery_layer"],

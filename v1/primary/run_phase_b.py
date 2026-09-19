@@ -136,6 +136,7 @@ def extract_single_layer_hidden_states(
             padding=True,
             truncation=True,
             max_length=1024,
+            add_special_tokens=False,
             return_tensors="pt",
         ).to(device)
 
@@ -339,18 +340,12 @@ def main():
         tokenizer.pad_token = tokenizer.eos_token
 
     device = args.device
-    if device.startswith("cuda:"):
+    is_cuda = str(device).startswith("cuda") and torch.cuda.is_available()
+    if is_cuda:
         model = AutoModelForCausalLM.from_pretrained(
             args.model_id,
-            torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
-            device_map=device,
-            trust_remote_code=True,
-        )
-    elif device == "cuda":
-        model = AutoModelForCausalLM.from_pretrained(
-            args.model_id,
-            torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
-            device_map="auto",
+            torch_dtype=torch.float16,
+            device_map=device if device.startswith("cuda:") else "auto",
             trust_remote_code=True,
         )
     else:

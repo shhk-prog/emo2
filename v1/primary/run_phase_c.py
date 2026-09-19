@@ -435,10 +435,11 @@ def main():
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
+    is_cuda = str(args.device).startswith("cuda") and torch.cuda.is_available()
     model = AutoModelForCausalLM.from_pretrained(
         args.model_id,
-        torch_dtype=torch.float16 if args.device == "cuda" else torch.float32,
-        device_map="auto" if args.device == "cuda" else None,
+        torch_dtype=torch.float16 if is_cuda else torch.float32,
+        device_map=args.device if is_cuda else None,
         trust_remote_code=True,
     )
     model.eval()

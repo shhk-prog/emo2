@@ -270,10 +270,12 @@ def analyze_model_aipsy(csv_path: str):
                 c_col = f"{task}_e{dim}"
                 if c_col in clin_df.columns and c_col in cneu_df.columns:
                     c_vals = clin_df[c_col].dropna().values
-                    cn_vals = cneu_df[c_col].dropna().values
-                    neut_baseline = float(np.mean(neut_df[c_col].dropna().values)) if c_col in neut_df.columns and len(neut_df[c_col].dropna()) > 0 else 5.0
+                    if c_col in neut_df.columns and len(neut_df[c_col].dropna()) > 0:
+                        neut_baseline = float(np.mean(neut_df[c_col].dropna().values))
+                    else:
+                        neut_baseline = np.nan
 
-                    if len(c_vals) > 2 and len(cn_vals) > 2:
+                    if len(c_vals) > 2 and len(cn_vals) > 2 and not np.isnan(neut_baseline):
                         # Primary: Affective Displacement D(x) = |E(x) - mu_neutral|
                         # Prevents valence cancellation between positive and negative emotions
                         disp_c = np.abs(c_vals - neut_baseline)

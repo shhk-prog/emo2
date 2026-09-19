@@ -29,19 +29,21 @@ except ImportError:  # --dry-run は transformers 未導入環境でも起動で
     AutoModelForCausalLM = None  # type: ignore[misc, assignment]
     AutoTokenizer = None  # type: ignore[misc, assignment]
 
-from affective_empathy_eval.likelihood import compute_sequence_likelihoods_for_candidates
+from typing import Optional
+
+from affective_empathy_eval.likelihood import (
+    build_vad_candidates,
+    compute_sequence_likelihoods_for_candidates,
+)
 from affective_empathy_eval.manifests import create_run_manifest
 from affective_empathy_eval.statistics import compute_bootstrap_ci, compute_d_z
 
 
-def build_vad_candidates():
-    """Generates all 729 VAD JSON candidates."""
-    candidates = []
-    vad_triplets = []
-    for v, a, d in itertools.product(range(1, 10), range(1, 10), range(1, 10)):
-        cand_str = f'{{"valence": {v}, "arousal": {a}, "dominance": {d}}}'
-        candidates.append(cand_str)
-        vad_triplets.append((v, a, d))
+def get_vad_candidates_and_triplets():
+    """Generates all 729 canonical VAD JSON candidates from the unified likelihood module."""
+    cand_dicts = build_vad_candidates()
+    candidates = [c["json_str"] for c in cand_dicts]
+    vad_triplets = [(c["valence"], c["arousal"], c["dominance"]) for c in cand_dicts]
     return candidates, vad_triplets
 
 
@@ -300,8 +302,8 @@ def main():
         ).to(device)
     model.eval()
 
-    candidates, vad_triplets = build_vad_candidates()
-    print(f"Generated {len(candidates)} VAD candidates in {{1..9}}^3.")
+    candidates, vad_triplets = get_vad_candidates_and_triplets()
+    print(f"Generated {len(candidates)} canonical VAD candidates in {{1..9}}^3.")
 
     os.makedirs(args.out_dir, exist_ok=True)
     out_csv = os.path.join(args.out_dir, f"{args.tag}_3way_vad.csv")

@@ -23,7 +23,12 @@ except ImportError:  # --dry-run は transformers 未導入環境でも起動で
     AutoTokenizer = None  # type: ignore[misc, assignment]
 
 from affective_empathy_eval.data import describe_loaded_frame, dry_run_va_label_vector
-from affective_empathy_eval.manifests import create_run_manifest, is_manifest_matching
+from affective_empathy_eval.manifests import (
+    DEFAULT_CODE_VERSION,
+    compute_string_or_dict_hash,
+    create_run_manifest,
+    is_manifest_matching,
+)
 from affective_empathy_eval.geometry import (
     compute_center_of_mass,
     compute_peak_depth,
@@ -418,6 +423,18 @@ def main():
     for fam_id, fam_cfg in target_models.items():
         fam_out_path = raw_dir / f"v2_geometry_{fam_id}.json"
         manifest_path = raw_dir / f"manifest_geometry_{fam_id}.json"
+        config_payload = {
+            "family_id": fam_id,
+            "base_model": fam_cfg.base_model,
+            "instruct_model": fam_cfg.instruct_model,
+            "seed": args.seed,
+            "max_samples": args.max_samples,
+            "dry_run": bool(args.dry_run),
+            "dtype": "bfloat16" if getattr(fam_cfg, "dtype", "bfloat16") == "bfloat16" else "float16",
+        }
+        exp_cfg_hash = compute_string_or_dict_hash(config_payload)
+        exp_ds_hash = compute_string_or_dict_hash(str(data_path))
+
         if fam_out_path.exists() and not args.dry_run:
             try:
                 with open(fam_out_path, "r", encoding="utf-8") as f:
@@ -427,8 +444,11 @@ def main():
                         str(manifest_path),
                         expected_model_name=fam_cfg.family_name,
                         expected_dry_run=False,
+                        expected_config_hash=exp_cfg_hash,
+                        expected_dataset_hash=exp_ds_hash,
+                        expected_code_version=DEFAULT_CODE_VERSION,
                     ):
-                        logger.info(f"Loaded existing results for {fam_id} from {fam_out_path}. Skipping computation.")
+                        logger.info(f"Loaded existing validated results for {fam_id} from {fam_out_path}. Skipping computation.")
                         all_family_results[fam_id] = cached_res
                         continue
             except Exception as e:
@@ -526,8 +546,10 @@ def main():
         manifest = create_run_manifest(
             run_type="v2_geometry",
             model_name=fam_cfg.family_name,
-            config={"family_id": fam_id, "dry_run": bool(args.dry_run)},
-            metadata={"num_layers": eff_num_layers},
+            config=config_payload,
+            metadata={"num_layers": eff_num_layers, "hidden_dim": eff_hidden_dim},
+            dataset_path=str(data_path),
+            seed=args.seed,
             dry_run=bool(args.dry_run),
         )
         manifest.save(str(raw_dir / f"manifest_geometry_{fam_id}.json"))

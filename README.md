@@ -24,19 +24,23 @@
 
 ## 2. 証拠階層と論文構造 (4-Stage Evidence Hierarchy)
 
-本研究は、中心 RQ に対する一続きの証拠階層として 4 つの Stage を配備し、論文の主要章（Section 3〜6）に対応させています。
+本研究は、中心 RQ に対する一続きの証拠階層として 4 つの Stage を配備し、論文の主要章（Section 4〜7）に対応させています（Section 3 は統一実験フレームワーク）。
 
 ```text
 Covariation  →  Representation & Overlap  →  Reorganization  →  Causal Leverage
 (Behavioral)               (V1)                       (V2)              (V3)
 ```
 
+> **論文の中心的主張 (Central Thesis)**:
+> - **LLM self-reports cannot be characterized by output-level covariation alone, nor as a uniform direct readout of all decodable affect-relevant information.**
+> - **LLM self-reports are systematically related to affect-relevant internal representations, but this relationship is partial and task-dependent, is reorganized in association with post-training, and becomes causally consequential only at particular stages of computation.**
+
 | Stage | 概念的役割 | 論文 Section | 中心的な科学的問い | 主な検証・比較軸 |
 |---|---|---|---|---|
-| **Behavioral** | **Covariation** (相関・導入現象) | §3. Behavioral Characterization: Alignment and Coupling between Reader and Self Perspectives | *Do Reader and Self covary in their responses to controlled affective changes?* | 制御された情動変化に対する出力レベルの連動（$\Delta$ カップリング） |
-| **V1** | **Representation & Overlap** (表現・因果重複) | §4. Shared Representation and Causal Overlap in Base Models | *What do Reader and Self share internally?* | 同一基底モデル内における因果関連表現と介入感受性サイトの部分的重複 |
-| **V2** | **Reorganization** (事後学習関連再編) | §5. Post-training-Associated Reorganization of Affect-Relevant Computations | *How does post-training associate with computational reorganization?* | 同一ファミリーの Base ↔ Instruct 幾何・共有性・分布回復（モデル内は活性化因果介入、モデル間は観察的再編） |
-| **V3** | **Causal Leverage** (因果的利用可能性と必然性) | §6. From Decodability to Causal Leverage: Sufficiency, Specificity, and Spatiotemporal Dynamics | *Where does affect-relevant information exert measurable causal leverage over self-report?* | Instruct 側の層 × 生成段階（十分性・特異性・内生関連性の局在） |
+| **Behavioral** | **Covariation** (相関・導入現象) | §4. Behavioral Characterization of Reader–Self Covariation | *Do Reader and Self covary in their responses to controlled affective changes?* | 制御された情動変化に対する出力レベルの連動（$\Delta$ カップリング） |
+| **V1** | **Representation & Overlap** (表現・因果重複) | §5. Internal Representation and Causal Sharing | *To what extent do Reader and Self share representational and causal structure internally?* | 同一モデル内における因果関連表現と介入感受性サイトの部分的重複 |
+| **V2** | **Reorganization** (事後学習関連再編) | §6. Post-training-Associated Reorganization of Affect-Relevant Computations | *How does post-training associate with computational reorganization?* | 同一ファミリーの Base ↔ Instruct 幾何・共有性・分布回復（モデル内は活性化因果介入、モデル間は観察的再編） |
+| **V3** | **Causal Leverage** (因果的利用可能性と必然性) | §7. From Representation to Causal Utilization | *Where and when does affect-relevant information exert measurable causal leverage over self-report?* | Instruct 側の層 × 生成段階（十分性・特異性・内生関連性の局在） |
 
 - **Behavioral** (`behavioral/`): EmoBank 3-Way と AIPsy 4-Split。4軸は correspondence, Sensitivity, Dose-response / Specificity, Reader–Self coupling（刺激変化に対する $\Delta$ カップリング $\text{corr}(\Delta_R, \Delta_S)$ を Primary 化）。[`behavioral/README.md`](behavioral/README.md)
 - **V1** (`v1/`): decodability / 幾何（E1/E2）、意味統制感度（Phase B）、因果マップと交換可能性（E3/E4）、課題特異化（E6）。同一モデル内での部分的重複（partially overlapping causally relevant representations and intervention-sensitive sites）を検証。[`v1/README.md`](v1/README.md)
@@ -150,9 +154,10 @@ V3 は AIPsy の clinical–neutral 192 pair だけを wide 化する。EmoBank 
 
 論文の Methods 章で定義される、各ステージにおける統一的な実験仕様の対応表です：
 
-| 項目 / 次元 | Behavioral (§3) | V1 Stage (§4) | V2 Stage (§5) | V3 Stage (§6) |
+| 項目 / 次元 | Behavioral (§4) | V1 Stage (§5) | V2 Stage (§6) | V3 Stage (§7) |
 |---|---|---|---|---|
 | **Candidate Space** | $9^3 = 729$ VAD | $9^3 = 729$ VAD | $9^2 = 81$ VA | $9^2 = 81$ VA |
+| *(注記: 空間差異)* | \multicolumn{4}{l|}{※ Stage 間の絶対的 $E[V], E[A]$ は直接比較しない。同一サブセットでの 729 vs 81 感度分析により傾向維持を確認} |
 | **Prompt Format** | Plain (Base) / Chat (Instruct) | Plain (Base) / Chat (Instruct) | Plain (Base) / Chat & Matched-Plain (Instruct) | Chat (Instruct primary) |
 | **Token Position** | Sequence-end (log-likelihood) | `prompt_end` (Phase A/B/C) | `prompt_end` (D/C anchor 統一) | Spatiotemporal Grid (`prompt_end` + joint stage tokens) |
 | **Layer Coordinate** | N/A (Black-box behavioral) | Relative depth $d = l / (L-1)$ | Relative depth $d = l / (L-1)$ | Relative depth $d = l / (L-1)$ |

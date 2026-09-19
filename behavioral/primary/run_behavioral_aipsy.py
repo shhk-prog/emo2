@@ -24,18 +24,20 @@ try:
     from transformers import AutoModelForCausalLM, AutoTokenizer
 except ImportError:  # --dry-run は transformers 未導入環境でも起動できるようにする
     AutoModelForCausalLM = None  # type: ignore[misc, assignment]
-    AutoTokenizer = None  # type: ignore[misc, assignment]
+from typing import Optional
 
-from affective_empathy_eval.likelihood import compute_sequence_likelihoods_for_candidates
+from affective_empathy_eval.likelihood import (
+    build_vad_candidates,
+    compute_sequence_likelihoods_for_candidates,
+)
 from affective_empathy_eval.manifests import create_run_manifest
 
 
 def build_candidates():
-    candidates = []
-    triplets = []
-    for v, a, d in itertools.product(range(1, 10), range(1, 10), range(1, 10)):
-        candidates.append(f'{{"valence": {v}, "arousal": {a}, "dominance": {d}}}')
-        triplets.append((v, a, d))
+    """Builds canonical VAD candidates using the unified likelihood module."""
+    cand_dicts = build_vad_candidates()
+    candidates = [c["json_str"] for c in cand_dicts]
+    triplets = [(c["valence"], c["arousal"], c["dominance"]) for c in cand_dicts]
     return candidates, triplets
 
 

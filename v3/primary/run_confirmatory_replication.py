@@ -289,6 +289,7 @@ def run_real_model_confirmatory(
 
     # 2. 全層の刺激提示時デコード能 D(l) (Held-out R^2 via 5-Fold Cross-Validation)
     d_profile_v = []
+    d_profile_a = []
     if "pair_id" in eval_df.columns and eval_df["pair_id"].nunique() >= 2:
         n_splits = min(5, eval_df["pair_id"].nunique())
         splitter = GroupKFold(n_splits=n_splits)
@@ -363,6 +364,40 @@ def run_real_model_confirmatory(
     stage_keys = ["candidate_start", "pre_V", "V_value", "pre_A", "A_value", "response_end"]
     test_stage_shifts_v = {stg: [] for stg in stage_keys}
     test_stage_shifts_a = {stg: [] for stg in stage_keys}
+
+    # H4: Discovery RQ2 準拠の stage-local direction 学習のため、
+    # temporal_map_layer における全サンプルの各 generation stage 表現を抽出
+    template_cand = candidates[40]["json_str"]  # {"valence": 5, "arousal": 5}
+    cand_tokens = tokenizer.encode(template_cand, add_special_tokens=False)
+    stage_offsets = get_generation_stage_tokens(cand_tokens, tokenizer, candidate_str=template_cand)
+
+    all_H_stage = {stg: [] for stg in stage_keys}
+    with torch.no_grad():
+        for _, row in eval_df.iterrows():
+            text = str(row["text"])
+            prompt = build_prompt(text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
+            full_ids, cand_start = prepare_joint_sequence_with_boundary(
+                prompt=prompt, candidate=template_cand, tokenizer=tokenizer
+            )
+            seq_len = len(full_ids)
+            enc_full = {
+                "input_ids": torch.tensor([full_ids], device=device),
+                "attention_mask": torch.ones(1, seq_len, dtype=torch.long, device=device),
+            }
+            for stg in stage_keys:
+                t_idx = resolve_joint_stage_index(cand_start, stg, stage_offsets, seq_len)
+                with ActivationHookManager(adapter) as hook_mgr:
+                    hook_mgr.register_capture_hook(
+                        layer_idx=temporal_map_layer,
+                        hook_point=HookPoint.POST_MLP_RESID,
+                        token_indices=t_idx,
+                        key="h_stg",
+                    )
+                    _ = model(**enc_full)
+                    h_vec = hook_mgr.captured_activations["h_stg"].cpu().float().numpy().ravel()
+                    all_H_stage[stg].append(h_vec)
+    for stg in stage_keys:
+        all_H_stage[stg] = np.array(all_H_stage[stg])
 
     H_suff = all_H[sufficiency_layer]
     H_med = all_H[mediation_layer]
@@ -440,6 +475,25 @@ def run_real_model_confirmatory(
             std_l_a = float(np.std(H_l_train @ d_l_a))
             h_std_l_a = std_l_a if std_l_a > 1e-6 else float(np.std(H_l_train))
             layer_dirs_a[l_idx] = (d_l_a, h_std_l_a)
+
+        # H4: Discovery RQ2 準拠の局所方向推定 (Train fold only: 各 stage 自身の表現から学習)
+        stage_dirs_v = {}
+        stage_dirs_a = {}
+        for stg in stage_keys:
+            H_stg_tr = all_H_stage[stg][train_idx]
+            ridge_stg_v = Ridge(alpha=10.0).fit(H_stg_tr, y_v[train_idx])
+            norm_sv = np.linalg.norm(ridge_stg_v.coef_)
+            d_sv = ridge_stg_v.coef_ / (norm_sv + 1e-6) if norm_sv > 0 else np.zeros_like(ridge_stg_v.coef_)
+            std_sv = float(np.std(H_stg_tr @ d_sv))
+            h_std_sv = std_sv if std_sv > 1e-6 else float(np.std(H_stg_tr))
+            stage_dirs_v[stg] = (d_sv, h_std_sv)
+
+            ridge_stg_a = Ridge(alpha=10.0).fit(H_stg_tr, y_a[train_idx])
+            norm_sa = np.linalg.norm(ridge_stg_a.coef_)
+            d_sa = ridge_stg_a.coef_ / (norm_sa + 1e-6) if norm_sa > 0 else np.zeros_like(ridge_stg_a.coef_)
+            std_sa = float(np.std(H_stg_tr @ d_sa))
+            h_std_sa = std_sa if std_sa > 1e-6 else float(np.std(H_stg_tr))
+            stage_dirs_a[stg] = (d_sa, h_std_sa)
 
         # ----------------------------------------------------
         # Held-out Test fold only: H2, H3, H4 evaluation
@@ -552,23 +606,23 @@ def run_real_model_confirmatory(
                 att_shifts_a.append(abs(ea_abl - clean_neu_a))
 
                 # --- H4: Temporal Emergence across Generation Stages (at temporal_map_layer) ---
+                # Discovery RQ2 準拠: 各 generation stage 固有の表現から推定した局所方向を用いて介入
                 stage_target_indices = validate_stage_index_invariance(
                     tokenizer, prompt_self, candidates, stage_keys
                 )
 
-                d_temp_v, h_std_temp_v = layer_dirs_v[temporal_map_layer]
-                d_temp_a, h_std_temp_a = layer_dirs_a[temporal_map_layer]
-
                 for stg in stage_keys:
                     t_pos = stage_target_indices[stg]
+                    d_stg_v, h_std_stg_v = stage_dirs_v[stg]
+                    d_stg_a, h_std_stg_a = stage_dirs_a[stg]
 
-                    # 1) Valence steering (temporal_map_layer local direction)
+                    # 1) Valence steering (stage-local direction)
                     with ActivationHookManager(adapter) as hook_mgr:
                         hook_mgr.register_direction_intervention_hook(
                             layer_idx=temporal_map_layer,
-                            direction=d_temp_v,
+                            direction=d_stg_v,
                             alpha=1.0,
-                            hidden_std=h_std_temp_v,
+                            hidden_std=h_std_stg_v,
                             token_indices=t_pos,
                             hook_point=HookPoint.POST_MLP_RESID,
                             mode="inject",
@@ -579,13 +633,13 @@ def run_real_model_confirmatory(
                     ev_stg_v, _ = compute_expected_va(probs_stg_v, candidates)
                     test_stage_shifts_v[stg].append(abs(ev_stg_v - clean_ev_list[sample_idx]))
 
-                    # 2) Arousal steering (temporal_map_layer local direction)
+                    # 2) Arousal steering (stage-local direction)
                     with ActivationHookManager(adapter) as hook_mgr:
                         hook_mgr.register_direction_intervention_hook(
                             layer_idx=temporal_map_layer,
-                            direction=d_temp_a,
+                            direction=d_stg_a,
                             alpha=1.0,
-                            hidden_std=h_std_temp_a,
+                            hidden_std=h_std_stg_a,
                             token_indices=t_pos,
                             hook_point=HookPoint.POST_MLP_RESID,
                             mode="inject",

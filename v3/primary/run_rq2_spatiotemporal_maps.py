@@ -200,8 +200,10 @@ def run_real_spatiotemporal_maps(
     2. 全層・全アンカー位置での活性化を抽出
     3. D (Held-out Ridge R^2), beta (刺激共変量を統制した偏回帰係数),
        gamma (介入応答スロープ), C (因果変位量) を算出
-       Primary: Reader Prediction (感情認知予測値) に基づくデコード能および情動方向
-       Secondary: Self-Report (自己報告値) に基づくデコード能
+       Primary Stage: pre_V (候補値に依存しない candidate-independent stage; D-mapとC-mapのtrajectory完全一致)
+       Secondary Stages: pre_A 以降 (正準中立 teacher-forced trajectory {"valence":5,"arousal":5} を prefix とする表現)
+       Primary Grounding: Reader Prediction (感情認知予測値) に基づくデコード能および情動方向
+       Secondary Grounding: Self-Report (自己報告値) に基づくデコード能
     """
     logger.info(f"Loading model {model_id} for Spatiotemporal 4-Map Analysis on {device}...")
     if causal_reference_alpha not in alpha_sweep:
@@ -488,6 +490,9 @@ def run_real_spatiotemporal_maps(
     return {
         "stage_evaluation_mode": "teacher_forced_joint_sequence",
         "temporal_protocol": "teacher_forced_candidate_sequence",
+        "primary_stage": "pre_V",
+        "primary_stage_note": "pre_V is candidate-independent (trajectory matches across all candidates).",
+        "subsequent_stages_note": "pre_A and beyond reflect canonical neutral teacher-forced trajectory (V=5, A=5).",
         "num_layers": num_layers,
         "semantic_stages": semantic_stages,
         "relative_depths": relative_depths,

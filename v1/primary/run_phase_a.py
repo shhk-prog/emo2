@@ -118,6 +118,7 @@ def extract_hidden_states_batched(
             padding=True,
             truncation=True,
             max_length=1024,
+            add_special_tokens=False,
             return_tensors="pt",
         ).to(device)
 
@@ -171,14 +172,11 @@ def evaluate_regression_probe(
 
     group_ids = np.array([str(g) for g in group_ids])
     unique_groups = np.unique(group_ids)
-    if len(unique_groups) < cv:
-        gkf = StratifiedKFold(n_splits=cv, shuffle=True, random_state=seed)
-        splits = gkf.split(
-            X, np.digitize(y, np.histogram_bin_edges(y, bins=cv))
-        )
-    else:
-        gkf = GroupKFold(n_splits=cv)
-        splits = gkf.split(X, y, groups=group_ids)
+    n_splits = min(cv, len(unique_groups))
+    if n_splits < 2:
+        return {"r2": float("nan"), "pearson_r": float("nan"), "spearman_rho": float("nan"), "mse": float("nan")}
+    gkf = GroupKFold(n_splits=n_splits)
+    splits = list(gkf.split(X, y, groups=group_ids))
 
     y_preds = np.zeros_like(y, dtype=float)
 
@@ -235,16 +233,18 @@ def evaluate_classification_probe(
     if group_ids is not None:
         group_ids = np.array([str(g) for g in group_ids])
         unique_groups = np.unique(group_ids)
-        if len(unique_groups) >= actual_cv:
-            sgkf = StratifiedGroupKFold(
-                n_splits=actual_cv, shuffle=True, random_state=seed
-            )
+        n_splits = min(actual_cv, len(unique_groups))
+        if n_splits < 2:
+            return {"roc_auc": float("nan"), "balanced_acc": float("nan"), "f1_macro": float("nan")}
+        sgkf = StratifiedGroupKFold(
+            n_splits=n_splits, shuffle=True, random_state=seed
+        )
+        try:
             splits = list(sgkf.split(X, y, groups=group_ids))
-        else:
-            skf = StratifiedKFold(
-                n_splits=actual_cv, shuffle=True, random_state=seed
-            )
-            splits = list(skf.split(X, y))
+        except ValueError:
+            from sklearn.model_selection import GroupKFold
+            gkf = GroupKFold(n_splits=n_splits)
+            splits = list(gkf.split(X, y, groups=group_ids))
     else:
         skf = StratifiedKFold(
             n_splits=actual_cv, shuffle=True, random_state=seed
@@ -308,14 +308,19 @@ def evaluate_cross_decoding_and_geometry(
     if group_ids is not None:
         group_ids = np.array([str(g) for g in group_ids])
         unique_groups = np.unique(group_ids)
-        if len(unique_groups) >= cv:
-            splitter = GroupKFold(n_splits=cv)
-            splits = list(splitter.split(H_R, y, groups=group_ids))
-        else:
-            from sklearn.model_selection import KFold
-
-            splitter = KFold(n_splits=cv, shuffle=True, random_state=seed)
-            splits = list(splitter.split(H_R))
+        n_splits = min(cv, len(unique_groups))
+        if n_splits < 2:
+            return {
+                "r2_r_to_s": float("nan"),
+                "r2_s_to_r": float("nan"),
+                "r2_within_r": float("nan"),
+                "r2_within_s": float("nan"),
+                "r2_aligned_s_to_r": float("nan"),
+                "rsa_mean": float("nan"),
+                "mean_transfer_ratio": float("nan"),
+            }
+        splitter = GroupKFold(n_splits=n_splits)
+        splits = list(splitter.split(H_R, y, groups=group_ids))
     else:
         from sklearn.model_selection import KFold
 
@@ -530,10 +535,11 @@ def main():
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
+    is_cuda = str(args.device).startswith("cuda") and torch.cuda.is_available()
     model = AutoModelForCausalLM.from_pretrained(
         args.model_id,
-        torch_dtype=torch.float16 if args.device == "cuda" else torch.float32,
-        device_map="auto" if args.device == "cuda" else None,
+        torch_dtype=torch.float16 if is_cuda else torch.float32,
+        device_map=args.device if is_cuda else None,
         trust_remote_code=True,
     )
     model.eval()

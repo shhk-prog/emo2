@@ -19,7 +19,7 @@ V1 の正式実行面。設計・指標・解釈の本文は親の [`v1/README.m
   - Rule-based semantic controlled perturbations
 - **出力成果物**: `v1/results/derived/`
 
-比較軸は同一モデル内の **Reader ↔ Self**。Base / Instruct 8 条件は各モデル内の再現であり、差の解釈は V2。候補空間は 729 VAD。
+V1 の主たる発見対象は **Base モデルにおける Reader と Self の共有表現・因果的重複（Primary Focus）**であり、Instruct モデルにおける 4 条件（4 ファミリー）の測定は**モデル内再現（Within-Model Replication）**として位置づけられます。事後学習に伴う表現幾何および因果回路の再構成（Reorganization）の比較・解釈は V2 の責務です。候補空間は 729 VAD。
 
 ## 実行順
 

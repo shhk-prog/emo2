@@ -562,18 +562,28 @@ def main():
                         dissoc_results[axis][cond_name] = d_metrics
 
                 # 事後学習に伴う解離の差分の比較 (Post-training-associated difference in dissociation)
-                if "base_self" in dissoc_results[axis] and "inst_self" in dissoc_results[axis]:
-                    delta_d_is = dissoc_results[axis]["inst_self"]["delta_d_star"]
-                    delta_d_bs = dissoc_results[axis]["base_self"]["delta_d_star"]
-                    delta_bar_is = dissoc_results[axis]["inst_self"]["delta_bar_d"]
-                    delta_bar_bs = dissoc_results[axis]["base_self"]["delta_bar_d"]
+                base_self_key = "base_self"
+                base_reader_key = "base_reader"
+                inst_self_key = "inst_matched_self"
+                inst_reader_key = "inst_matched_reader"
 
-                    delta_d_ir = dissoc_results[axis]["inst_reader"]["delta_d_star"] if "inst_reader" in dissoc_results[axis] else 0.0
-                    delta_d_br = dissoc_results[axis]["base_reader"]["delta_d_star"] if "base_reader" in dissoc_results[axis] else 0.0
-                    delta_bar_ir = dissoc_results[axis]["inst_reader"]["delta_bar_d"] if "inst_reader" in dissoc_results[axis] else 0.0
-                    delta_bar_br = dissoc_results[axis]["base_reader"]["delta_bar_d"] if "base_reader" in dissoc_results[axis] else 0.0
+                if (
+                    base_self_key in dissoc_results[axis]
+                    and inst_self_key in dissoc_results[axis]
+                    and base_reader_key in dissoc_results[axis]
+                    and inst_reader_key in dissoc_results[axis]
+                ):
+                    delta_d_is = dissoc_results[axis][inst_self_key]["delta_d_star"]
+                    delta_d_bs = dissoc_results[axis][base_self_key]["delta_d_star"]
+                    delta_bar_is = dissoc_results[axis][inst_self_key]["delta_bar_d"]
+                    delta_bar_bs = dissoc_results[axis][base_self_key]["delta_bar_d"]
 
-                    dissoc_results[axis]["post_training_comparison"] = {
+                    delta_d_ir = dissoc_results[axis][inst_reader_key]["delta_d_star"]
+                    delta_d_br = dissoc_results[axis][base_reader_key]["delta_d_star"]
+                    delta_bar_ir = dissoc_results[axis][inst_reader_key]["delta_bar_d"]
+                    delta_bar_br = dissoc_results[axis][base_reader_key]["delta_bar_d"]
+
+                    dissoc_results[axis]["post_training_comparison_matched"] = {
                         "delta_d_star_self_change": float(delta_d_is - delta_d_bs),
                         "delta_bar_d_self_change": float(delta_bar_is - delta_bar_bs),
                         "delta_d_star_reader_change": float(delta_d_ir - delta_d_br),
@@ -581,9 +591,37 @@ def main():
                         "diff_of_diffs_peak": float((delta_d_is - delta_d_bs) - (delta_d_ir - delta_d_br)),
                         "diff_of_diffs_com": float((delta_bar_is - delta_bar_bs) - (delta_bar_ir - delta_bar_br)),
                     }
+                    dissoc_results[axis]["post_training_comparison"] = dissoc_results[axis]["post_training_comparison_matched"]
                     logger.info(
-                        f"Dissociation changes ({fam_id} {axis}): Self Delta d* shift={delta_d_is - delta_d_bs:.3f}, Reader Delta d* shift={delta_d_ir - delta_d_br:.3f}"
+                        f"Matched dissociation changes ({fam_id} {axis}): Self Delta d* shift={delta_d_is - delta_d_bs:.3f}, Reader Delta d* shift={delta_d_ir - delta_d_br:.3f}"
                     )
+
+                inst_self_nat = "inst_native_self"
+                inst_reader_nat = "inst_native_reader"
+                if (
+                    base_self_key in dissoc_results[axis]
+                    and inst_self_nat in dissoc_results[axis]
+                    and base_reader_key in dissoc_results[axis]
+                    and inst_reader_nat in dissoc_results[axis]
+                ):
+                    delta_d_is_n = dissoc_results[axis][inst_self_nat]["delta_d_star"]
+                    delta_d_bs = dissoc_results[axis][base_self_key]["delta_d_star"]
+                    delta_bar_is_n = dissoc_results[axis][inst_self_nat]["delta_bar_d"]
+                    delta_bar_bs = dissoc_results[axis][base_self_key]["delta_bar_d"]
+
+                    delta_d_ir_n = dissoc_results[axis][inst_reader_nat]["delta_d_star"]
+                    delta_d_br = dissoc_results[axis][base_reader_key]["delta_d_star"]
+                    delta_bar_ir_n = dissoc_results[axis][inst_reader_nat]["delta_bar_d"]
+                    delta_bar_br = dissoc_results[axis][base_reader_key]["delta_bar_d"]
+
+                    dissoc_results[axis]["post_training_comparison_native"] = {
+                        "delta_d_star_self_change": float(delta_d_is_n - delta_d_bs),
+                        "delta_bar_d_self_change": float(delta_bar_is_n - delta_bar_bs),
+                        "delta_d_star_reader_change": float(delta_d_ir_n - delta_d_br),
+                        "delta_bar_d_reader_change": float(delta_bar_ir_n - delta_bar_br),
+                        "diff_of_diffs_peak": float((delta_d_is_n - delta_d_bs) - (delta_d_ir_n - delta_d_br)),
+                        "diff_of_diffs_com": float((delta_bar_is_n - delta_bar_bs) - (delta_bar_ir_n - delta_bar_br)),
+                    }
 
         fam_output = {
             "family_id": fam_id,
@@ -592,12 +630,17 @@ def main():
             "causal_maps": fam_causal,
             "dissociation": dissoc_results,
             "summary": {
+                # Primary: matched-plain
                 "base_reader_c_v_peak": compute_peak_depth(fam_causal["base_reader"]["c_v"], depths),
                 "base_self_c_v_peak": compute_peak_depth(fam_causal["base_self"]["c_v"], depths),
-                "inst_reader_c_v_peak": compute_peak_depth(fam_causal["inst_reader"]["c_v"], depths),
-                "inst_self_c_v_peak": compute_peak_depth(fam_causal["inst_self"]["c_v"], depths),
+                "inst_matched_reader_c_v_peak": compute_peak_depth(fam_causal["inst_matched_reader"]["c_v"], depths),
+                "inst_matched_self_c_v_peak": compute_peak_depth(fam_causal["inst_matched_self"]["c_v"], depths),
                 "base_self_c_v_com": compute_center_of_mass(fam_causal["base_self"]["c_v"], depths),
-                "inst_self_c_v_com": compute_center_of_mass(fam_causal["inst_self"]["c_v"], depths),
+                "inst_matched_self_c_v_com": compute_center_of_mass(fam_causal["inst_matched_self"]["c_v"], depths),
+                # Secondary: native-chat
+                "inst_native_reader_c_v_peak": compute_peak_depth(fam_causal["inst_reader"]["c_v"], depths),
+                "inst_native_self_c_v_peak": compute_peak_depth(fam_causal["inst_self"]["c_v"], depths),
+                "inst_native_self_c_v_com": compute_center_of_mass(fam_causal["inst_self"]["c_v"], depths),
             },
         }
         fam_output["dry_run"] = bool(args.dry_run)
@@ -617,11 +660,20 @@ def main():
             logger.info(f"Saved family pair-level records ({len(fam_pair_df)} rows) to {fam_pair_path}")
 
         # Manifest 保存
+        manifest_config = {
+            "family_id": fam_id,
+            "model_set": args.model_set,
+            "max_samples": args.max_samples,
+            "dry_run": bool(args.dry_run),
+            "base_model_id": fam_cfg.base_model.model_id,
+            "instruct_model_id": fam_cfg.instruct_model.model_id,
+        }
         manifest = create_run_manifest(
             run_type="v2_causal_map",
             model_name=fam_cfg.family_name,
-            config={"family_id": fam_id, "dry_run": bool(args.dry_run)},
+            config=manifest_config,
             metadata={"num_layers": eff_num_layers},
+            dataset_path=v2_config["dataset"]["path"],
             dry_run=bool(args.dry_run),
         )
         manifest.save(str(raw_dir / f"manifest_causal_map_{fam_id}.json"))
@@ -633,36 +685,74 @@ def main():
     df_pair.to_csv(pair_csv_path, index=False)
     logger.info(f"Saved pair-level causal records ({len(df_pair)} rows) to {pair_csv_path}")
 
-    # 2. LMM 検定の実行: C ~ Alignment * Task * Depth + (1 | pair_id)
-    lmm_summary = {}
+    # 2. LMM 検定の実行: Primary (matched-plain) と Secondary (native-chat) に完全分離
+    df_primary = df_pair[
+        ((df_pair["alignment"] == "base") & (df_pair["format_condition"] == "plain"))
+        | ((df_pair["alignment"] == "inst") & (df_pair["format_condition"] == "matched_plain"))
+    ].copy()
+
+    df_native = df_pair[
+        ((df_pair["alignment"] == "base") & (df_pair["format_condition"] == "plain"))
+        | ((df_pair["alignment"] == "inst") & (df_pair["format_condition"] == "native_chat"))
+    ].copy()
+
+    has_multi_family = len(df_pair["family"].unique()) > 1 if "family" in df_pair.columns else False
+    formula_v = "c_v ~ C(family) + C(alignment) * C(task) * relative_depth" if has_multi_family else "c_v ~ C(alignment) * C(task) * relative_depth"
+    formula_a = "c_a ~ C(family) + C(alignment) * C(task) * relative_depth" if has_multi_family else "c_a ~ C(alignment) * C(task) * relative_depth"
+
+    lmm_summary: Dict[str, Any] = {
+        "primary_matched_plain": {},
+        "secondary_native_chat": {},
+    }
+
+    # Primary LMM
     try:
-        logger.info("Fitting LMM for Valence causal leverage...")
-        lmm_v = fit_sample_level_lmm(
-            df=df_pair,
-            formula="c_v ~ C(alignment) * C(task) * relative_depth",
-            groups="pair_id",
-        )
-        lmm_summary["valence"] = {
-            "converged": lmm_v["converged"],
-            "params": lmm_v["params"],
-            "pvalues": lmm_v["pvalues"],
-            "conf_int": lmm_v["conf_int"],
+        logger.info(f"Fitting Primary LMM (matched-plain, N={len(df_primary)}) for Valence...")
+        lmm_v_p = fit_sample_level_lmm(df=df_primary, formula=formula_v, groups="pair_id")
+        lmm_summary["primary_matched_plain"]["valence"] = {
+            "converged": lmm_v_p["converged"],
+            "formula": formula_v,
+            "params": lmm_v_p["params"],
+            "pvalues": lmm_v_p["pvalues"],
+            "conf_int": lmm_v_p["conf_int"],
         }
-        logger.info("Fitting LMM for Arousal causal leverage...")
-        lmm_a = fit_sample_level_lmm(
-            df=df_pair,
-            formula="c_a ~ C(alignment) * C(task) * relative_depth",
-            groups="pair_id",
-        )
-        lmm_summary["arousal"] = {
-            "converged": lmm_a["converged"],
-            "params": lmm_a["params"],
-            "pvalues": lmm_a["pvalues"],
-            "conf_int": lmm_a["conf_int"],
+        logger.info(f"Fitting Primary LMM (matched-plain, N={len(df_primary)}) for Arousal...")
+        lmm_a_p = fit_sample_level_lmm(df=df_primary, formula=formula_a, groups="pair_id")
+        lmm_summary["primary_matched_plain"]["arousal"] = {
+            "converged": lmm_a_p["converged"],
+            "formula": formula_a,
+            "params": lmm_a_p["params"],
+            "pvalues": lmm_a_p["pvalues"],
+            "conf_int": lmm_a_p["conf_int"],
         }
     except Exception as e:
-        logger.warning(f"LMM fitting encountered an issue: {e}")
-        lmm_summary["error"] = str(e)
+        logger.warning(f"Primary LMM fitting failed: {e}")
+        lmm_summary["primary_matched_plain"]["error"] = str(e)
+
+    # Secondary LMM
+    if not df_native.empty and len(df_native["alignment"].unique()) >= 2:
+        try:
+            logger.info(f"Fitting Secondary LMM (native-chat, N={len(df_native)}) for Valence...")
+            lmm_v_n = fit_sample_level_lmm(df=df_native, formula=formula_v, groups="pair_id")
+            lmm_summary["secondary_native_chat"]["valence"] = {
+                "converged": lmm_v_n["converged"],
+                "formula": formula_v,
+                "params": lmm_v_n["params"],
+                "pvalues": lmm_v_n["pvalues"],
+                "conf_int": lmm_v_n["conf_int"],
+            }
+            logger.info(f"Fitting Secondary LMM (native-chat, N={len(df_native)}) for Arousal...")
+            lmm_a_n = fit_sample_level_lmm(df=df_native, formula=formula_a, groups="pair_id")
+            lmm_summary["secondary_native_chat"]["arousal"] = {
+                "converged": lmm_a_n["converged"],
+                "formula": formula_a,
+                "params": lmm_a_n["params"],
+                "pvalues": lmm_a_n["pvalues"],
+                "conf_int": lmm_a_n["conf_int"],
+            }
+        except Exception as e:
+            logger.warning(f"Secondary LMM fitting failed: {e}")
+            lmm_summary["secondary_native_chat"]["error"] = str(e)
 
     # 3. 統合要約
     summary_path = derived_dir / "v2_causal_dissociation_summary.json"

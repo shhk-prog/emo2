@@ -26,6 +26,7 @@ target_family: "qwen"
 # 介入パラメータ
 interventions:
   alpha_grid: [-1.0, -0.5, 0.0, 0.5, 1.0]
+  specificity_reference_alpha: 1.0
   use_centered_projection: true
   use_subspace_removal: true
   num_random_controls: 5
@@ -80,6 +81,8 @@ confirmatory_families:
 
 confirmatory:
   sufficiency_relative_depth: 0.5
+  temporal_relative_depth: 0.65
+  mediation_relative_depth: 0.65
 
 # 出力設定
 output:

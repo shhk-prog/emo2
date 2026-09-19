@@ -102,6 +102,7 @@ def simulate_path_mediation_discovery(
 def simulate_path_mediation_confirmation(
     confirmation_df: pd.DataFrame,
     mediator_layer: int,
+    num_layers: int = 28,
     bootstrap_n: int = 1000,
 ) -> Dict[str, Any]:
     """
@@ -132,9 +133,12 @@ def simulate_path_mediation_confirmation(
     atten_a_mean, atten_a_low, atten_a_high = compute_bootstrap_ci(atten_samples_a, n_boot=bootstrap_n)
     ratio_a_mean, ratio_a_low, ratio_a_high = compute_bootstrap_ci(ratio_samples_a, n_boot=bootstrap_n)
 
+    med_depth = float(mediator_layer / (num_layers - 1)) if num_layers > 1 else 0.68
+
     return {
         "primary_grounding": "reader_prediction",
         "mediator_layer": mediator_layer,
+        "mediator_relative_depth": med_depth,
         "n_total": n,
         "n_valid_ratio_v": n,
         "n_valid_ratio_a": n,
@@ -542,6 +546,7 @@ def run_real_path_mediation(
     confirmation_res = {
         "primary_grounding": "reader_prediction",
         "mediator_layer": mediator_layer,
+        "mediator_relative_depth": float(mediator_layer / (num_layers - 1)) if num_layers > 1 else 0.0,
         "n_total": n_total,
         "n_valid_ratio_v": n_valid_v,
         "n_valid_ratio_a": n_valid_a,
@@ -624,6 +629,7 @@ def main():
             confirmation_res = simulate_path_mediation_confirmation(
                 df.tail(len(df) // 2),
                 mediator_layer=discovery_res["mediator_layer"],
+                num_layers=num_layers,
                 bootstrap_n=bootstrap_n,
             )
         else:
@@ -659,14 +665,18 @@ def main():
             model_name=target_model_id,
             config={
                 "family": fam_key,
+                "model_id": target_model_id,
+                "dataset_path": str(v3_cfg["dataset"]["path"]),
                 "subsample": args.subsample,
                 "bootstrap_n": bootstrap_n,
+                "seed": v3_cfg.get("seed", 42),
                 "dry_run": bool(args.dry_run),
             },
             metadata={
                 "n_dataset_total": int(len(df)),
                 "n_intervention_samples": n_intervention_manifest,
                 "mediator_layer": confirmation_res["mediator_layer"],
+                "mediator_relative_depth": confirmation_res.get("mediator_relative_depth", float(confirmation_res["mediator_layer"] / (num_layers - 1))),
                 "valence_attenuation": confirmation_res["valence"]["mediated_attenuation"]["mean"],
                 "arousal_attenuation": confirmation_res["arousal"]["mediated_attenuation"]["mean"],
                 "valence_attenuation_ratio": confirmation_res["valence"]["attenuation_ratio"]["mean"],
@@ -680,6 +690,7 @@ def main():
     out_summary = derived_dir / "v3_path_mediation_summary.json"
     summary_output = {
         "mediator_layer": confirmation_res["mediator_layer"],
+        "mediator_relative_depth": confirmation_res.get("mediator_relative_depth", float(confirmation_res["mediator_layer"] / (num_layers - 1))),
         "n_total": confirmation_res["n_total"],
         "n_valid_ratio_v": confirmation_res["n_valid_ratio_v"],
         "n_valid_ratio_a": confirmation_res["n_valid_ratio_a"],

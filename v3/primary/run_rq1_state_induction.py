@@ -228,6 +228,7 @@ def run_real_state_induction(
     alpha_grid: List[float],
     model_id: str,
     target_layer: int,
+    specificity_reference_alpha: float = 1.0,
     device: str = "cpu",
     batch_size: int = 81,
 ) -> Dict[str, Any]:
@@ -238,6 +239,11 @@ def run_real_state_induction(
     3. 共通 Sequence Likelihood により各条件下の期待値変位を実測
     4. サンプル単位の変位から Bootstrap 95% CI を算出
     """
+    if specificity_reference_alpha not in alpha_grid:
+        raise ValueError(
+            f"specificity_reference_alpha={specificity_reference_alpha} must be present in alpha_grid={alpha_grid}"
+        )
+    ref_alpha_idx = alpha_grid.index(specificity_reference_alpha)
     logger.info(f"Loading tokenizer and model: {model_id} on {device}...")
     tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
     if tokenizer.pad_token is None:
@@ -475,7 +481,7 @@ def run_real_state_induction(
                 hook_mgr.register_direction_intervention_hook(
                     layer_idx=target_layer,
                     direction=d_rand_v,
-                    alpha=1.0,
+                    alpha=specificity_reference_alpha,
                     hidden_std=h_std_v,
                     token_indices=patch_pos_neu,
                     hook_point=HookPoint.POST_MLP_RESID,
@@ -490,7 +496,7 @@ def run_real_state_induction(
                 hook_mgr.register_direction_intervention_hook(
                     layer_idx=target_layer,
                     direction=d_perp_v,
-                    alpha=1.0,
+                    alpha=specificity_reference_alpha,
                     hidden_std=h_std_v,
                     token_indices=patch_pos_neu,
                     hook_point=HookPoint.POST_MLP_RESID,
@@ -501,7 +507,7 @@ def run_real_state_induction(
                 )
             ev_perp_v, _ = compute_expected_va(probs_perp_v, candidates)
 
-            eff_affect_v = abs(alpha_shifts_v[-1])  # alpha = 1.0 (relative to clean_neu_ev)
+            eff_affect_v = abs(alpha_shifts_v[ref_alpha_idx])  # reference alpha (default 1.0, relative to clean_neu_ev)
             eff_rand_v = abs(ev_rand_v - clean_neu_ev)
             eff_perp_v = abs(ev_perp_v - clean_neu_ev)
             sample_spec_diff_v.append(eff_affect_v - max(eff_rand_v, eff_perp_v))
@@ -513,7 +519,7 @@ def run_real_state_induction(
                 hook_mgr.register_direction_intervention_hook(
                     layer_idx=target_layer,
                     direction=d_rand_a,
-                    alpha=1.0,
+                    alpha=specificity_reference_alpha,
                     hidden_std=h_std_a,
                     token_indices=patch_pos_neu,
                     hook_point=HookPoint.POST_MLP_RESID,
@@ -528,7 +534,7 @@ def run_real_state_induction(
                 hook_mgr.register_direction_intervention_hook(
                     layer_idx=target_layer,
                     direction=d_perp_a,
-                    alpha=1.0,
+                    alpha=specificity_reference_alpha,
                     hidden_std=h_std_a,
                     token_indices=patch_pos_neu,
                     hook_point=HookPoint.POST_MLP_RESID,
@@ -539,7 +545,7 @@ def run_real_state_induction(
                 )
             _, ea_perp_a = compute_expected_va(probs_perp_a, candidates)
 
-            eff_affect_a = abs(alpha_shifts_a[-1])  # alpha = 1.0
+            eff_affect_a = abs(alpha_shifts_a[ref_alpha_idx])  # reference alpha (default 1.0)
             eff_rand_a = abs(ea_rand_a - clean_neu_ea)
             eff_perp_a = abs(ea_perp_a - clean_neu_ea)
             sample_spec_diff_a.append(eff_affect_a - max(eff_rand_a, eff_perp_a))
@@ -847,11 +853,13 @@ def main():
         results = simulate_mock_intervention_responses(df, alpha_grid)
     else:
         logger.info(f"Executing REAL state induction pipeline for {target_model_id}...")
+        spec_ref_alpha = float(v3_cfg.get("interventions", {}).get("specificity_reference_alpha", 1.0))
         results = run_real_state_induction(
             df=df,
             alpha_grid=alpha_grid,
             model_id=target_model_id,
             target_layer=args.layer,
+            specificity_reference_alpha=spec_ref_alpha,
             device=args.device,
             batch_size=v3_cfg.get("inference", {}).get("batch_size", 81),
         )

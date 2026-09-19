@@ -42,8 +42,8 @@ Covariation  →  Representation & Overlap  →  Reorganization  →  Causal Lev
 - **V1** (`v1/`): decodability / 幾何（E1/E2）、意味統制感度（Phase B）、因果マップと交換可能性（E3/E4）、課題特異化（E6）。同一モデル内での部分的重複（partially overlapping causally relevant representations and intervention-sensitive sites）を検証。[`v1/README.md`](v1/README.md)
 - **V2** (`v2/`): 幾何再編、ピーク解離、2D OT 分布回復（RQ1〜RQ4。直交 Procrustes アラインメント統制）。各モデル内部の活性化操作（RQ3/RQ4）は**モデル内因果介入（within-model causal characterization）**として同定し、Base と Instruct のモデル間比較は**事後学習に伴う再編（post-training-associated reorganization）**として観察的に帰属（訓練過程そのものへの直接的因果介入ではないため過大主張を避ける）。[`v2/README.md`](v2/README.md)
 - **V3** (`v3/`): AIPsy matched-neutral 192 pair での状態誘導ゲート、時空間 4-Map、mediated attenuation、確証的再現。
-  - **Direction Injection**: 加算注入（$h + \alpha \sigma_h \hat{d}$）による十分性と因果的影響力（*sufficiency / causal leverage*）
-  - **Subspace Removal**: 部分空間除去による内生的な関連性（*necessity / endogenous relevance*）
+  - **Direction Injection**: 中立文への方向加算注入（$h + \alpha \sigma_h \hat{d}$）による十分性と因果的影響力（*sufficiency / causal leverage*）
+  - **Subspace Removal**: 情動文に対する中心化2D直交部分空間除去による内生的な関連性・必然性（*necessity / endogenous relevance*）
   - 因果的影響力が特定の層・生成段階に集中（*concentrated at particular layers and generation stages*）することを実証。[`v3/README.md`](v3/README.md)
 
 ### 3つの学術的貢献 (Main Contributions)

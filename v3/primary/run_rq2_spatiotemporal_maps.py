@@ -199,6 +199,12 @@ def run_real_spatiotemporal_maps(
        Secondary: Self-Report (自己報告値) に基づくデコード能
     """
     logger.info(f"Loading model {model_id} for Spatiotemporal 4-Map Analysis on {device}...")
+    if causal_reference_alpha not in alpha_sweep:
+        raise ValueError(
+            f"causal_reference_alpha={causal_reference_alpha} must be present in alpha_sweep={alpha_sweep}"
+        )
+    ref_alpha_idx = alpha_sweep.index(causal_reference_alpha)
+
     tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
@@ -453,7 +459,6 @@ def run_real_spatiotemporal_maps(
                                     axis_shifts.append(ea_p - clean_ea_list[idx])
                             shift_store.extend(axis_shifts)
 
-                        ref_alpha_idx = int(np.argmin([abs(a - causal_reference_alpha) for a in alpha_sweep]))
                         sample_gamma_v.append(estimate_interventional_slope(alpha_sweep, shifts_v))
                         sample_gamma_a.append(estimate_interventional_slope(alpha_sweep, shifts_a))
                         sample_c_v.append(abs(shifts_v[ref_alpha_idx]))
@@ -606,8 +611,12 @@ def main():
             config={
                 "analysis_role": "discovery",
                 "family": fam_key,
+                "model_id": target_model_id,
+                "dataset_path": str(v3_cfg["dataset"]["path"]),
                 "semantic_stages": normalized_stages,
                 "alpha_sweep": alpha_sweep,
+                "causal_reference_alpha": causal_ref_alpha,
+                "seed": v3_cfg.get("seed", 42),
                 "subsample": args.subsample,
                 "dry_run": bool(args.dry_run),
             },

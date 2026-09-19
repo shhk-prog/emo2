@@ -606,46 +606,113 @@ def main():
         logger.info(f"Saved family recovery result to {out_path}")
 
         # Manifest 保存
+        spec_base = fam_cfg.get_model_spec("base")
+        spec_inst = fam_cfg.get_model_spec("instruct")
         manifest = create_run_manifest(
             run_type="v2_recovery",
             model_name=fam_cfg.family_name,
-            config={"family_id": fam_id, "dry_run": bool(args.dry_run)},
-            metadata={"best_self_layer": res["self"]["best_recovery_layer"]},
+            config={
+                "family_id": fam_id,
+                "family_name": fam_cfg.family_name,
+                "base_model_id": spec_base.model_id if spec_base else None,
+                "instruct_model_id": spec_inst.model_id if spec_inst else None,
+                "dataset_path": str(v2_config["dataset"]["path"]),
+                "seed": v2_config.get("seed", 42),
+                "n_boot": n_boot,
+                "dry_run": bool(args.dry_run),
+            },
+            metadata={
+                "best_self_layer": res["self"]["best_recovery_layer"],
+                "best_reader_layer": res["reader"]["best_recovery_layer"],
+                "primary_self_auc_matched": res["self"].get("auc_recovery_matched_plain"),
+                "primary_reader_auc_matched": res["reader"].get("auc_recovery_matched_plain"),
+            },
             dry_run=bool(args.dry_run),
         )
         manifest.save(str(raw_dir / f"manifest_recovery_{fam_id}.json"))
 
         logger.info(
-            f"  [Self] Best Recovery: Layer {res['self']['best_recovery_layer']} (d={res['self']['best_recovery_depth']:.2f}) -> {res['self']['max_recovery_ratio']*100:.1f}%"
+            f"  [Self] Best Recovery (Matched-Plain): Layer {res['self']['best_recovery_layer']} (d={res['self']['best_recovery_depth']:.2f}) -> {res['self'].get('max_recovery_ratio_matched_plain', res['self']['max_recovery_ratio'])*100:.1f}%"
         )
         logger.info(
-            f"  [Reader] Best Recovery: Layer {res['reader']['best_recovery_layer']} (d={res['reader']['best_recovery_depth']:.2f}) -> {res['reader']['max_recovery_ratio']*100:.1f}%"
+            f"  [Reader] Best Recovery (Matched-Plain): Layer {res['reader']['best_recovery_layer']} (d={res['reader']['best_recovery_depth']:.2f}) -> {res['reader'].get('max_recovery_ratio_matched_plain', res['reader']['max_recovery_ratio'])*100:.1f}%"
         )
 
-    # 4ファミリー統合サマリー（Self vs Reader paired comparison）
-    self_max_ratios = [all_recovery_results[f]["self"]["max_recovery_ratio"] for f in all_recovery_results]
-    reader_max_ratios = [all_recovery_results[f]["reader"]["max_recovery_ratio"] for f in all_recovery_results]
-    self_auc_ratios = [all_recovery_results[f]["self"]["auc_recovery"] for f in all_recovery_results]
-    reader_auc_ratios = [all_recovery_results[f]["reader"]["auc_recovery"] for f in all_recovery_results]
+    # 4ファミリー統合サマリー（Primary: Matched-Plain, Secondary: Native-Chat, Mechanistic Control: Aligned）
+    # 1. Primary: Matched-Plain
+    self_max_matched = [all_recovery_results[f]["self"]["max_recovery_ratio_matched_plain"] for f in all_recovery_results]
+    reader_max_matched = [all_recovery_results[f]["reader"]["max_recovery_ratio_matched_plain"] for f in all_recovery_results]
+    self_auc_matched = [all_recovery_results[f]["self"]["auc_recovery_matched_plain"] for f in all_recovery_results]
+    reader_auc_matched = [all_recovery_results[f]["reader"]["auc_recovery_matched_plain"] for f in all_recovery_results]
 
-    pt_self, s_low, s_up = compute_bootstrap_ci(self_max_ratios, n_boot=n_boot)
-    pt_reader, r_low, r_up = compute_bootstrap_ci(reader_max_ratios, n_boot=n_boot)
-    paired_comp = paired_family_comparison(self_max_ratios, reader_max_ratios)
+    pt_self_m, s_m_low, s_m_up = compute_bootstrap_ci(self_max_matched, n_boot=n_boot)
+    pt_reader_m, r_m_low, r_m_up = compute_bootstrap_ci(reader_max_matched, n_boot=n_boot)
+    paired_comp_matched = paired_family_comparison(self_max_matched, reader_max_matched)
 
-    pt_auc_self, a_s_low, a_s_up = compute_bootstrap_ci(self_auc_ratios, n_boot=n_boot)
-    pt_auc_reader, a_r_low, a_r_up = compute_bootstrap_ci(reader_auc_ratios, n_boot=n_boot)
-    paired_auc_comp = paired_family_comparison(self_auc_ratios, reader_auc_ratios)
+    pt_auc_self_m, a_s_m_low, a_s_m_up = compute_bootstrap_ci(self_auc_matched, n_boot=n_boot)
+    pt_auc_reader_m, a_r_m_low, a_r_m_up = compute_bootstrap_ci(reader_auc_matched, n_boot=n_boot)
+    paired_auc_comp_matched = paired_family_comparison(self_auc_matched, reader_auc_matched)
+
+    # 2. Secondary: Direct Native
+    self_max_native = [all_recovery_results[f]["self"]["max_recovery_ratio"] for f in all_recovery_results]
+    reader_max_native = [all_recovery_results[f]["reader"]["max_recovery_ratio"] for f in all_recovery_results]
+    self_auc_native = [all_recovery_results[f]["self"]["auc_recovery"] for f in all_recovery_results]
+    reader_auc_native = [all_recovery_results[f]["reader"]["auc_recovery"] for f in all_recovery_results]
+
+    pt_self_n, s_n_low, s_n_up = compute_bootstrap_ci(self_max_native, n_boot=n_boot)
+    pt_reader_n, r_n_low, r_n_up = compute_bootstrap_ci(reader_max_native, n_boot=n_boot)
+    paired_comp_native = paired_family_comparison(self_max_native, reader_max_native)
+
+    pt_auc_self_n, a_s_n_low, a_s_n_up = compute_bootstrap_ci(self_auc_native, n_boot=n_boot)
+    pt_auc_reader_n, a_r_n_low, a_r_n_up = compute_bootstrap_ci(reader_auc_native, n_boot=n_boot)
+    paired_auc_comp_native = paired_family_comparison(self_auc_native, reader_auc_native)
+
+    # 3. Mechanistic Control: Aligned Procrustes
+    self_max_aligned = [all_recovery_results[f]["self"]["max_recovery_ratio_aligned"] for f in all_recovery_results]
+    reader_max_aligned = [all_recovery_results[f]["reader"]["max_recovery_ratio_aligned"] for f in all_recovery_results]
+    self_auc_aligned = [all_recovery_results[f]["self"]["auc_recovery_aligned"] for f in all_recovery_results]
+    reader_auc_aligned = [all_recovery_results[f]["reader"]["auc_recovery_aligned"] for f in all_recovery_results]
+
+    pt_self_al, s_al_low, s_al_up = compute_bootstrap_ci(self_max_aligned, n_boot=n_boot)
+    pt_reader_al, r_al_low, r_al_up = compute_bootstrap_ci(reader_max_aligned, n_boot=n_boot)
+    paired_comp_aligned = paired_family_comparison(self_max_aligned, reader_max_aligned)
+
+    pt_auc_self_al, a_s_al_low, a_s_al_up = compute_bootstrap_ci(self_auc_aligned, n_boot=n_boot)
+    pt_auc_reader_al, a_r_al_low, a_r_al_up = compute_bootstrap_ci(reader_auc_aligned, n_boot=n_boot)
+    paired_auc_comp_aligned = paired_family_comparison(self_auc_aligned, reader_auc_aligned)
 
     summary_data = {
         "per_family": all_recovery_results,
-        "cross_family_bootstrap_ci_95": {
-            "self_max_recovery_ratio": {"mean": pt_self, "ci_lower": s_low, "ci_upper": s_up},
-            "reader_max_recovery_ratio": {"mean": pt_reader, "ci_lower": r_low, "ci_upper": r_up},
-            "self_auc_recovery": {"mean": pt_auc_self, "ci_lower": a_s_low, "ci_upper": a_s_up},
-            "reader_auc_recovery": {"mean": pt_auc_reader, "ci_lower": a_r_low, "ci_upper": a_r_up},
+        "primary_matched_plain": {
+            "cross_family_bootstrap_ci_95": {
+                "self_max_recovery_ratio": {"mean": pt_self_m, "ci_lower": s_m_low, "ci_upper": s_m_up},
+                "reader_max_recovery_ratio": {"mean": pt_reader_m, "ci_lower": r_m_low, "ci_upper": r_m_up},
+                "self_auc_recovery": {"mean": pt_auc_self_m, "ci_lower": a_s_m_low, "ci_upper": a_s_m_up},
+                "reader_auc_recovery": {"mean": pt_auc_reader_m, "ci_lower": a_r_m_low, "ci_upper": a_r_m_up},
+            },
+            "paired_task_comparison_max_ratio": paired_comp_matched,
+            "paired_task_comparison_auc": paired_auc_comp_matched,
         },
-        "paired_task_comparison": paired_comp,
-        "paired_task_comparison_auc": paired_auc_comp,
+        "secondary_native_chat": {
+            "cross_family_bootstrap_ci_95": {
+                "self_max_recovery_ratio": {"mean": pt_self_n, "ci_lower": s_n_low, "ci_upper": s_n_up},
+                "reader_max_recovery_ratio": {"mean": pt_reader_n, "ci_lower": r_n_low, "ci_upper": r_n_up},
+                "self_auc_recovery": {"mean": pt_auc_self_n, "ci_lower": a_s_n_low, "ci_upper": a_s_n_up},
+                "reader_auc_recovery": {"mean": pt_auc_reader_n, "ci_lower": a_r_n_low, "ci_upper": a_r_n_up},
+            },
+            "paired_task_comparison_max_ratio": paired_comp_native,
+            "paired_task_comparison_auc": paired_auc_comp_native,
+        },
+        "mechanistic_control_aligned": {
+            "cross_family_bootstrap_ci_95": {
+                "self_max_recovery_ratio": {"mean": pt_self_al, "ci_lower": s_al_low, "ci_upper": s_al_up},
+                "reader_max_recovery_ratio": {"mean": pt_reader_al, "ci_lower": r_al_low, "ci_upper": r_al_up},
+                "self_auc_recovery": {"mean": pt_auc_self_al, "ci_lower": a_s_al_low, "ci_upper": a_s_al_up},
+                "reader_auc_recovery": {"mean": pt_auc_reader_al, "ci_lower": a_r_al_low, "ci_upper": a_r_al_up},
+            },
+            "paired_task_comparison_max_ratio": paired_comp_aligned,
+            "paired_task_comparison_auc": paired_auc_comp_aligned,
+        },
     }
 
     summary_path = derived_dir / "v2_distribution_recovery_summary.json"

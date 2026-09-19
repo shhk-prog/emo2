@@ -143,7 +143,7 @@ def run_confirmatory_analysis(
                     raise
 
     h1a_report: Dict[str, Any] = {
-        "interpretation": "post-training-associated geometric distortion and representational dissimilarity (matched-plain)",
+        "interpretation": "post-training-associated geometric distortion and representational similarity under matched-plain conditions",
         "rsa_metric_type": "rsa_similarity",
         "per_family_geometry": per_family_h1a,
         "effects": {},
@@ -543,10 +543,23 @@ def run_confirmatory_analysis(
                 if "self" in rdata and "reader" in rdata:
                     s_dat = rdata["self"]
                     r_dat = rdata["reader"]
-                    self_ratios.append(s_dat.get("max_recovery_ratio_matched_plain", s_dat["max_recovery_ratio"]))
-                    reader_ratios.append(r_dat.get("max_recovery_ratio_matched_plain", r_dat["max_recovery_ratio"]))
+                    # Strict matched-plain metrics for Primary analysis (no native fallback allowed)
+                    s_max_m = s_dat.get("max_recovery_ratio_matched_plain")
+                    if s_max_m is None and "recovery_ratios_matched_plain" in s_dat:
+                        s_max_m = float(np.max(s_dat["recovery_ratios_matched_plain"]))
+                    r_max_m = r_dat.get("max_recovery_ratio_matched_plain")
+                    if r_max_m is None and "recovery_ratios_matched_plain" in r_dat:
+                        r_max_m = float(np.max(r_dat["recovery_ratios_matched_plain"]))
 
-                    depths = rdata.get("relative_depths") or np.linspace(0.0, 1.0, len(s_dat["recovery_ratios"]))
+                    if s_max_m is None or r_max_m is None:
+                        raise RuntimeError(
+                            f"V2 H4 Primary requires max_recovery_ratio_matched_plain in {rf}. "
+                            "Fallback to native is strictly prohibited in confirmatory analysis."
+                        )
+                    self_ratios.append(s_max_m)
+                    reader_ratios.append(r_max_m)
+
+                    depths = rdata.get("relative_depths") or np.linspace(0.0, 1.0, len(s_dat.get("recovery_ratios_matched_plain", s_dat.get("recovery_ratios", []))))
 
                     # Primary metric: AUC recovery matched-plain
                     s_auc_m = s_dat.get("auc_recovery_matched_plain")
@@ -556,11 +569,11 @@ def run_confirmatory_analysis(
                     if r_auc_m is None and "recovery_ratios_matched_plain" in r_dat:
                         r_auc_m = float(trapz_func(r_dat["recovery_ratios_matched_plain"], depths))
 
-                    # Fallback to direct native if matched plain not present
-                    if s_auc_m is None:
-                        s_auc_m = s_dat.get("auc_recovery") or float(trapz_func(s_dat["recovery_ratios"], depths))
-                    if r_auc_m is None:
-                        r_auc_m = r_dat.get("auc_recovery") or float(trapz_func(r_dat["recovery_ratios"], depths))
+                    if s_auc_m is None or r_auc_m is None:
+                        raise RuntimeError(
+                            f"V2 H4 Primary requires auc_recovery_matched_plain in {rf}. "
+                            "Fallback to native is strictly prohibited in confirmatory analysis."
+                        )
 
                     self_aucs_matched.append(s_auc_m)
                     reader_aucs_matched.append(r_auc_m)

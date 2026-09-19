@@ -140,6 +140,21 @@ def create_run_manifest(
 
     cfg = config or {}
     meta = metadata or {}
+
+    if not dataset_path and "dataset_path" in cfg:
+        dataset_path = str(cfg["dataset_path"])
+    elif not dataset_path and isinstance(cfg.get("dataset"), dict) and "path" in cfg["dataset"]:
+        dataset_path = str(cfg["dataset"]["path"])
+
+    if seed == 42 and "seed" in cfg:
+        try:
+            seed = int(cfg["seed"])
+        except Exception:
+            pass
+
+    if model_revision == "main" and "model_revision" in cfg:
+        model_revision = str(cfg["model_revision"])
+
     cfg_hash = compute_string_or_dict_hash(cfg)
     ds_hash = compute_string_or_dict_hash(dataset_path) if dataset_path else "unknown"
 

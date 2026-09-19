@@ -4,11 +4,14 @@
 V3 の正式実行面。設計・指標・解釈の本文は親の [`v3/README.md`](../README.md) を正本とする。
 
 - **科学的問い (RQ)**: *Where does affect-relevant information exert measurable causal leverage over self-report in instruct models?*（指示追従モデルにおいて、情動関連の内部情報は計算過程のどこで自己報告に対する測定可能な因果的影響力（causal leverage）を行使するのか？）
-- **介入オペレータ**: 加算注入（Additive Injection）$h' = h + \alpha \cdot \sigma_h \cdot \hat{d}$（Discovery・Confirmatory 共通の厳密スケール定義）
+- **介入オペレータ**: 
+  - **十分性（Sufficiency）の検証**: 中立文への方向加算注入（Additive Injection）$h' = h + \alpha \cdot \sigma_h \cdot \hat{d}$（$\alpha \in [-2.0, 2.0]$）
+  - **必然性・内生的関連性（Necessity / Endogenous Relevance）の検証**: 情動文に対する中心化2D直交部分空間除去（Centered Subspace Removal）$h' = h - Q Q^T (h - \mu_{\text{neu}})$
+  - 両オペレータは対象（中立文 vs 情動文）および検証目的が明確に分離されている。
 - **Primary Metric**:
-  - **RQ1 State Induction & Dose-Response**: 中立ベースラインに対する用量反応スロープ $\beta_{\text{dose}}$（$\alpha \in [-2.0, 2.0]$）、直交方向 $\hat{d}_{\perp}$ およびランダム方向 $\hat{d}_{\text{rand}}$ での特異性（Null effect 検証）。
+  - **RQ1 State Induction & Dose-Response**: 中立ベースラインに対する用量反応スロープ $\beta_{\text{dose}}$、直交方向 $\hat{d}_{\perp}$ およびランダム方向 $\hat{d}_{\text{rand}}$ での特異性（Null effect 検証）。
   - **RQ2 Spatiotemporal Maps**: 層 $l \times$ 生成段階 $t$ における時空間因果影響スロープ $\beta_{l,t}$、ピーク層 $l^*$、ピークトークン段階 $t^*$。因果的影響力が特定の層・生成段階に集中（*concentrated at particular layers and generation stages*）することを検証。
-  - **RQ3 Path Mediation**: 情動部分空間の除去（Subspace Ablation）による自己報告変位の減衰率（Mediated Attenuation Ratio。内生的関連性・必然性の検証）。
+  - **RQ3 Path Mediation**: 情動部分空間の除去（Centered Subspace Removal）による自己報告変位の減衰率（Mediated Attenuation Ratio。内生的関連性・必然性の検証）。
   - **Confirmatory Replication**: 独立したサンプル単位交差フィッティング（**Sample-Level Holdout Cross-Fitting / GroupKFold on `pair_id`**）による他ファミリーでの厳格な再現性検証（プローブ推定と介入評価のデータ重複リークを完全排除）。
 - **統計単位**: Matched pair ($N=192$ clinical-neutral pairs) / Sample-level holdout test folds
 - **統制条件**:
@@ -20,7 +23,7 @@ V3 の正式実行面。設計・指標・解釈の本文は親の [`v3/README.m
 
 中心の問い: **Where does affect-relevant information exert measurable causal leverage over self-report?**  
 データ: AIPsy clinical–neutral 192 pair（`load_v3_matched_pair_table`）。EmoBank 3-way は使わない。  
-候補空間: 81 VA。Stage 間では絶対値を直接比較せず、各 Stage 内の contrast と relative pattern を主たる推論対象とする。
+候補空間: 81 VA。Teacher-forced joint sequence evaluation により自己回帰的な生成ドリフトを統制し、Stage 間では絶対値を直接比較せず、各 Stage 内の contrast と relative pattern を主たる推論対象とする。
 
 ## 実行順とゲート
 

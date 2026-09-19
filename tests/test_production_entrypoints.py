@@ -97,6 +97,7 @@ def test_production_dry_run_dispatch(monkeypatch):
     assert len(executed_cmds) > 0, "No commands were dispatched during dry-run integration test"
 
 
+@pytest.mark.slow
 def test_all_dispatched_commands_argparse_compatibility(monkeypatch):
     """
     Verify that every command line constructed by affective_empathy_eval.run with

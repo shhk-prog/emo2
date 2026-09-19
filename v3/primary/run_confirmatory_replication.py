@@ -208,7 +208,6 @@ def simulate_model_confirmatory(
     }
 
 
-
 def run_real_model_confirmatory(
     family: str,
     model_id: str,
@@ -337,9 +336,11 @@ def run_real_model_confirmatory(
     # NOTE: Confirmatory data reuse 完全排除のため、direction / Q / mu_neu の推定を train fold のみで行い、
     # 評価を独立な test fold のみで実行する。
     suff_rel_depth = v3_cfg.get("confirmatory", {}).get("sufficiency_relative_depth", 0.5) if v3_cfg else 0.5
+    temp_rel_depth = v3_cfg.get("confirmatory", {}).get("temporal_relative_depth", 0.65) if v3_cfg else 0.65
+    med_rel_depth = v3_cfg.get("confirmatory", {}).get("mediation_relative_depth", 0.65) if v3_cfg else 0.65
     sufficiency_layer = round(suff_rel_depth * (num_layers - 1))
-    temporal_map_layer = int(num_layers * 0.65)
-    mediation_layer = int(num_layers * 0.65)
+    temporal_map_layer = round(temp_rel_depth * (num_layers - 1))
+    mediation_layer = round(med_rel_depth * (num_layers - 1))
     alphas = [-1.0, -0.5, 0.0, 0.5, 1.0]
 
     # 集約用データ構造
@@ -548,16 +549,19 @@ def run_real_model_confirmatory(
                     tokenizer, prompt_self, candidates, stage_keys
                 )
 
+                d_temp_v, h_std_temp_v = layer_dirs_v[temporal_map_layer]
+                d_temp_a, h_std_temp_a = layer_dirs_a[temporal_map_layer]
+
                 for stg in stage_keys:
                     t_pos = stage_target_indices[stg]
 
-                    # 1) Valence steering
+                    # 1) Valence steering (temporal_map_layer local direction)
                     with ActivationHookManager(adapter) as hook_mgr:
                         hook_mgr.register_direction_intervention_hook(
                             layer_idx=temporal_map_layer,
-                            direction=d_v,
+                            direction=d_temp_v,
                             alpha=1.0,
-                            hidden_std=h_std_v,
+                            hidden_std=h_std_temp_v,
                             token_indices=t_pos,
                             hook_point=HookPoint.POST_MLP_RESID,
                             mode="inject",
@@ -568,13 +572,13 @@ def run_real_model_confirmatory(
                     ev_stg_v, _ = compute_expected_va(probs_stg_v, candidates)
                     test_stage_shifts_v[stg].append(abs(ev_stg_v - clean_ev_list[sample_idx]))
 
-                    # 2) Arousal steering
+                    # 2) Arousal steering (temporal_map_layer local direction)
                     with ActivationHookManager(adapter) as hook_mgr:
                         hook_mgr.register_direction_intervention_hook(
                             layer_idx=temporal_map_layer,
-                            direction=d_a,
+                            direction=d_temp_a,
                             alpha=1.0,
-                            hidden_std=h_std_a,
+                            hidden_std=h_std_temp_a,
                             token_indices=t_pos,
                             hook_point=HookPoint.POST_MLP_RESID,
                             mode="inject",
@@ -829,11 +833,20 @@ def main():
         manifest = create_run_manifest(
             run_type="v3_confirmatory",
             model_name=model_id,
-            config={"family_key": fam_key, "dry_run": bool(args.dry_run), "subsample": args.subsample},
+            config={
+                "family_key": fam_key,
+                "family_name": fam_name,
+                "model_id": model_id,
+                "dataset_path": str(v3_cfg["dataset"]["path"]),
+                "seed": seeds.get(fam_key, 999),
+                "subsample": args.subsample,
+                "dry_run": bool(args.dry_run),
+            },
             metadata={
                 "family": fam_name,
                 "slope_v": res["h2_sufficiency"]["slope_v"],
                 "slope_a": res["h2_sufficiency"]["slope_a"],
+                "all_confirmed": res.get("all_confirmed", False),
             },
             dry_run=bool(args.dry_run),
         )

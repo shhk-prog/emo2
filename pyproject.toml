@@ -50,6 +50,9 @@ ignore = []
 testpaths = ["tests"]
 pythonpath = ["src", "."]
 norecursedirs = ["scratch", "archive", "v2/scripts", "v3/scripts", ".venv", ".git"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
 filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::RuntimeWarning",

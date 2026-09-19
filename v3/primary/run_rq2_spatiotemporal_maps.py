@@ -143,6 +143,8 @@ def simulate_spatiotemporal_maps(
 
 
     return {
+        "stage_evaluation_mode": "teacher_forced_joint_sequence",
+        "temporal_protocol": "teacher_forced_candidate_sequence",
         "num_layers": num_layers,
         "semantic_stages": semantic_stages,
         "relative_depths": relative_depths,
@@ -305,11 +307,10 @@ def run_real_spatiotemporal_maps(
     covar_v = v3_stimulus_covariate(eval_df, "v", N)
     covar_a = v3_stimulus_covariate(eval_df, "a", N)
 
-    # 固定シードによる再現可能な因果介入サンプル選択 (全層・全ステージで共通の一貫したサブセット)
-    n_causal_intervene = min(n_causal_samples, N)
-    rng_causal = np.random.default_rng(42)
-    sub_eval_idx = sorted(rng_causal.choice(N, size=n_causal_intervene, replace=False).tolist())
-    logger.info(f"Selected {len(sub_eval_idx)} seeded random samples for causal intervention evaluation.")
+    # 固定シードによる再現可能な感情層化因果介入サンプル選択 (全層・全ステージで共通の一貫したサブセット)
+    from affective_empathy_eval.data import stratified_causal_subset
+    sub_eval_idx = stratified_causal_subset(eval_df, n_samples=n_causal_samples, seed=42, stratify_col="target_emotion")
+    logger.info(f"Selected {len(sub_eval_idx)} emotion-stratified samples for causal intervention evaluation.")
 
     # 層 × ステージ グリッド解析
     for l in range(num_layers):
@@ -471,6 +472,8 @@ def run_real_spatiotemporal_maps(
 
 
     return {
+        "stage_evaluation_mode": "teacher_forced_joint_sequence",
+        "temporal_protocol": "teacher_forced_candidate_sequence",
         "num_layers": num_layers,
         "semantic_stages": semantic_stages,
         "relative_depths": relative_depths,

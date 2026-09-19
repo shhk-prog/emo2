@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 import numpy as np
@@ -260,18 +260,67 @@ def load_v3_matched_pair_table(
     return out
 
 
+def stratified_causal_subset(
+    df: pd.DataFrame,
+    n_samples: int,
+    seed: int = 42,
+    stratify_col: str = "target_emotion",
+) -> List[int]:
+    """
+    感情カテゴリ等から層化サンプリングしたインデックスリストを返す。
+    まず各カテゴリから1件ずつ均等に抽出し、残りをシード付きランダムで補充する。
+    """
+    N = len(df)
+    n_target = min(n_samples, N)
+    rng = np.random.default_rng(seed)
+
+    selected_indices: List[int] = []
+    # 候補列の確認 (target_emotion または emotion)
+    col = stratify_col if stratify_col in df.columns else ("emotion" if "emotion" in df.columns else None)
+    if col is not None:
+        for _, grp in df.groupby(col):
+            if len(grp) > 0:
+                idx = int(rng.choice(grp.index.to_numpy(), size=1)[0])
+                selected_indices.append(idx)
+
+    # 上限を超える場合は削る
+    if len(selected_indices) > n_target:
+        selected_indices = sorted(rng.choice(selected_indices, size=n_target, replace=False).tolist())
+    else:
+        # 不足分をシード付きランダムで均等補充
+        rem_needed = n_target - len(selected_indices)
+        if rem_needed > 0:
+            remaining = [i for i in range(N) if i not in selected_indices]
+            if remaining:
+                supp = rng.choice(remaining, size=min(rem_needed, len(remaining)), replace=False).tolist()
+                selected_indices.extend(supp)
+
+    return sorted(selected_indices)
+
+
 def v3_stimulus_covariate(df: pd.DataFrame, axis: str, n: Optional[int] = None) -> np.ndarray:
-    """β 用の刺激共変量。人間 VA が無ければ domain を使う。値は捏造しない。"""
+    """
+    β 用の刺激共変量行列。
+    人間 VA があれば連続ラベルを使用し、無ければ target_emotion, intensity, domain を
+    ダミー変数化 (one-hot, drop_first=True) してカテゴリ共変量として統制する。
+    """
     n_rows = n if n is not None else len(df)
     if axis == "v" and "reader_V" in df.columns:
-        return np.asarray(df["reader_V"].to_numpy(), dtype=np.float64)
+        return np.asarray(df["reader_V"].to_numpy(), dtype=np.float64).reshape(-1, 1)
     if axis == "a" and "reader_A" in df.columns:
-        return np.asarray(df["reader_A"].to_numpy(), dtype=np.float64)
-    if "domain" in df.columns:
-        return pd.to_numeric(df["domain"], errors="coerce").fillna(0.0).to_numpy(dtype=np.float64)
-    return np.zeros(n_rows, dtype=np.float64)
+        return np.asarray(df["reader_A"].to_numpy(), dtype=np.float64).reshape(-1, 1)
+
+    # AIPsy 等で人間連続 VA が無い場合: target_emotion / intensity / domain を one-hot 化
+    covar_cols = [c for c in ["target_emotion", "emotion", "intensity", "domain"] if c in df.columns]
+    if covar_cols:
+        dummies = pd.get_dummies(df[covar_cols].astype(str), drop_first=True, dtype=float)
+        if dummies.shape[1] > 0:
+            return dummies.values[:n_rows]
+
+    return np.zeros((n_rows, 1), dtype=np.float64)
 
 
 # Backward-compatibility aliases
 load_emobank_csv = load_emobank
 load_aipsy_csv = load_aipsy_affect
+

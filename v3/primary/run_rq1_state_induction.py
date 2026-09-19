@@ -410,27 +410,43 @@ def run_real_state_induction(
 
     with torch.no_grad():
         for _, row in test_df.iterrows():
-            text = str(row["text"])
-            prompt_self = build_prompt(text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
-            enc_self = encode_prompt_canonical(tokenizer, prompt_self, device=device)
-            anchors_self = find_semantic_anchors(enc_self["input_ids"][0].tolist(), tokenizer, text)
-            patch_pos_self = anchors_self["prompt_end"]
+            aff_text = str(row["text"])
+            neu_text = resolve_matched_neutral_text(row, df)
+            if not neu_text or not neu_text.strip():
+                raise ValueError(f"Missing matched-neutral for pair_id={row.get('pair_id', 'unknown')}")
 
-            prompt_ctrl = build_prompt(text, task=TaskType.CONTROL_TOPIC, format_type="chat", tokenizer=tokenizer)
+            prompt_aff_self = build_prompt(aff_text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
+            prompt_neu_self = build_prompt(neu_text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
+            prompt_ctrl = build_prompt(neu_text, task=TaskType.CONTROL_TOPIC, format_type="chat", tokenizer=tokenizer)
 
-            # a. Clean baseline
-            _, probs_clean = compute_sequence_likelihoods_for_candidates(
-                model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
+            enc_neu = encode_prompt_canonical(tokenizer, prompt_neu_self, device=device)
+            anchors_neu = find_semantic_anchors(enc_neu["input_ids"][0].tolist(), tokenizer, neu_text)
+            patch_pos_neu = anchors_neu["prompt_end"]
+
+            enc_aff = encode_prompt_canonical(tokenizer, prompt_aff_self, device=device)
+            anchors_aff = find_semantic_anchors(enc_aff["input_ids"][0].tolist(), tokenizer, aff_text)
+            patch_pos_aff = anchors_aff["prompt_end"]
+
+            # 1. Clean Baselines
+            # Neutral baseline: clean_neu_ev, clean_neu_ea (Sufficiency の基準点)
+            _, probs_neu = compute_sequence_likelihoods_for_candidates(
+                model=model, tokenizer=tokenizer, prompt=prompt_neu_self, candidates=candidates, device=device, batch_size=batch_size
             )
-            ev_clean, ea_clean = compute_expected_va(probs_clean, candidates)
+            clean_neu_ev, clean_neu_ea = compute_expected_va(probs_neu, candidates)
 
-            # b. Dose-response: d_V → ΔV, d_A → ΔA（軸を混ぜない）
+            # Affective baseline: clean_aff_ev, clean_aff_ea (Necessity / Natural shift の基準点)
+            _, probs_aff = compute_sequence_likelihoods_for_candidates(
+                model=model, tokenizer=tokenizer, prompt=prompt_aff_self, candidates=candidates, device=device, batch_size=batch_size
+            )
+            clean_aff_ev, clean_aff_ea = compute_expected_va(probs_aff, candidates)
+
+            # 2. Sufficiency / Dose-response: neutral 側へ d_V / d_A を注入 (shift = patched_neu - clean_neu)
             alpha_shifts_v = []
             alpha_shifts_a = []
             for alpha in alpha_grid:
                 for axis_name, direction, h_std, clean_val, collect, curves in (
-                    ("v", d_v, h_std_v, ev_clean, alpha_shifts_v, dose_curves_v),
-                    ("a", d_a, h_std_a, ea_clean, alpha_shifts_a, dose_curves_a),
+                    ("v", d_v, h_std_v, clean_neu_ev, alpha_shifts_v, dose_curves_v),
+                    ("a", d_a, h_std_a, clean_neu_ea, alpha_shifts_a, dose_curves_a),
                 ):
                     with ActivationHookManager(adapter) as hook_mgr:
                         hook_mgr.register_direction_intervention_hook(
@@ -438,12 +454,12 @@ def run_real_state_induction(
                             direction=direction,
                             alpha=alpha,
                             hidden_std=h_std,
-                            token_indices=patch_pos_self,
+                            token_indices=patch_pos_neu,
                             hook_point=HookPoint.POST_MLP_RESID,
                             mode="inject",
                         )
                         _, probs_patch = compute_sequence_likelihoods_for_candidates(
-                            model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
+                            model=model, tokenizer=tokenizer, prompt=prompt_neu_self, candidates=candidates, device=device, batch_size=batch_size
                         )
                     ev_p, ea_p = compute_expected_va(probs_patch, candidates)
                     shift = (ev_p if axis_name == "v" else ea_p) - clean_val
@@ -453,19 +469,20 @@ def run_real_state_induction(
             sample_slopes_v.append(estimate_interventional_slope(alpha_grid, alpha_shifts_v))
             sample_slopes_a.append(estimate_interventional_slope(alpha_grid, alpha_shifts_a))
 
-            # c. Specificity (Valence: d_V vs d_rand_v vs d_perp_v at alpha = 1.0)
+            # 3. Specificity: neutral 側へランダム方向・直交方向を注入して比較 (alpha = 1.0)
+            # Valence: d_V vs d_rand_v vs d_perp_v
             with ActivationHookManager(adapter) as hook_mgr:
                 hook_mgr.register_direction_intervention_hook(
                     layer_idx=target_layer,
                     direction=d_rand_v,
                     alpha=1.0,
                     hidden_std=h_std_v,
-                    token_indices=patch_pos_self,
+                    token_indices=patch_pos_neu,
                     hook_point=HookPoint.POST_MLP_RESID,
                     mode="inject",
                 )
                 _, probs_rand_v = compute_sequence_likelihoods_for_candidates(
-                    model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
+                    model=model, tokenizer=tokenizer, prompt=prompt_neu_self, candidates=candidates, device=device, batch_size=batch_size
                 )
             ev_rand_v, _ = compute_expected_va(probs_rand_v, candidates)
 
@@ -475,35 +492,35 @@ def run_real_state_induction(
                     direction=d_perp_v,
                     alpha=1.0,
                     hidden_std=h_std_v,
-                    token_indices=patch_pos_self,
+                    token_indices=patch_pos_neu,
                     hook_point=HookPoint.POST_MLP_RESID,
                     mode="inject",
                 )
                 _, probs_perp_v = compute_sequence_likelihoods_for_candidates(
-                    model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
+                    model=model, tokenizer=tokenizer, prompt=prompt_neu_self, candidates=candidates, device=device, batch_size=batch_size
                 )
             ev_perp_v, _ = compute_expected_va(probs_perp_v, candidates)
 
-            eff_affect_v = abs(alpha_shifts_v[-1])  # alpha = 1.0
-            eff_rand_v = abs(ev_rand_v - ev_clean)
-            eff_perp_v = abs(ev_perp_v - ev_clean)
+            eff_affect_v = abs(alpha_shifts_v[-1])  # alpha = 1.0 (relative to clean_neu_ev)
+            eff_rand_v = abs(ev_rand_v - clean_neu_ev)
+            eff_perp_v = abs(ev_perp_v - clean_neu_ev)
             sample_spec_diff_v.append(eff_affect_v - max(eff_rand_v, eff_perp_v))
             sample_spec_rand_v.append(eff_affect_v - eff_rand_v)
             sample_spec_perp_v.append(eff_affect_v - eff_perp_v)
 
-            # Specificity (Arousal: d_A vs d_rand_a vs d_perp_a at alpha = 1.0)
+            # Arousal: d_A vs d_rand_a vs d_perp_a
             with ActivationHookManager(adapter) as hook_mgr:
                 hook_mgr.register_direction_intervention_hook(
                     layer_idx=target_layer,
                     direction=d_rand_a,
                     alpha=1.0,
                     hidden_std=h_std_a,
-                    token_indices=patch_pos_self,
+                    token_indices=patch_pos_neu,
                     hook_point=HookPoint.POST_MLP_RESID,
                     mode="inject",
                 )
                 _, probs_rand_a = compute_sequence_likelihoods_for_candidates(
-                    model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
+                    model=model, tokenizer=tokenizer, prompt=prompt_neu_self, candidates=candidates, device=device, batch_size=batch_size
                 )
             _, ea_rand_a = compute_expected_va(probs_rand_a, candidates)
 
@@ -513,76 +530,71 @@ def run_real_state_induction(
                     direction=d_perp_a,
                     alpha=1.0,
                     hidden_std=h_std_a,
-                    token_indices=patch_pos_self,
+                    token_indices=patch_pos_neu,
                     hook_point=HookPoint.POST_MLP_RESID,
                     mode="inject",
                 )
                 _, probs_perp_a = compute_sequence_likelihoods_for_candidates(
-                    model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
+                    model=model, tokenizer=tokenizer, prompt=prompt_neu_self, candidates=candidates, device=device, batch_size=batch_size
                 )
             _, ea_perp_a = compute_expected_va(probs_perp_a, candidates)
 
             eff_affect_a = abs(alpha_shifts_a[-1])  # alpha = 1.0
-            eff_rand_a = abs(ea_rand_a - ea_clean)
-            eff_perp_a = abs(ea_perp_a - ea_clean)
+            eff_rand_a = abs(ea_rand_a - clean_neu_ea)
+            eff_perp_a = abs(ea_perp_a - clean_neu_ea)
             sample_spec_diff_a.append(eff_affect_a - max(eff_rand_a, eff_perp_a))
             sample_spec_rand_a.append(eff_affect_a - eff_rand_a)
             sample_spec_perp_a.append(eff_affect_a - eff_perp_a)
 
-            # d. Centered projection removal (Necessity: h' = h - Q Q^T (h - mu_neu))
+            # 4. Endogenous relevance / Necessity: affective 側から Q 部分空間を除去
             with ActivationHookManager(adapter) as hook_mgr:
                 hook_mgr.register_capture_hook(
                     layer_idx=target_layer,
                     hook_point=HookPoint.POST_MLP_RESID,
-                    token_indices=patch_pos_self,
-                    key="h_orig",
+                    token_indices=patch_pos_aff,
+                    key="h_aff",
                 )
-                _ = model(**enc_self)
-                h_orig = hook_mgr.captured_activations["h_orig"].cpu().float().numpy().ravel()
+                _ = model(**enc_aff)
+                h_aff = hook_mgr.captured_activations["h_aff"].cpu().float().numpy().ravel()
 
-            h_centered = h_orig - mu_neu
+            h_centered = h_aff - mu_neu
             proj = (h_centered @ Q_sub) @ Q_sub.T
-            h_ablated = h_orig - proj
+            h_ablated = h_aff - proj
             patch_abl = torch.tensor(h_ablated, dtype=torch.float32, device=device)
 
             with ActivationHookManager(adapter) as hook_mgr:
                 hook_mgr.register_patch_hook(
                     layer_idx=target_layer,
                     patch_tensor=patch_abl,
-                    token_indices=patch_pos_self,
+                    token_indices=patch_pos_aff,
                     hook_point=HookPoint.POST_MLP_RESID,
                 )
                 _, probs_abl = compute_sequence_likelihoods_for_candidates(
-                    model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
+                    model=model, tokenizer=tokenizer, prompt=prompt_aff_self, candidates=candidates, device=device, batch_size=batch_size
                 )
-            ev_abl, ea_abl = compute_expected_va(probs_abl, candidates)
+            abl_aff_ev, abl_aff_ea = compute_expected_va(probs_abl, candidates)
 
-            # Necessity: matched-neutral 自己報告を実測して baseline にする
-            neu_text = resolve_matched_neutral_text(row, df)
-            p_neu_base = build_prompt(neu_text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
-            _, probs_neu_base = compute_sequence_likelihoods_for_candidates(
-                model=model, tokenizer=tokenizer, prompt=p_neu_base, candidates=candidates, device=device, batch_size=batch_size
-            )
-            neutral_base_v, neutral_base_a = compute_expected_va(probs_neu_base, candidates)
-
-            nat_dev_v = abs(ev_clean - neutral_base_v)
-            abl_dev_v = abs(ev_abl - neutral_base_v)
-            att_ratio_v = (nat_dev_v - abl_dev_v) / (nat_dev_v + 1e-6) if nat_dev_v > 0.05 else 0.0
+            # 自然変位と残余変位 (clean_aff - clean_neu vs abl_aff - clean_neu)
+            natural_shift_v = abs(clean_aff_ev - clean_neu_ev)
+            residual_shift_v = abs(abl_aff_ev - clean_neu_ev)
+            attenuation_v = natural_shift_v - residual_shift_v
+            att_ratio_v = attenuation_v / (natural_shift_v + 1e-6) if natural_shift_v > 0.05 else 0.0
             sample_att_ratios_v.append(float(att_ratio_v))
 
-            nat_dev_a = abs(ea_clean - neutral_base_a)
-            abl_dev_a = abs(ea_abl - neutral_base_a)
-            att_ratio_a = (nat_dev_a - abl_dev_a) / (nat_dev_a + 1e-6) if nat_dev_a > 0.05 else 0.0
+            natural_shift_a = abs(clean_aff_ea - clean_neu_ea)
+            residual_shift_a = abs(abl_aff_ea - clean_neu_ea)
+            attenuation_a = natural_shift_a - residual_shift_a
+            att_ratio_a = attenuation_a / (natural_shift_a + 1e-6) if natural_shift_a > 0.05 else 0.0
             sample_att_ratios_a.append(float(att_ratio_a))
 
-            # e. Topic control (非特異的摂動の確認統制: VA両軸)
+            # 5. Topic control (非特異的摂動の確認統制: VA両軸)
             self_norm_eff_v = eff_affect_v / 4.0
             self_norm_eff_a = eff_affect_a / 4.0
             sample_self_eff_v.append(self_norm_eff_v)
             sample_self_eff_a.append(self_norm_eff_a)
 
             enc_ctrl = encode_prompt_canonical(tokenizer, prompt_ctrl, device=device)
-            anchors_ctrl = find_semantic_anchors(enc_ctrl["input_ids"][0].tolist(), tokenizer, text)
+            anchors_ctrl = find_semantic_anchors(enc_ctrl["input_ids"][0].tolist(), tokenizer, neu_text)
             patch_pos_ctrl = anchors_ctrl["prompt_end"]
             _, probs_ctrl_clean = compute_sequence_likelihoods_for_candidates(
                 model=model, tokenizer=tokenizer, prompt=prompt_ctrl, candidates=topic_candidates, device=device, batch_size=batch_size
@@ -789,6 +801,12 @@ def main():
 
     raw_dir = Path(v3_cfg["output"]["raw_dir"])
     derived_dir = Path(v3_cfg["output"]["derived_dir"])
+    if args.dry_run:
+        raw_dir = raw_dir / "dry_run"
+        derived_dir = derived_dir / "dry_run"
+    elif args.pilot:
+        raw_dir = raw_dir / "pilot"
+        derived_dir = derived_dir / "pilot"
     raw_dir.mkdir(parents=True, exist_ok=True)
     derived_dir.mkdir(parents=True, exist_ok=True)
 
@@ -861,6 +879,23 @@ def main():
     out_gate = derived_dir / "v3_gate_decision.json"
     with open(out_gate, "w", encoding="utf-8") as f:
         json.dump(gate_decision, f, indent=2, default=_json_serial)
+    logger.info(f"Saved gate decision to {out_gate}")
+
+    # RunManifest 保存
+    from affective_empathy_eval.manifests import create_run_manifest
+    manifest = create_run_manifest(
+        run_type="v3_rq1",
+        model_name=target_model_id,
+        config=v3_cfg,
+        dataset_path=v3_cfg["dataset"]["path"],
+        metadata={
+            "target_family": fam_key,
+            "layer": args.layer,
+            "gate_decision": gate_decision["decision"],
+        },
+        dry_run=bool(args.dry_run),
+    )
+    manifest.save(str(raw_dir / f"manifest_rq1_{fam_key}.json"))
     logger.info(f"Saved gate decision to {out_gate}")
 
     if gate_decision["decision"] == "GO":

@@ -81,23 +81,91 @@ def run_confirmatory_analysis(
         "status": "success",
         "dry_run": is_dry_run,
         "families": families,
+        "n_families": len(families),
+        "inference_scope": "descriptive_cross_family_bootstrap",
+        "sample_inference_scope": "lmm_with_family_fixed_effects",
         "hypotheses": {},
     }
 
     # =========================================================================
-    # H1: Post-training-Associated Reorganization of Affect Decodability Peak
+    # H1a: Geometric Reorganization (Procrustes Distortion & RSA)
     # =========================================================================
-    # 出力構造: valence.reader.shift, valence.self.shift, arousal.reader.shift, arousal.self.shift
+    h1a_metrics: Dict[str, List[float]] = {
+        "reader_distortion": [],
+        "self_distortion": [],
+        "rsa_reader": [],
+        "rsa_self": [],
+    }
+    per_family_h1a: Dict[str, Dict[str, float]] = {}
+
+    if is_dry_run:
+        mock_h1a = {
+            "qwen": {"reader_distortion": 0.35, "self_distortion": 0.42, "rsa_reader": 0.65, "rsa_self": 0.58},
+            "llama": {"reader_distortion": 0.38, "self_distortion": 0.45, "rsa_reader": 0.62, "rsa_self": 0.55},
+            "gemma": {"reader_distortion": 0.32, "self_distortion": 0.39, "rsa_reader": 0.68, "rsa_self": 0.61},
+            "olmo": {"reader_distortion": 0.36, "self_distortion": 0.44, "rsa_reader": 0.64, "rsa_self": 0.56},
+        }
+        for fam_id, m_dict in mock_h1a.items():
+            per_family_h1a[fam_id] = m_dict
+            for mk in h1a_metrics:
+                h1a_metrics[mk].append(m_dict[mk])
+    else:
+        geom_files = list(raw_dir.glob("v2_geometry_*.json"))
+        if len(geom_files) < 2:
+            raise FileNotFoundError(f"Required geometry files not found in {raw_dir} (found {len(geom_files)})")
+        for gf in geom_files:
+            try:
+                fam_id = gf.stem.replace("v2_geometry_", "")
+                with open(gf, "r", encoding="utf-8") as f:
+                    gdata = json.load(f)
+                rq1_geom = gdata.get("rq1_geometry", {})
+                fam_h1a: Dict[str, float] = {}
+                for mk, key_name in [
+                    ("reader_distortion", "reader_distortion_matched"),
+                    ("self_distortion", "self_distortion_matched"),
+                    ("rsa_reader", "rsa_reader_matched"),
+                    ("rsa_self", "rsa_self_matched"),
+                ]:
+                    vals = rq1_geom.get(key_name) or rq1_geom.get(mk, [])
+                    if vals:
+                        mean_v = float(np.mean(vals))
+                        h1a_metrics[mk].append(mean_v)
+                        fam_h1a[mk] = mean_v
+                per_family_h1a[fam_id] = fam_h1a
+            except Exception as e:
+                logger.warning(f"Failed to parse {gf} for H1a: {e}")
+
+    h1a_report: Dict[str, Any] = {
+        "interpretation": "post-training-associated geometric distortion and representational dissimilarity",
+        "per_family_geometry": per_family_h1a,
+        "effects": {},
+    }
+    for mk, vals in h1a_metrics.items():
+        if len(vals) >= 2:
+            pt, ci_low, ci_high = compute_bootstrap_ci(vals, n_boot=1000)
+        else:
+            pt, ci_low, ci_high = np.nan, np.nan, np.nan
+        h1a_report["effects"][mk] = {
+            "mean": float(pt) if not np.isnan(pt) else None,
+            "bootstrap_ci_95": [float(ci_low), float(ci_high)] if not np.isnan(ci_low) else None,
+        }
+    confirmatory_report["hypotheses"]["H1a_geometry_reorganization"] = h1a_report
+
+    # =========================================================================
+    # H1b: Post-training-Associated Reorganization of Affect Decodability Peak
+    # =========================================================================
     axes = ["valence", "arousal"]
     sub_keys = ["reader", "self"]
 
     h1_shifts: Dict[str, Dict[str, List[float]]] = {
         ax: {k: [] for k in sub_keys} for ax in axes
     }
+    h1_shifts_secondary_native: Dict[str, Dict[str, List[float]]] = {
+        ax: {k: [] for k in sub_keys} for ax in axes
+    }
     per_family_h1: Dict[str, Dict[str, float]] = {}
 
     if is_dry_run:
-        # モックH1データ: 4ファミリー分のシフト
         mock_shifts = {
             "qwen": {"valence.reader.shift": 0.12, "valence.self.shift": 0.08, "arousal.reader.shift": 0.10, "arousal.self.shift": 0.05},
             "llama": {"valence.reader.shift": 0.08, "valence.self.shift": 0.05, "arousal.reader.shift": 0.06, "arousal.self.shift": 0.04},
@@ -109,10 +177,8 @@ def run_confirmatory_analysis(
             for ax in axes:
                 for k in sub_keys:
                     h1_shifts[ax][k].append(s_dict[f"{ax}.{k}.shift"])
+                    h1_shifts_secondary_native[ax][k].append(s_dict[f"{ax}.{k}.shift"] * 1.1)
     else:
-        geom_files = list(raw_dir.glob("v2_geometry_*.json"))
-        if len(geom_files) < 2:
-            raise FileNotFoundError(f"Required geometry files not found in {raw_dir} (found {len(geom_files)})")
         for gf in geom_files:
             try:
                 fam_id = gf.stem.replace("v2_geometry_", "")
@@ -126,9 +192,19 @@ def run_confirmatory_analysis(
                     axis_data = rq2_sharing.get(ax, {})
                     base_reader = axis_data.get("base_r2_reader", [])
                     base_self = axis_data.get("base_r2_self", [])
-                    # Primary: matched-plain if available, else native-chat
-                    inst_reader = axis_data.get("inst_matched_r2_reader") or axis_data.get("inst_native_r2_reader", [])
-                    inst_self = axis_data.get("inst_matched_r2_self") or axis_data.get("inst_native_r2_self", [])
+
+                    # Primary: matched-plain only
+                    inst_reader = axis_data.get("inst_matched_r2_reader")
+                    inst_self = axis_data.get("inst_matched_r2_self")
+                    if inst_reader is None or len(inst_reader) == 0 or inst_self is None or len(inst_self) == 0:
+                        raise RuntimeError(
+                            f"Primary contrast 'inst_matched_r2_*' missing in {gf} for {fam_id}. "
+                            "Confirmatory H1 requires matched-plain control."
+                        )
+
+                    # Secondary: native-chat
+                    inst_reader_native = axis_data.get("inst_native_r2_reader", [])
+                    inst_self_native = axis_data.get("inst_native_r2_self", [])
 
                     L = len(base_reader)
                     if L == 0:
@@ -151,19 +227,34 @@ def run_confirmatory_analysis(
                     fam_dict[f"{ax}.reader.shift"] = shift_r
                     fam_dict[f"{ax}.self.shift"] = shift_s
 
+                    # Secondary native shift
+                    if inst_reader_native and inst_self_native:
+                        inst_pk_r_n = compute_peak_depth(inst_reader_native, depths)
+                        inst_pk_s_n = compute_peak_depth(inst_self_native, depths)
+                        shift_r_n = float(inst_pk_r_n - base_pk_r) if not (np.isnan(base_pk_r) or np.isnan(inst_pk_r_n)) else np.nan
+                        shift_s_n = float(inst_pk_s_n - base_pk_s) if not (np.isnan(base_pk_s) or np.isnan(inst_pk_s_n)) else np.nan
+                        if not np.isnan(shift_r_n):
+                            h1_shifts_secondary_native[ax]["reader"].append(shift_r_n)
+                        if not np.isnan(shift_s_n):
+                            h1_shifts_secondary_native[ax]["self"].append(shift_s_n)
+                        fam_dict[f"{ax}.reader.native_shift"] = shift_r_n
+                        fam_dict[f"{ax}.self.native_shift"] = shift_s_n
+
                 per_family_h1[fam_id] = fam_dict
             except Exception as e:
                 logger.warning(f"Failed to parse {gf} for H1: {e}")
+                if not is_dry_run:
+                    raise
 
-        # 最低2つのファミリーで有効な値が取れているか検証
         valid_v_r = len(h1_shifts["valence"]["reader"])
         if valid_v_r < 2:
             raise RuntimeError(f"Insufficient valid geometry data for H1 in {raw_dir}: {valid_v_r}")
 
     h1_report: Dict[str, Any] = {
-        "interpretation": "post-training-associated reorganization of decodability peak",
+        "interpretation": "post-training-associated reorganization of decodability peak (Primary: matched-plain)",
         "per_family_shifts": per_family_h1,
-        "effects": {},
+        "primary_effects": {},
+        "secondary_native_effects": {},
     }
     for ax in axes:
         for k in sub_keys:
@@ -173,12 +264,24 @@ def run_confirmatory_analysis(
                 reorg_supported = bool(ci_low > 0.0 or ci_high < 0.0)
             else:
                 pt, ci_low, ci_high, reorg_supported = np.nan, np.nan, np.nan, False
-            h1_report["effects"][f"{ax}.{k}.shift"] = {
+            h1_report["primary_effects"][f"{ax}.{k}.shift"] = {
                 "mean_shift": float(pt) if not np.isnan(pt) else None,
                 "bootstrap_ci_95": [float(ci_low), float(ci_high)] if not np.isnan(ci_low) else None,
                 "reorganization_supported": reorg_supported,
             }
 
+            # Secondary
+            shifts_n = h1_shifts_secondary_native[ax][k]
+            if len(shifts_n) >= 2:
+                pt_n, ci_l_n, ci_h_n = compute_bootstrap_ci(shifts_n, n_boot=1000)
+            else:
+                pt_n, ci_l_n, ci_h_n = np.nan, np.nan, np.nan
+            h1_report["secondary_native_effects"][f"{ax}.{k}.native_shift"] = {
+                "mean_shift": float(pt_n) if not np.isnan(pt_n) else None,
+                "bootstrap_ci_95": [float(ci_l_n), float(ci_h_n)] if not np.isnan(ci_l_n) else None,
+            }
+
+    confirmatory_report["hypotheses"]["H1b_decodability_peak_reorganization"] = h1_report
     confirmatory_report["hypotheses"]["H1_decodability_peak_reorganization"] = h1_report
 
     # =========================================================================
@@ -211,16 +314,19 @@ def run_confirmatory_analysis(
 
                 for ax in axes:
                     axis_data = rq2_sharing.get(ax, {})
-                    # Primary: Base plain vs Instruct matched-plain (delta_sharing_matched)
+                    # Primary: Base plain vs Instruct matched-plain (delta_sharing_matched only)
                     delta_share_matched = axis_data.get("delta_sharing_matched")
-                    # Secondary: Base plain vs Instruct native-chat (delta_sharing_native or delta_sharing)
+                    if delta_share_matched is None or len(delta_share_matched) == 0:
+                        raise RuntimeError(
+                            f"Missing primary 'delta_sharing_matched' for {fam_id} ({ax}) in {gf}. "
+                            "Confirmatory H2 requires matched-plain sharing contrast."
+                        )
+                    m_val = float(np.mean(delta_share_matched))
+                    h2_diffs_primary[ax].append(m_val)
+                    fam_h2_dict[f"{ax}.primary_delta_sharing_matched"] = m_val
+
+                    # Secondary: Base plain vs Instruct native-chat
                     delta_share_native = axis_data.get("delta_sharing_native") or axis_data.get("delta_sharing")
-
-                    if delta_share_matched is not None and len(delta_share_matched) > 0:
-                        m_val = float(np.mean(delta_share_matched))
-                        h2_diffs_primary[ax].append(m_val)
-                        fam_h2_dict[f"{ax}.primary_delta_sharing_matched"] = m_val
-
                     if delta_share_native is not None and len(delta_share_native) > 0:
                         n_val = float(np.mean(delta_share_native))
                         h2_diffs_secondary[ax].append(n_val)
@@ -229,8 +335,10 @@ def run_confirmatory_analysis(
                 per_family_h2[fam_id] = fam_h2_dict
             except Exception as e:
                 logger.warning(f"Failed to parse {gf} for H2: {e}")
+                if not is_dry_run:
+                    raise
 
-        if len(h2_diffs_primary["valence"]) < 2 and len(h2_diffs_secondary["valence"]) < 2:
+        if len(h2_diffs_primary["valence"]) < 2:
             raise RuntimeError(f"Insufficient valid geometry files for H2 in {raw_dir}")
 
     h2_report: Dict[str, Any] = {
@@ -238,20 +346,30 @@ def run_confirmatory_analysis(
         "per_family_sharing": per_family_h2,
         "primary_contrast": "Base plain vs Instruct matched-plain",
         "secondary_contrast": "Base plain vs Instruct native-chat",
-        "effects": {},
+        "primary_effects": {},
+        "secondary_effects": {},
     }
     for ax in axes:
         # Primary
-        p_diffs = h2_diffs_primary[ax] if len(h2_diffs_primary[ax]) >= 2 else h2_diffs_secondary[ax]
-        contrast_type = "primary_matched" if len(h2_diffs_primary[ax]) >= 2 else "secondary_native_fallback"
+        p_diffs = h2_diffs_primary[ax]
         pt, ci_low, ci_high = compute_bootstrap_ci(p_diffs, n_boot=1000)
         reorg_supported = bool(ci_high < 0.0 or ci_low > 0.0)
-        h2_report["effects"][ax] = {
-            "contrast_type": contrast_type,
+        h2_report["primary_effects"][ax] = {
+            "contrast_type": "primary_matched_plain",
             "mean_delta_sharing": float(pt),
             "bootstrap_ci_95": [float(ci_low), float(ci_high)],
             "sharing_alteration_supported": reorg_supported,
         }
+
+        # Secondary
+        s_diffs = h2_diffs_secondary[ax]
+        if len(s_diffs) >= 2:
+            s_pt, s_low, s_high = compute_bootstrap_ci(s_diffs, n_boot=1000)
+            h2_report["secondary_effects"][ax] = {
+                "contrast_type": "secondary_native_chat",
+                "mean_delta_sharing": float(s_pt),
+                "bootstrap_ci_95": [float(s_low), float(s_high)],
+            }
 
     confirmatory_report["hypotheses"]["H2_representation_sharing_reorganization"] = h2_report
 
@@ -342,26 +460,44 @@ def run_confirmatory_analysis(
         "models": lmm_results,
         "primary_fdr_adjusted_p_values": primary_fdr_map,
     }
-    # Backward compatible alias
     confirmatory_report["hypotheses"]["H3_causal_dissociation_lmm"] = confirmatory_report["hypotheses"]["H3_causal_profile_reorganization_lmm"]
 
     # =========================================================================
     # H4: Distribution Recovery Comparison (Self vs. Reader)
     # =========================================================================
+    trapz_func = getattr(np, "trapezoid", getattr(np, "trapz", None))
+
     if is_dry_run:
         self_ratios = [0.72, 0.81, 0.69, 0.77]
         reader_ratios = [0.55, 0.62, 0.58, 0.60]
+        self_aucs = [0.45, 0.52, 0.43, 0.48]
+        reader_aucs = [0.32, 0.38, 0.35, 0.36]
     else:
         recovery_files = list(raw_dir.glob("v2_recovery_*.json"))
         self_ratios = []
         reader_ratios = []
+        self_aucs = []
+        reader_aucs = []
         for rf in recovery_files:
             try:
                 with open(rf, "r", encoding="utf-8") as f:
                     rdata = json.load(f)
                 if "self" in rdata and "reader" in rdata:
-                    self_ratios.append(rdata["self"]["max_recovery_ratio"])
-                    reader_ratios.append(rdata["reader"]["max_recovery_ratio"])
+                    s_dat = rdata["self"]
+                    r_dat = rdata["reader"]
+                    self_ratios.append(s_dat["max_recovery_ratio"])
+                    reader_ratios.append(r_dat["max_recovery_ratio"])
+
+                    # Primary metric: AUC recovery
+                    depths = rdata.get("relative_depths") or np.linspace(0.0, 1.0, len(s_dat["recovery_ratios"]))
+                    s_auc = s_dat.get("auc_recovery")
+                    if s_auc is None:
+                        s_auc = float(trapz_func(s_dat["recovery_ratios"], depths))
+                    r_auc = r_dat.get("auc_recovery")
+                    if r_auc is None:
+                        r_auc = float(trapz_func(r_dat["recovery_ratios"], depths))
+                    self_aucs.append(s_auc)
+                    reader_aucs.append(r_auc)
             except Exception as e:
                 logger.warning(f"Failed to parse recovery file {rf}: {e}")
         if len(self_ratios) < 2:
@@ -370,16 +506,34 @@ def run_confirmatory_analysis(
                 "Real runs require valid recovery artifacts."
             )
 
-    diffs = np.array(self_ratios) - np.array(reader_ratios)
-    pt_diff, ci_low, ci_high = compute_bootstrap_ci(diffs.tolist(), n_boot=1000)
+    # Primary: AUC recovery difference
+    diffs_auc = np.array(self_aucs) - np.array(reader_aucs)
+    pt_auc, a_low, a_high = compute_bootstrap_ci(diffs_auc.tolist(), n_boot=1000)
+
+    # Secondary: Max recovery ratio difference
+    diffs_max = np.array(self_ratios) - np.array(reader_ratios)
+    pt_max, m_low, m_high = compute_bootstrap_ci(diffs_max.tolist(), n_boot=1000)
 
     confirmatory_report["hypotheses"]["H4_recovery_asymmetry"] = {
-        "interpretation": "post-training-associated distribution recovery asymmetry",
-        "self_max_recovery_mean": float(np.mean(self_ratios)),
-        "reader_max_recovery_mean": float(np.mean(reader_ratios)),
-        "diff_self_minus_reader_mean": float(pt_diff),
-        "diff_bootstrap_ci_95": [float(ci_low), float(ci_high)],
-        "reorganization_supported": bool(ci_low > 0.0 or ci_high < 0.0),
+        "interpretation": "post-training-associated distribution recovery asymmetry (Primary: AUC recovery; Secondary: Peak recovery ratio)",
+        "primary_auc_recovery": {
+            "self_mean_auc": float(np.mean(self_aucs)),
+            "reader_mean_auc": float(np.mean(reader_aucs)),
+            "diff_self_minus_reader_mean": float(pt_auc),
+            "diff_bootstrap_ci_95": [float(a_low), float(a_high)],
+            "reorganization_supported": bool(a_low > 0.0 or a_high < 0.0),
+        },
+        "secondary_max_recovery_ratio": {
+            "self_max_recovery_mean": float(np.mean(self_ratios)),
+            "reader_max_recovery_mean": float(np.mean(reader_ratios)),
+            "diff_self_minus_reader_mean": float(pt_max),
+            "diff_bootstrap_ci_95": [float(m_low), float(m_high)],
+            "reorganization_supported": bool(m_low > 0.0 or m_high < 0.0),
+        },
+        # Backwards compatible top-level fields pointing to Primary
+        "diff_self_minus_reader_mean": float(pt_auc),
+        "diff_bootstrap_ci_95": [float(a_low), float(a_high)],
+        "reorganization_supported": bool(a_low > 0.0 or a_high < 0.0),
     }
 
     # Save final report

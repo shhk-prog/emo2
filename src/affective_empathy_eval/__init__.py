@@ -25,6 +25,8 @@ from affective_empathy_eval.data import (
     scale_vad,
     split_aipsy_affect,
     stratify_stimuli,
+    stratified_causal_subset,
+    v3_stimulus_covariate,
 )
 
 # Diagnostics
@@ -129,6 +131,12 @@ from affective_empathy_eval.probing import (
     LayerProber,
 )
 
+# Affect Directions
+from affective_empathy_eval.affect_directions import (
+    AIPSY_EXPECTED_DIRECTION,
+    get_expected_sign,
+)
+
 # Prompts
 from affective_empathy_eval.prompts import (
     TaskType,
@@ -184,6 +192,8 @@ __all__ = [
     "load_aipsy_affect",
     "load_aipsy_csv",
     "split_aipsy_affect",
+    "stratified_causal_subset",
+    "v3_stimulus_covariate",
     # Diagnostics
     "MultivariateActivationDiagnostics",
     # Evaluation
@@ -258,6 +268,9 @@ __all__ = [
     "find_semantic_anchors",
     "get_generation_stage_tokens",
     "validate_stage_index_invariance",
+    # Affect Directions
+    "AIPSY_EXPECTED_DIRECTION",
+    "get_expected_sign",
     # Schemas
     "AffectiveState",
     "parse_affective_state",

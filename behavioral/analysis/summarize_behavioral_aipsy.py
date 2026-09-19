@@ -39,16 +39,7 @@ EMOTIONS = [
 ]
 
 
-EXPECTED_DIRECTION = {
-    "grief": {"V": -1},
-    "terror": {"V": -1, "A": +1},
-    "rage": {"V": -1, "A": +1},
-    "loathing": {"V": -1},
-    "ecstasy": {"V": +1, "A": +1},
-    "admiration": {"V": +1},
-    "amazement": {"A": +1},
-    "vigilance": {"A": +1},
-}
+from affective_empathy_eval.affect_directions import AIPSY_EXPECTED_DIRECTION as EXPECTED_DIRECTION
 
 
 def resolve_alignment(model_name: str) -> str:

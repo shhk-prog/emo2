@@ -2,7 +2,7 @@ import argparse
 import json
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -67,6 +67,8 @@ def run_recovery_patching_for_task(
     tok_base: Any = None,
     tok_inst: Any = None,
     seed: int = 42,
+    train_indices: Optional[list[int]] = None,
+    eval_indices: Optional[list[int]] = None,
 ) -> dict[str, Any]:
     """
     指定タスク（Reader または Self）において、Base 活性化の Instruct への層別パッチングを実施。
@@ -75,6 +77,9 @@ def run_recovery_patching_for_task(
     num_layers = min(fam_cfg.num_layers, 4) if is_dry_run else fam_cfg.num_layers
     depths = [compute_relative_depth(l, num_layers) for l in range(num_layers)]
     N = len(df)
+
+    # trapezoid 統合関数 (numpy 2.0+ 対応)
+    trapz_func = getattr(np, "trapezoid", getattr(np, "trapz", None))
 
     if is_dry_run:
         rng = np.random.default_rng(42 if task == TaskType.SELF else 142)
@@ -117,6 +122,10 @@ def run_recovery_patching_for_task(
         # 幾何整列を行っても内部表現と出力写像の再編により完全回復しないことを検証
         layer_mean_ratios_aligned = [float(np.clip(r * 0.95 + rng.normal(0, 0.02), 0.0, 1.0)) for r in layer_mean_ratios]
 
+        auc_recovery = float(trapz_func(layer_mean_ratios, depths))
+        auc_recovery_plain = float(trapz_func(layer_mean_ratios_plain, depths))
+        auc_recovery_aligned = float(trapz_func(layer_mean_ratios_aligned, depths))
+
         return {
             "task": task.value,
             "initial_emd_mean": initial_emd_mean,
@@ -133,17 +142,23 @@ def run_recovery_patching_for_task(
             "max_recovery_ratio": max(layer_mean_ratios),
             "max_recovery_ratio_matched_plain": max(layer_mean_ratios_plain),
             "max_recovery_ratio_aligned": max(layer_mean_ratios_aligned),
+            "auc_recovery": auc_recovery,
+            "auc_recovery_matched_plain": auc_recovery_plain,
+            "auc_recovery_aligned": auc_recovery_aligned,
             "summary_by_control_type": {
                 "direct_native": {
                     "max_recovery_ratio": max(layer_mean_ratios),
+                    "auc_recovery": auc_recovery,
                     "layer_recovery_ratios": layer_mean_ratios
                 },
                 "matched_plain": {
                     "max_recovery_ratio": max(layer_mean_ratios_plain),
+                    "auc_recovery": auc_recovery_plain,
                     "layer_recovery_ratios": layer_mean_ratios_plain
                 },
                 "aligned_procrustes": {
                     "max_recovery_ratio": max(layer_mean_ratios_aligned),
+                    "auc_recovery": auc_recovery_aligned,
                     "layer_recovery_ratios": layer_mean_ratios_aligned
                 }
             }
@@ -245,21 +260,22 @@ def run_recovery_patching_for_task(
     layer_mean_ratios_aligned = []
 
     # Train / Eval 分割 (Procrustes alignment 学習に評価サンプルを含めない: seeded group/permutation split)
-    rng_split = np.random.default_rng(seed)
-    if "pair_id" in df.columns:
-        unique_pairs = list(df["pair_id"].unique())
-        rng_split.shuffle(unique_pairs)
-        n_train_pairs = max(1, int(0.7 * len(unique_pairs)))
-        train_pairs = set(unique_pairs[:n_train_pairs])
-        train_indices = [idx for idx, pid in enumerate(df["pair_id"]) if pid in train_pairs]
-        eval_indices = [idx for idx, pid in enumerate(df["pair_id"]) if pid not in train_pairs]
-        if len(eval_indices) == 0:
-            eval_indices = train_indices
-    else:
-        perm = list(rng_split.permutation(N))
-        n_train = max(2, int(0.7 * N))
-        train_indices = perm[:n_train]
-        eval_indices = perm[n_train:] if N > n_train else perm
+    if train_indices is None or eval_indices is None:
+        rng_split = np.random.default_rng(seed)
+        if "pair_id" in df.columns:
+            unique_pairs = list(df["pair_id"].unique())
+            rng_split.shuffle(unique_pairs)
+            n_train_pairs = max(1, int(0.7 * len(unique_pairs)))
+            train_pairs = set(unique_pairs[:n_train_pairs])
+            train_indices = [idx for idx, pid in enumerate(df["pair_id"]) if pid in train_pairs]
+            eval_indices = [idx for idx, pid in enumerate(df["pair_id"]) if pid not in train_pairs]
+            if len(eval_indices) == 0:
+                eval_indices = train_indices
+        else:
+            perm = list(rng_split.permutation(N))
+            n_train = max(2, int(0.7 * N))
+            train_indices = perm[:n_train]
+            eval_indices = perm[n_train:] if N > n_train else perm
 
     for l in range(num_layers):
         # SVD による直交 Procrustes 行列 R の学習 (Train split のみ)
@@ -362,6 +378,10 @@ def run_recovery_patching_for_task(
         layer_mean_ratios_aligned.append(float(np.mean(sample_ratios_aligned)))
 
     best_l = int(np.argmax(layer_mean_ratios))
+    auc_recovery = float(trapz_func(layer_mean_ratios, depths))
+    auc_recovery_plain = float(trapz_func(layer_mean_ratios_plain, depths))
+    auc_recovery_aligned = float(trapz_func(layer_mean_ratios_aligned, depths))
+
     return {
         "task": task.value,
         "initial_emd_mean": initial_emd_mean,
@@ -376,17 +396,23 @@ def run_recovery_patching_for_task(
         "max_recovery_ratio": layer_mean_ratios[best_l],
         "max_recovery_ratio_matched_plain": max(layer_mean_ratios_plain),
         "max_recovery_ratio_aligned": max(layer_mean_ratios_aligned),
+        "auc_recovery": auc_recovery,
+        "auc_recovery_matched_plain": auc_recovery_plain,
+        "auc_recovery_aligned": auc_recovery_aligned,
         "summary_by_control_type": {
             "direct_native": {
                 "max_recovery_ratio": max(layer_mean_ratios),
+                "auc_recovery": auc_recovery,
                 "layer_recovery_ratios": layer_mean_ratios,
             },
             "matched_plain": {
                 "max_recovery_ratio": max(layer_mean_ratios_plain),
+                "auc_recovery": auc_recovery_plain,
                 "layer_recovery_ratios": layer_mean_ratios_plain,
             },
             "aligned_procrustes": {
                 "max_recovery_ratio": max(layer_mean_ratios_aligned),
+                "auc_recovery": auc_recovery_aligned,
                 "layer_recovery_ratios": layer_mean_ratios_aligned,
             },
         },
@@ -410,6 +436,24 @@ def run_recovery_patching_for_family(
     logger.info(f"=== Starting RQ4 Recovery Patching for Family: {fam_id} ===")
     num_layers = min(fam_cfg.num_layers, 4) if is_dry_run else fam_cfg.num_layers
     depths = [compute_relative_depth(l, num_layers) for l in range(num_layers)]
+    N = len(df)
+
+    # 評価サンプルと Procrustes 学習サンプルの分割をファミリー単位で固定 (Reader と Self で厳密に一致)
+    rng_split = np.random.default_rng(seed)
+    if "pair_id" in df.columns:
+        unique_pairs = list(df["pair_id"].unique())
+        rng_split.shuffle(unique_pairs)
+        n_train_pairs = max(1, int(0.7 * len(unique_pairs)))
+        train_pairs = set(unique_pairs[:n_train_pairs])
+        train_indices = [idx for idx, pid in enumerate(df["pair_id"]) if pid in train_pairs]
+        eval_indices = [idx for idx, pid in enumerate(df["pair_id"]) if pid not in train_pairs]
+        if len(eval_indices) == 0:
+            eval_indices = train_indices
+    else:
+        perm = list(rng_split.permutation(N))
+        n_train = max(2, int(0.7 * N))
+        train_indices = perm[:n_train]
+        eval_indices = perm[n_train:] if N > n_train else perm
 
     if is_dry_run:
         model_base, model_inst, tok_base, tok_inst = None, None, None, None
@@ -446,6 +490,8 @@ def run_recovery_patching_for_family(
         tok_base=tok_base,
         tok_inst=tok_inst,
         seed=seed,
+        train_indices=train_indices,
+        eval_indices=eval_indices,
     )
 
     # 2. Self タスクでの回復パッチング
@@ -462,6 +508,9 @@ def run_recovery_patching_for_family(
         model_inst=model_inst,
         tok_base=tok_base,
         tok_inst=tok_inst,
+        seed=seed,
+        train_indices=train_indices,
+        eval_indices=eval_indices,
     )
 
     # メモリ解放
@@ -473,6 +522,7 @@ def run_recovery_patching_for_family(
     # タスク間比較 (Self vs Reader 回復率の差)
     diff_max_ratio = float(res_self["max_recovery_ratio"] - res_reader["max_recovery_ratio"])
     diff_best_depth = float(res_self["best_recovery_depth"] - res_reader["best_recovery_depth"])
+    diff_auc = float(res_self["auc_recovery"] - res_reader["auc_recovery"])
 
     return {
         "family_id": fam_id,
@@ -482,6 +532,7 @@ def run_recovery_patching_for_family(
         "self": res_self,
         "task_comparison": {
             "diff_max_recovery_self_vs_reader": diff_max_ratio,
+            "diff_auc_recovery_self_vs_reader": diff_auc,
             "diff_best_recovery_depth_self_vs_reader": diff_best_depth,
             "self_exceeds_reader": bool(diff_max_ratio > 0),
         },
@@ -498,6 +549,9 @@ def main():
     target_models = resolve_models_from_args(args, Path(args.models_config))
     raw_dir = Path(v2_config["output"]["raw_dir"])
     derived_dir = Path(v2_config["output"]["derived_dir"])
+    if args.dry_run:
+        raw_dir = raw_dir / "dry_run"
+        derived_dir = derived_dir / "dry_run"
     raw_dir.mkdir(parents=True, exist_ok=True)
     derived_dir.mkdir(parents=True, exist_ok=True)
 
@@ -571,18 +625,27 @@ def main():
     # 4ファミリー統合サマリー（Self vs Reader paired comparison）
     self_max_ratios = [all_recovery_results[f]["self"]["max_recovery_ratio"] for f in all_recovery_results]
     reader_max_ratios = [all_recovery_results[f]["reader"]["max_recovery_ratio"] for f in all_recovery_results]
+    self_auc_ratios = [all_recovery_results[f]["self"]["auc_recovery"] for f in all_recovery_results]
+    reader_auc_ratios = [all_recovery_results[f]["reader"]["auc_recovery"] for f in all_recovery_results]
 
     pt_self, s_low, s_up = compute_bootstrap_ci(self_max_ratios, n_boot=n_boot)
     pt_reader, r_low, r_up = compute_bootstrap_ci(reader_max_ratios, n_boot=n_boot)
     paired_comp = paired_family_comparison(self_max_ratios, reader_max_ratios)
+
+    pt_auc_self, a_s_low, a_s_up = compute_bootstrap_ci(self_auc_ratios, n_boot=n_boot)
+    pt_auc_reader, a_r_low, a_r_up = compute_bootstrap_ci(reader_auc_ratios, n_boot=n_boot)
+    paired_auc_comp = paired_family_comparison(self_auc_ratios, reader_auc_ratios)
 
     summary_data = {
         "per_family": all_recovery_results,
         "cross_family_bootstrap_ci_95": {
             "self_max_recovery_ratio": {"mean": pt_self, "ci_lower": s_low, "ci_upper": s_up},
             "reader_max_recovery_ratio": {"mean": pt_reader, "ci_lower": r_low, "ci_upper": r_up},
+            "self_auc_recovery": {"mean": pt_auc_self, "ci_lower": a_s_low, "ci_upper": a_s_up},
+            "reader_auc_recovery": {"mean": pt_auc_reader, "ci_lower": a_r_low, "ci_upper": a_r_up},
         },
         "paired_task_comparison": paired_comp,
+        "paired_task_comparison_auc": paired_auc_comp,
     }
 
     summary_path = derived_dir / "v2_distribution_recovery_summary.json"

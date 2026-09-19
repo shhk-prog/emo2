@@ -46,6 +46,7 @@ from affective_empathy_eval.models.registry import (
     resolve_architecture_dims,
     resolve_single_model_from_args,
 )
+from affective_empathy_eval.affect_directions import AIPSY_EXPECTED_DIRECTION
 from affective_empathy_eval.statistics import (
     compute_bivariate_bootstrap_ci,
     compute_paired_cohen_dz,
@@ -902,16 +903,7 @@ def main():
             conf_indices[i]: conf_indices[deranged_sub_indices[i]]
             for i in range(n_conf)
         }
-        EXPECTED_DIRECTION = {
-            "grief": {"V": -1.0},
-            "terror": {"V": -1.0, "A": +1.0},
-            "rage": {"V": -1.0, "A": +1.0},
-            "loathing": {"V": -1.0},
-            "ecstasy": {"V": +1.0, "A": +1.0},
-            "admiration": {"V": +1.0},
-            "amazement": {"A": +1.0},
-            "vigilance": {"A": +1.0},
-        }
+        EXPECTED_DIRECTION = AIPSY_EXPECTED_DIRECTION
 
         print(f"Running E4 Interchangeability on Layers {e4_layers} (with Same-Task Controls)...")
         for l in e4_layers:

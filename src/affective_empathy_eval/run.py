@@ -194,7 +194,12 @@ def run_v3(args, python_bin: str):
         cmd_rq4.extend(["--subsample", str(args.max_samples)])
 
     run_command(cmd_rq1)
-    if not v3_gate_allows_continuation(force=args.force_after_no_go):
+    gate_path = (
+        Path("v3/results/derived/dry_run/v3_gate_decision.json")
+        if args.dry_run
+        else Path("v3/results/derived/v3_gate_decision.json")
+    )
+    if not v3_gate_allows_continuation(gate_path=gate_path, force=args.force_after_no_go):
         logger.error(
             "V3 RQ1 gate is NO_GO. Stopping before RQ2/RQ3/Confirmatory. "
             "Pass --force-after-no-go only for an explicit override."

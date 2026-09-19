@@ -70,7 +70,7 @@ v3/
 
 1. pair_id Group split。方向は人間 VA があればそれを使い、AIPsy 既定では同じ刺激に対するモデルの感情認識予測値（Reader Prediction）への回帰 $H_{\mathrm{Self}} \rightarrow (V_R, A_R)$ から Primary 情動方向 $d_V^R, d_A^R$ を推定する。モデル自己報告自身から同定する方向は Secondary analysis として保持し、方向アライメント $\cos(d^R, d^S)$ を記録する。
 2. 中立平均 $\mu_{\mathrm{neu}}$ と necessity baseline は、同一 `pair_id` の matched-neutral 文を通した自己報告から取る。固定 $5.0$ も人工中立文も使わない。
-3. QR で 2D 情動部分空間 $Q$ を作る。
+3. rank-aware SVD により有効 rank を判定し、直交情動部分空間 $Q$ を構成する。
 4. test で次を測る。
    - $\alpha$ sweep は軸を分ける。$d_V$ 注入 → Valence 用量反応、$d_A$ 注入 → Arousal 用量反応
    - centered projection removal: $h' = h - QQ^\top(h-\mu_{\mathrm{neu}})$
@@ -118,7 +118,7 @@ Primary は **4-Map × 2軸（V, A）** を同じ格子で出す。旧称のま�
 
 出力キーは `D_V`, `D_A`, `beta_V`, `beta_A`, `abs_beta_V`, `abs_beta_A`, `gamma_V`, `gamma_A`, `C_V`, `C_A`。$D$ と $C$ だけを走らせる縮小版ではない。
 
-意味段階（JSON 自己報告）:
+意味段階（Teacher-forced candidate sequence 上の計算段階）:
 
 1. `response_start`（内部では `candidate_start` に正規化）
 2. `pre_V`

@@ -133,7 +133,12 @@ def simulate_path_mediation_confirmation(
     ratio_a_mean, ratio_a_low, ratio_a_high = compute_bootstrap_ci(ratio_samples_a, n_boot=bootstrap_n)
 
     return {
+        "primary_grounding": "reader_prediction",
         "mediator_layer": mediator_layer,
+        "n_total": n,
+        "n_valid_ratio_v": n,
+        "n_valid_ratio_a": n,
+        "min_natural_shift_threshold": 0.05,
         "valence": {
             "total_affective_shift": {"mean": te_v_mean, "ci_lower": te_v_low, "ci_upper": te_v_high},
             "residual_shift_after_blocking": {"mean": res_v_mean, "ci_lower": res_v_low, "ci_upper": res_v_high},
@@ -211,7 +216,9 @@ def run_real_path_mediation(
     # 注: Discovery サブセット内での方向推定と評価は候補層スクリーニングであり、
     # 最終的な媒介推論は完全に独立した Confirmation サブセットで実行されます。
     logger.info(f"Running Discovery stage (exploratory site selection) on {len(disc_df)} samples across {num_layers} layers...")
-    d_stim_profile = []
+    d_stim_v_profile = []
+    d_stim_a_profile = []
+    d_stim_joint_profile = []
     c_gen_profile = []
 
     disc_texts = [str(t) for t in disc_df["text"]]
@@ -252,62 +259,51 @@ def run_real_path_mediation(
                     h_stim.append(hook_mgr.captured_activations["h_stim"].cpu().float().numpy().ravel())
 
         H_s = np.array(h_stim)
-        # Held-out 5-fold cross-validation R^2 with leakage-free GroupKFold
+        # Held-out 5-fold cross-validation R^2 with leakage-free GroupKFold (Valence and Arousal both)
         from sklearn.model_selection import GroupKFold
         n_unique_groups = len(np.unique(disc_groups))
         n_splits = min(5, n_unique_groups)
         if n_splits > 1:
             gkf = GroupKFold(n_splits=n_splits)
-            preds = np.zeros_like(y_v_disc)
+            preds_v = np.zeros_like(y_v_disc)
+            preds_a = np.zeros_like(y_a_disc)
             for train_idx, val_idx in gkf.split(H_s, y_v_disc, groups=disc_groups):
-                ridge = Ridge(alpha=10.0).fit(H_s[train_idx], y_v_disc[train_idx])
-                preds[val_idx] = ridge.predict(H_s[val_idx])
-            ss_res = np.sum((y_v_disc - preds)**2)
-            ss_tot = np.sum((y_v_disc - np.mean(y_v_disc))**2) + 1e-6
-            r2 = max(0.0, float(1.0 - ss_res / ss_tot))
+                ridge_v = Ridge(alpha=10.0).fit(H_s[train_idx], y_v_disc[train_idx])
+                preds_v[val_idx] = ridge_v.predict(H_s[val_idx])
+
+                ridge_a = Ridge(alpha=10.0).fit(H_s[train_idx], y_a_disc[train_idx])
+                preds_a[val_idx] = ridge_a.predict(H_s[val_idx])
+
+            ss_res_v = np.sum((y_v_disc - preds_v)**2)
+            ss_tot_v = np.sum((y_v_disc - np.mean(y_v_disc))**2) + 1e-6
+            r2_v = max(0.0, float(1.0 - ss_res_v / ss_tot_v))
+
+            ss_res_a = np.sum((y_a_disc - preds_a)**2)
+            ss_tot_a = np.sum((y_a_disc - np.mean(y_a_disc))**2) + 1e-6
+            r2_a = max(0.0, float(1.0 - ss_res_a / ss_tot_a))
+
+            r2_joint = float(0.5 * (r2_v + r2_a))
         else:
-            r2 = 0.0
-        d_stim_profile.append(r2)
+            r2_v, r2_a, r2_joint = 0.0, 0.0, 0.0
+
+        d_stim_v_profile.append(r2_v)
+        d_stim_a_profile.append(r2_a)
+        d_stim_joint_profile.append(r2_joint)
 
         # 実 activation intervention による因果的変位 C_joint(l) = (C_V(l) + C_A(l)) / 2 の実測 (探索的スクリーニング)
-        # 層化抽出: target_emotion から均等にサンプリングして rage 偏重を防止 (最大16サンプル)
-        n_causal_screen = 16
-        rng_strat = np.random.default_rng(42)
-        selected_disc_idx = []
-        if "target_emotion" in disc_df.columns:
-            for emo, grp in disc_df.groupby("target_emotion"):
-                idx = rng_strat.choice(grp.index.to_numpy(), size=1)
-                selected_disc_idx.extend(idx.tolist())
-        rem_needed = n_causal_screen - len(selected_disc_idx)
-        if rem_needed > 0:
-            remaining_cands = [i for i in range(len(disc_texts)) if i not in selected_disc_idx]
-            if remaining_cands:
-                supp = rng_strat.choice(remaining_cands, size=min(rem_needed, len(remaining_cands)), replace=False)
-                selected_disc_idx.extend(supp.tolist())
-        if not selected_disc_idx:
-            selected_disc_idx = list(range(min(n_causal_screen, len(disc_texts))))
+        from affective_empathy_eval.data import stratified_causal_subset
+        selected_disc_idx = stratified_causal_subset(disc_df, n_samples=16, seed=42, stratify_col="target_emotion")
 
-        # 各層で Valence (d_v_l) と Arousal (d_a_l) を別々に fit
-        if H_s.shape[0] >= 2 and np.std(y_v_disc) > 1e-4:
-            ridge_v = Ridge(alpha=10.0).fit(H_s, y_v_disc)
-            d_v_l = ridge_v.coef_
-            norm_v = np.linalg.norm(d_v_l)
-            d_v_l = d_v_l / norm_v if norm_v > 1e-6 else np.zeros_like(d_v_l)
-        else:
-            d_v_l = np.zeros(H_s.shape[1])
+        # Layer l の内部表現から方向 d_v_l, d_a_l を推定
+        ridge_dir_v = Ridge(alpha=10.0).fit(H_s, y_v_disc)
+        norm_v = np.linalg.norm(ridge_dir_v.coef_)
+        d_v_l = ridge_dir_v.coef_ / (norm_v + 1e-6) if norm_v > 0 else np.zeros_like(ridge_dir_v.coef_)
+        h_std_v = float(np.std(H_s @ d_v_l)) or 1.0
 
-        if H_s.shape[0] >= 2 and np.std(y_a_disc) > 1e-4:
-            ridge_a = Ridge(alpha=10.0).fit(H_s, y_a_disc)
-            d_a_l = ridge_a.coef_
-            norm_a = np.linalg.norm(d_a_l)
-            d_a_l = d_a_l / norm_a if norm_a > 1e-6 else np.zeros_like(d_a_l)
-        else:
-            d_a_l = np.zeros(H_s.shape[1])
-
-        proj_v = H_s @ d_v_l
-        h_std_v = float(np.std(proj_v)) if np.std(proj_v) > 1e-6 else 1.0
-        proj_a = H_s @ d_a_l
-        h_std_a = float(np.std(proj_a)) if np.std(proj_a) > 1e-6 else 1.0
+        ridge_dir_a = Ridge(alpha=10.0).fit(H_s, y_a_disc)
+        norm_a = np.linalg.norm(ridge_dir_a.coef_)
+        d_a_l = ridge_dir_a.coef_ / (norm_a + 1e-6) if norm_a > 0 else np.zeros_like(ridge_dir_a.coef_)
+        h_std_a = float(np.std(H_s @ d_a_l)) or 1.0
 
         sample_c_v = []
         sample_c_a = []
@@ -365,7 +361,7 @@ def run_real_path_mediation(
         c_joint_score = float((c_v_score + c_a_score) / 2.0)
         c_gen_profile.append(c_joint_score)
 
-    stim_peak_layer = int(np.argmax(d_stim_profile))
+    stim_peak_layer = int(np.argmax(d_stim_joint_profile))
     mediator_layer = int(np.argmax(c_gen_profile))
     logger.info(f"Discovery Result: stim_peak_layer={stim_peak_layer}, mediator_layer={mediator_layer}")
 
@@ -375,7 +371,10 @@ def run_real_path_mediation(
         "stim_peak_depth": relative_depths[stim_peak_layer],
         "mediator_layer": mediator_layer,
         "mediator_depth": relative_depths[mediator_layer],
-        "d_stim_profile": [float(x) for x in d_stim_profile],
+        "d_stim_v_profile": [float(x) for x in d_stim_v_profile],
+        "d_stim_a_profile": [float(x) for x in d_stim_a_profile],
+        "d_stim_joint_profile": [float(x) for x in d_stim_joint_profile],
+        "d_stim_profile": [float(x) for x in d_stim_joint_profile],
         "c_joint_profile": [float(x) for x in c_gen_profile],
     }
 

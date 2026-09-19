@@ -158,7 +158,7 @@ V3 は AIPsy の clinical–neutral 192 pair だけを wide 化する。EmoBank 
 | **Layer Coordinate** | N/A (Black-box behavioral) | Relative depth $d = l / (L-1)$ | Relative depth $d = l / (L-1)$ | Relative depth $d = l / (L-1)$ |
 | **Split Unit** | Pair-aware (`pair_id`) / Unpaired (EmoBank) | Stratified Group Split (`pair_id` 漏洩防止) | Stratified Group Split (`pair_id` 漏洩防止) | Matched-pair (192 clinical-neutral pairs) |
 | **Primary Metric** | $E[V], E[A]$, Cohen's $d_z$, Spearman $\rho$, $r_{RS}$ | $R^2$, Balanced Acc, RSA, Causal Shift $\Delta V, \Delta A$ | Cross-decoding $\Delta\Delta_{\text{cross}}$, $\Delta d_{\text{peak}}$, 2D OT EMD Recovery | Interventional slope $\gamma$, Subspace Attenuation, Causal Leverage $C$ |
-| **Statistical Test** | Paired $t$, Jonckheere-Terpstra, FDR (BH), Bootstrap CI | 5-fold GroupKFold CV, FDR (BH), LMM (Phase C E6) | Bootstrap 95% CI, Permutation Test | Pre-registered Go/No-Go Gate, Bootstrap 95% CI, FDR |
+| **Statistical Test** | Direction-aligned IUT, 1-sample/paired $t$, FDR (BH), Bootstrap CI | 5-fold GroupKFold CV, FDR (BH), LMM (Phase C E6) | Bootstrap 95% CI, Permutation Test | Pre-registered Go/No-Go Gate, Bootstrap 95% CI, FDR |
 
 ---
 

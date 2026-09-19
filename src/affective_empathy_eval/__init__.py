@@ -136,6 +136,7 @@ from affective_empathy_eval.prompts import (
     encode_prompt_canonical,
     find_semantic_anchors,
     get_generation_stage_tokens,
+    validate_stage_index_invariance,
 )
 
 # Schemas
@@ -256,6 +257,7 @@ __all__ = [
     "encode_prompt_canonical",
     "find_semantic_anchors",
     "get_generation_stage_tokens",
+    "validate_stage_index_invariance",
     # Schemas
     "AffectiveState",
     "parse_affective_state",

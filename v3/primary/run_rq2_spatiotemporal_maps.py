@@ -55,6 +55,7 @@ from affective_empathy_eval.prompts import (
     encode_prompt_canonical,
     find_semantic_anchors,
     get_generation_stage_tokens,
+    validate_stage_index_invariance,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -242,6 +243,16 @@ def run_real_spatiotemporal_maps(
     sample_prompts: List[str] = []
     sample_joint_meta: List[dict[str, Any]] = []
     template_cand = candidates[40]["json_str"]  # {"valence": 5, "arousal": 5}
+
+    # 81候補すべてでセマンティックステージのトークン絶対位置が不変であることを検証（不一致なら例外送出）
+    if len(eval_df) > 0:
+        ref_check_prompt = build_prompt(str(eval_df.iloc[0]["text"]), task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
+        validate_stage_index_invariance(
+            tokenizer=tokenizer,
+            prompt=ref_check_prompt,
+            candidates=candidates,
+            stage_names=semantic_stages,
+        )
 
     with torch.no_grad():
         for _, row in eval_df.iterrows():
@@ -447,7 +458,6 @@ def run_real_spatiotemporal_maps(
             gamma_A[l, s_idx] = float(np.mean(sample_gamma_a)) if sample_gamma_a else 0.0
             C_V[l, s_idx] = float(np.mean(sample_c_v)) if sample_c_v else 0.0
             C_A[l, s_idx] = float(np.mean(sample_c_a)) if sample_c_a else 0.0
-            C_A[l, s_idx] = float(np.mean(sample_c_a))
 
     pre_v_idx = semantic_stages.index("pre_V") if "pre_V" in semantic_stages else 1
     d_vals_v = D_V[:, pre_v_idx].tolist()
@@ -501,6 +511,9 @@ def main():
 
     raw_dir = Path(v3_cfg["output"]["raw_dir"])
     derived_dir = Path(v3_cfg["output"]["derived_dir"])
+    if args.dry_run:
+        raw_dir = raw_dir / "dry_run"
+        derived_dir = derived_dir / "dry_run"
     raw_dir.mkdir(parents=True, exist_ok=True)
     derived_dir.mkdir(parents=True, exist_ok=True)
 
@@ -521,6 +534,7 @@ def main():
 
     num_layers = resolve_architecture_dims(target_model_id)[0]
     results = None
+    cache_hit = False
 
     out_raw = raw_dir / f"v3_discovery_spatiotemporal_maps_{fam_key}.json"
     manifest_path = raw_dir / f"manifest_rq2_{fam_key}.json"
@@ -536,6 +550,7 @@ def main():
                 ):
                     logger.info(f"Loaded existing discovery 4-maps from {out_raw}. Skipping computation.")
                     results = cached
+                    cache_hit = True
         except Exception as e:
             logger.warning(f"Cache check failed for {out_raw}: {e}")
 
@@ -571,31 +586,31 @@ def main():
             json.dump(results, f, indent=2)
         logger.info(f"Saved discovery spatiotemporal 4-maps to {out_raw}")
 
-    # Save manifest with explicit intervention sample count
-    manifest = create_run_manifest(
-        run_type="v3_rq2_discovery_spatiotemporal_maps",
-        model_name=target_model_id,
-        config={
-            "analysis_role": "discovery",
-            "family": fam_key,
-            "semantic_stages": normalized_stages,
-            "alpha_sweep": alpha_sweep,
-            "subsample": args.subsample,
-            "dry_run": bool(args.dry_run),
-        },
-        metadata={
-            "analysis_role": "discovery",
-            "n_dataset_total": int(len(df)),
-            "n_map_samples": int(results.get("n_map_samples", len(df))),
-            "n_intervene_samples": int(results.get("n_intervene_samples", min(5, len(df)))),
-            "n_causal_intervention_samples": int(results.get("n_causal_intervention_samples", min(5, len(df)))),
-            "dissociation_summary": results["dissociation_summary"],
-        },
-        dry_run=bool(args.dry_run),
-    )
-
-    manifest.save(raw_dir / f"manifest_rq2_{fam_key}.json")
-    logger.info(f"Saved RQ2 manifest to {raw_dir / f'manifest_rq2_{fam_key}.json'}")
+    # Save manifest with explicit intervention sample count only on fresh computation
+    if not cache_hit:
+        manifest = create_run_manifest(
+            run_type="v3_rq2_discovery_spatiotemporal_maps",
+            model_name=target_model_id,
+            config={
+                "analysis_role": "discovery",
+                "family": fam_key,
+                "semantic_stages": normalized_stages,
+                "alpha_sweep": alpha_sweep,
+                "subsample": args.subsample,
+                "dry_run": bool(args.dry_run),
+            },
+            metadata={
+                "analysis_role": "discovery",
+                "n_dataset_total": int(len(df)),
+                "n_map_samples": int(results.get("n_map_samples", len(df))),
+                "n_intervene_samples": int(results.get("n_intervene_samples", min(5, len(df)))),
+                "n_causal_intervention_samples": int(results.get("n_causal_intervention_samples", min(5, len(df)))),
+                "dissociation_summary": results["dissociation_summary"],
+            },
+            dry_run=bool(args.dry_run),
+        )
+        manifest.save(raw_dir / f"manifest_rq2_{fam_key}.json")
+        logger.info(f"Saved RQ2 manifest to {raw_dir / f'manifest_rq2_{fam_key}.json'}")
 
     out_summary = derived_dir / "v3_spatiotemporal_summary.json"
     summary_payload = {

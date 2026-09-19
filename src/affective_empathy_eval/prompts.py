@@ -208,3 +208,48 @@ def get_generation_stage_tokens(
 
     return stages
 
+
+def validate_stage_index_invariance(
+    tokenizer: Any,
+    prompt: str,
+    candidates: list[Any],
+    stage_names: list[str],
+) -> dict[str, int]:
+    """
+    81候補すべてでセマンティックステージのトークン絶対位置が同一であることを検証し、共通インデックスを返す。
+    不一致が検出された場合は AssertionError を送出する。
+    """
+    from affective_empathy_eval.likelihood import (
+        prepare_joint_sequence_with_boundary,
+        resolve_joint_stage_index,
+    )
+
+    if not candidates:
+        raise ValueError("Candidates list cannot be empty for stage index validation.")
+
+    def get_cand_str(c: Any) -> str:
+        return c["json_str"] if isinstance(c, dict) and "json_str" in c else str(c)
+
+    ref_cand = get_cand_str(candidates[0])
+    full_ids_ref, cand_start_ref = prepare_joint_sequence_with_boundary(prompt, ref_cand, tokenizer)
+    cand_tokens_ref = tokenizer.encode(ref_cand, add_special_tokens=False)
+    offsets_ref = get_generation_stage_tokens(cand_tokens_ref, tokenizer, candidate_str=ref_cand)
+
+    ref_indices: dict[str, int] = {}
+    for stg in stage_names:
+        ref_indices[stg] = resolve_joint_stage_index(cand_start_ref, stg, offsets_ref, len(full_ids_ref))
+
+    for cand in candidates[1:]:
+        cand_str = get_cand_str(cand)
+        full_ids, cand_start = prepare_joint_sequence_with_boundary(prompt, cand_str, tokenizer)
+        cand_tokens = tokenizer.encode(cand_str, add_special_tokens=False)
+        offsets = get_generation_stage_tokens(cand_tokens, tokenizer, candidate_str=cand_str)
+        for stg in stage_names:
+            idx = resolve_joint_stage_index(cand_start, stg, offsets, len(full_ids))
+            if idx != ref_indices[stg]:
+                raise AssertionError(
+                    f"Stage index variance detected for stage '{stg}': candidate '{cand_str}' has index {idx}, "
+                    f"while reference candidate '{ref_cand}' has index {ref_indices[stg]}."
+                )
+    return ref_indices
+

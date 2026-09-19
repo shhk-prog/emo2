@@ -403,8 +403,14 @@ def main():
     target_models = resolve_models_from_args(args, Path(args.models_config))
     raw_dir = Path(v2_config["output"]["raw_dir"])
     derived_dir = Path(v2_config["output"]["derived_dir"])
+    if args.dry_run:
+        raw_dir = raw_dir / "dry_run"
+        derived_dir = derived_dir / "dry_run"
     raw_dir.mkdir(parents=True, exist_ok=True)
     derived_dir.mkdir(parents=True, exist_ok=True)
+
+    pair_dir = derived_dir / "pair_level"
+    pair_dir.mkdir(parents=True, exist_ok=True)
 
     # 刺激データセット読み込み
     df = pd.read_csv(v2_config["dataset"]["path"])
@@ -422,6 +428,8 @@ def main():
     for fam_id, fam_cfg in target_models.items():
         out_path = raw_dir / f"v2_causal_map_{fam_id}.json"
         manifest_path = raw_dir / f"manifest_causal_map_{fam_id}.json"
+        fam_pair_path = pair_dir / f"v2_causal_pair_level_{fam_id}.csv"
+
         if out_path.exists() and not args.dry_run:
             try:
                 with open(out_path, "r", encoding="utf-8") as f:
@@ -432,9 +440,14 @@ def main():
                         expected_model_name=fam_cfg.family_name,
                         expected_dry_run=False,
                     ):
-                        logger.info(f"Loaded existing results for {fam_id} from {out_path}. Skipping computation.")
-                        all_causal_results[fam_id] = cached
-                        continue
+                        if fam_pair_path.exists():
+                            logger.info(f"Loaded existing results and pair-level CSV for {fam_id}. Skipping computation.")
+                            all_causal_results[fam_id] = cached
+                            cached_pairs_df = pd.read_csv(fam_pair_path)
+                            all_pair_level_records.extend(cached_pairs_df.to_dict("records"))
+                            continue
+                        else:
+                            logger.warning(f"Pair-level artifact missing for {fam_id} ({fam_pair_path}) => cache invalid, recomputing.")
             except Exception as e:
                 logger.warning(f"Cache check failed for {fam_id}: {e}")
 
@@ -536,7 +549,7 @@ def main():
                         d_metrics = compute_dissociation_metrics(d_prof, c_prof, depths)
                         dissoc_results[axis][cond_name] = d_metrics
 
-                # 事後学習による解離の変化量の比較 (Post-training reorganizes dissociation)
+                # 事後学習に伴う解離の差分の比較 (Post-training-associated difference in dissociation)
                 if "base_self" in dissoc_results[axis] and "inst_self" in dissoc_results[axis]:
                     delta_d_is = dissoc_results[axis]["inst_self"]["delta_d_star"]
                     delta_d_bs = dissoc_results[axis]["base_self"]["delta_d_star"]
@@ -583,6 +596,13 @@ def main():
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(fam_output, f, indent=2)
         logger.info(f"Saved causal map to {out_path}")
+
+        # Save per-family pair-level CSV to prevent data loss on cache hit
+        fam_records = [r for r in all_pair_level_records if r["family"] == fam_id]
+        if fam_records:
+            fam_pair_df = pd.DataFrame(fam_records)
+            fam_pair_df.to_csv(fam_pair_path, index=False)
+            logger.info(f"Saved family pair-level records ({len(fam_pair_df)} rows) to {fam_pair_path}")
 
         # Manifest 保存
         manifest = create_run_manifest(

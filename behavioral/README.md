@@ -6,8 +6,8 @@ Behavioral Stage は、内部表現や因果介入の前に、**モデル出力�
 - **科学的問い (RQ)**: *Do Reader and Self covary in their responses to controlled affective changes?*（制御された刺激の情動変化に対して、読者感情推定 (Reader) とモデル自己報告 (Self) は行動出力レベルで連動するか？）
 - **Primary Metric**:
   - **RQ4 Coupling**: Matched-pair 変位相関 $\text{corr}(\Delta_{reader}, \Delta_{self})$（$\Delta = \text{clinical} - \text{neutral}$、ペア単位の 95% Bootstrap CI）。静的刺激間の生相関 $\text{corr}(R, S)$ は Secondary/参考指標として分離し、Primary と混在させない。
-  - **RQ2 Dose-Response**: トリップレット内反復測定線形スロープ $b_i = (E[Y_i^{\text{clinical}}] - E[Y_i^{\text{neutral}}]) / 2.0$（Neutral $\to$ Moderate $\to$ Clinical）、対応のある 1 標本 $t$ 検定 ($H_0: \bar{b} = 0$) およびトリプレット単位の 95% Bootstrap CI。
-  - **RQ1 Sensitivity**: Matched-pair 差分 $\Delta = \text{clinical} - \text{neutral}$、Cohen's $d_z$、対応のある $t$ 検定、ペア単位の 95% Bootstrap CI。
+  - **RQ2 Dose-Response**: Primary は Direction-aligned two-step monotonic contrast with an intersection-union test (IUT)（Step 1: Moderate - Neutral, Step 2: Clinical - Moderate の両ステップ片側 1 標本 $t$ 検定 $p_{\text{IUT}} = \max(p_{s1}, p_{s2})$、単調推移率 monotonicity rate、各ステップの 95% Bootstrap CI）。Secondary はトリプレット内線形スロープ $b_i = (E[Y_i^{\text{clinical}}] - E[Y_i^{\text{neutral}}]) / 2.0$ と対応のある 1 標本 $t$ 検定。
+  - **RQ1 Sensitivity**: Primary は Direction-aligned matched-pair 差分 $\Delta_{\text{aligned}} = \text{sign} \cdot (E[Y_i^{\text{clinical}}] - E[Y_i^{\text{neutral}}])$（正負の感情相殺を防止）、Cohen's $d_z$、1 標本 $t$ 検定 ($H_0: \mu = 0$)、ペア単位の 95% Bootstrap CI。Secondary は生差分 $\Delta$、対応のある $t$ 検定 (`ttest_rel`)。
   - **Human-Affect Correspondence**: EmoBank 人間評定とモデル期待値の Pearson $r$ / Spearman $\rho$。
 - **統計単位**:
   - Coupling / Sensitivity: Matched pair ($N_{\text{pairs}}$)

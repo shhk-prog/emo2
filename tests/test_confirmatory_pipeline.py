@@ -63,6 +63,7 @@ def test_v2_confirmatory_analysis_dry_run(tmp_path):
     report = run_confirmatory_analysis(raw_dir=raw_dir, derived_dir=derived_dir, is_dry_run=True)
 
     assert report["status"] == "success"
+    assert "H3_causal_profile_reorganization_lmm" in report["hypotheses"]
     assert "H3_causal_dissociation_lmm" in report["hypotheses"]
     assert "H4_recovery_asymmetry" in report["hypotheses"]
-    assert (derived_dir / "v2_lmm_confirmatory.json").exists()
+    assert (derived_dir / "dry_run" / "v2_lmm_confirmatory.json").exists() or (derived_dir / "v2_lmm_confirmatory.json").exists()

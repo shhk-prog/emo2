@@ -269,27 +269,51 @@ def run_real_path_mediation(
             r2 = 0.0
         d_stim_profile.append(r2)
 
-        # 実 activation intervention による因果的変位 C(l) = |Delta Report(l)| の実測 (探索的スクリーニング)
-        eval_k = min(8, len(disc_texts))
-        delta_reports = []
-        if H_s.shape[0] >= 2 and np.std(y_v_disc) > 1e-4:
-            ridge_dir = Ridge(alpha=10.0).fit(H_s, y_v_disc)
-            d_l = ridge_dir.coef_
-            norm_d = np.linalg.norm(d_l)
-            if norm_d > 1e-6:
-                d_l = d_l / norm_d
-            else:
-                d_l = np.zeros_like(d_l)
-        else:
-            d_l = np.zeros(H_s.shape[1])
+        # 実 activation intervention による因果的変位 C_joint(l) = (C_V(l) + C_A(l)) / 2 の実測 (探索的スクリーニング)
+        # 層化抽出: target_emotion から均等にサンプリングして rage 偏重を防止 (最大16サンプル)
+        n_causal_screen = 16
+        rng_strat = np.random.default_rng(42)
+        selected_disc_idx = []
+        if "target_emotion" in disc_df.columns:
+            for emo, grp in disc_df.groupby("target_emotion"):
+                idx = rng_strat.choice(grp.index.to_numpy(), size=1)
+                selected_disc_idx.extend(idx.tolist())
+        rem_needed = n_causal_screen - len(selected_disc_idx)
+        if rem_needed > 0:
+            remaining_cands = [i for i in range(len(disc_texts)) if i not in selected_disc_idx]
+            if remaining_cands:
+                supp = rng_strat.choice(remaining_cands, size=min(rem_needed, len(remaining_cands)), replace=False)
+                selected_disc_idx.extend(supp.tolist())
+        if not selected_disc_idx:
+            selected_disc_idx = list(range(min(n_causal_screen, len(disc_texts))))
 
-        proj_l = H_s @ d_l
-        h_std_l = float(np.std(proj_l))
-        if h_std_l < 1e-6:
-            h_std_l = float(np.std(H_s)) if np.std(H_s) > 1e-6 else 1.0
+        # 各層で Valence (d_v_l) と Arousal (d_a_l) を別々に fit
+        if H_s.shape[0] >= 2 and np.std(y_v_disc) > 1e-4:
+            ridge_v = Ridge(alpha=10.0).fit(H_s, y_v_disc)
+            d_v_l = ridge_v.coef_
+            norm_v = np.linalg.norm(d_v_l)
+            d_v_l = d_v_l / norm_v if norm_v > 1e-6 else np.zeros_like(d_v_l)
+        else:
+            d_v_l = np.zeros(H_s.shape[1])
+
+        if H_s.shape[0] >= 2 and np.std(y_a_disc) > 1e-4:
+            ridge_a = Ridge(alpha=10.0).fit(H_s, y_a_disc)
+            d_a_l = ridge_a.coef_
+            norm_a = np.linalg.norm(d_a_l)
+            d_a_l = d_a_l / norm_a if norm_a > 1e-6 else np.zeros_like(d_a_l)
+        else:
+            d_a_l = np.zeros(H_s.shape[1])
+
+        proj_v = H_s @ d_v_l
+        h_std_v = float(np.std(proj_v)) if np.std(proj_v) > 1e-6 else 1.0
+        proj_a = H_s @ d_a_l
+        h_std_a = float(np.std(proj_a)) if np.std(proj_a) > 1e-6 else 1.0
+
+        sample_c_v = []
+        sample_c_a = []
 
         with torch.no_grad():
-            for k_idx in range(eval_k):
+            for k_idx in selected_disc_idx:
                 text_k = disc_texts[k_idx]
                 p_k = build_prompt(text_k, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
                 enc_k = encode_prompt_canonical(tokenizer, p_k, device=device)
@@ -302,26 +326,44 @@ def run_real_path_mediation(
                 )
                 ev_c, ea_c = compute_expected_va(probs_clean_k, candidates)
 
-                # b. Intervened expected report (alpha=1.0 along d_l with h_std_l scale)
+                # b. Valence intervention (inject d_v_l) -> |Delta V|
                 with ActivationHookManager(adapter) as hook_mgr:
                     hook_mgr.register_direction_intervention_hook(
                         layer_idx=l,
-                        direction=d_l,
+                        direction=d_v_l,
                         alpha=1.0,
-                        hidden_std=h_std_l,
+                        hidden_std=h_std_v,
                         token_indices=patch_pos_k,
                         hook_point=HookPoint.POST_MLP_RESID,
                         mode="inject",
                     )
-                    _, probs_int_k = compute_sequence_likelihoods_for_candidates(
+                    _, probs_int_v = compute_sequence_likelihoods_for_candidates(
                         model=model, tokenizer=tokenizer, prompt=p_k, candidates=candidates, device=device, batch_size=81
                     )
-                ev_i, ea_i = compute_expected_va(probs_int_k, candidates)
-                delta_norm = float(np.sqrt((ev_i - ev_c)**2 + (ea_i - ea_c)**2))
-                delta_reports.append(delta_norm)
+                ev_i_v, _ = compute_expected_va(probs_int_v, candidates)
+                sample_c_v.append(abs(ev_i_v - ev_c))
 
-        c_score = float(np.mean(delta_reports)) if delta_reports else 0.0
-        c_gen_profile.append(c_score)
+                # c. Arousal intervention (inject d_a_l) -> |Delta A|
+                with ActivationHookManager(adapter) as hook_mgr:
+                    hook_mgr.register_direction_intervention_hook(
+                        layer_idx=l,
+                        direction=d_a_l,
+                        alpha=1.0,
+                        hidden_std=h_std_a,
+                        token_indices=patch_pos_k,
+                        hook_point=HookPoint.POST_MLP_RESID,
+                        mode="inject",
+                    )
+                    _, probs_int_a = compute_sequence_likelihoods_for_candidates(
+                        model=model, tokenizer=tokenizer, prompt=p_k, candidates=candidates, device=device, batch_size=81
+                    )
+                _, ea_i_a = compute_expected_va(probs_int_a, candidates)
+                sample_c_a.append(abs(ea_i_a - ea_c))
+
+        c_v_score = float(np.mean(sample_c_v)) if sample_c_v else 0.0
+        c_a_score = float(np.mean(sample_c_a)) if sample_c_a else 0.0
+        c_joint_score = float((c_v_score + c_a_score) / 2.0)
+        c_gen_profile.append(c_joint_score)
 
     stim_peak_layer = int(np.argmax(d_stim_profile))
     mediator_layer = int(np.argmax(c_gen_profile))
@@ -334,7 +376,7 @@ def run_real_path_mediation(
         "mediator_layer": mediator_layer,
         "mediator_depth": relative_depths[mediator_layer],
         "d_stim_profile": [float(x) for x in d_stim_profile],
-        "c_gen_profile": [float(x) for x in c_gen_profile],
+        "c_joint_profile": [float(x) for x in c_gen_profile],
     }
 
     # 3. Confirmation: Mediator 層の情動部分空間除去による因果媒介効果の検定
@@ -380,10 +422,9 @@ def run_real_path_mediation(
                     )
                     _ = model(**enc_neu)
                     disc_neu_hiddens.append(hook_mgr.captured_activations["h_med_neu"].cpu().float().numpy().ravel())
-    if len(disc_neu_hiddens) > 0:
-        mu_neu = np.mean(disc_neu_hiddens, axis=0)
-    else:
-        mu_neu = np.mean(H_med, axis=0)
+    if len(disc_neu_hiddens) == 0:
+        raise ValueError("No matched-neutral representations available in Discovery split.")
+    mu_neu = np.mean(disc_neu_hiddens, axis=0)
 
     # Confirmation セットで自然な情動変位 (Total affective shift) と Mediator 遮断後の残差変位 (Residual shift) を実測
     te_v_list, te_a_list = [], []
@@ -460,22 +501,50 @@ def run_real_path_mediation(
     atten_samples_v = te_samples_v - res_samples_v
     atten_samples_a = te_samples_a - res_samples_a
 
-    ratio_samples_v = atten_samples_v / np.clip(te_samples_v, 1e-5, None)
-    ratio_samples_a = atten_samples_a / np.clip(te_samples_a, 1e-5, None)
+    MIN_NATURAL_SHIFT = 0.05
+    valid_v = te_samples_v > MIN_NATURAL_SHIFT
+    valid_a = te_samples_a > MIN_NATURAL_SHIFT
+
+    n_total = len(te_samples_v)
+    n_valid_v = int(np.sum(valid_v))
+    n_valid_a = int(np.sum(valid_a))
+
+    ratio_samples_v = (
+        atten_samples_v[valid_v] / te_samples_v[valid_v]
+        if n_valid_v > 0
+        else np.array([0.0])
+    )
+    ratio_samples_a = (
+        atten_samples_a[valid_a] / te_samples_a[valid_a]
+        if n_valid_a > 0
+        else np.array([0.0])
+    )
 
     te_v_mean, te_v_low, te_v_high = compute_bootstrap_ci(te_samples_v, n_boot=bootstrap_n)
     res_v_mean, res_v_low, res_v_high = compute_bootstrap_ci(res_samples_v, n_boot=bootstrap_n)
     atten_v_mean, atten_v_low, atten_v_high = compute_bootstrap_ci(atten_samples_v, n_boot=bootstrap_n)
-    ratio_v_mean, ratio_v_low, ratio_v_high = compute_bootstrap_ci(ratio_samples_v, n_boot=bootstrap_n)
+    ratio_v_mean, ratio_v_low, ratio_v_high = (
+        compute_bootstrap_ci(ratio_samples_v, n_boot=bootstrap_n)
+        if n_valid_v >= 2
+        else (float(np.mean(ratio_samples_v)), float(np.mean(ratio_samples_v)), float(np.mean(ratio_samples_v)))
+    )
 
     te_a_mean, te_a_low, te_a_high = compute_bootstrap_ci(te_samples_a, n_boot=bootstrap_n)
     res_a_mean, res_a_low, res_a_high = compute_bootstrap_ci(res_samples_a, n_boot=bootstrap_n)
     atten_a_mean, atten_a_low, atten_a_high = compute_bootstrap_ci(atten_samples_a, n_boot=bootstrap_n)
-    ratio_a_mean, ratio_a_low, ratio_a_high = compute_bootstrap_ci(ratio_samples_a, n_boot=bootstrap_n)
+    ratio_a_mean, ratio_a_low, ratio_a_high = (
+        compute_bootstrap_ci(ratio_samples_a, n_boot=bootstrap_n)
+        if n_valid_a >= 2
+        else (float(np.mean(ratio_samples_a)), float(np.mean(ratio_samples_a)), float(np.mean(ratio_samples_a)))
+    )
 
     confirmation_res = {
         "primary_grounding": "reader_prediction",
         "mediator_layer": mediator_layer,
+        "n_total": n_total,
+        "n_valid_ratio_v": n_valid_v,
+        "n_valid_ratio_a": n_valid_a,
+        "min_natural_shift_threshold": MIN_NATURAL_SHIFT,
         "valence": {
             "total_affective_shift": {"mean": te_v_mean, "ci_lower": te_v_low, "ci_upper": te_v_high},
             "residual_shift_after_blocking": {"mean": res_v_mean, "ci_lower": res_v_low, "ci_upper": res_v_high},
@@ -502,6 +571,9 @@ def main():
 
     raw_dir = Path(v3_cfg["output"]["raw_dir"])
     derived_dir = Path(v3_cfg["output"]["derived_dir"])
+    if args.dry_run:
+        raw_dir = raw_dir / "dry_run"
+        derived_dir = derived_dir / "dry_run"
     raw_dir.mkdir(parents=True, exist_ok=True)
     derived_dir.mkdir(parents=True, exist_ok=True)
 
@@ -520,6 +592,7 @@ def main():
     discovery_res = None
     confirmation_res = None
     full_output = None
+    cache_hit = False
 
     out_raw = raw_dir / f"v3_path_mediation_{fam_key}.json"
     manifest_path = raw_dir / f"manifest_rq3_{fam_key}.json"
@@ -539,9 +612,9 @@ def main():
                     full_output = cached
                     discovery_res = cached["discovery"]
                     confirmation_res = cached["confirmation"]
+                    cache_hit = True
         except Exception as e:
             logger.warning(f"Cache check failed for {out_raw}: {e}")
-
 
     if full_output is None or discovery_res is None or confirmation_res is None:
         if args.dry_run:
@@ -570,7 +643,6 @@ def main():
             "dry_run": bool(args.dry_run),
             "n_dataset_total": int(len(df)),
             "n_intervention_samples": n_intervention,
-            "dry_run": bool(args.dry_run),
             "discovery": discovery_res,
             "confirmation": confirmation_res,
         }
@@ -578,33 +650,50 @@ def main():
             json.dump(full_output, f, indent=2)
         logger.info(f"Saved path mediation raw results to {out_raw}")
 
-    # Save manifest with explicit intervention sample count
-    n_intervention_manifest = int(full_output.get("n_intervention_samples", len(df)))
-    manifest = create_run_manifest(
-        run_type="v3_rq3_path_mediation",
-        model_name=target_model_id,
-        config={
-            "family": fam_key,
-            "subsample": args.subsample,
-            "bootstrap_n": bootstrap_n,
-            "dry_run": bool(args.dry_run),
-        },
-        metadata={
-            "n_dataset_total": int(len(df)),
-            "n_intervention_samples": n_intervention_manifest,
-            "mediator_layer": confirmation_res["mediator_layer"],
-            "valence_attenuation_ratio": confirmation_res["valence"]["attenuation_ratio"]["mean"],
-            "arousal_attenuation_ratio": confirmation_res["arousal"]["attenuation_ratio"]["mean"],
-        },
-        dry_run=bool(args.dry_run),
-    )
-
-    manifest.save(raw_dir / f"manifest_rq3_{fam_key}.json")
-    logger.info(f"Saved RQ3 manifest to {raw_dir / f'manifest_rq3_{fam_key}.json'}")
+    # Save manifest only on fresh computation to prevent washing old artifacts
+    if not cache_hit:
+        n_intervention_manifest = int(full_output.get("n_intervention_samples", len(df)))
+        manifest = create_run_manifest(
+            run_type="v3_rq3_path_mediation",
+            model_name=target_model_id,
+            config={
+                "family": fam_key,
+                "subsample": args.subsample,
+                "bootstrap_n": bootstrap_n,
+                "dry_run": bool(args.dry_run),
+            },
+            metadata={
+                "n_dataset_total": int(len(df)),
+                "n_intervention_samples": n_intervention_manifest,
+                "mediator_layer": confirmation_res["mediator_layer"],
+                "valence_attenuation": confirmation_res["valence"]["mediated_attenuation"]["mean"],
+                "arousal_attenuation": confirmation_res["arousal"]["mediated_attenuation"]["mean"],
+                "valence_attenuation_ratio": confirmation_res["valence"]["attenuation_ratio"]["mean"],
+                "arousal_attenuation_ratio": confirmation_res["arousal"]["attenuation_ratio"]["mean"],
+            },
+            dry_run=bool(args.dry_run),
+        )
+        manifest.save(raw_dir / f"manifest_rq3_{fam_key}.json")
+        logger.info(f"Saved RQ3 manifest to {raw_dir / f'manifest_rq3_{fam_key}.json'}")
 
     out_summary = derived_dir / "v3_path_mediation_summary.json"
     summary_output = {
         "mediator_layer": confirmation_res["mediator_layer"],
+        "n_total": confirmation_res["n_total"],
+        "n_valid_ratio_v": confirmation_res["n_valid_ratio_v"],
+        "n_valid_ratio_a": confirmation_res["n_valid_ratio_a"],
+        # Primary: Absolute mediated attenuation
+        "valence_mediated_attenuation": confirmation_res["valence"]["mediated_attenuation"]["mean"],
+        "valence_mediated_attenuation_ci": [
+            confirmation_res["valence"]["mediated_attenuation"]["ci_lower"],
+            confirmation_res["valence"]["mediated_attenuation"]["ci_upper"],
+        ],
+        "arousal_mediated_attenuation": confirmation_res["arousal"]["mediated_attenuation"]["mean"],
+        "arousal_mediated_attenuation_ci": [
+            confirmation_res["arousal"]["mediated_attenuation"]["ci_lower"],
+            confirmation_res["arousal"]["mediated_attenuation"]["ci_upper"],
+        ],
+        # Secondary: Attenuation ratio
         "valence_attenuation_ratio": confirmation_res["valence"]["attenuation_ratio"]["mean"],
         "valence_attenuation_ci": [
             confirmation_res["valence"]["attenuation_ratio"]["ci_lower"],
@@ -620,6 +709,8 @@ def main():
         json.dump(summary_output, f, indent=2)
     logger.info(f"Saved path mediation summary to {out_summary}")
 
+    logger.info(f"Valence Mediated Attenuation: {summary_output['valence_mediated_attenuation']:.3f} "
+                f"(95% CI: [{summary_output['valence_mediated_attenuation_ci'][0]:.3f}, {summary_output['valence_mediated_attenuation_ci'][1]:.3f}])")
     logger.info(f"Valence Attenuation Ratio: {summary_output['valence_attenuation_ratio']:.3f} "
                 f"(95% CI: [{summary_output['valence_attenuation_ci'][0]:.3f}, {summary_output['valence_attenuation_ci'][1]:.3f}])")
 

@@ -193,7 +193,7 @@ def analyze_v2_geometry_and_sharing(
     }
 
     if has_matched:
-        # 2. Base plain ↔ Instruct matched-plain (純粋事後学習効果: Prompt format 統制)
+        # 2. Base plain ↔ Instruct matched-plain (Prompt-format-controlled Base–Instruct comparison)
         results["rq1_geometry"]["reader_distortion_matched"] = []
         results["rq1_geometry"]["self_distortion_matched"] = []
         results["rq1_geometry"]["rsa_reader_matched"] = []
@@ -377,6 +377,9 @@ def analyze_v2_geometry_and_sharing(
         results["summary_metrics"]["mean_delta_sharing_matched"] = float(np.mean(p_sharing["delta_sharing_matched"]))
         results["summary_metrics"]["mean_delta_sharing_format"] = float(np.mean(p_sharing["delta_sharing_format"]))
 
+    results["relative_depths"] = [float(d) for d in depths]
+    results["num_layers"] = num_layers
+
     return results
 
 
@@ -403,6 +406,9 @@ def main():
     target_families = list(target_models.keys())
     raw_dir = Path(v2_config["output"]["raw_dir"])
     derived_dir = Path(v2_config["output"]["derived_dir"])
+    if args.dry_run:
+        raw_dir = raw_dir / "dry_run"
+        derived_dir = derived_dir / "dry_run"
     raw_dir.mkdir(parents=True, exist_ok=True)
     derived_dir.mkdir(parents=True, exist_ok=True)
 

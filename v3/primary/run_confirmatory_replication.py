@@ -58,6 +58,7 @@ from affective_empathy_eval.prompts import (
     encode_prompt_canonical,
     find_semantic_anchors,
     get_generation_stage_tokens,
+    validate_stage_index_invariance,
 )
 from affective_empathy_eval.statistics import compute_bootstrap_ci
 
@@ -130,6 +131,9 @@ def simulate_model_confirmatory(
         "response_end": float(0.07 + rng.normal(0, 0.02)),
     }
 
+    contrast_v = float(stage_causal_v["pre_V"] - stage_causal_v["candidate_start"])
+    contrast_a = float(stage_causal_a["pre_A"] - stage_causal_a["candidate_start"])
+
     h1_pass_v = dissoc_v["delta_d_peak"] > 0 and dissoc_v["delta_d_center"] > 0
     h1_pass_a = dissoc_a["delta_d_peak"] > 0 and dissoc_a["delta_d_center"] > 0
     h1_pass = bool(h1_pass_v and h1_pass_a)
@@ -168,15 +172,18 @@ def simulate_model_confirmatory(
             "valence": {
                 "natural_shift": float(natural_shift_v),
                 "attenuated_shift": float(attenuated_shift_v),
+                "mediated_attenuation": float(natural_shift_v - attenuated_shift_v),
                 "attenuation_ratio": float(attenuation_ratio_v),
             },
             "arousal": {
                 "natural_shift": float(natural_shift_a),
                 "attenuated_shift": float(attenuated_shift_a),
+                "mediated_attenuation": float(natural_shift_a - attenuated_shift_a),
                 "attenuation_ratio": float(attenuation_ratio_a),
             },
             "natural_shift": float(natural_shift_v),  # 互換用
             "attenuated_shift": float(attenuated_shift_v),
+            "mediated_attenuation": float(natural_shift_v - attenuated_shift_v),
             "attenuation_ratio": float(attenuation_ratio_v),
             "passed": bool(h3_pass),
         },
@@ -190,6 +197,8 @@ def simulate_model_confirmatory(
             "stage_causal": stage_causal_v,
             "stage_causal_v": stage_causal_v,
             "stage_causal_a": stage_causal_a,
+            "contrast_v": contrast_v,
+            "contrast_a": contrast_a,
             "non_uniform_leverage": True,
             "passed_valence": bool(h4_pass_v),
             "passed_arousal": bool(h4_pass_a),
@@ -198,39 +207,6 @@ def simulate_model_confirmatory(
         "all_confirmed": all_confirmed,
     }
 
-
-
-def validate_stage_index_invariance(
-    tokenizer: Any,
-    prompt: str,
-    candidates: List[Dict[str, Any]],
-    stage_names: List[str],
-) -> Dict[str, int]:
-    """
-    81候補すべてでセマンティックステージのトークン絶対位置が同一であることを検証し、共通インデックスを返す
-    """
-    ref_cand = candidates[0]["json_str"]
-    full_ids_ref, cand_start_ref = prepare_joint_sequence_with_boundary(prompt, ref_cand, tokenizer)
-    cand_tokens_ref = tokenizer.encode(ref_cand, add_special_tokens=False)
-    offsets_ref = get_generation_stage_tokens(cand_tokens_ref, tokenizer, candidate_str=ref_cand)
-
-    ref_indices = {}
-    for stg in stage_names:
-        ref_indices[stg] = resolve_joint_stage_index(cand_start_ref, stg, offsets_ref, len(full_ids_ref))
-
-    for cand_dict in candidates[1:]:
-        cand_str = cand_dict["json_str"]
-        full_ids, cand_start = prepare_joint_sequence_with_boundary(prompt, cand_str, tokenizer)
-        cand_tokens = tokenizer.encode(cand_str, add_special_tokens=False)
-        offsets = get_generation_stage_tokens(cand_tokens, tokenizer, candidate_str=cand_str)
-        for stg in stage_names:
-            idx = resolve_joint_stage_index(cand_start, stg, offsets, len(full_ids))
-            if idx != ref_indices[stg]:
-                raise AssertionError(
-                    f"Stage index variance detected for stage '{stg}': candidate '{cand_str}' has index {idx}, "
-                    f"while reference candidate '{ref_cand}' has index {ref_indices[stg]}."
-                )
-    return ref_indices
 
 
 def run_real_model_confirmatory(
@@ -421,10 +397,9 @@ def run_real_model_confirmatory(
                         _ = model(**enc_neu)
                         train_neutral_reps.append(hook_mgr.captured_activations["h_neu"].cpu().float().numpy().ravel())
 
-        if train_neutral_reps:
-            mu_neu = torch.tensor(np.mean(train_neutral_reps, axis=0), dtype=torch.float32, device=device)
-        else:
-            mu_neu = torch.tensor(np.mean(H_mid[train_idx], axis=0), dtype=torch.float32, device=device)
+        if not train_neutral_reps:
+            raise ValueError(f"No matched-neutral representations available for training fold in {family}")
+        mu_neu = torch.tensor(np.mean(train_neutral_reps, axis=0), dtype=torch.float32, device=device)
 
         # 各層の因果効果 C(l) 推定用方向 (Train fold only: VA両軸)
         layer_dirs_v = {}
@@ -523,15 +498,13 @@ def run_real_model_confirmatory(
 
                 # --- H3: Centered 2D Orthogonal Subspace Removal (VA両軸) ---
                 neu_text = resolve_matched_neutral_text(row, df)
-                if neu_text and neu_text.strip():
-                    p_neu = build_prompt(neu_text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
-                    _, probs_neu = compute_sequence_likelihoods_for_candidates(
-                        model=model, tokenizer=tokenizer, prompt=p_neu, candidates=candidates, device=device, batch_size=81
-                    )
-                    neutral_base_v, neutral_base_a = compute_expected_va(probs_neu, candidates)
-                else:
-                    neutral_base_v = float(clean_ev_list[sample_idx])
-                    neutral_base_a = float(clean_ea_list[sample_idx])
+                if not neu_text or not neu_text.strip():
+                    raise ValueError(f"Missing matched-neutral for pair_id={row.get('pair_id', 'unknown')}")
+                p_neu = build_prompt(neu_text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
+                _, probs_neu = compute_sequence_likelihoods_for_candidates(
+                    model=model, tokenizer=tokenizer, prompt=p_neu, candidates=candidates, device=device, batch_size=81
+                )
+                neutral_base_v, neutral_base_a = compute_expected_va(probs_neu, candidates)
 
                 ev_clean = float(clean_ev_list[sample_idx])
                 ea_clean = float(clean_ea_list[sample_idx])
@@ -614,23 +587,51 @@ def run_real_model_confirmatory(
 
     natural_shift_v = float(np.mean(nat_shifts_v)) if nat_shifts_v else 1.0
     attenuated_shift_v = float(np.mean(att_shifts_v)) if att_shifts_v else 0.5
-    attenuation_ratio_v = float((natural_shift_v - attenuated_shift_v) / (natural_shift_v + 1e-6))
+    mediated_attenuation_v = natural_shift_v - attenuated_shift_v
 
     natural_shift_a = float(np.mean(nat_shifts_a)) if nat_shifts_a else 1.0
     attenuated_shift_a = float(np.mean(att_shifts_a)) if att_shifts_a else 0.5
-    attenuation_ratio_a = float((natural_shift_a - attenuated_shift_a) / (natural_shift_a + 1e-6))
+    mediated_attenuation_a = natural_shift_a - attenuated_shift_a
 
-    # 指示16: unclipped ratio を保持（表示用のみ clip）
-    sample_ratios_v = [(n - a) / (n + 1e-6) for n, a in zip(nat_shifts_v, att_shifts_v)]
-    pt_att_v, att_v_low, att_v_high = compute_bootstrap_ci(sample_ratios_v) if sample_ratios_v else (attenuation_ratio_v, 0.0, 1.0)
+    # Primary: Absolute mediated attenuation samples & CI
+    sample_atten_v = [n - a for n, a in zip(nat_shifts_v, att_shifts_v)]
+    sample_atten_a = [n - a for n, a in zip(nat_shifts_a, att_shifts_a)]
+    pt_atten_v, atten_v_low, atten_v_high = (
+        compute_bootstrap_ci(sample_atten_v)
+        if len(sample_atten_v) >= 2
+        else (mediated_attenuation_v, mediated_attenuation_v, mediated_attenuation_v)
+    )
+    pt_atten_a, atten_a_low, atten_a_high = (
+        compute_bootstrap_ci(sample_atten_a)
+        if len(sample_atten_a) >= 2
+        else (mediated_attenuation_a, mediated_attenuation_a, mediated_attenuation_a)
+    )
 
-    sample_ratios_a = [(n - a) / (n + 1e-6) for n, a in zip(nat_shifts_a, att_shifts_a)]
-    pt_att_a, att_a_low, att_a_high = compute_bootstrap_ci(sample_ratios_a) if sample_ratios_a else (attenuation_ratio_a, 0.0, 1.0)
+    # Secondary: Attenuation ratio (filtered to natural_shift > MIN_NATURAL_SHIFT=0.05 to avoid division by near-zero)
+    MIN_NATURAL_SHIFT = 0.05
+    valid_ratios_v = [(n - a) / n for n, a in zip(nat_shifts_v, att_shifts_v) if n > MIN_NATURAL_SHIFT]
+    valid_ratios_a = [(n - a) / n for n, a in zip(nat_shifts_a, att_shifts_a) if n > MIN_NATURAL_SHIFT]
+
+    pt_att_v, att_v_low, att_v_high = (
+        compute_bootstrap_ci(valid_ratios_v)
+        if len(valid_ratios_v) >= 2
+        else (float(np.mean(valid_ratios_v)) if valid_ratios_v else 0.0, 0.0, 0.0)
+    )
+    pt_att_a, att_a_low, att_a_high = (
+        compute_bootstrap_ci(valid_ratios_a)
+        if len(valid_ratios_a) >= 2
+        else (float(np.mean(valid_ratios_a)) if valid_ratios_a else 0.0, 0.0, 0.0)
+    )
+    attenuation_ratio_v = float(pt_att_v)
+    attenuation_ratio_a = float(pt_att_a)
 
     stage_causal_v = {stg: float(np.mean(test_stage_shifts_v[stg])) if test_stage_shifts_v[stg] else 0.0 for stg in stage_keys}
     stage_causal_a = {stg: float(np.mean(test_stage_shifts_a[stg])) if test_stage_shifts_a[stg] else 0.0 for stg in stage_keys}
 
-    # 指示17: 判定は補助QCとし、効果量とCIを主出力とする
+    contrast_v = float(stage_causal_v.get("pre_V", 0.0) - stage_causal_v.get("candidate_start", 0.0))
+    contrast_a = float(stage_causal_a.get("pre_A", 0.0) - stage_causal_a.get("candidate_start", 0.0))
+
+    # 判定は補助QCとし、効果量とCIを主出力とする
     h1_pass_v = dissoc_v["delta_d_peak"] > 0 and dissoc_v["delta_d_center"] > 0
     h1_pass_a = dissoc_a["delta_d_peak"] > 0 and dissoc_a["delta_d_center"] > 0
     h1_pass = bool(h1_pass_v and h1_pass_a)
@@ -640,9 +641,9 @@ def run_real_model_confirmatory(
     h3_pass_a = attenuation_ratio_a > 0.1
     h3_pass = bool(h3_pass_v and h3_pass_a)
 
-    # 指示19: Temporal emergence = decodability != uniform causal leverage
-    h4_pass_v = stage_causal_v.get("pre_V", 0.0) > stage_causal_v.get("candidate_start", 0.0)
-    h4_pass_a = stage_causal_a.get("pre_A", 0.0) > stage_causal_a.get("candidate_start", 0.0)
+    # Temporal emergence = decodability != uniform causal leverage
+    h4_pass_v = contrast_v > 0.0
+    h4_pass_a = contrast_a > 0.0
     h4_pass = bool(h4_pass_v and h4_pass_a)
 
     all_confirmed = bool(h1_pass and h2_pass and h3_pass and h4_pass)
@@ -671,25 +672,37 @@ def run_real_model_confirmatory(
             "valence": {
                 "natural_shift": float(natural_shift_v),
                 "attenuated_shift": float(attenuated_shift_v),
+                # Primary: Absolute mediated attenuation
+                "mediated_attenuation": float(mediated_attenuation_v),
+                "mediated_attenuation_ci": [float(atten_v_low), float(atten_v_high)],
+                # Secondary: Attenuation ratio
                 "attenuation_ratio": float(attenuation_ratio_v),
                 "attenuation_ratio_ci": [float(att_v_low), float(att_v_high)],
                 "attenuation_ratio_display": float(np.clip(attenuation_ratio_v, 0.0, 1.0)),
+                "n_valid_ratio": len(valid_ratios_v),
             },
             "arousal": {
                 "natural_shift": float(natural_shift_a),
                 "attenuated_shift": float(attenuated_shift_a),
+                # Primary: Absolute mediated attenuation
+                "mediated_attenuation": float(mediated_attenuation_a),
+                "mediated_attenuation_ci": [float(atten_a_low), float(atten_a_high)],
+                # Secondary: Attenuation ratio
                 "attenuation_ratio": float(attenuation_ratio_a),
                 "attenuation_ratio_ci": [float(att_a_low), float(att_a_high)],
                 "attenuation_ratio_display": float(np.clip(attenuation_ratio_a, 0.0, 1.0)),
+                "n_valid_ratio": len(valid_ratios_a),
             },
             "natural_shift": float(natural_shift_v),  # 互換用
             "attenuated_shift": float(attenuated_shift_v),
+            "mediated_attenuation": float(mediated_attenuation_v),
             "attenuation_ratio": float(attenuation_ratio_v),
             "passed": bool(h3_pass),
         },
         "h3_necessity": {  # 互換用キー
             "natural_shift": float(natural_shift_v),
             "attenuated_shift": float(attenuated_shift_v),
+            "mediated_attenuation": float(mediated_attenuation_v),
             "attenuation_ratio": float(attenuation_ratio_v),
             "passed": bool(h3_pass),
         },
@@ -697,6 +710,8 @@ def run_real_model_confirmatory(
             "stage_causal": stage_causal_v,
             "stage_causal_v": stage_causal_v,
             "stage_causal_a": stage_causal_a,
+            "contrast_v": contrast_v,
+            "contrast_a": contrast_a,
             "non_uniform_leverage": True,
             "passed_valence": bool(h4_pass_v),
             "passed_arousal": bool(h4_pass_a),
@@ -738,6 +753,9 @@ def main():
 
     raw_dir = Path(v3_cfg["output"]["raw_dir"])
     derived_dir = Path(v3_cfg["output"]["derived_dir"])
+    if args.dry_run:
+        raw_dir = raw_dir / "dry_run"
+        derived_dir = derived_dir / "dry_run"
     raw_dir.mkdir(parents=True, exist_ok=True)
     derived_dir.mkdir(parents=True, exist_ok=True)
 
@@ -819,15 +837,24 @@ def main():
     h2_sv = [res["h2_sufficiency"]["slope_v"] for res in family_results.values()]
     h2_sa = [res["h2_sufficiency"]["slope_a"] for res in family_results.values()]
 
+    h3_med_v = [res["h3_endogenous_relevance"]["valence"]["mediated_attenuation"] for res in family_results.values()]
+    h3_med_a = [res["h3_endogenous_relevance"]["arousal"]["mediated_attenuation"] for res in family_results.values()]
     h3_av = [res["h3_endogenous_relevance"]["valence"]["attenuation_ratio"] for res in family_results.values()]
     h3_aa = [res["h3_endogenous_relevance"]["arousal"]["attenuation_ratio"] for res in family_results.values()]
+
+    h4_cv = [res["h4_temporal_emergence"]["contrast_v"] for res in family_results.values()]
+    h4_ca = [res["h4_temporal_emergence"]["contrast_a"] for res in family_results.values()]
 
     pt_h1_v, h1_v_low, h1_v_high = compute_bootstrap_ci(h1_dp_v, n_boot=1000) if len(h1_dp_v) > 1 else (np.mean(h1_dp_v), np.nan, np.nan)
     pt_h1_a, h1_a_low, h1_a_high = compute_bootstrap_ci(h1_dp_a, n_boot=1000) if len(h1_dp_a) > 1 else (np.mean(h1_dp_a), np.nan, np.nan)
     pt_h2_v, h2_v_low, h2_v_high = compute_bootstrap_ci(h2_sv, n_boot=1000) if len(h2_sv) > 1 else (np.mean(h2_sv), np.nan, np.nan)
     pt_h2_a, h2_a_low, h2_a_high = compute_bootstrap_ci(h2_sa, n_boot=1000) if len(h2_sa) > 1 else (np.mean(h2_sa), np.nan, np.nan)
+    pt_h3_mv, h3_mv_low, h3_mv_high = compute_bootstrap_ci(h3_med_v, n_boot=1000) if len(h3_med_v) > 1 else (np.mean(h3_med_v), np.nan, np.nan)
+    pt_h3_ma, h3_ma_low, h3_ma_high = compute_bootstrap_ci(h3_med_a, n_boot=1000) if len(h3_med_a) > 1 else (np.mean(h3_med_a), np.nan, np.nan)
     pt_h3_v, h3_v_low, h3_v_high = compute_bootstrap_ci(h3_av, n_boot=1000) if len(h3_av) > 1 else (np.mean(h3_av), np.nan, np.nan)
     pt_h3_a, h3_a_low, h3_a_high = compute_bootstrap_ci(h3_aa, n_boot=1000) if len(h3_aa) > 1 else (np.mean(h3_aa), np.nan, np.nan)
+    pt_h4_v, h4_v_low, h4_v_high = compute_bootstrap_ci(h4_cv, n_boot=1000) if len(h4_cv) > 1 else (np.mean(h4_cv), np.nan, np.nan)
+    pt_h4_a, h4_a_low, h4_a_high = compute_bootstrap_ci(h4_ca, n_boot=1000) if len(h4_ca) > 1 else (np.mean(h4_ca), np.nan, np.nan)
 
     summary = {
         "is_dry_run": args.dry_run,
@@ -842,8 +869,22 @@ def main():
                 "arousal": {"mean_slope_a": float(pt_h2_a), "ci_95": [float(h2_a_low), float(h2_a_high)]},
             },
             "H3_endogenous_attenuation": {
-                "valence": {"mean_attenuation_ratio_v": float(pt_h3_v), "ci_95": [float(h3_v_low), float(h3_v_high)]},
-                "arousal": {"mean_attenuation_ratio_a": float(pt_h3_a), "ci_95": [float(h3_a_low), float(h3_a_high)]},
+                "valence": {
+                    "primary_mean_mediated_attenuation": float(pt_h3_mv),
+                    "ci_95_mediated_attenuation": [float(h3_mv_low), float(h3_mv_high)],
+                    "secondary_mean_attenuation_ratio": float(pt_h3_v),
+                    "ci_95_attenuation_ratio": [float(h3_v_low), float(h3_v_high)],
+                },
+                "arousal": {
+                    "primary_mean_mediated_attenuation": float(pt_h3_ma),
+                    "ci_95_mediated_attenuation": [float(h3_ma_low), float(h3_ma_high)],
+                    "secondary_mean_attenuation_ratio": float(pt_h3_a),
+                    "ci_95_attenuation_ratio": [float(h3_a_low), float(h3_a_high)],
+                },
+            },
+            "H4_temporal_contrast": {
+                "valence": {"mean_contrast_v": float(pt_h4_v), "ci_95": [float(h4_v_low), float(h4_v_high)]},
+                "arousal": {"mean_contrast_a": float(pt_h4_a), "ci_95": [float(h4_a_low), float(h4_a_high)]},
             },
         },
         "family_wise_results": {
@@ -879,6 +920,6 @@ def main():
     logger.info(f"Step 7 Confirmatory replication completed: {status_msg}")
 
 
-
 if __name__ == "__main__":
     main()
+

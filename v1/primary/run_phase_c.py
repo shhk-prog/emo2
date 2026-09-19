@@ -345,6 +345,16 @@ def main():
                 "layer": 14,
                 "relative_depth": 0.5,
                 "alpha": 1.0,
+                "aligned_matched_shift_V": 0.35,
+                "aligned_matched_shift_A": 0.25,
+                "aligned_random_shift_V": 0.05,
+                "aligned_random_shift_A": 0.02,
+                "aligned_specificity_V": 0.30,
+                "aligned_specificity_A": 0.23,
+                "aligned_cohen_dz_V": 1.15,
+                "aligned_cohen_dz_A": 0.95,
+                "transfer_ratio_V": 0.70,
+                "transfer_ratio_A": 0.65,
                 "matched_shift_V": 0.35,
                 "matched_shift_A": 0.25,
                 "random_shift_V": 0.05,
@@ -892,6 +902,16 @@ def main():
             conf_indices[i]: conf_indices[deranged_sub_indices[i]]
             for i in range(n_conf)
         }
+        EXPECTED_DIRECTION = {
+            "grief": {"V": -1.0},
+            "terror": {"V": -1.0, "A": +1.0},
+            "rage": {"V": -1.0, "A": +1.0},
+            "loathing": {"V": -1.0},
+            "ecstasy": {"V": +1.0, "A": +1.0},
+            "admiration": {"V": +1.0},
+            "amazement": {"A": +1.0},
+            "vigilance": {"A": +1.0},
+        }
 
         print(f"Running E4 Interchangeability on Layers {e4_layers} (with Same-Task Controls)...")
         for l in e4_layers:
@@ -900,6 +920,7 @@ def main():
             delta_h_s = reps_s_aff[l] - reps_s_neu[l]
 
             for alpha in args.alphas:
+                # Raw signed shifts
                 matched_shifts_v = []
                 matched_shifts_a = []
                 random_shifts_v = []
@@ -910,6 +931,17 @@ def main():
                 reader_reader_shifts_a = []
                 self_reader_shifts_v = []
                 self_reader_shifts_a = []
+
+                # Target-direction aligned shifts (Primary to avoid sign cancellation)
+                aligned_matched_shifts_v = []
+                aligned_matched_shifts_a = []
+                aligned_random_shifts_v = []
+                aligned_random_shifts_a = []
+                aligned_self_self_shifts_v = []
+                aligned_self_self_shifts_a = []
+                aligned_reader_reader_shifts_v = []
+                aligned_reader_reader_shifts_a = []
+
                 is_zero_alpha = abs(alpha) < 1e-9
 
                 for p_idx in conf_indices:
@@ -1048,11 +1080,61 @@ def main():
                     self_reader_shifts_v.append(sr_v)
                     self_reader_shifts_a.append(sr_a)
 
+                    # Direction alignment for this pair
+                    emo_name = str(
+                        merged.loc[p_idx, "target_emotion_aff"]
+                        if "target_emotion_aff" in merged.columns
+                        else (
+                            merged.loc[p_idx, "target_emotion"]
+                            if "target_emotion" in merged.columns
+                            else merged.loc[p_idx, "emotion_aff"]
+                        )
+                    ).lower()
+                    sign_v = EXPECTED_DIRECTION.get(emo_name, {}).get("V")
+                    sign_a = EXPECTED_DIRECTION.get(emo_name, {}).get("A")
+
+                    aligned_m_sv = sign_v * m_sv if sign_v is not None else np.nan
+                    aligned_r_sv = sign_v * r_sv if sign_v is not None else np.nan
+                    aligned_ss_v = sign_v * ss_v if sign_v is not None else np.nan
+                    aligned_rr_v = sign_v * rr_v if sign_v is not None else np.nan
+
+                    aligned_m_sa = sign_a * m_sa if sign_a is not None else np.nan
+                    aligned_r_sa = sign_a * r_sa if sign_a is not None else np.nan
+                    aligned_ss_a = sign_a * ss_a if sign_a is not None else np.nan
+                    aligned_rr_a = sign_a * rr_a if sign_a is not None else np.nan
+
+                    if sign_v is not None:
+                        aligned_matched_shifts_v.append(aligned_m_sv)
+                        aligned_random_shifts_v.append(aligned_r_sv)
+                        aligned_self_self_shifts_v.append(aligned_ss_v)
+                        aligned_reader_reader_shifts_v.append(aligned_rr_v)
+
+                    if sign_a is not None:
+                        aligned_matched_shifts_a.append(aligned_m_sa)
+                        aligned_random_shifts_a.append(aligned_r_sa)
+                        aligned_self_self_shifts_a.append(aligned_ss_a)
+                        aligned_reader_reader_shifts_a.append(aligned_rr_a)
+
                     e4_pair_records.append(
                         {
                             "layer": l,
                             "alpha": alpha,
                             "pair_id": p_id,
+                            "emotion": emo_name,
+                            "sign_V": sign_v,
+                            "sign_A": sign_a,
+                            # Primary: target direction aligned
+                            "aligned_matched_shift_V": aligned_m_sv,
+                            "aligned_matched_shift_A": aligned_m_sa,
+                            "aligned_random_shift_V": aligned_r_sv,
+                            "aligned_random_shift_A": aligned_r_sa,
+                            "aligned_self_self_shift_V": aligned_ss_v,
+                            "aligned_self_self_shift_A": aligned_ss_a,
+                            "aligned_reader_reader_shift_V": aligned_rr_v,
+                            "aligned_reader_reader_shift_A": aligned_rr_a,
+                            "aligned_specificity_V": (aligned_m_sv - aligned_r_sv) if not np.isnan(aligned_m_sv) else np.nan,
+                            "aligned_specificity_A": (aligned_m_sa - aligned_r_sa) if not np.isnan(aligned_m_sa) else np.nan,
+                            # Secondary: raw signed
                             "matched_shift_V": m_sv,
                             "matched_shift_A": m_sa,
                             "random_shift_V": r_sv,
@@ -1068,6 +1150,56 @@ def main():
                         }
                     )
 
+                # Primary aligned means
+                mean_al_m_v = float(np.mean(aligned_matched_shifts_v)) if aligned_matched_shifts_v else 0.0
+                mean_al_m_a = float(np.mean(aligned_matched_shifts_a)) if aligned_matched_shifts_a else 0.0
+                mean_al_rnd_v = float(np.mean(aligned_random_shifts_v)) if aligned_random_shifts_v else 0.0
+                mean_al_rnd_a = float(np.mean(aligned_random_shifts_a)) if aligned_random_shifts_a else 0.0
+                mean_al_ss_v = float(np.mean(aligned_self_self_shifts_v)) if aligned_self_self_shifts_v else 0.0
+                mean_al_ss_a = float(np.mean(aligned_self_self_shifts_a)) if aligned_self_self_shifts_a else 0.0
+                mean_al_rr_v = float(np.mean(aligned_reader_reader_shifts_v)) if aligned_reader_reader_shifts_v else 0.0
+                mean_al_rr_a = float(np.mean(aligned_reader_reader_shifts_a)) if aligned_reader_reader_shifts_a else 0.0
+
+                al_spec_v = mean_al_m_v - mean_al_rnd_v
+                al_spec_a = mean_al_m_a - mean_al_rnd_a
+
+                # Transfer Ratio from aligned shifts with denominator stability guard
+                if abs(mean_al_ss_v) >= 0.05:
+                    transfer_ratio_v = float(mean_al_m_v / (mean_al_ss_v + 1e-6))
+                else:
+                    transfer_ratio_v = np.nan
+
+                if abs(mean_al_ss_a) >= 0.05:
+                    transfer_ratio_a = float(mean_al_m_a / (mean_al_ss_a + 1e-6))
+                else:
+                    transfer_ratio_a = np.nan
+
+                # Primary stats on aligned shifts
+                if not is_zero_alpha and len(aligned_matched_shifts_v) > 2:
+                    al_dz_v = compute_paired_cohen_dz(aligned_matched_shifts_v, aligned_random_shifts_v, ddof=1)
+                    al_ci_low_v, al_ci_high_v = compute_bivariate_bootstrap_ci(
+                        aligned_matched_shifts_v, aligned_random_shifts_v, stat_fn=lambda x, y: np.mean(x - y), n_bootstraps=1000
+                    )
+                    try:
+                        _, al_p_val_v = stats.ttest_rel(aligned_matched_shifts_v, aligned_random_shifts_v)
+                    except Exception:
+                        al_p_val_v = 1.0
+                else:
+                    al_dz_v, al_ci_low_v, al_ci_high_v, al_p_val_v = 0.0, 0.0, 0.0, 1.0
+
+                if not is_zero_alpha and len(aligned_matched_shifts_a) > 2:
+                    al_dz_a = compute_paired_cohen_dz(aligned_matched_shifts_a, aligned_random_shifts_a, ddof=1)
+                    al_ci_low_a, al_ci_high_a = compute_bivariate_bootstrap_ci(
+                        aligned_matched_shifts_a, aligned_random_shifts_a, stat_fn=lambda x, y: np.mean(x - y), n_bootstraps=1000
+                    )
+                    try:
+                        _, al_p_val_a = stats.ttest_rel(aligned_matched_shifts_a, aligned_random_shifts_a)
+                    except Exception:
+                        al_p_val_a = 1.0
+                else:
+                    al_dz_a, al_ci_low_a, al_ci_high_a, al_p_val_a = 0.0, 0.0, 0.0, 1.0
+
+                # Secondary raw signed means
                 mean_m_v = float(np.mean(matched_shifts_v))
                 mean_m_a = float(np.mean(matched_shifts_a))
                 mean_rnd_v = float(np.mean(random_shifts_v))
@@ -1082,36 +1214,18 @@ def main():
                 spec_v = mean_m_v - mean_rnd_v
                 spec_a = mean_m_a - mean_rnd_a
 
-                # Transfer Ratio (Reader->Self shift normalized by Self->Self same-task ceiling)
-                transfer_ratio_v = float(mean_m_v / (mean_ss_v + 1e-6)) if abs(mean_ss_v) > 1e-6 else 0.0
-                transfer_ratio_a = float(mean_m_a / (mean_ss_a + 1e-6)) if abs(mean_ss_a) > 1e-6 else 0.0
-
                 if not is_zero_alpha and len(matched_shifts_v) > 2:
-                    dz_v = compute_paired_cohen_dz(
-                        matched_shifts_v, random_shifts_v, ddof=1
-                    )
-                    dz_a = compute_paired_cohen_dz(
-                        matched_shifts_a, random_shifts_a, ddof=1
-                    )
+                    dz_v = compute_paired_cohen_dz(matched_shifts_v, random_shifts_v, ddof=1)
+                    dz_a = compute_paired_cohen_dz(matched_shifts_a, random_shifts_a, ddof=1)
                     ci_low_v, ci_high_v = compute_bivariate_bootstrap_ci(
-                        matched_shifts_v,
-                        random_shifts_v,
-                        stat_fn=lambda x, y: np.mean(x - y),
-                        n_bootstraps=1000,
+                        matched_shifts_v, random_shifts_v, stat_fn=lambda x, y: np.mean(x - y), n_bootstraps=1000
                     )
                     ci_low_a, ci_high_a = compute_bivariate_bootstrap_ci(
-                        matched_shifts_a,
-                        random_shifts_a,
-                        stat_fn=lambda x, y: np.mean(x - y),
-                        n_bootstraps=1000,
+                        matched_shifts_a, random_shifts_a, stat_fn=lambda x, y: np.mean(x - y), n_bootstraps=1000
                     )
                     try:
-                        t_stat_v, p_val_v = stats.ttest_rel(
-                            matched_shifts_v, random_shifts_v
-                        )
-                        t_stat_a, p_val_a = stats.ttest_rel(
-                            matched_shifts_a, random_shifts_a
-                        )
+                        _, p_val_v = stats.ttest_rel(matched_shifts_v, random_shifts_v)
+                        _, p_val_a = stats.ttest_rel(matched_shifts_a, random_shifts_a)
                     except Exception:
                         p_val_v, p_val_a = 1.0, 1.0
                 else:
@@ -1125,6 +1239,28 @@ def main():
                         "layer": l,
                         "relative_depth": rel_d,
                         "alpha": alpha,
+                        # Primary: Direction-aligned effects
+                        "aligned_matched_shift_V": mean_al_m_v,
+                        "aligned_matched_shift_A": mean_al_m_a,
+                        "aligned_random_shift_V": mean_al_rnd_v,
+                        "aligned_random_shift_A": mean_al_rnd_a,
+                        "aligned_self_self_shift_V": mean_al_ss_v,
+                        "aligned_self_self_shift_A": mean_al_ss_a,
+                        "aligned_reader_reader_shift_V": mean_al_rr_v,
+                        "aligned_reader_reader_shift_A": mean_al_rr_a,
+                        "aligned_specificity_V": al_spec_v,
+                        "aligned_specificity_A": al_spec_a,
+                        "aligned_cohen_dz_V": al_dz_v,
+                        "aligned_cohen_dz_A": al_dz_a,
+                        "aligned_ci_95_low_V": al_ci_low_v,
+                        "aligned_ci_95_high_V": al_ci_high_v,
+                        "aligned_ci_95_low_A": al_ci_low_a,
+                        "aligned_ci_95_high_A": al_ci_high_a,
+                        "aligned_p_val_V": al_p_val_v,
+                        "aligned_p_val_A": al_p_val_a,
+                        "transfer_ratio_V": transfer_ratio_v,
+                        "transfer_ratio_A": transfer_ratio_a,
+                        # Secondary: Raw signed shifts
                         "matched_shift_V": mean_m_v,
                         "matched_shift_A": mean_m_a,
                         "random_shift_V": mean_rnd_v,
@@ -1135,8 +1271,6 @@ def main():
                         "reader_reader_shift_A": mean_rr_a,
                         "self_reader_shift_V": mean_sr_v,
                         "self_reader_shift_A": mean_sr_a,
-                        "transfer_ratio_V": transfer_ratio_v,
-                        "transfer_ratio_A": transfer_ratio_a,
                         "specificity_V": spec_v,
                         "specificity_A": spec_a,
                         "cohen_dz_V": dz_v,
@@ -1146,6 +1280,7 @@ def main():
                         "ci_95_low_A": ci_low_a,
                         "ci_95_high_A": ci_high_a,
                         "p_val_V": p_val_v,
+                        "p_val_A": p_val_a,
                     }
                 )
 

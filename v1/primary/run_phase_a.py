@@ -221,6 +221,12 @@ def evaluate_classification_probe(
     cv: int = 5,
     seed: int = 42,
 ) -> Dict[str, float]:
+    if group_ids is not None:
+        group_ids = np.array([str(g) for g in group_ids])
+        unique_groups = np.unique(group_ids)
+        if len(unique_groups) < 2:
+            return {"roc_auc": float("nan"), "balanced_acc": float("nan"), "f1_macro": float("nan")}
+
     unique_classes = np.unique(y)
     if len(unique_classes) < 2 or len(X) < cv:
         return {"roc_auc": 0.5, "balanced_acc": 0.5, "f1_macro": 0.0}
@@ -231,8 +237,6 @@ def evaluate_classification_probe(
         return {"roc_auc": 0.5, "balanced_acc": 0.5, "f1_macro": 0.0}
 
     if group_ids is not None:
-        group_ids = np.array([str(g) for g in group_ids])
-        unique_groups = np.unique(group_ids)
         n_splits = min(actual_cv, len(unique_groups))
         if n_splits < 2:
             return {"roc_auc": float("nan"), "balanced_acc": float("nan"), "f1_macro": float("nan")}

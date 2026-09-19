@@ -398,14 +398,17 @@ def main():
         v2_config = yaml.safe_load(f)
 
     target_models = resolve_models_from_args(args, Path(args.models_config))
-    dataset_df = load_dataset(v2_config["dataset"]["path"], max_samples=args.max_samples)
+    data_path = Path(v2_config["dataset"]["path"])
+    seed = int(v2_config["seed"])
+
+    dataset_df = load_dataset(str(data_path), max_samples=args.max_samples)
     if args.dry_run:
         dataset_df = dataset_df.head(32).copy()
         logger.info(f"[DRY-RUN] Scaled down dataset to N={len(dataset_df)} for fast smoke testing.")
     train_df, test_df = split_dataset(
         dataset_df,
         train_ratio=v2_config["dataset"]["train_ratio"],
-        seed=v2_config["seed"],
+        seed=seed,
     )
     logger.info(f"Dataset loaded: total={len(dataset_df)}, train={len(train_df)}, held_out_test={len(test_df)}")
 
@@ -425,9 +428,9 @@ def main():
         manifest_path = raw_dir / f"manifest_geometry_{fam_id}.json"
         config_payload = {
             "family_id": fam_id,
-            "base_model": fam_cfg.base_model,
-            "instruct_model": fam_cfg.instruct_model,
-            "seed": args.seed,
+            "base_model": fam_cfg.base_model.model_id,
+            "instruct_model": fam_cfg.instruct_model.model_id,
+            "seed": seed,
             "max_samples": args.max_samples,
             "dry_run": bool(args.dry_run),
             "dtype": "bfloat16" if getattr(fam_cfg, "dtype", "bfloat16") == "bfloat16" else "float16",
@@ -549,7 +552,7 @@ def main():
             config=config_payload,
             metadata={"num_layers": eff_num_layers, "hidden_dim": eff_hidden_dim},
             dataset_path=str(data_path),
-            seed=args.seed,
+            seed=seed,
             dry_run=bool(args.dry_run),
         )
         manifest.save(str(raw_dir / f"manifest_geometry_{fam_id}.json"))

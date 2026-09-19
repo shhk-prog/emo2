@@ -99,6 +99,18 @@ $$
 - **対象ファイル**: [pyproject.toml](file:///mnt/nas/home/hiromi/src/emo2/pyproject.toml)
 - **内容**: `[tool.pytest.ini_options]` に `addopts = "-m 'not slow'"` を設定。CI やローカルでの通常 `pytest` 実行時に重い実モデルダウンロード等を自動スキップし、高速テストスイート（83 passed）が約8秒でオールグリーン完走するように設定。
 
+### 1.12 【P0/P1】V2 入口引数・シリアライズバグの解消
+- **対象ファイル**: [v2/primary/run_rq1_rq2_cross_decoding.py](file:///mnt/nas/home/hiromi/src/emo2/v2/primary/run_rq1_rq2_cross_decoding.py)
+- **内容**:
+  - `args.seed`（未定義）を参照して `AttributeError` になっていた箇所を、config の `seed = int(v2_config["seed"])` に修正。
+  - `data_path` が未定義だった箇所を、`data_path = Path(v2_config["dataset"]["path"])` として定義。
+  - `config_payload` 内の `base_model` / `instruct_model` に `ModelSpec` オブジェクトが渡され JSON シリアライズ不可（`TypeError`）となっていた箇所を、`fam_cfg.base_model.model_id` / `fam_cfg.instruct_model.model_id` に修正。
+  - `create_run_manifest` の引数に `dataset_path=str(data_path), seed=seed` を正常伝播。
+
+### 1.13 【P1】V1 分類プローブのグループ不足時 NaN 優先判定
+- **対象ファイル**: [v1/primary/run_phase_a.py](file:///mnt/nas/home/hiromi/src/emo2/v1/primary/run_phase_a.py)
+- **内容**: `evaluate_classification_probe` において、クラスサンプル数判定（`actual_cv < 2`）がグループ数判定より前にあったため、グループ不足時にも `0.5` が返されるエッジケースを修正。`group_ids` が指定されていてユニーク数が2未満の場合は最優先で `NaN` を返却するよう防護。
+
 ---
 
 ## 2. 検証結果

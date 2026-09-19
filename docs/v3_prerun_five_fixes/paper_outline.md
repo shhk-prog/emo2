@@ -47,7 +47,11 @@ Affect-relevant internal states
    - Decodability, Representational Overlap, Causal Mediation / Intervention / Specialization (E6)
 6. **Post-training-Associated Reorganization**
    - 問: *How does post-training associate with the reorganization of affect-relevant computations?*
-   - Direct cross-decoding, Procrustes/Ridge alignment, Component patching, Output-head vs Residual 分離
+   - H1a: 幾何学的再編（Procrustes歪み / RSA類似度、Primary: matched-plain、Secondary: native-chat）
+   - H1b: デコードピーク深度の再編・変位（$\Delta d^*$ shift）
+   - H2: 表現共有度の事後学習に伴う変位（$\Delta\text{Sharing}$）
+   - H3: 因果プロファイルの再編（線形混合効果モデル LMM: $c \sim \text{C(family)} + \text{C(alignment)} \times \text{C(task)} \times \text{relative\_depth}$）
+   - H4: 分布回復の非対称性（Base活性化のInstruct注入による2D OT EMD回復率: Self vs Reader、Matched-plain vs Native-chat vs Procrustes-aligned control、4-family bootstrap CI および pair/sample-level LMM）
    - 単なる「Instruct で出力が変わった」ではなく、representation-use relationship の再編として実証
 7. **From Representation to Causal Utilization**
    - 問: *Where and when does affect-relevant information exert measurable causal leverage over self-report?*

@@ -1,5 +1,5 @@
 # V1 Stage: 表現幾何と因果的オーバーラップ
-## 論文対応: Section 4. Shared Representation and Causal Overlap in Base Models
+## 論文対応: §5 Internal Representation and Causal Sharing
 
 V1 は、Behavioral Stage で観測される Reader–Self の行動連動の背後に、**共有・整列された内部表現**と**部分的に重複した因果関連表現および介入感受性サイト（partially overlapping causally relevant representations and intervention-sensitive sites）**が存在するかを問う。
 

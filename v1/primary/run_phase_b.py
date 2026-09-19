@@ -322,6 +322,9 @@ def main():
                 "dry_run": True,
             },
             metadata=results,
+            candidate_space="VAD_729",
+            intervention_version="none",
+            dry_run=True,
         )
         manifest.save(os.path.join(model_dir, "manifest.json"))
         print(f"[DRY-RUN] Completed Phase B mock output in {model_dir}")
@@ -524,6 +527,8 @@ def main():
             "num_pairs": n_pairs,
         },
         metadata=results,
+        candidate_space="VAD_729",
+        intervention_version="none",
     )
     manifest.save(os.path.join(model_dir, "manifest.json"))
     print(f"Phase B completed. Results saved to {res_path}")

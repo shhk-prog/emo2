@@ -83,12 +83,13 @@ def simulate_spatiotemporal_maps(
     semantic_stages: List[str],
     alpha_sweep: List[float],
     causal_reference_alpha: float = 1.0,
+    seed: int = 42,
 ) -> Dict[str, Any]:
     """
     dry-run用: 時空間グリッド (num_layers × num_stages) 上の 4-Map × 2軸を生成・シミュレート
     論文中の発見（刺激提示時は中間層でデコードピーク、生成時は後期層 pre_V で因果ピーク）を反映
     """
-    rng = np.random.default_rng(42)
+    rng = np.random.default_rng(seed)
     relative_depths = [l / (num_layers - 1) if num_layers > 1 else 0.0 for l in range(num_layers)]
     num_stages = len(semantic_stages)
 
@@ -193,6 +194,7 @@ def run_real_spatiotemporal_maps(
     subsample: int = 0,
     n_causal_samples: int = 15,
     causal_reference_alpha: float = 1.0,
+    seed: int = 42,
 ) -> Dict[str, Any]:
     """
     実モデルを用いた時空間 4-Map 解析 (Layer x Stage Grid)
@@ -368,10 +370,10 @@ def run_real_spatiotemporal_maps(
                     cv_splits = list(cv.split(H, y_v, groups=groups))
                 else:
                     from sklearn.model_selection import KFold
-                    cv_splits = list(KFold(n_splits=min(3, N), shuffle=True, random_state=42).split(H))
+                    cv_splits = list(KFold(n_splits=min(3, N), shuffle=True, random_state=seed).split(H))
             else:
                 from sklearn.model_selection import KFold
-                cv_splits = list(KFold(n_splits=min(3, N), shuffle=True, random_state=42).split(H))
+                cv_splits = list(KFold(n_splits=min(3, N), shuffle=True, random_state=seed).split(H))
 
             preds_v, preds_a = np.zeros(N), np.zeros(N)
             preds_v_self, preds_a_self = np.zeros(N), np.zeros(N)
@@ -602,7 +604,8 @@ def main():
         if args.dry_run:
             logger.info("Executing mock spatiotemporal 4-map generation (--dry-run specified)...")
             results = simulate_spatiotemporal_maps(
-                num_layers, normalized_stages, alpha_sweep, causal_reference_alpha=causal_ref_alpha
+                num_layers, normalized_stages, alpha_sweep, causal_reference_alpha=causal_ref_alpha,
+                seed=v3_cfg.get("seed", 42)
             )
         else:
             logger.info(f"Executing REAL spatiotemporal 4-map calculation on {target_model_id} (n_causal_samples={n_causal_cfg})...")
@@ -615,6 +618,7 @@ def main():
                 subsample=args.subsample,
                 n_causal_samples=n_causal_cfg,
                 causal_reference_alpha=causal_ref_alpha,
+                seed=v3_cfg.get("seed", 42),
             )
 
         n_dataset_total = int(len(df))
@@ -659,6 +663,31 @@ def main():
     with open(out_summary, "w", encoding="utf-8") as f:
         json.dump(summary_payload, f, indent=2)
     logger.info(f"Saved dissociation summary to {out_summary}")
+
+    # Confirmatory Replication 用の固定サイト (frozen confirmatory sites) の保存
+    v_dissoc = results["dissociation_summary"].get("valence", {})
+    a_dissoc = results["dissociation_summary"].get("arousal", {})
+    d_peak_D = float(v_dissoc.get("d_peak_D", 0.50))
+    d_peak_C = float(v_dissoc.get("d_peak_C", 0.68))
+
+    frozen_sites = {
+        "discovery_model": target_model_id,
+        "discovery_family": fam_key,
+        "sufficiency_relative_depth": d_peak_D,
+        "temporal_relative_depth": d_peak_C,
+        "mediation_relative_depth": d_peak_C,
+        "target_stages": normalized_stages,
+        "causal_peak_stage_v": "pre_V",
+        "causal_peak_stage_a": "pre_A",
+        "valence_d_peak_D": d_peak_D,
+        "valence_d_peak_C": d_peak_C,
+        "arousal_d_peak_D": float(a_dissoc.get("d_peak_D", 0.50)),
+        "arousal_d_peak_C": float(a_dissoc.get("d_peak_C", 0.68)),
+    }
+    frozen_sites_path = derived_dir / "frozen_confirmatory_sites.json"
+    with open(frozen_sites_path, "w", encoding="utf-8") as f:
+        json.dump(frozen_sites, f, indent=2)
+    logger.info(f"Saved frozen confirmatory sites to {frozen_sites_path}")
 
     logger.info(f"Valence Dissociation Delta Peak: {results['dissociation_summary']['valence']['delta_d_peak']:.3f}")
     logger.info(f"Arousal Dissociation Delta Peak: {results['dissociation_summary']['arousal']['delta_d_peak']:.3f}")

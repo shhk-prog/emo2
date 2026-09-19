@@ -96,7 +96,11 @@ def test_v1_probe_group_leakage_fallback_banned():
     import sys
     from pathlib import Path
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "v1" / "primary"))
-    from run_phase_a import evaluate_regression_probe, evaluate_classification_probe, compute_cross_task_generalization
+    from run_phase_a import (
+        evaluate_regression_probe,
+        evaluate_classification_probe,
+        evaluate_cross_decoding_and_geometry,
+    )
 
     N = 10
     X = np.random.randn(N, 16)
@@ -117,5 +121,26 @@ def test_v1_probe_group_leakage_fallback_banned():
     # 3. Cross-task 一般化: NaN を返すこと
     H_R = np.random.randn(N, 16)
     H_S = np.random.randn(N, 16)
-    res_ct = compute_cross_task_generalization(H_R, H_S, y_reg, group_ids=single_group, cv=5)
-    assert np.isnan(res_ct["r2_r_to_s"]), f"Expected NaN for insufficient groups in cross-task, got {res_ct['r2_r_to_s']}"
+    res_ct = evaluate_cross_decoding_and_geometry(H_R, H_S, y_reg, group_ids=single_group, cv=5)
+    assert np.isnan(res_ct["r2_cross_r_to_s"]), f"Expected NaN for insufficient groups in cross-task, got {res_ct['r2_cross_r_to_s']}"
+    assert res_ct["geometry_pattern"] == "insufficient_groups"
+    assert res_ct["is_held_out"] is True
+
+
+def test_vad_candidates_format_and_e6_consistency():
+    """
+    729 VAD 候補がリポジトリ唯一の compact JSON 形式（空白なし）で
+    生成され、729通りかつ一意であることを検証。
+    """
+    from affective_empathy_eval.likelihood import build_vad_candidates
+
+    cand_dicts = build_vad_candidates()
+    assert len(cand_dicts) == 729
+
+    json_strs = [c["json_str"] for c in cand_dicts]
+    assert len(set(json_strs)) == 729
+
+    # 空白を含まない compact JSON であること
+    assert json_strs[0] == '{"valence":1,"arousal":1,"dominance":1}'
+    assert " " not in json_strs[0]
+    assert json_strs[-1] == '{"valence":9,"arousal":9,"dominance":9}'

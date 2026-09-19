@@ -1,5 +1,5 @@
 # V3 Stage: 時空間経路と mediated attenuation
-## 論文対応: Section 6. From Decodability to Causal Leverage: Sufficiency, Specificity, and Spatiotemporal Dynamics
+## 論文対応: §7 From Representation to Causal Utilization
 
 V3 は、内部情動表現が**どの層・どの生成段階で自己報告分布に対して因果的影響力（causal leverage）を行使するか**を測る。中心の問いは **Where does affect-relevant information exert measurable causal leverage over self-report?** である。主指標は Pearl 流の NDE/NIE ではなく **mediated attenuation**（媒介減衰）である。
 

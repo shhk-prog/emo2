@@ -26,6 +26,7 @@ except ImportError:  # --dry-run は transformers 未導入環境でも起動で
     AutoTokenizer = None  # type: ignore[misc, assignment]
 
 from affective_empathy_eval.intervention import PyTorchActivationPatcher
+from affective_empathy_eval.likelihood import build_vad_candidates
 from affective_empathy_eval.manifests import create_run_manifest
 from affective_empathy_eval.models.registry import (
     add_model_selection_args,
@@ -73,18 +74,7 @@ def format_prompt(
     )
 
 
-def build_vad_candidates():
-    candidates = []
-    vad_triplets = []
-    for v in range(1, 10):
-        for a in range(1, 10):
-            for d in range(1, 10):
-                cand_str = (
-                    f'{{"valence": {v}, "arousal": {a}, "dominance": {d}}}'
-                )
-                candidates.append(cand_str)
-                vad_triplets.append((v, a, d))
-    return candidates, np.array(vad_triplets)
+
 
 
 def get_prompt_end_position(tokenizer, prompt: str) -> int:
@@ -427,12 +417,16 @@ def main():
                 "dry_run": True,
             },
             metadata=stat_results,
+            candidate_space="VAD_729",
+            dry_run=True,
         )
         manifest.save(os.path.join(model_dir, "manifest_e6.json"))
         print(f"[DRY-RUN] Completed E6 mock output in {model_dir}")
         return
 
-    candidates, vad_triplets = build_vad_candidates()
+    cand_dicts = build_vad_candidates()
+    candidates = [c["json_str"] for c in cand_dicts]
+    vad_triplets = np.array([(c["valence"], c["arousal"], c["dominance"]) for c in cand_dicts])
 
     aipsy_path = Path("v1/data/processed/aipsy_4split_all.csv")
     if not aipsy_path.exists():
@@ -661,6 +655,7 @@ def main():
             "limit": args.limit,
         },
         metadata=stat_results,
+        candidate_space="VAD_729",
     )
     manifest.save(os.path.join(model_dir, "manifest_e6.json"))
     print(f"E6 causal specialization analysis complete. Saved to {model_dir}")

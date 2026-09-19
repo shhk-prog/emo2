@@ -1,5 +1,5 @@
 # Behavioral Stage: 行動レベル情動反応性評価
-## 論文対応: Section 3. Behavioral Characterization: Alignment and Coupling between Reader and Self Perspectives
+## 論文対応: §4 Behavioral Characterization of Reader–Self Covariation
 
 Behavioral Stage は、内部表現や因果介入の前に、**モデル出力として得られる自己報告 VA（Valence–Arousal）および認識 VA が、人間評定済み刺激に対してどう変位するか**を測定する独立パイプラインである。
 

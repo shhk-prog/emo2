@@ -80,11 +80,12 @@ def parse_args():
 def simulate_path_mediation_discovery(
     discovery_df: pd.DataFrame,
     num_layers: int,
+    seed: int = 101,
 ) -> Dict[str, Any]:
     """
     dry-run用: Discovery セットを用いた刺激提示時ピークおよび Mediator 層候補の模擬選定
     """
-    rng = np.random.default_rng(101)
+    rng = np.random.default_rng(seed)
     relative_depths = [l / (num_layers - 1) if num_layers > 1 else 0.0 for l in range(num_layers)]
 
     d_stim = [np.exp(-((d - 0.48) ** 2) / (2 * 0.16**2)) * 0.70 + rng.normal(0, 0.02) for d in relative_depths]
@@ -109,11 +110,12 @@ def simulate_path_mediation_confirmation(
     mediator_layer: int,
     num_layers: int = 28,
     bootstrap_n: int = 1000,
+    seed: int = 202,
 ) -> Dict[str, Any]:
     """
     dry-run用: Confirmation セットにおいて固定された Mediator 層を遮断し、媒介効果・減衰を模擬推定
     """
-    rng = np.random.default_rng(202)
+    rng = np.random.default_rng(seed)
     n = len(confirmation_df)
 
     te_samples_v = rng.normal(1.25, 0.18, n)
@@ -670,12 +672,14 @@ def main():
     if full_output is None or discovery_res is None or confirmation_res is None:
         if args.dry_run:
             logger.info("Executing mock path mediation analysis (--dry-run specified)...")
-            discovery_res = simulate_path_mediation_discovery(df.head(len(df) // 2), num_layers)
+            base_seed = v3_cfg.get("seed", 42)
+            discovery_res = simulate_path_mediation_discovery(df.head(len(df) // 2), num_layers, seed=base_seed + 1)
             confirmation_res = simulate_path_mediation_confirmation(
                 df.tail(len(df) // 2),
                 mediator_layer=discovery_res["mediator_layer"],
                 num_layers=num_layers,
                 bootstrap_n=bootstrap_n,
+                seed=base_seed + 2,
             )
         else:
             logger.info(f"Executing REAL path mediation analysis on {target_model_id}...")

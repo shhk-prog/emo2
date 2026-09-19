@@ -1,5 +1,5 @@
 # V2 Stage: 事後学習に伴う幾何・因果の再編
-## 論文対応: Section 5. Post-training-Associated Reorganization of Affect-Relevant Computations
+## 論文対応: §6 Post-training-Associated Reorganization
 
 > **重要な解釈規約 (Within-Model Causality vs. Across-Model Reorganization)**:  
 > 1. **モデル内因果介入 (Within-Model Causal Intervention)**: RQ3（方向介入）および RQ4（分布復元パッチング）における隠れ状態の直接操作は、固定された個々のモデル内部における**純粋な因果的特徴づけ（causal characterization）**です。プローブ係数等の観察量のみに依存せず、実介入に対するモデル応答の変化を測定します。  

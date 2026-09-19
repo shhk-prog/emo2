@@ -617,6 +617,68 @@ def run_confirmatory_analysis(
     diffs_max = np.array(self_ratios) - np.array(reader_ratios)
     pt_max, m_low, m_high = compute_bootstrap_ci(diffs_max.tolist(), n_boot=1000)
 
+    # Sample-level LMM for H4 (Recovery ~ C(family) + C(task), random intercept by pair_id)
+    sample_csv_path = derived_dir / "v2_recovery_sample_level_all.csv"
+    if not sample_csv_path.exists():
+        sample_csv_path = raw_dir / "v2_recovery_sample_level_all.csv"
+
+    h4_sample_lmm_results: Dict[str, Any] = {}
+    if is_dry_run or sample_csv_path.exists():
+        try:
+            if is_dry_run and not sample_csv_path.exists():
+                mock_records = []
+                for fam in families:
+                    for pid in range(16):
+                        mock_records.append({
+                            "family": fam, "task": "reader", "pair_id": f"pair_{pid}",
+                            "recovery_ratio_matched_plain": 0.55 + np.random.normal(0, 0.05),
+                            "auc_recovery_matched_plain": 0.35 + np.random.normal(0, 0.04),
+                        })
+                        mock_records.append({
+                            "family": fam, "task": "self", "pair_id": f"pair_{pid}",
+                            "recovery_ratio_matched_plain": 0.75 + np.random.normal(0, 0.05),
+                            "auc_recovery_matched_plain": 0.48 + np.random.normal(0, 0.04),
+                        })
+                df_recovery_samples = pd.DataFrame(mock_records)
+            else:
+                df_recovery_samples = pd.read_csv(sample_csv_path)
+
+            if not df_recovery_samples.empty and "task" in df_recovery_samples.columns and len(df_recovery_samples["task"].unique()) >= 2:
+                formula_auc = "auc_recovery_matched_plain ~ C(family) + C(task)"
+                group_col = "pair_id" if "pair_id" in df_recovery_samples.columns else "sample_idx"
+                lmm_fit_h4_auc = fit_sample_level_lmm(
+                    df=df_recovery_samples,
+                    formula=formula_auc,
+                    groups=group_col,
+                )
+                formula_max = "recovery_ratio_matched_plain ~ C(family) + C(task)"
+                lmm_fit_h4_max = fit_sample_level_lmm(
+                    df=df_recovery_samples,
+                    formula=formula_max,
+                    groups=group_col,
+                )
+                h4_sample_lmm_results = {
+                    "sample_size": len(df_recovery_samples),
+                    "group_column": group_col,
+                    "primary_auc_lmm": {
+                        "formula": formula_auc,
+                        "converged": lmm_fit_h4_auc["converged"],
+                        "params": lmm_fit_h4_auc["params"],
+                        "pvalues": lmm_fit_h4_auc["pvalues"],
+                        "conf_int": lmm_fit_h4_auc["conf_int"],
+                    },
+                    "max_recovery_lmm": {
+                        "formula": formula_max,
+                        "converged": lmm_fit_h4_max["converged"],
+                        "params": lmm_fit_h4_max["params"],
+                        "pvalues": lmm_fit_h4_max["pvalues"],
+                        "conf_int": lmm_fit_h4_max["conf_int"],
+                    }
+                }
+        except Exception as e:
+            logger.warning(f"Failed to fit sample-level LMM for H4: {e}")
+            h4_sample_lmm_results = {"converged": False, "error": str(e)}
+
     confirmatory_report["hypotheses"]["H4_recovery_asymmetry"] = {
         "interpretation": "post-training-associated distribution recovery asymmetry (Primary: matched-plain AUC recovery; Secondary: native-chat AUC recovery; Mechanistic control: Procrustes-aligned AUC recovery)",
         "primary_auc_recovery": {
@@ -647,6 +709,7 @@ def run_confirmatory_analysis(
             "diff_bootstrap_ci_95": [float(m_low), float(m_high)],
             "reorganization_supported": bool(m_low > 0.0 or m_high < 0.0),
         },
+        "sample_level_lmm": h4_sample_lmm_results,
         # Backwards compatible top-level fields pointing to Primary
         "diff_self_minus_reader_mean": float(pt_auc_m),
         "diff_bootstrap_ci_95": [float(am_low), float(am_high)],

@@ -83,13 +83,14 @@ def parse_args():
 def simulate_mock_intervention_responses(
     df: pd.DataFrame,
     alpha_grid: List[float],
+    seed: int = 42,
 ) -> Dict[str, Any]:
     """
     dry-run用のモック介入応答シミュレーション
     5 Criteria (Sufficiency, Necessity, Specificity, Dose-response, Selectivity) を模擬
     各指標についてサンプル値および Bootstrap 95% 信頼区間を生成
     """
-    rng = np.random.default_rng(42)
+    rng = np.random.default_rng(seed)
     N = len(df)
     v_clean = dry_run_va_label_vector(df, "reader_V", N)
     a_clean = dry_run_va_label_vector(df, "reader_A", N)
@@ -856,7 +857,7 @@ def main():
 
     if args.dry_run:
         logger.info("Executing mock state induction and gate simulation (--dry-run specified)...")
-        results = simulate_mock_intervention_responses(df, alpha_grid)
+        results = simulate_mock_intervention_responses(df, alpha_grid, seed=v3_cfg.get("seed", 42))
     else:
         logger.info(f"Executing REAL state induction pipeline for {target_model_id}...")
         spec_ref_alpha = float(v3_cfg.get("interventions", {}).get("specificity_reference_alpha", 1.0))

@@ -311,13 +311,15 @@ def evaluate_cross_decoding_and_geometry(
         n_splits = min(cv, len(unique_groups))
         if n_splits < 2:
             return {
-                "r2_r_to_s": float("nan"),
-                "r2_s_to_r": float("nan"),
                 "r2_within_r": float("nan"),
                 "r2_within_s": float("nan"),
-                "r2_aligned_s_to_r": float("nan"),
-                "rsa_mean": float("nan"),
-                "mean_transfer_ratio": float("nan"),
+                "r2_cross_r_to_s": float("nan"),
+                "r2_cross_s_to_r": float("nan"),
+                "direct_transfer_score": float("nan"),
+                "rsa_correlation": float("nan"),
+                "r2_aligned_transfer": float("nan"),
+                "geometry_pattern": "insufficient_groups",
+                "is_held_out": True,
             }
         splitter = GroupKFold(n_splits=n_splits)
         splits = list(splitter.split(H_R, y, groups=group_ids))
@@ -522,6 +524,9 @@ def main():
                 "limit": args.limit,
                 "dry_run": True,
             },
+            candidate_space="VAD_729",
+            intervention_version="none",
+            dry_run=True,
         )
         manifest.save(os.path.join(model_dir, "manifest.json"))
         print(f"[DRY-RUN] Completed Phase A mock output in {model_dir}")
@@ -716,6 +721,8 @@ def main():
             "limit": args.limit,
             "num_layers": num_layers,
         },
+        candidate_space="VAD_729",
+        intervention_version="none",
     )
     manifest.save(os.path.join(model_dir, "manifest.json"))
     print(f"Phase A completed. Results saved to {model_dir}")

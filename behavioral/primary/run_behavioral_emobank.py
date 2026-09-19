@@ -399,6 +399,9 @@ def main():
             "limit": args.limit,
         },
         metadata=summary,
+        dataset_path=str(stim_path),
+        candidate_space="VAD_729",
+        intervention_version="none",
     )
     manifest.save(os.path.join(args.out_dir, f"{args.tag}_manifest.json"))
 

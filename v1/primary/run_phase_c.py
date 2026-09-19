@@ -387,6 +387,8 @@ def main():
                 "limit": args.limit,
                 "dry_run": True,
             },
+            candidate_space="VAD_729",
+            dry_run=True,
         )
         manifest.save(os.path.join(model_dir, "manifest.json"))
         print(f"[DRY-RUN] Completed Phase C mock output in {model_dir}")
@@ -1300,6 +1302,7 @@ def main():
             "split_seed": args.split_seed,
             "zero_forward_optimized": True,
         },
+        candidate_space="VAD_729",
     )
     manifest.save(os.path.join(model_dir, "manifest.json"))
     print(f"Phase C completed. Results saved to {model_dir}")

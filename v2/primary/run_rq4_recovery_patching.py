@@ -131,6 +131,37 @@ def run_recovery_patching_for_task(
         auc_recovery_plain = float(trapz_func(layer_mean_ratios_plain, depths))
         auc_recovery_aligned = float(trapz_func(layer_mean_ratios_aligned, depths))
 
+        # サンプルごとの層方向 AUC および各サンプルの best layer での指標
+        sample_records = []
+        for i in range(N):
+            sample_ratios_i = [sample_patched_emds_per_layer[l][i] for l in range(num_layers)] if "sample_patched_emds_per_layer" in locals() else [
+                float(np.clip(float(peak_amp * np.exp(-((depths[l] - 0.6) ** 2) / 0.05)) + rng.normal(0, 0.08), 0.0, 1.0))
+                for l in range(num_layers)
+            ]
+            sample_r_plain_i = [float(np.clip(r * 1.05 + rng.normal(0, 0.02), 0.0, 1.0)) for r in sample_ratios_i]
+            sample_r_aligned_i = [float(np.clip(r * 0.95 + rng.normal(0, 0.02), 0.0, 1.0)) for r in sample_ratios_i]
+            s_auc = float(trapz_func(sample_ratios_i, depths))
+            s_auc_plain = float(trapz_func(sample_r_plain_i, depths))
+            s_auc_aligned = float(trapz_func(sample_r_aligned_i, depths))
+            pair_id = str(df.iloc[i].get("pair_id", f"pair_{i}")) if "pair_id" in df.columns else f"pair_{i}"
+            item_id = str(df.iloc[i].get("item_id", f"item_{i}")) if "item_id" in df.columns else f"item_{i}"
+            sample_records.append({
+                "family": fam_id,
+                "task": task.value,
+                "sample_idx": i,
+                "pair_id": pair_id,
+                "item_id": item_id,
+                "initial_emd": sample_initial_emds[i],
+                "best_layer": best_layer,
+                "best_depth": depths[best_layer],
+                "recovery_ratio": sample_ratios_i[best_layer],
+                "recovery_ratio_matched_plain": sample_r_plain_i[best_layer],
+                "recovery_ratio_aligned": sample_r_aligned_i[best_layer],
+                "auc_recovery": s_auc,
+                "auc_recovery_matched_plain": s_auc_plain,
+                "auc_recovery_aligned": s_auc_aligned,
+            })
+
         return {
             "task": task.value,
             "initial_emd_mean": initial_emd_mean,
@@ -150,6 +181,7 @@ def run_recovery_patching_for_task(
             "auc_recovery": auc_recovery,
             "auc_recovery_matched_plain": auc_recovery_plain,
             "auc_recovery_aligned": auc_recovery_aligned,
+            "sample_records": sample_records,
             "summary_by_control_type": {
                 "direct_native": {
                     "max_recovery_ratio": max(layer_mean_ratios),
@@ -263,6 +295,9 @@ def run_recovery_patching_for_task(
     layer_ratios_ci = []
     layer_mean_ratios_plain = []
     layer_mean_ratios_aligned = []
+    sample_ratios_by_layer = {l: {} for l in range(num_layers)}
+    sample_ratios_plain_by_layer = {l: {} for l in range(num_layers)}
+    sample_ratios_aligned_by_layer = {l: {} for l in range(num_layers)}
 
     # Train / Eval 分割 (Procrustes alignment 学習に評価サンプルを含めない: seeded group/permutation split)
     if train_indices is None or eval_indices is None:
@@ -326,15 +361,13 @@ def run_recovery_patching_for_task(
                 )
 
             # サンプル単位の EMD と回復率
-            # Recovery = (W1(P_clean, P_target) - W1(P_patch, P_target)) / W1(P_clean, P_target)
-            # P_clean=Instruct 未介入, P_target=Base, P_patch=Base活性化を注入した Instruct
             p_emd = compute_distribution_metrics(probs_patched, base_probs_list[i])["emd_va"]
             ratio = compute_emd_recovery_ratio(sample_initial_emds[i], p_emd)
             sample_patched_emds.append(p_emd)
             sample_ratios.append(ratio)
+            sample_ratios_by_layer[l][i] = ratio
 
             # Condition B: Aligned Base -> Instruct patch (Procrustes aligned)
-            # base_aligned = (base_act - mu_b) @ R + mu_i
             base_flat = base_act_tensor.view(1, -1).float()
             base_aligned = (base_flat - mu_b_torch) @ R_l_torch + mu_i_torch
             base_aligned_tensor = base_aligned.view_as(base_act_tensor)
@@ -352,6 +385,7 @@ def run_recovery_patching_for_task(
             p_emd_aligned = compute_distribution_metrics(probs_aligned, base_probs_list[i])["emd_va"]
             ratio_aligned = compute_emd_recovery_ratio(sample_initial_emds[i], p_emd_aligned)
             sample_ratios_aligned.append(ratio_aligned)
+            sample_ratios_aligned_by_layer[l][i] = ratio_aligned
 
             # Prompt-format control: Base plain -> Instruct matched-plain へのパッチング
             p_inst_plain = build_prompt(text, task, format_type="plain")
@@ -371,6 +405,7 @@ def run_recovery_patching_for_task(
             p_emd_plain = compute_distribution_metrics(probs_patched_plain, base_probs_list[i])["emd_va"]
             ratio_plain = compute_emd_recovery_ratio(sample_initial_emds_plain[i], p_emd_plain)
             sample_ratios_plain.append(ratio_plain)
+            sample_ratios_plain_by_layer[l][i] = ratio_plain
 
         mean_emd = float(np.mean(sample_patched_emds))
         mean_ratio = float(np.mean(sample_ratios))
@@ -386,6 +421,34 @@ def run_recovery_patching_for_task(
     auc_recovery = float(trapz_func(layer_mean_ratios, depths))
     auc_recovery_plain = float(trapz_func(layer_mean_ratios_plain, depths))
     auc_recovery_aligned = float(trapz_func(layer_mean_ratios_aligned, depths))
+
+    # サンプルごとのレコード構築
+    sample_records = []
+    for i in eval_indices:
+        sample_r_direct = [sample_ratios_by_layer[l][i] for l in range(num_layers)]
+        sample_r_plain = [sample_ratios_plain_by_layer[l][i] for l in range(num_layers)]
+        sample_r_aligned = [sample_ratios_aligned_by_layer[l][i] for l in range(num_layers)]
+        s_auc = float(trapz_func(sample_r_direct, depths))
+        s_auc_plain = float(trapz_func(sample_r_plain, depths))
+        s_auc_aligned = float(trapz_func(sample_r_aligned, depths))
+        pair_id = str(df.iloc[i].get("pair_id", f"pair_{i}")) if "pair_id" in df.columns else f"pair_{i}"
+        item_id = str(df.iloc[i].get("item_id", f"item_{i}")) if "item_id" in df.columns else f"item_{i}"
+        sample_records.append({
+            "family": fam_id,
+            "task": task.value,
+            "sample_idx": i,
+            "pair_id": pair_id,
+            "item_id": item_id,
+            "initial_emd": sample_initial_emds[i],
+            "best_layer": best_l,
+            "best_depth": depths[best_l],
+            "recovery_ratio": sample_r_direct[best_l],
+            "recovery_ratio_matched_plain": sample_r_plain[best_l],
+            "recovery_ratio_aligned": sample_r_aligned[best_l],
+            "auc_recovery": s_auc,
+            "auc_recovery_matched_plain": s_auc_plain,
+            "auc_recovery_aligned": s_auc_aligned,
+        })
 
     return {
         "task": task.value,
@@ -404,6 +467,7 @@ def run_recovery_patching_for_task(
         "auc_recovery": auc_recovery,
         "auc_recovery_matched_plain": auc_recovery_plain,
         "auc_recovery_aligned": auc_recovery_aligned,
+        "sample_records": sample_records,
         "summary_by_control_type": {
             "direct_native": {
                 "max_recovery_ratio": max(layer_mean_ratios),
@@ -547,12 +611,15 @@ def run_recovery_patching_for_family(
 
     diff_best_depth = float(res_self["best_recovery_depth"] - res_reader["best_recovery_depth"])
 
+    sample_records = res_reader.get("sample_records", []) + res_self.get("sample_records", [])
+
     return {
         "family_id": fam_id,
         "num_layers": num_layers,
         "relative_depths": depths,
         "reader": res_reader,
         "self": res_self,
+        "sample_records": sample_records,
         "task_comparison": {
             "primary_matched_plain": {
                 "diff_max_recovery_self_vs_reader": diff_max_ratio_matched,
@@ -600,6 +667,7 @@ def main():
 
     n_boot = 10 if args.dry_run else (v2_config.get("bootstrap", {}).get("n_boot") or v2_config.get("statistics", {}).get("n_boot", 1000))
     all_recovery_results = {}
+    all_sample_records: List[Dict[str, Any]] = []
 
     for fam_id, fam_cfg in target_models.items():
         out_path = raw_dir / f"v2_recovery_{fam_id}.json"
@@ -637,6 +705,10 @@ def main():
                     ):
                         logger.info(f"Loaded existing results for {fam_id} from {out_path}. Skipping computation.")
                         all_recovery_results[fam_id] = cached
+                        fam_csv = raw_dir / f"v2_recovery_samples_{fam_id}.csv"
+                        if fam_csv.exists():
+                            df_cached_samples = pd.read_csv(fam_csv)
+                            all_sample_records.extend(df_cached_samples.to_dict(orient="records"))
                         continue
             except Exception as e:
                 logger.warning(f"Cache check failed for {fam_id}: {e}")
@@ -653,6 +725,13 @@ def main():
         )
         res["dry_run"] = bool(args.dry_run)
         all_recovery_results[fam_id] = res
+
+        if "sample_records" in res and res["sample_records"]:
+            df_fam_samples = pd.DataFrame(res["sample_records"])
+            fam_csv_path = raw_dir / f"v2_recovery_samples_{fam_id}.csv"
+            df_fam_samples.to_csv(fam_csv_path, index=False)
+            all_sample_records.extend(res["sample_records"])
+            logger.info(f"Saved family sample recovery records to {fam_csv_path}")
 
         out_path = raw_dir / f"v2_recovery_{fam_id}.json"
         out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -681,6 +760,12 @@ def main():
         logger.info(
             f"  [Reader] Best Recovery (Matched-Plain): Layer {res['reader']['best_recovery_layer']} (d={res['reader']['best_recovery_depth']:.2f}) -> {res['reader'].get('max_recovery_ratio_matched_plain', res['reader']['max_recovery_ratio'])*100:.1f}%"
         )
+
+    if all_sample_records:
+        df_all_samples = pd.DataFrame(all_sample_records)
+        df_all_samples.to_csv(raw_dir / "v2_recovery_sample_level_all.csv", index=False)
+        df_all_samples.to_csv(derived_dir / "v2_recovery_sample_level_all.csv", index=False)
+        logger.info(f"Saved cross-family sample recovery records (N={len(df_all_samples)}) to {derived_dir / 'v2_recovery_sample_level_all.csv'}")
 
     # 4ファミリー統合サマリー（Primary: Matched-Plain, Secondary: Native-Chat, Mechanistic Control: Aligned）
     # 1. Primary: Matched-Plain

@@ -296,7 +296,7 @@ def run_real_model_confirmatory(
         split_gen_fn = lambda data: splitter.split(data, y_v, groups=eval_df["pair_id"].values)
     else:
         n_splits = min(5, max(2, N))
-        splitter = KFold(n_splits=n_splits, shuffle=True, random_state=42)
+        splitter = KFold(n_splits=n_splits, shuffle=True, random_state=v3_cfg.get("seed", 42) if v3_cfg else 42)
         split_gen_fn = lambda data: splitter.split(data)
 
     all_H = {}
@@ -337,15 +337,19 @@ def run_real_model_confirmatory(
 
         ss_tot_a = np.sum((y_a - np.mean(y_a))**2)
         ss_res_a = np.sum((y_a - oof_preds_a)**2)
-        r2_a = max(0.0, float(1.0 - ss_res_a / (ss_tot_a + 1e-6)))
-        d_profile_a.append(r2_a)
-
     # 3. 統合 Cross-Fitting: H2 (Sufficiency), H3 (Necessity), H4 (Temporal Emergence)
     # NOTE: Confirmatory data reuse 完全排除のため、direction / Q / mu_neu の推定を train fold のみで行い、
     # 評価を独立な test fold のみで実行する。
-    suff_rel_depth = v3_cfg.get("confirmatory", {}).get("sufficiency_relative_depth", 0.5) if v3_cfg else 0.5
-    temp_rel_depth = v3_cfg.get("confirmatory", {}).get("temporal_relative_depth", 0.65) if v3_cfg else 0.65
-    med_rel_depth = v3_cfg.get("confirmatory", {}).get("mediation_relative_depth", 0.65) if v3_cfg else 0.65
+    base_seed = v3_cfg.get("seed", 42) if v3_cfg else 42
+    frozen_sites = v3_cfg.get("frozen_sites") if v3_cfg else None
+    if frozen_sites:
+        suff_rel_depth = float(frozen_sites.get("sufficiency_relative_depth", 0.5))
+        temp_rel_depth = float(frozen_sites.get("temporal_relative_depth", 0.65))
+        med_rel_depth = float(frozen_sites.get("mediation_relative_depth", 0.65))
+    else:
+        suff_rel_depth = float(v3_cfg.get("confirmatory", {}).get("sufficiency_relative_depth", 0.5)) if v3_cfg else 0.5
+        temp_rel_depth = float(v3_cfg.get("confirmatory", {}).get("temporal_relative_depth", 0.65)) if v3_cfg else 0.65
+        med_rel_depth = float(v3_cfg.get("confirmatory", {}).get("mediation_relative_depth", 0.65)) if v3_cfg else 0.65
     sufficiency_layer = round(suff_rel_depth * (num_layers - 1))
     temporal_map_layer = round(temp_rel_depth * (num_layers - 1))
     mediation_layer = round(med_rel_depth * (num_layers - 1))
@@ -499,7 +503,7 @@ def run_real_model_confirmatory(
         # Held-out Test fold only: H2, H3, H4 evaluation
         # 指示18: 乱数シードに基づく再現可能なサブサンプリング (pair順バイアス排除)
         # ----------------------------------------------------
-        rng_fold = np.random.default_rng(42 + fold_idx)
+        rng_fold = np.random.default_rng(base_seed + fold_idx)
         n_per_fold = min(5, len(test_idx))
         eval_sub_test_idx = rng_fold.choice(test_idx, size=n_per_fold, replace=False)
 
@@ -849,10 +853,36 @@ def main():
     derived_dir.mkdir(parents=True, exist_ok=True)
 
     family_results = {}
-    seeds = {"llama": 301, "gemma": 302, "olmo": 303, "mistral": 304}
+    base_seed = v3_cfg.get("seed", 42)
+    seeds = {
+        "llama": base_seed + 10,
+        "gemma": base_seed + 20,
+        "olmo": base_seed + 30,
+        "mistral": base_seed + 40,
+    }
 
     conf_cfg = v3_cfg.get("confirmatory", {})
     selection_source = conf_cfg.get("selection_source", "qwen_discovery_frozen")
+
+    # Load frozen confirmatory sites artifact if present
+    frozen_sites_path = derived_dir / "frozen_confirmatory_sites.json"
+    if not frozen_sites_path.exists():
+        frozen_sites_path = Path(v3_cfg["output"]["derived_dir"]) / "frozen_confirmatory_sites.json"
+
+    frozen_sites = None
+    if frozen_sites_path.exists():
+        try:
+            with open(frozen_sites_path, "r", encoding="utf-8") as f:
+                frozen_sites = json.load(f)
+            logger.info(f"Successfully loaded frozen confirmatory sites from {frozen_sites_path}")
+            v3_cfg["frozen_sites"] = frozen_sites
+            selection_source = f"frozen_confirmatory_sites_from_{frozen_sites.get('discovery_model', 'discovery')}"
+        except Exception as e:
+            logger.warning(f"Failed to read frozen confirmatory sites from {frozen_sites_path}: {e}")
+
+    suff_depth_val = float(frozen_sites.get("sufficiency_relative_depth", conf_cfg.get("sufficiency_relative_depth", 0.5))) if frozen_sites else float(conf_cfg.get("sufficiency_relative_depth", 0.5))
+    temp_depth_val = float(frozen_sites.get("temporal_relative_depth", conf_cfg.get("temporal_relative_depth", 0.65))) if frozen_sites else float(conf_cfg.get("temporal_relative_depth", 0.65))
+    med_depth_val = float(frozen_sites.get("mediation_relative_depth", conf_cfg.get("mediation_relative_depth", 0.65))) if frozen_sites else float(conf_cfg.get("mediation_relative_depth", 0.65))
 
     for item in conf_models:
         fam_key = item["family_key"]
@@ -868,10 +898,10 @@ def main():
             "model_id": model_id,
             "dataset_path": str(v3_cfg["dataset"]["path"]),
             "confirmatory_site_selection_source": selection_source,
-            "sufficiency_relative_depth": conf_cfg.get("sufficiency_relative_depth", 0.5),
-            "temporal_relative_depth": conf_cfg.get("temporal_relative_depth", 0.65),
-            "mediation_relative_depth": conf_cfg.get("mediation_relative_depth", 0.65),
-            "seed": seeds.get(fam_key, 999),
+            "sufficiency_relative_depth": suff_depth_val,
+            "temporal_relative_depth": temp_depth_val,
+            "mediation_relative_depth": med_depth_val,
+            "seed": seeds.get(fam_key, base_seed + 99),
             "subsample": args.subsample,
             "dry_run": bool(args.dry_run),
         }

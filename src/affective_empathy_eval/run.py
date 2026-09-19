@@ -84,6 +84,12 @@ def parse_args():
         action="store_true",
         help="Continue V3 RQ2/RQ3/Confirmatory even if RQ1 gate is NO_GO",
     )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=None,
+        help="Batch size for candidate likelihood evaluation (defaults to sub-script default)",
+    )
     return parser.parse_args()
 
 
@@ -285,6 +291,8 @@ def run_behavioral(args, python_bin: str):
                 cmd_emobank.append("--is_instruct")
             if args.max_samples:
                 cmd_emobank.extend(["--limit", str(args.max_samples)])
+            if args.batch_size:
+                cmd_emobank.extend(["--batch-size", str(args.batch_size)])
 
             # 2. AIPsy-Affect 4-Split
             cmd_aipsy = [
@@ -298,6 +306,8 @@ def run_behavioral(args, python_bin: str):
                 cmd_aipsy.append("--is-instruct")
             if args.max_samples:
                 cmd_aipsy.extend(["--limit", str(args.max_samples)])
+            if args.batch_size:
+                cmd_aipsy.extend(["--batch-size", str(args.batch_size)])
 
             if args.dry_run:
                 logger.info(f"[Dry-run] Simulated EmoBank execution for {model_id} (tag={tag})")

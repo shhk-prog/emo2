@@ -320,4 +320,76 @@ def test_dry_run_va_label_vector_is_deterministic_fixture():
     assert np.allclose(got, [2.0, 4.0, 6.0])
 
 
+def test_compute_sequence_likelihoods_sliced_equivalence():
+    """スライス計算による対数尤度が、全系列に対して log_softmax を計算した場合と完全に一致することを検証"""
+    import torch
+    import torch.nn.functional as F
+    from affective_empathy_eval.likelihood import compute_sequence_likelihoods_for_candidates
+
+    class DeterministicModel(torch.nn.Module):
+        def __init__(self, vocab_size=50):
+            super().__init__()
+            self.vocab_size = vocab_size
+            self.dummy = torch.nn.Parameter(torch.zeros(1))
+
+        def forward(self, input_ids, attention_mask=None):
+            bsz, seq_len = input_ids.shape
+            # 決定論的な logits を生成
+            steps = torch.arange(seq_len).unsqueeze(0).unsqueeze(-1).repeat(bsz, 1, self.vocab_size)
+            vocab_idx = torch.arange(self.vocab_size).unsqueeze(0).unsqueeze(0).repeat(bsz, seq_len, 1)
+            logits = (steps * 0.1 + vocab_idx * 0.05).float()
+            from collections import namedtuple
+            Outputs = namedtuple("Outputs", ["logits"])
+            return Outputs(logits=logits)
+
+    class CharTokenizer:
+        def __init__(self):
+            self.pad_token_id = 0
+            self.eos_token_id = 1
+
+        def encode(self, text, add_special_tokens=False):
+            return [ord(c) % 40 + 2 for c in text]
+
+    model = DeterministicModel()
+    tokenizer = CharTokenizer()
+    candidates = [{"json_str": '{"v": 1}'}, {"json_str": '{"v": 5}'}, {"json_str": '{"v": 9}'}]
+    prompt = "This is a prompt of reasonable length to test slicing."
+
+    ll, probs = compute_sequence_likelihoods_for_candidates(
+        model=model,
+        tokenizer=tokenizer,
+        prompt=prompt,
+        candidates=candidates,
+        device="cpu",
+        batch_size=2,
+    )
+
+    # 全系列 log_softmax による参照値を手動計算して比較
+    from affective_empathy_eval.likelihood import prepare_joint_sequence_with_boundary
+    seq_list = []
+    c_starts = []
+    for c in [x["json_str"] for x in candidates]:
+        f_ids, c_st = prepare_joint_sequence_with_boundary(prompt, c, tokenizer)
+        seq_list.append(f_ids)
+        c_starts.append(c_st)
+
+    max_len = max(len(s) for s in seq_list)
+    padded = [s + [0] * (max_len - len(s)) for s in seq_list]
+    with torch.no_grad():
+        full_logits = model(torch.tensor(padded, dtype=torch.long)).logits
+        full_log_probs = F.log_softmax(full_logits[:, :-1, :], dim=-1)
+
+    expected_ll = []
+    for i, (f_ids, c_st) in enumerate(zip(seq_list, c_starts)):
+        cand_toks = f_ids[c_st:]
+        cur_ll = sum(full_log_probs[i, c_st - 1 + j, t].item() for j, t in enumerate(cand_toks))
+        expected_ll.append(cur_ll)
+
+    assert np.allclose(ll, expected_ll, atol=1e-5)
+    exp_expected_ll = np.exp(expected_ll - np.max(expected_ll))
+    expected_probs = exp_expected_ll / np.sum(exp_expected_ll)
+    assert np.allclose(probs, expected_probs, atol=1e-5)
+
+
+
 

@@ -27,6 +27,9 @@ else
     exit 1
 fi
 
+# Avoid CUDA memory fragmentation for large vocabulary / batch evaluations
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
 DEVICE="${1:-cuda:0}"
 shift || true
 EXTRA_ARGS=("$@")

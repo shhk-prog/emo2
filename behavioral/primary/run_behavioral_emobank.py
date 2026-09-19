@@ -118,7 +118,7 @@ def evaluate_model(
     stimuli_path,
     is_instruct,
     limit=None,
-    batch_size=243,
+    batch_size=81,
     checkpoint_path: Optional[str] = None,
 ):
     df = pd.read_csv(stimuli_path)
@@ -226,11 +226,14 @@ def evaluate_model(
         processed_ids.add(s_id)
 
         # 逐次保存（10サンプルごと）
-        if checkpoint_path and (len(results) % 10 == 0):
-            try:
-                pd.DataFrame(results).to_csv(checkpoint_path, index=False)
-            except Exception:
-                pass
+        if len(results) % 10 == 0:
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            if checkpoint_path:
+                try:
+                    pd.DataFrame(results).to_csv(checkpoint_path, index=False)
+                except Exception:
+                    pass
 
     return pd.DataFrame(results)
 
@@ -262,7 +265,7 @@ def main():
         help="Device to run evaluation on (e.g. cuda, cuda:0, cpu)",
     )
     parser.add_argument("--limit", type=int, default=None)
-    parser.add_argument("--batch-size", type=int, default=243)
+    parser.add_argument("--batch-size", type=int, default=81)
     args = parser.parse_args()
 
     # Find stimuli path if relative to workspace

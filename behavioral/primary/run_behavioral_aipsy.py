@@ -90,7 +90,7 @@ def evaluate_aipsy_stimuli(
     stimuli_path,
     is_instruct=False,
     limit=0,
-    batch_size=243,
+    batch_size=81,
     checkpoint_path: Optional[str] = None,
 ):
     df = pd.read_csv(stimuli_path)
@@ -161,11 +161,14 @@ def evaluate_aipsy_stimuli(
         processed_ids.add(s_id)
 
         # 逐次保存（10サンプルごと）
-        if checkpoint_path and (len(results) % 10 == 0):
-            try:
-                pd.DataFrame(results).to_csv(checkpoint_path, index=False)
-            except Exception:
-                pass
+        if len(results) % 10 == 0:
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            if checkpoint_path:
+                try:
+                    pd.DataFrame(results).to_csv(checkpoint_path, index=False)
+                except Exception:
+                    pass
 
     return pd.DataFrame(results)
 
@@ -198,7 +201,7 @@ def main():
     parser.add_argument(
         "--limit", type=int, default=0, help="Optional limit for dry-run"
     )
-    parser.add_argument("--batch-size", type=int, default=243)
+    parser.add_argument("--batch-size", type=int, default=81)
     parser.add_argument(
         "--device",
         type=str,

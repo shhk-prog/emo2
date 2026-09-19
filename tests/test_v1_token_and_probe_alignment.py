@@ -144,3 +144,37 @@ def test_vad_candidates_format_and_e6_consistency():
     assert json_strs[0] == '{"valence":1,"arousal":1,"dominance":1}'
     assert " " not in json_strs[0]
     assert json_strs[-1] == '{"valence":9,"arousal":9,"dominance":9}'
+
+
+def test_evaluate_classification_probe_string_labels():
+    """文字列ラベル（二値および多値感情名）で classification probe が正常に動作することを検証"""
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "v1" / "primary"))
+    from run_phase_a import evaluate_classification_probe
+
+    np.random.seed(42)
+    N = 60
+    X = np.random.randn(N, 8)
+    groups = np.array([f"pair_{i // 3}" for i in range(N)])
+
+    # 1. 多値分類 (4感情名)
+    y_multiclass = np.array(["rage", "sadness", "joy", "fear"] * 15)
+    res_multi = evaluate_classification_probe(X, y_multiclass, group_ids=groups, cv=3)
+    assert not np.isnan(res_multi["balanced_acc"])
+    assert not np.isnan(res_multi["f1_macro"])
+    assert not np.isnan(res_multi["roc_auc"])
+    assert 0.0 <= res_multi["balanced_acc"] <= 1.0
+    assert 0.0 <= res_multi["f1_macro"] <= 1.0
+    assert 0.0 <= res_multi["roc_auc"] <= 1.0
+
+    # 2. 二値分類 (2感情名)
+    y_binary = np.array(["clinical", "neutral"] * 30)
+    res_bin = evaluate_classification_probe(X, y_binary, group_ids=groups, cv=3)
+    assert not np.isnan(res_bin["balanced_acc"])
+    assert not np.isnan(res_bin["f1_macro"])
+    assert not np.isnan(res_bin["roc_auc"])
+    assert 0.0 <= res_bin["balanced_acc"] <= 1.0
+    assert 0.0 <= res_bin["f1_macro"] <= 1.0
+    assert 0.0 <= res_bin["roc_auc"] <= 1.0
+

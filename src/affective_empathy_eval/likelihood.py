@@ -464,7 +464,13 @@ def compute_sequence_likelihoods_for_candidates(
                     outputs = model(input_ids=inp_tensor, attention_mask=attn_tensor)
 
             logits = outputs.logits  # (batch_size, max_seq_len, vocab_size)
-            log_probs = F.log_softmax(logits[:, :-1, :].float(), dim=-1)
+            # Memory optimization: Only compute float cast & log_softmax on steps covering candidates
+            min_step = max(0, min(b_start_idxs) - 1)
+            if min_step < logits.shape[1] - 1:
+                sliced_logits = logits[:, min_step:-1, :].float()
+                log_probs_slice = F.log_softmax(sliced_logits, dim=-1)
+            else:
+                log_probs_slice = None
 
         for i, (full_ids, c_start) in enumerate(zip(b_full_ids, b_start_idxs)):
             cand_tokens = full_ids[c_start:]
@@ -472,13 +478,19 @@ def compute_sequence_likelihoods_for_candidates(
             eval_log_probs = []
             for j, token_id in enumerate(cand_tokens):
                 step_idx = c_start - 1 + j
-                if 0 <= step_idx < log_probs.shape[1]:
-                    eval_log_probs.append(log_probs[i, step_idx, token_id].item())
+                rel_idx = step_idx - min_step
+                if log_probs_slice is not None and 0 <= rel_idx < log_probs_slice.shape[1]:
+                    eval_log_probs.append(log_probs_slice[i, rel_idx, token_id].item())
 
             seq_ll = sum(eval_log_probs) if len(eval_log_probs) > 0 else -100.0
             if normalize_length and c_len > 0:
                 seq_ll /= c_len
             log_likelihoods[b_start + i] = seq_ll
+
+        # Explicitly clean up batch tensors to prevent CUDA memory fragmentation
+        del outputs, logits
+        if log_probs_slice is not None:
+            del sliced_logits, log_probs_slice
 
     # Softmax により正規化された確率分布を計算
     l_max = np.max(log_likelihoods)

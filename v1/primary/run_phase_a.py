@@ -227,11 +227,17 @@ def evaluate_classification_probe(
         if len(unique_groups) < 2:
             return {"roc_auc": float("nan"), "balanced_acc": float("nan"), "f1_macro": float("nan")}
 
-    unique_classes = np.unique(y)
-    if len(unique_classes) < 2 or len(X) < cv:
+    from sklearn.preprocessing import LabelEncoder
+
+    le = LabelEncoder()
+    y_enc = le.fit_transform(y)
+    unique_classes = np.unique(y_enc)
+    num_classes = len(unique_classes)
+
+    if num_classes < 2 or len(X) < cv:
         return {"roc_auc": 0.5, "balanced_acc": 0.5, "f1_macro": 0.0}
 
-    class_counts = [np.sum(y == c) for c in unique_classes]
+    class_counts = [np.sum(y_enc == c) for c in unique_classes]
     actual_cv = min(cv, min(class_counts))
     if actual_cv < 2:
         return {"roc_auc": 0.5, "balanced_acc": 0.5, "f1_macro": 0.0}
@@ -244,28 +250,28 @@ def evaluate_classification_probe(
             n_splits=n_splits, shuffle=True, random_state=seed
         )
         try:
-            splits = list(sgkf.split(X, y, groups=group_ids))
+            splits = list(sgkf.split(X, y_enc, groups=group_ids))
         except ValueError:
             from sklearn.model_selection import GroupKFold
             gkf = GroupKFold(n_splits=n_splits)
-            splits = list(gkf.split(X, y, groups=group_ids))
+            splits = list(gkf.split(X, y_enc, groups=group_ids))
     else:
         skf = StratifiedKFold(
             n_splits=actual_cv, shuffle=True, random_state=seed
         )
-        splits = list(skf.split(X, y))
+        splits = list(skf.split(X, y_enc))
 
-    y_preds = np.zeros_like(y, dtype=int)
-    is_binary = len(unique_classes) == 2
+    y_preds = np.zeros(len(y_enc), dtype=int)
+    is_binary = num_classes == 2
 
     if is_binary:
-        y_probs = np.zeros(len(y), dtype=float)
+        y_probs = np.zeros(len(y_enc), dtype=float)
     else:
-        y_probs = np.zeros((len(y), len(unique_classes)), dtype=float)
+        y_probs = np.zeros((len(y_enc), num_classes), dtype=float)
 
     for train_idx, val_idx in splits:
         X_train, X_val = X[train_idx], X[val_idx]
-        y_train, y_val = y[train_idx], y[val_idx]
+        y_train, y_val = y_enc[train_idx], y_enc[val_idx]
 
         scaler = StandardScaler()
         X_train_scaled = scaler.fit_transform(X_train)
@@ -275,20 +281,26 @@ def evaluate_classification_probe(
         clf.fit(X_train_scaled, y_train)
         y_preds[val_idx] = clf.predict(X_val_scaled)
 
+        probs = clf.predict_proba(X_val_scaled)
         if is_binary:
-            y_probs[val_idx] = clf.predict_proba(X_val_scaled)[:, 1]
+            if len(clf.classes_) == 2:
+                col_idx = 1 if clf.classes_[1] == 1 else 0
+                y_probs[val_idx] = probs[:, col_idx]
+            else:
+                y_probs[val_idx] = 1.0 if clf.classes_[0] == 1 else 0.0
         else:
-            y_probs[val_idx] = clf.predict_proba(X_val_scaled)
+            for c_idx, c in enumerate(clf.classes_):
+                y_probs[val_idx, c] = probs[:, c_idx]
 
-    bal_acc = float(balanced_accuracy_score(y, y_preds))
-    f1_macro = float(f1_score(y, y_preds, average="macro"))
+    bal_acc = float(balanced_accuracy_score(y_enc, y_preds))
+    f1_macro = float(f1_score(y_enc, y_preds, average="macro"))
 
     try:
         if is_binary:
-            auc = float(roc_auc_score(y, y_probs))
+            auc = float(roc_auc_score(y_enc, y_probs))
         else:
             auc = float(
-                roc_auc_score(y, y_probs, multi_class="ovr", average="macro")
+                roc_auc_score(y_enc, y_probs, multi_class="ovr", average="macro", labels=np.arange(num_classes))
             )
     except Exception:
         auc = 0.5

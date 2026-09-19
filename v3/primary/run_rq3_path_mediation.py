@@ -511,31 +511,33 @@ def run_real_path_mediation(
     ratio_samples_v = (
         atten_samples_v[valid_v] / te_samples_v[valid_v]
         if n_valid_v > 0
-        else np.array([0.0])
+        else np.array([], dtype=float)
     )
     ratio_samples_a = (
         atten_samples_a[valid_a] / te_samples_a[valid_a]
         if n_valid_a > 0
-        else np.array([0.0])
+        else np.array([], dtype=float)
     )
 
     te_v_mean, te_v_low, te_v_high = compute_bootstrap_ci(te_samples_v, n_boot=bootstrap_n)
     res_v_mean, res_v_low, res_v_high = compute_bootstrap_ci(res_samples_v, n_boot=bootstrap_n)
     atten_v_mean, atten_v_low, atten_v_high = compute_bootstrap_ci(atten_samples_v, n_boot=bootstrap_n)
-    ratio_v_mean, ratio_v_low, ratio_v_high = (
-        compute_bootstrap_ci(ratio_samples_v, n_boot=bootstrap_n)
-        if n_valid_v >= 2
-        else (float(np.mean(ratio_samples_v)), float(np.mean(ratio_samples_v)), float(np.mean(ratio_samples_v)))
-    )
+    if n_valid_v >= 2:
+        ratio_v_mean, ratio_v_low, ratio_v_high = compute_bootstrap_ci(ratio_samples_v, n_boot=bootstrap_n)
+    elif n_valid_v == 1:
+        ratio_v_mean, ratio_v_low, ratio_v_high = float(ratio_samples_v[0]), float(ratio_samples_v[0]), float(ratio_samples_v[0])
+    else:
+        ratio_v_mean, ratio_v_low, ratio_v_high = np.nan, np.nan, np.nan
 
     te_a_mean, te_a_low, te_a_high = compute_bootstrap_ci(te_samples_a, n_boot=bootstrap_n)
     res_a_mean, res_a_low, res_a_high = compute_bootstrap_ci(res_samples_a, n_boot=bootstrap_n)
     atten_a_mean, atten_a_low, atten_a_high = compute_bootstrap_ci(atten_samples_a, n_boot=bootstrap_n)
-    ratio_a_mean, ratio_a_low, ratio_a_high = (
-        compute_bootstrap_ci(ratio_samples_a, n_boot=bootstrap_n)
-        if n_valid_a >= 2
-        else (float(np.mean(ratio_samples_a)), float(np.mean(ratio_samples_a)), float(np.mean(ratio_samples_a)))
-    )
+    if n_valid_a >= 2:
+        ratio_a_mean, ratio_a_low, ratio_a_high = compute_bootstrap_ci(ratio_samples_a, n_boot=bootstrap_n)
+    elif n_valid_a == 1:
+        ratio_a_mean, ratio_a_low, ratio_a_high = float(ratio_samples_a[0]), float(ratio_samples_a[0]), float(ratio_samples_a[0])
+    else:
+        ratio_a_mean, ratio_a_low, ratio_a_high = np.nan, np.nan, np.nan
 
     confirmation_res = {
         "primary_grounding": "reader_prediction",

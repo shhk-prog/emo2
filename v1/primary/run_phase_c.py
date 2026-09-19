@@ -47,6 +47,7 @@ from affective_empathy_eval.models.registry import (
     resolve_single_model_from_args,
 )
 from affective_empathy_eval.affect_directions import AIPSY_EXPECTED_DIRECTION
+from affective_empathy_eval.geometry import get_block_hidden_state
 from affective_empathy_eval.statistics import (
     compute_bivariate_bootstrap_ci,
     compute_paired_cohen_dz,
@@ -215,10 +216,11 @@ def extract_hidden_states(
             output_hidden_states=True,
         )
         seq_lengths = encoded["attention_mask"].sum(dim=1) - 1
-
-        for l, layer_tensor in enumerate(outputs.hidden_states):
-            if l not in all_layer_vecs:
-                all_layer_vecs[l] = []
+        num_blocks = getattr(model.config, "num_hidden_layers", len(outputs.hidden_states) - 1)
+        for block_idx in range(num_blocks):
+            layer_tensor = get_block_hidden_state(outputs.hidden_states, block_idx)
+            if block_idx not in all_layer_vecs:
+                all_layer_vecs[block_idx] = []
             for b in range(len(chunk)):
                 vec = (
                     layer_tensor[b, seq_lengths[b].item(), :]
@@ -227,7 +229,7 @@ def extract_hidden_states(
                     .float()
                     .numpy()
                 )
-                all_layer_vecs[l].append(vec)
+                all_layer_vecs[block_idx].append(vec)
 
         del encoded, outputs
         if torch.cuda.is_available():
@@ -296,6 +298,10 @@ def main():
 
     if args.full:
         args.limit = 0
+
+    if args.dry_run:
+        args.out_dir = os.path.join(args.out_dir, "dry_run")
+        args.cache_dir = os.path.join(args.cache_dir, "dry_run")
 
     os.makedirs(args.out_dir, exist_ok=True)
     model_dir = os.path.join(args.out_dir, args.model_prefix)

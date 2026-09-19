@@ -12,7 +12,7 @@ import argparse
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 import numpy as np
 import pandas as pd
 import torch
@@ -215,6 +215,7 @@ def run_real_model_confirmatory(
     df: pd.DataFrame,
     device: str = "cpu",
     subsample: int = 0,
+    v3_cfg: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     実モデル (Llama 3.2, Gemma 3, OLMo 2) に対する 4大仮説の Confirmatory 検証
@@ -335,7 +336,10 @@ def run_real_model_confirmatory(
     # 3. 統合 Cross-Fitting: H2 (Sufficiency), H3 (Necessity), H4 (Temporal Emergence)
     # NOTE: Confirmatory data reuse 完全排除のため、direction / Q / mu_neu の推定を train fold のみで行い、
     # 評価を独立な test fold のみで実行する。
-    mid_layer = int(num_layers * 0.65)
+    suff_rel_depth = v3_cfg.get("confirmatory", {}).get("sufficiency_relative_depth", 0.5) if v3_cfg else 0.5
+    sufficiency_layer = round(suff_rel_depth * (num_layers - 1))
+    temporal_map_layer = int(num_layers * 0.65)
+    mediation_layer = int(num_layers * 0.65)
     alphas = [-1.0, -0.5, 0.0, 0.5, 1.0]
 
     # 集約用データ構造
@@ -352,32 +356,41 @@ def run_real_model_confirmatory(
     test_stage_shifts_v = {stg: [] for stg in stage_keys}
     test_stage_shifts_a = {stg: [] for stg in stage_keys}
 
-    H_mid = all_H[mid_layer]
-    splits_list = list(split_gen_fn(H_mid))
+    H_suff = all_H[sufficiency_layer]
+    H_med = all_H[mediation_layer]
+    splits_list = list(split_gen_fn(H_suff))
 
     for fold_idx, (train_idx, test_idx) in enumerate(splits_list):
         assert len(set(train_idx).intersection(set(test_idx))) == 0, "Train and test sample sets overlap!"
 
         # ----------------------------------------------------
-        # Train fold only: direction d_v, d_a, Q, mu_neu, layer directions
+        # Train fold only: H2 direction d_v, d_a (at sufficiency_layer), H3 Q, mu_neu (at mediation_layer)
         # ----------------------------------------------------
-        ridge_mid_v = Ridge(alpha=10.0).fit(H_mid[train_idx], y_v[train_idx])
-        norm_v = np.linalg.norm(ridge_mid_v.coef_)
-        d_v = ridge_mid_v.coef_ / (norm_v + 1e-6) if norm_v > 0 else np.zeros_like(ridge_mid_v.coef_)
-        proj_std_v = float(np.std(H_mid[train_idx] @ d_v))
-        h_std_v = proj_std_v if proj_std_v > 1e-6 else float(np.std(H_mid[train_idx]))
+        ridge_suff_v = Ridge(alpha=10.0).fit(H_suff[train_idx], y_v[train_idx])
+        norm_v = np.linalg.norm(ridge_suff_v.coef_)
+        d_v = ridge_suff_v.coef_ / (norm_v + 1e-6) if norm_v > 0 else np.zeros_like(ridge_suff_v.coef_)
+        proj_std_v = float(np.std(H_suff[train_idx] @ d_v))
+        h_std_v = proj_std_v if proj_std_v > 1e-6 else float(np.std(H_suff[train_idx]))
 
-        ridge_mid_a = Ridge(alpha=10.0).fit(H_mid[train_idx], y_a[train_idx])
-        norm_a = np.linalg.norm(ridge_mid_a.coef_)
-        d_a = ridge_mid_a.coef_ / (norm_a + 1e-6) if norm_a > 0 else np.zeros_like(ridge_mid_a.coef_)
-        proj_std_a = float(np.std(H_mid[train_idx] @ d_a))
-        h_std_a = proj_std_a if proj_std_a > 1e-6 else float(np.std(H_mid[train_idx]))
+        ridge_suff_a = Ridge(alpha=10.0).fit(H_suff[train_idx], y_a[train_idx])
+        norm_a = np.linalg.norm(ridge_suff_a.coef_)
+        d_a = ridge_suff_a.coef_ / (norm_a + 1e-6) if norm_a > 0 else np.zeros_like(ridge_suff_a.coef_)
+        proj_std_a = float(np.std(H_suff[train_idx] @ d_a))
+        h_std_a = proj_std_a if proj_std_a > 1e-6 else float(np.std(H_suff[train_idx]))
 
-        # H3: 2D 直交基底 Q (SVD rank-aware 分解)
-        Q_sub, _ = compute_orthonormal_subspace(d_v, d_a)
+        # H3: mediation_layer における 2D 直交基底 Q
+        ridge_med_v = Ridge(alpha=10.0).fit(H_med[train_idx], y_v[train_idx])
+        norm_mv = np.linalg.norm(ridge_med_v.coef_)
+        d_med_v = ridge_med_v.coef_ / (norm_mv + 1e-6) if norm_mv > 0 else np.zeros_like(ridge_med_v.coef_)
+
+        ridge_med_a = Ridge(alpha=10.0).fit(H_med[train_idx], y_a[train_idx])
+        norm_ma = np.linalg.norm(ridge_med_a.coef_)
+        d_med_a = ridge_med_a.coef_ / (norm_ma + 1e-6) if norm_ma > 0 else np.zeros_like(ridge_med_a.coef_)
+
+        Q_sub, _ = compute_orthonormal_subspace(d_med_v, d_med_a)
         Q = torch.tensor(Q_sub, dtype=torch.float32, device=device)
 
-        # H3: 中立平均ベクトル mu_neu (Train samples only)
+        # H3: 中立平均ベクトル mu_neu (mediation_layer, Train samples only)
         train_neutral_reps = []
         with torch.no_grad():
             for tr_i in train_idx:
@@ -389,7 +402,7 @@ def run_real_model_confirmatory(
                     anch_neu = find_semantic_anchors(enc_neu["input_ids"][0].tolist(), tokenizer, neu_text)
                     with ActivationHookManager(adapter) as hook_mgr:
                         hook_mgr.register_capture_hook(
-                            layer_idx=mid_layer,
+                            layer_idx=mediation_layer,
                             hook_point=HookPoint.POST_MLP_RESID,
                             token_indices=anch_neu["prompt_end"],
                             key="h_neu",
@@ -437,27 +450,40 @@ def run_real_model_confirmatory(
                 anchors = find_semantic_anchors(enc["input_ids"][0].tolist(), tokenizer, text)
                 patch_pos = anchors["prompt_end"]
 
-                # --- H2: Dose-response evaluation ---
-                for axis_name, direction, h_std, store_dict, clean_val in (
-                    ("v", d_v, h_std_v, test_shifts_v, clean_ev_list[sample_idx]),
-                    ("a", d_a, h_std_a, test_shifts_a, clean_ea_list[sample_idx]),
+                # --- H2: Dose-response evaluation (Neutral injection at sufficiency_layer) ---
+                neu_text = resolve_matched_neutral_text(row, df)
+                if not neu_text or not neu_text.strip():
+                    raise ValueError(f"Missing matched-neutral for pair_id={row.get('pair_id', 'unknown')}")
+                prompt_neu_self = build_prompt(neu_text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
+                enc_neu = encode_prompt_canonical(tokenizer, prompt_neu_self, device=device)
+                anchors_neu = find_semantic_anchors(enc_neu["input_ids"][0].tolist(), tokenizer, neu_text)
+                patch_pos_neu = anchors_neu["prompt_end"]
+
+                _, probs_neu = compute_sequence_likelihoods_for_candidates(
+                    model=model, tokenizer=tokenizer, prompt=prompt_neu_self, candidates=candidates, device=device, batch_size=81
+                )
+                clean_neu_v, clean_neu_a = compute_expected_va(probs_neu, candidates)
+
+                for axis_name, direction, h_std, store_dict, clean_neu_val in (
+                    ("v", d_v, h_std_v, test_shifts_v, clean_neu_v),
+                    ("a", d_a, h_std_a, test_shifts_a, clean_neu_a),
                 ):
                     for alpha in alphas:
                         with ActivationHookManager(adapter) as hook_mgr:
                             hook_mgr.register_direction_intervention_hook(
-                                layer_idx=mid_layer,
+                                layer_idx=sufficiency_layer,
                                 direction=direction,
                                 alpha=alpha,
                                 hidden_std=h_std,
-                                token_indices=patch_pos,
+                                token_indices=patch_pos_neu,
                                 hook_point=HookPoint.POST_MLP_RESID,
                                 mode="inject",
                             )
                             _, probs_p = compute_sequence_likelihoods_for_candidates(
-                                model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=81
+                                model=model, tokenizer=tokenizer, prompt=prompt_neu_self, candidates=candidates, device=device, batch_size=81
                             )
                         ev_p, ea_p = compute_expected_va(probs_p, candidates)
-                        shift = (ev_p if axis_name == "v" else ea_p) - clean_val
+                        shift = (ev_p if axis_name == "v" else ea_p) - clean_neu_val
                         store_dict[alpha].append(shift)
 
                 # --- H1: C(l) profile evaluation (alpha=1.0, VA両軸) ---
@@ -496,24 +522,15 @@ def run_real_model_confirmatory(
                     _, ea_l = compute_expected_va(probs_l_a, candidates)
                     test_c_profile_shifts_a[l_idx].append(abs(ea_l - clean_ea_list[sample_idx]))
 
-                # --- H3: Centered 2D Orthogonal Subspace Removal (VA両軸) ---
-                neu_text = resolve_matched_neutral_text(row, df)
-                if not neu_text or not neu_text.strip():
-                    raise ValueError(f"Missing matched-neutral for pair_id={row.get('pair_id', 'unknown')}")
-                p_neu = build_prompt(neu_text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
-                _, probs_neu = compute_sequence_likelihoods_for_candidates(
-                    model=model, tokenizer=tokenizer, prompt=p_neu, candidates=candidates, device=device, batch_size=81
-                )
-                neutral_base_v, neutral_base_a = compute_expected_va(probs_neu, candidates)
-
+                # --- H3: Centered 2D Orthogonal Subspace Removal (Affective stimulus at mediation_layer) ---
                 ev_clean = float(clean_ev_list[sample_idx])
                 ea_clean = float(clean_ea_list[sample_idx])
-                nat_shifts_v.append(abs(ev_clean - neutral_base_v))
-                nat_shifts_a.append(abs(ea_clean - neutral_base_a))
+                nat_shifts_v.append(abs(ev_clean - clean_neu_v))
+                nat_shifts_a.append(abs(ea_clean - clean_neu_a))
 
                 with ActivationHookManager(adapter) as hook_mgr:
                     hook_mgr.register_subspace_removal_hook(
-                        layer_idx=mid_layer,
+                        layer_idx=mediation_layer,
                         orth_basis_q=Q,
                         mean_vector=mu_neu,
                         token_indices=patch_pos,
@@ -523,10 +540,10 @@ def run_real_model_confirmatory(
                         model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=81
                     )
                 ev_abl, ea_abl = compute_expected_va(probs_abl, candidates)
-                att_shifts_v.append(abs(ev_abl - neutral_base_v))
-                att_shifts_a.append(abs(ea_abl - neutral_base_a))
+                att_shifts_v.append(abs(ev_abl - clean_neu_v))
+                att_shifts_a.append(abs(ea_abl - clean_neu_a))
 
-                # --- H4: Temporal Emergence across Generation Stages ---
+                # --- H4: Temporal Emergence across Generation Stages (at temporal_map_layer) ---
                 stage_target_indices = validate_stage_index_invariance(
                     tokenizer, prompt_self, candidates, stage_keys
                 )
@@ -537,7 +554,7 @@ def run_real_model_confirmatory(
                     # 1) Valence steering
                     with ActivationHookManager(adapter) as hook_mgr:
                         hook_mgr.register_direction_intervention_hook(
-                            layer_idx=mid_layer,
+                            layer_idx=temporal_map_layer,
                             direction=d_v,
                             alpha=1.0,
                             hidden_std=h_std_v,
@@ -554,7 +571,7 @@ def run_real_model_confirmatory(
                     # 2) Arousal steering
                     with ActivationHookManager(adapter) as hook_mgr:
                         hook_mgr.register_direction_intervention_hook(
-                            layer_idx=mid_layer,
+                            layer_idx=temporal_map_layer,
                             direction=d_a,
                             alpha=1.0,
                             hidden_std=h_std_a,
@@ -615,15 +632,15 @@ def run_real_model_confirmatory(
     pt_att_v, att_v_low, att_v_high = (
         compute_bootstrap_ci(valid_ratios_v)
         if len(valid_ratios_v) >= 2
-        else (float(np.mean(valid_ratios_v)) if valid_ratios_v else 0.0, 0.0, 0.0)
+        else (float(np.mean(valid_ratios_v)) if valid_ratios_v else np.nan, np.nan, np.nan)
     )
     pt_att_a, att_a_low, att_a_high = (
         compute_bootstrap_ci(valid_ratios_a)
         if len(valid_ratios_a) >= 2
-        else (float(np.mean(valid_ratios_a)) if valid_ratios_a else 0.0, 0.0, 0.0)
+        else (float(np.mean(valid_ratios_a)) if valid_ratios_a else np.nan, np.nan, np.nan)
     )
-    attenuation_ratio_v = float(pt_att_v)
-    attenuation_ratio_a = float(pt_att_a)
+    attenuation_ratio_v = float(pt_att_v) if not np.isnan(pt_att_v) else np.nan
+    attenuation_ratio_a = float(pt_att_a) if not np.isnan(pt_att_a) else np.nan
 
     stage_causal_v = {stg: float(np.mean(test_stage_shifts_v[stg])) if test_stage_shifts_v[stg] else 0.0 for stg in stage_keys}
     stage_causal_a = {stg: float(np.mean(test_stage_shifts_a[stg])) if test_stage_shifts_a[stg] else 0.0 for stg in stage_keys}
@@ -798,6 +815,7 @@ def main():
                 df=df,
                 device=args.device,
                 subsample=args.subsample,
+                v3_cfg=v3_cfg,
             )
 
         family_results[fam_name] = res

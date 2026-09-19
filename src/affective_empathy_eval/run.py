@@ -256,7 +256,10 @@ def run_v1(args, python_bin: str):
 
     # 5. Summarize Phase C
     logger.info("--- Summarizing V1 Phase C Results ---")
-    run_command([python_bin, "v1/primary/phase_c/summarize_phase_c.py"])
+    cmd_summarize = [python_bin, "v1/primary/phase_c/summarize_phase_c.py"]
+    if args.dry_run:
+        cmd_summarize.append("--dry-run")
+    run_command(cmd_summarize)
 
 
 def run_behavioral(args, python_bin: str):

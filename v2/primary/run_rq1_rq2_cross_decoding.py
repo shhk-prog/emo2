@@ -183,7 +183,8 @@ def analyze_v2_geometry_and_sharing(
 
     results: dict[str, Any] = {
         "rq1_geometry": {
-            # 1. Base plain ↔ Instruct native-chat (Primary Comparison)
+            "rsa_metric": "rsa_similarity",
+            # 1. Base plain <-> Instruct native-chat (Secondary Comparison)
             "reader_distortion": [],
             "self_distortion": [],
             "rsa_reader": [],
@@ -193,12 +194,12 @@ def analyze_v2_geometry_and_sharing(
     }
 
     if has_matched:
-        # 2. Base plain ↔ Instruct matched-plain (Prompt-format-controlled Base–Instruct comparison)
+        # 2. Base plain <-> Instruct matched-plain (Primary Comparison: Prompt-format-controlled Base-Instruct)
         results["rq1_geometry"]["reader_distortion_matched"] = []
         results["rq1_geometry"]["self_distortion_matched"] = []
         results["rq1_geometry"]["rsa_reader_matched"] = []
         results["rq1_geometry"]["rsa_self_matched"] = []
-        # 3. Instruct chat ↔ Instruct plain (プロンプト形式・Chat template 効果)
+        # 3. Instruct chat <-> Instruct plain (Prompt format / Chat template control)
         results["rq1_geometry"]["reader_distortion_format"] = []
         results["rq1_geometry"]["self_distortion_format"] = []
         results["rq1_geometry"]["rsa_reader_format"] = []

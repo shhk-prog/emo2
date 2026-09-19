@@ -69,6 +69,50 @@ def test_layer_index_mapping():
     assert compute_relative_depth(num_blocks - 1, num_blocks) == 1.0
 
 
+def test_phase_c_block_index_mapping():
+    """Phase C hidden state extraction: hidden_states[0] = embedding, [1] = block 0, [L] = block L-1"""
+    from unittest.mock import MagicMock
+    from v1.primary.run_phase_c import extract_hidden_states
+
+    num_blocks = 8
+    # hidden_states: embedding (0) + 8 blocks (1..8)
+    mock_hidden_states = tuple(torch.full((2, 5, 16), float(i)) for i in range(num_blocks + 1))
+
+    mock_outputs = MagicMock()
+    mock_outputs.hidden_states = mock_hidden_states
+
+    mock_model = MagicMock()
+    mock_model.config.num_hidden_layers = num_blocks
+    mock_model.return_value = mock_outputs
+
+    mock_encoded = {
+        "input_ids": torch.ones((2, 5), dtype=torch.long),
+        "attention_mask": torch.ones((2, 5), dtype=torch.long),
+    }
+    class MockBatch(dict):
+        def to(self, device):
+            return self
+
+    mock_tokenizer = MagicMock()
+    mock_tokenizer.return_value = MockBatch(mock_encoded)
+
+    extracted = extract_hidden_states(
+        model=mock_model,
+        tokenizer=mock_tokenizer,
+        prompts=["test 1", "test 2"],
+        device="cpu",
+        batch_size=2,
+    )
+
+    assert len(extracted) == num_blocks
+    assert 0 in extracted
+    assert (num_blocks - 1) in extracted
+    # block 0 must match hidden_states[1] (value 1.0), NOT embedding (0.0)
+    assert np.allclose(extracted[0], 1.0)
+    # block L-1 must match hidden_states[num_blocks] (value num_blocks)
+    assert np.allclose(extracted[num_blocks - 1], float(num_blocks))
+
+
 def test_candidate_space_sizes():
     """3. Candidate space size test: VA = 81, VAD = 729"""
     va_candidates = build_va_candidates()

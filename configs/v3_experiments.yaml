@@ -59,6 +59,7 @@ spatiotemporal:
     - "A_value"
     - "response_end"
   alpha_sweep: [-2.0, -1.0, -0.5, 0.0, 0.5, 1.0, 2.0]
+  causal_reference_alpha: 1.0
   patching_conditions:
     - "val_high_to_low"
     - "val_low_to_high"
@@ -76,6 +77,9 @@ confirmatory_families:
   - "llama"
   - "gemma"
   - "olmo"
+
+confirmatory:
+  sufficiency_relative_depth: 0.5
 
 # 出力設定
 output:

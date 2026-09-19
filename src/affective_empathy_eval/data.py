@@ -310,8 +310,16 @@ def v3_stimulus_covariate(df: pd.DataFrame, axis: str, n: Optional[int] = None) 
     if axis == "a" and "reader_A" in df.columns:
         return np.asarray(df["reader_A"].to_numpy(), dtype=np.float64).reshape(-1, 1)
 
-    # AIPsy 等で人間連続 VA が無い場合: target_emotion / intensity / domain を one-hot 化
-    covar_cols = [c for c in ["target_emotion", "emotion", "intensity", "domain"] if c in df.columns]
+    # AIPsy 等で人間連続 VA が無い場合: target_emotion (または emotion) / intensity / domain を one-hot 化
+    covar_cols = []
+    if "target_emotion" in df.columns:
+        covar_cols.append("target_emotion")
+    elif "emotion" in df.columns:
+        covar_cols.append("emotion")
+    for c in ["intensity", "domain"]:
+        if c in df.columns:
+            covar_cols.append(c)
+
     if covar_cols:
         dummies = pd.get_dummies(df[covar_cols].astype(str), drop_first=True, dtype=float)
         if dummies.shape[1] > 0:

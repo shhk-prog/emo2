@@ -578,14 +578,14 @@ def run_real_state_induction(
             natural_shift_v = abs(clean_aff_ev - clean_neu_ev)
             residual_shift_v = abs(abl_aff_ev - clean_neu_ev)
             attenuation_v = natural_shift_v - residual_shift_v
-            att_ratio_v = attenuation_v / (natural_shift_v + 1e-6) if natural_shift_v > 0.05 else 0.0
-            sample_att_ratios_v.append(float(att_ratio_v))
+            if natural_shift_v > 0.05:
+                sample_att_ratios_v.append(float(attenuation_v / natural_shift_v))
 
             natural_shift_a = abs(clean_aff_ea - clean_neu_ea)
             residual_shift_a = abs(abl_aff_ea - clean_neu_ea)
             attenuation_a = natural_shift_a - residual_shift_a
-            att_ratio_a = attenuation_a / (natural_shift_a + 1e-6) if natural_shift_a > 0.05 else 0.0
-            sample_att_ratios_a.append(float(att_ratio_a))
+            if natural_shift_a > 0.05:
+                sample_att_ratios_a.append(float(attenuation_a / natural_shift_a))
 
             # 5. Topic control (非特異的摂動の確認統制: VA両軸)
             self_norm_eff_v = eff_affect_v / 4.0
@@ -646,8 +646,19 @@ def run_real_state_induction(
     pt_spec_rand_a, spec_rand_a_low, spec_rand_a_high = compute_bootstrap_ci(sample_spec_rand_a)
     pt_spec_perp_a, spec_perp_a_low, spec_perp_a_high = compute_bootstrap_ci(sample_spec_perp_a)
 
-    pt_att_v, att_v_low, att_v_high = compute_bootstrap_ci(sample_att_ratios_v)
-    pt_att_a, att_a_low, att_a_high = compute_bootstrap_ci(sample_att_ratios_a)
+    if len(sample_att_ratios_v) >= 2:
+        pt_att_v, att_v_low, att_v_high = compute_bootstrap_ci(sample_att_ratios_v)
+    elif len(sample_att_ratios_v) == 1:
+        pt_att_v, att_v_low, att_v_high = sample_att_ratios_v[0], sample_att_ratios_v[0], sample_att_ratios_v[0]
+    else:
+        pt_att_v, att_v_low, att_v_high = np.nan, np.nan, np.nan
+
+    if len(sample_att_ratios_a) >= 2:
+        pt_att_a, att_a_low, att_a_high = compute_bootstrap_ci(sample_att_ratios_a)
+    elif len(sample_att_ratios_a) == 1:
+        pt_att_a, att_a_low, att_a_high = sample_att_ratios_a[0], sample_att_ratios_a[0], sample_att_ratios_a[0]
+    else:
+        pt_att_a, att_a_low, att_a_high = np.nan, np.nan, np.nan
 
     pt_topic_v, topic_v_low, topic_v_high = compute_bootstrap_ci(sample_ctrl_eff_v)
     pt_topic_a, topic_a_low, topic_a_high = compute_bootstrap_ci(sample_ctrl_eff_a)

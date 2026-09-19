@@ -77,6 +77,7 @@ def simulate_spatiotemporal_maps(
     num_layers: int,
     semantic_stages: List[str],
     alpha_sweep: List[float],
+    causal_reference_alpha: float = 1.0,
 ) -> Dict[str, Any]:
     """
     dry-run用: 時空間グリッド (num_layers × num_stages) 上の 4-Map × 2軸を生成・シミュレート
@@ -125,9 +126,9 @@ def simulate_spatiotemporal_maps(
             gamma_V[l_idx, s_idx] = float(layer_gamma_v * stage_causal_weights_v[s_idx] + rng.normal(0, 0.02))
             gamma_A[l_idx, s_idx] = float(layer_gamma_a * stage_causal_weights_a[s_idx] + rng.normal(0, 0.02))
 
-            # 因果変位量 C: 後期層 (d ≈ 0.68) かつ pre_V / pre_A で最大化
-            layer_c_v = np.exp(-((d - 0.68) ** 2) / (2 * 0.14**2)) * 1.15
-            layer_c_a = np.exp(-((d - 0.68) ** 2) / (2 * 0.14**2)) * 0.98
+            # 因果変位量 C: 基準介入強度 alpha = causal_reference_alpha における変位
+            layer_c_v = np.exp(-((d - 0.68) ** 2) / (2 * 0.14**2)) * 1.15 * causal_reference_alpha
+            layer_c_a = np.exp(-((d - 0.68) ** 2) / (2 * 0.14**2)) * 0.98 * causal_reference_alpha
             C_V[l_idx, s_idx] = float(layer_c_v * stage_causal_weights_v[s_idx] + rng.normal(0, 0.03))
             C_A[l_idx, s_idx] = float(layer_c_a * stage_causal_weights_a[s_idx] + rng.normal(0, 0.03))
 
@@ -148,6 +149,7 @@ def simulate_spatiotemporal_maps(
         "num_layers": num_layers,
         "semantic_stages": semantic_stages,
         "relative_depths": relative_depths,
+        "causal_reference_alpha": causal_reference_alpha,
         "primary_grounding": "reader_prediction (simulated)",
         "maps": {
             "D_V": D_V.tolist(),
@@ -185,6 +187,7 @@ def run_real_spatiotemporal_maps(
     device: str = "cpu",
     subsample: int = 0,
     n_causal_samples: int = 15,
+    causal_reference_alpha: float = 1.0,
 ) -> Dict[str, Any]:
     """
     実モデルを用いた時空間 4-Map 解析 (Layer x Stage Grid)
@@ -450,10 +453,11 @@ def run_real_spatiotemporal_maps(
                                     axis_shifts.append(ea_p - clean_ea_list[idx])
                             shift_store.extend(axis_shifts)
 
+                        ref_alpha_idx = int(np.argmin([abs(a - causal_reference_alpha) for a in alpha_sweep]))
                         sample_gamma_v.append(estimate_interventional_slope(alpha_sweep, shifts_v))
                         sample_gamma_a.append(estimate_interventional_slope(alpha_sweep, shifts_a))
-                        sample_c_v.append(abs(shifts_v[-1]))
-                        sample_c_a.append(abs(shifts_a[-1]))
+                        sample_c_v.append(abs(shifts_v[ref_alpha_idx]))
+                        sample_c_a.append(abs(shifts_a[ref_alpha_idx]))
 
             gamma_V[l, s_idx] = float(np.mean(sample_gamma_v)) if sample_gamma_v else 0.0
             gamma_A[l, s_idx] = float(np.mean(sample_gamma_a)) if sample_gamma_a else 0.0
@@ -477,6 +481,7 @@ def run_real_spatiotemporal_maps(
         "num_layers": num_layers,
         "semantic_stages": semantic_stages,
         "relative_depths": relative_depths,
+        "causal_reference_alpha": causal_reference_alpha,
         "primary_grounding": "reader_prediction",
         "n_total_samples": len(df),
         "n_map_samples": N,
@@ -525,6 +530,7 @@ def main():
     semantic_stages = v3_cfg["spatiotemporal"]["semantic_stages"]
     alpha_sweep = v3_cfg["spatiotemporal"]["alpha_sweep"]
     n_causal_cfg = int(v3_cfg.get("spatiotemporal", {}).get("n_causal_samples", 15))
+    causal_ref_alpha = float(v3_cfg.get("spatiotemporal", {}).get("causal_reference_alpha", 1.0))
 
     # 命名の正規化 ("response_start" -> "candidate_start")
     normalized_stages = [s if s != "response_start" else "candidate_start" for s in semantic_stages]
@@ -561,7 +567,9 @@ def main():
     if results is None:
         if args.dry_run:
             logger.info("Executing mock spatiotemporal 4-map generation (--dry-run specified)...")
-            results = simulate_spatiotemporal_maps(num_layers, normalized_stages, alpha_sweep)
+            results = simulate_spatiotemporal_maps(
+                num_layers, normalized_stages, alpha_sweep, causal_reference_alpha=causal_ref_alpha
+            )
         else:
             logger.info(f"Executing REAL spatiotemporal 4-map calculation on {target_model_id} (n_causal_samples={n_causal_cfg})...")
             results = run_real_spatiotemporal_maps(
@@ -572,6 +580,7 @@ def main():
                 device=args.device,
                 subsample=args.subsample,
                 n_causal_samples=n_causal_cfg,
+                causal_reference_alpha=causal_ref_alpha,
             )
 
         n_dataset_total = int(len(df))

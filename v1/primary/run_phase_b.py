@@ -257,6 +257,9 @@ def main():
     args = parser.parse_args()
     args.model_id, args.model_prefix = resolve_single_model_from_args(args)
 
+    if args.dry_run:
+        args.out_dir = os.path.join(args.out_dir, "dry_run")
+
     os.makedirs(args.out_dir, exist_ok=True)
     model_dir = os.path.join(args.out_dir, args.model_prefix)
     os.makedirs(model_dir, exist_ok=True)

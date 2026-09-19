@@ -463,17 +463,18 @@ def main():
         ]
         fam_causal = {}
         model_groups = [
-            ("base", [("reader", TaskType.READER, "plain"), ("self", TaskType.SELF, "plain")]),
-            ("inst", [("reader", TaskType.READER, "chat"), ("self", TaskType.SELF, "chat")]),
+            ("base", "plain", [("reader", TaskType.READER, "plain"), ("self", TaskType.SELF, "plain")]),
+            ("inst", "matched_plain", [("reader", TaskType.READER, "plain"), ("self", TaskType.SELF, "plain")]),
+            ("inst", "native_chat", [("reader", TaskType.READER, "chat"), ("self", TaskType.SELF, "chat")]),
         ]
 
-        for align_prefix, task_configs in model_groups:
+        for align_prefix, format_cond, task_configs in model_groups:
             model_spec = fam_cfg.get_model_spec("base" if align_prefix == "base" else "instruct")
             if args.dry_run:
                 model = None
                 tokenizer = None
             else:
-                logger.info(f"Loading weights for {model_spec.model_id} onto {args.device}...")
+                logger.info(f"Loading weights for {model_spec.model_id} ({format_cond}) onto {args.device}...")
                 tokenizer = AutoTokenizer.from_pretrained(model_spec.model_id)
                 model = AutoModelForCausalLM.from_pretrained(
                     model_spec.model_id,
@@ -482,7 +483,7 @@ def main():
                 )
 
             for task_str, task_type, fmt in task_configs:
-                cond_key = f"{align_prefix}_{task_str}"
+                cond_key = f"{align_prefix}_{format_cond}_{task_str}"
                 logger.info(f"Causal patching for {cond_key}...")
                 res = run_causal_patching_for_model(
                     model=model,
@@ -494,18 +495,28 @@ def main():
                     device=args.device,
                     is_dry_run=args.dry_run,
                 )
-                fam_causal[cond_key] = {
+                causal_entry = {
                     "c_v": res["c_v"],
                     "c_a": res["c_a"],
                     "c_v_zero": res.get("c_v_zero", []),
                     "c_a_zero": res.get("c_a_zero", []),
                 }
+                fam_causal[cond_key] = causal_entry
+
+                # 後方互換性エイリアス
+                if format_cond == "plain" and align_prefix == "base":
+                    fam_causal[f"base_{task_str}"] = causal_entry
+                elif format_cond == "native_chat" and align_prefix == "inst":
+                    fam_causal[f"inst_{task_str}"] = causal_entry
+                elif format_cond == "matched_plain" and align_prefix == "inst":
+                    fam_causal[f"inst_matched_{task_str}"] = causal_entry
 
                 # pair-level 記録の集約
                 for prec in res.get("pair_level", []):
                     all_pair_level_records.append({
                         "family": fam_id,
                         "alignment": align_prefix,
+                        "format_condition": format_cond,
                         "task": task_str,
                         "pair_id": prec["pair_id"],
                         "layer": prec["layer"],
@@ -522,7 +533,7 @@ def main():
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()
 
-        # RQ1/RQ2のデコードプロファイルと突合して4条件すべての解離量を計算（BR, BS, IR, IS）
+        # RQ1/RQ2のデコードプロファイルと突合して解離量を計算（matched-plain を Primary、native-chat を Secondary）
         geom_path = raw_dir / f"v2_geometry_{fam_id}.json"
         dissoc_results = {}
         if geom_path.exists():
@@ -535,12 +546,13 @@ def main():
                 c_field = "c_v" if axis == "valence" else "c_a"
                 dissoc_results[axis] = {}
 
-                # 4条件すべてで計算
                 conditions_map = [
                     ("base_reader", "base_r2_reader", "base_reader"),
                     ("base_self", "base_r2_self", "base_self"),
-                    ("inst_reader", "inst_r2_reader", "inst_reader"),
-                    ("inst_self", "inst_r2_self", "inst_self"),
+                    ("inst_matched_reader", "inst_matched_r2_reader", "inst_matched_reader"),
+                    ("inst_matched_self", "inst_matched_r2_self", "inst_matched_self"),
+                    ("inst_native_reader", "inst_native_r2_reader", "inst_reader"),
+                    ("inst_native_self", "inst_native_r2_self", "inst_self"),
                 ]
                 for cond_name, d_key, c_key in conditions_map:
                     if d_key in axis_sharing and c_key in fam_causal:

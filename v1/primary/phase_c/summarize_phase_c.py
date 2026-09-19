@@ -90,7 +90,16 @@ def main():
         default="configs/models.yaml",
         help="Path to models config",
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Mock dry-run mode reading from/writing to dry_run subfolders",
+    )
     args = parser.parse_args()
+
+    if args.dry_run:
+        args.input_dir = os.path.join(args.input_dir, "dry_run")
+        args.out_dir = os.path.join(args.out_dir, "dry_run")
 
     os.makedirs(args.out_dir, exist_ok=True)
     summary_rows = []

@@ -126,7 +126,12 @@ def run_confirmatory_analysis(
                     ("rsa_reader", "rsa_reader_matched"),
                     ("rsa_self", "rsa_self_matched"),
                 ]:
-                    vals = rq1_geom.get(key_name) or rq1_geom.get(mk, [])
+                    vals = rq1_geom.get(key_name)
+                    if vals is None:
+                        raise RuntimeError(
+                            f"Required matched geometric metric '{key_name}' missing in {gf}. "
+                            "Confirmatory H1a requires matched-plain geometry."
+                        )
                     if vals:
                         mean_v = float(np.mean(vals))
                         h1a_metrics[mk].append(mean_v)
@@ -134,9 +139,12 @@ def run_confirmatory_analysis(
                 per_family_h1a[fam_id] = fam_h1a
             except Exception as e:
                 logger.warning(f"Failed to parse {gf} for H1a: {e}")
+                if not is_dry_run:
+                    raise
 
     h1a_report: Dict[str, Any] = {
-        "interpretation": "post-training-associated geometric distortion and representational dissimilarity",
+        "interpretation": "post-training-associated geometric distortion and representational dissimilarity (matched-plain)",
+        "rsa_metric_type": "rsa_similarity",
         "per_family_geometry": per_family_h1a,
         "effects": {},
     }
@@ -383,6 +391,7 @@ def run_confirmatory_analysis(
         mock_rows = []
         for fam in families:
             for align in ["base", "inst"]:
+                fmt = "plain" if align == "base" else "matched_plain"
                 for task in ["reader", "self"]:
                     for l in range(8):
                         depth = l / 7.0
@@ -391,16 +400,17 @@ def run_confirmatory_analysis(
                             cv = max(0.0, float(base_cv + (0.2 if align == "inst" else 0.0) + rng.normal(0, 0.05)))
                             ca = max(0.0, float(base_cv * 0.9 + rng.normal(0, 0.05)))
                             mock_rows.append({
-                                "family": fam,
-                                "alignment": align,
-                                "task": task,
-                                "pair_id": f"pair_{p}",
-                                "layer": l,
-                                "relative_depth": depth,
-                                "c_v": cv,
-                                "c_a": ca,
-                                "c_v_zero": cv * 1.2,
-                                "c_a_zero": ca * 1.2,
+                                 "family": fam,
+                                 "alignment": align,
+                                 "format_condition": fmt,
+                                 "task": task,
+                                 "pair_id": f"pair_{p}",
+                                 "layer": l,
+                                 "relative_depth": depth,
+                                 "c_v": cv,
+                                 "c_a": ca,
+                                 "c_v_zero": cv * 1.2,
+                                 "c_a_zero": ca * 1.2,
                             })
         df_pair = pd.DataFrame(mock_rows)
     else:
@@ -408,7 +418,21 @@ def run_confirmatory_analysis(
             raise FileNotFoundError(f"Required result not found for real run: {pair_csv_path}")
         df_pair = pd.read_csv(pair_csv_path)
 
-    logger.info(f"Fitting Confirmatory LMM on {len(df_pair)} observations with C(family) fixed effects...")
+    # Primary analysis: Base plain vs Instruct matched-plain
+    if "format_condition" in df_pair.columns:
+        df_pair_primary = df_pair[
+            ((df_pair["alignment"] == "base") & (df_pair["format_condition"] == "plain"))
+            | ((df_pair["alignment"] == "inst") & (df_pair["format_condition"] == "matched_plain"))
+        ].copy()
+        df_pair_secondary = df_pair[
+            ((df_pair["alignment"] == "base") & (df_pair["format_condition"] == "plain"))
+            | ((df_pair["alignment"] == "inst") & (df_pair["format_condition"] == "native_chat"))
+        ].copy()
+    else:
+        df_pair_primary = df_pair.copy()
+        df_pair_secondary = pd.DataFrame()
+
+    logger.info(f"Fitting Confirmatory Primary LMM on {len(df_pair_primary)} observations (matched-plain) with C(family) fixed effects...")
     lmm_results: Dict[str, Any] = {}
 
     PRIMARY_TERMS = [
@@ -424,13 +448,14 @@ def run_confirmatory_analysis(
         formula = f"{col_name} ~ C(family) + C(alignment) * C(task) * relative_depth"
         try:
             lmm_fit = fit_sample_level_lmm(
-                df=df_pair,
+                df=df_pair_primary,
                 formula=formula,
                 groups="pair_id",
             )
             lmm_results[axis_name] = {
                 "converged": lmm_fit["converged"],
                 "formula": formula,
+                "contrast": "primary_matched_plain",
                 "params": lmm_fit["params"],
                 "pvalues": lmm_fit["pvalues"],
                 "conf_int": lmm_fit["conf_int"],
@@ -443,7 +468,7 @@ def run_confirmatory_analysis(
                         primary_p_values.append(float(pval))
                         primary_p_keys.append(f"{axis_name}_{term}")
         except Exception as e:
-            logger.warning(f"LMM {axis_name.capitalize()} fit failed: {e}")
+            logger.warning(f"Primary LMM {axis_name.capitalize()} fit failed: {e}")
             lmm_results[axis_name] = {"converged": False, "error": str(e), "formula": formula}
 
     # Primary FDR correction only on prespecified interaction terms
@@ -453,11 +478,36 @@ def run_confirmatory_analysis(
     else:
         primary_fdr_map = {}
 
+    # Secondary LMM on native-chat
+    secondary_lmm_results: Dict[str, Any] = {}
+    if not df_pair_secondary.empty and len(df_pair_secondary["alignment"].unique()) >= 2:
+        for axis_name, col_name in [("valence", "c_v"), ("arousal", "c_a")]:
+            formula = f"{col_name} ~ C(family) + C(alignment) * C(task) * relative_depth"
+            try:
+                lmm_fit_sec = fit_sample_level_lmm(
+                    df=df_pair_secondary,
+                    formula=formula,
+                    groups="pair_id",
+                )
+                secondary_lmm_results[axis_name] = {
+                    "converged": lmm_fit_sec["converged"],
+                    "formula": formula,
+                    "contrast": "secondary_native_chat",
+                    "params": lmm_fit_sec["params"],
+                    "pvalues": lmm_fit_sec["pvalues"],
+                    "conf_int": lmm_fit_sec["conf_int"],
+                }
+            except Exception as e:
+                logger.warning(f"Secondary LMM {axis_name.capitalize()} fit failed: {e}")
+
     confirmatory_report["hypotheses"]["H3_causal_profile_reorganization_lmm"] = {
-        "interpretation": "post-training-associated alteration of the depth profile of interventionally measured causal leverage",
+        "interpretation": "post-training-associated alteration of the depth profile of interventionally measured causal leverage (Primary: matched-plain)",
         "formula": "c ~ C(family) + C(alignment) * C(task) * relative_depth",
         "primary_terms": PRIMARY_TERMS,
+        "primary_contrast": "Base plain vs Instruct matched-plain",
+        "secondary_contrast": "Base plain vs Instruct native-chat",
         "models": lmm_results,
+        "secondary_models": secondary_lmm_results,
         "primary_fdr_adjusted_p_values": primary_fdr_map,
     }
     confirmatory_report["hypotheses"]["H3_causal_dissociation_lmm"] = confirmatory_report["hypotheses"]["H3_causal_profile_reorganization_lmm"]
@@ -472,12 +522,20 @@ def run_confirmatory_analysis(
         reader_ratios = [0.55, 0.62, 0.58, 0.60]
         self_aucs = [0.45, 0.52, 0.43, 0.48]
         reader_aucs = [0.32, 0.38, 0.35, 0.36]
+        self_aucs_matched = [0.47, 0.54, 0.45, 0.50]
+        reader_aucs_matched = [0.34, 0.40, 0.37, 0.38]
+        self_aucs_aligned = [0.42, 0.49, 0.40, 0.45]
+        reader_aucs_aligned = [0.30, 0.35, 0.33, 0.34]
     else:
         recovery_files = list(raw_dir.glob("v2_recovery_*.json"))
         self_ratios = []
         reader_ratios = []
         self_aucs = []
         reader_aucs = []
+        self_aucs_matched = []
+        reader_aucs_matched = []
+        self_aucs_aligned = []
+        reader_aucs_aligned = []
         for rf in recovery_files:
             try:
                 with open(rf, "r", encoding="utf-8") as f:
@@ -485,43 +543,89 @@ def run_confirmatory_analysis(
                 if "self" in rdata and "reader" in rdata:
                     s_dat = rdata["self"]
                     r_dat = rdata["reader"]
-                    self_ratios.append(s_dat["max_recovery_ratio"])
-                    reader_ratios.append(r_dat["max_recovery_ratio"])
+                    self_ratios.append(s_dat.get("max_recovery_ratio_matched_plain", s_dat["max_recovery_ratio"]))
+                    reader_ratios.append(r_dat.get("max_recovery_ratio_matched_plain", r_dat["max_recovery_ratio"]))
 
-                    # Primary metric: AUC recovery
                     depths = rdata.get("relative_depths") or np.linspace(0.0, 1.0, len(s_dat["recovery_ratios"]))
-                    s_auc = s_dat.get("auc_recovery")
-                    if s_auc is None:
-                        s_auc = float(trapz_func(s_dat["recovery_ratios"], depths))
-                    r_auc = r_dat.get("auc_recovery")
-                    if r_auc is None:
-                        r_auc = float(trapz_func(r_dat["recovery_ratios"], depths))
+
+                    # Primary metric: AUC recovery matched-plain
+                    s_auc_m = s_dat.get("auc_recovery_matched_plain")
+                    if s_auc_m is None and "recovery_ratios_matched_plain" in s_dat:
+                        s_auc_m = float(trapz_func(s_dat["recovery_ratios_matched_plain"], depths))
+                    r_auc_m = r_dat.get("auc_recovery_matched_plain")
+                    if r_auc_m is None and "recovery_ratios_matched_plain" in r_dat:
+                        r_auc_m = float(trapz_func(r_dat["recovery_ratios_matched_plain"], depths))
+
+                    # Fallback to direct native if matched plain not present
+                    if s_auc_m is None:
+                        s_auc_m = s_dat.get("auc_recovery") or float(trapz_func(s_dat["recovery_ratios"], depths))
+                    if r_auc_m is None:
+                        r_auc_m = r_dat.get("auc_recovery") or float(trapz_func(r_dat["recovery_ratios"], depths))
+
+                    self_aucs_matched.append(s_auc_m)
+                    reader_aucs_matched.append(r_auc_m)
+
+                    # Secondary: native chat AUC
+                    s_auc = s_dat.get("auc_recovery") or float(trapz_func(s_dat["recovery_ratios"], depths))
+                    r_auc = r_dat.get("auc_recovery") or float(trapz_func(r_dat["recovery_ratios"], depths))
                     self_aucs.append(s_auc)
                     reader_aucs.append(r_auc)
+
+                    # Mechanistic control: aligned AUC
+                    s_auc_al = s_dat.get("auc_recovery_aligned")
+                    r_auc_al = r_dat.get("auc_recovery_aligned")
+                    if s_auc_al is not None and r_auc_al is not None:
+                        self_aucs_aligned.append(s_auc_al)
+                        reader_aucs_aligned.append(r_auc_al)
             except Exception as e:
                 logger.warning(f"Failed to parse recovery file {rf}: {e}")
-        if len(self_ratios) < 2:
+        if len(self_aucs_matched) < 2:
             raise RuntimeError(
-                f"Insufficient valid recovery files found in {raw_dir} (found {len(self_ratios)}). "
+                f"Insufficient valid recovery files found in {raw_dir} (found {len(self_aucs_matched)}). "
                 "Real runs require valid recovery artifacts."
             )
 
-    # Primary: AUC recovery difference
+    # Primary: AUC recovery difference on matched-plain
+    diffs_auc_matched = np.array(self_aucs_matched) - np.array(reader_aucs_matched)
+    pt_auc_m, am_low, am_high = compute_bootstrap_ci(diffs_auc_matched.tolist(), n_boot=1000)
+
+    # Secondary: Native chat AUC recovery difference
     diffs_auc = np.array(self_aucs) - np.array(reader_aucs)
     pt_auc, a_low, a_high = compute_bootstrap_ci(diffs_auc.tolist(), n_boot=1000)
 
-    # Secondary: Max recovery ratio difference
+    # Mechanistic control: Procrustes aligned AUC recovery difference
+    if len(self_aucs_aligned) >= 2:
+        diffs_auc_al = np.array(self_aucs_aligned) - np.array(reader_aucs_aligned)
+        pt_auc_al, al_low, al_high = compute_bootstrap_ci(diffs_auc_al.tolist(), n_boot=1000)
+    else:
+        pt_auc_al, al_low, al_high = np.nan, np.nan, np.nan
+
+    # Peak recovery ratio difference
     diffs_max = np.array(self_ratios) - np.array(reader_ratios)
     pt_max, m_low, m_high = compute_bootstrap_ci(diffs_max.tolist(), n_boot=1000)
 
     confirmatory_report["hypotheses"]["H4_recovery_asymmetry"] = {
-        "interpretation": "post-training-associated distribution recovery asymmetry (Primary: AUC recovery; Secondary: Peak recovery ratio)",
+        "interpretation": "post-training-associated distribution recovery asymmetry (Primary: matched-plain AUC recovery; Secondary: native-chat AUC recovery; Mechanistic control: Procrustes-aligned AUC recovery)",
         "primary_auc_recovery": {
+            "contrast_type": "primary_matched_plain",
+            "self_mean_auc": float(np.mean(self_aucs_matched)),
+            "reader_mean_auc": float(np.mean(reader_aucs_matched)),
+            "diff_self_minus_reader_mean": float(pt_auc_m),
+            "diff_bootstrap_ci_95": [float(am_low), float(am_high)],
+            "reorganization_supported": bool(am_low > 0.0 or am_high < 0.0),
+        },
+        "secondary_native_chat_auc_recovery": {
+            "contrast_type": "secondary_native_chat",
             "self_mean_auc": float(np.mean(self_aucs)),
             "reader_mean_auc": float(np.mean(reader_aucs)),
             "diff_self_minus_reader_mean": float(pt_auc),
             "diff_bootstrap_ci_95": [float(a_low), float(a_high)],
             "reorganization_supported": bool(a_low > 0.0 or a_high < 0.0),
+        },
+        "mechanistic_control_aligned_auc_recovery": {
+            "contrast_type": "mechanistic_control_procrustes_aligned",
+            "diff_self_minus_reader_mean": float(pt_auc_al) if not np.isnan(pt_auc_al) else None,
+            "diff_bootstrap_ci_95": [float(al_low), float(al_high)] if not np.isnan(al_low) else None,
         },
         "secondary_max_recovery_ratio": {
             "self_max_recovery_mean": float(np.mean(self_ratios)),
@@ -531,9 +635,9 @@ def run_confirmatory_analysis(
             "reorganization_supported": bool(m_low > 0.0 or m_high < 0.0),
         },
         # Backwards compatible top-level fields pointing to Primary
-        "diff_self_minus_reader_mean": float(pt_auc),
-        "diff_bootstrap_ci_95": [float(a_low), float(a_high)],
-        "reorganization_supported": bool(a_low > 0.0 or a_high < 0.0),
+        "diff_self_minus_reader_mean": float(pt_auc_m),
+        "diff_bootstrap_ci_95": [float(am_low), float(am_high)],
+        "reorganization_supported": bool(am_low > 0.0 or am_high < 0.0),
     }
 
     # Save final report

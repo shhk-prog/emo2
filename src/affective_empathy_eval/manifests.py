@@ -65,7 +65,7 @@ import hashlib
 
 
 DEFAULT_INTERVENTION_VERSION = "none"
-DEFAULT_CODE_VERSION = "0.3.0"
+DEFAULT_CODE_VERSION = "2.2.0"
 DEFAULT_PROMPT_VERSION = "1.0.0"
 DEFAULT_CANDIDATE_SPACE = "VA_81"
 
@@ -143,6 +143,8 @@ class RunManifest:
     seed: int = 42
     code_version: str = DEFAULT_CODE_VERSION
     intervention_version: str = DEFAULT_INTERVENTION_VERSION
+    sequence_likelihood_normalization: str = "token_mean"
+    temperature: float = 1.0
     dry_run: bool = False
 
     def to_dict(self) -> Dict[str, Any]:
@@ -178,6 +180,8 @@ def create_run_manifest(
     run_id: Optional[str] = None,
     dry_run: bool = False,
     dataset_hash: Optional[str] = None,
+    sequence_likelihood_normalization: Optional[str] = None,
+    temperature: Optional[float] = None,
 ) -> RunManifest:
     from datetime import datetime, timezone
     import subprocess
@@ -217,6 +221,26 @@ def create_run_manifest(
         actual_dtype = str(cfg["actual_dtype"])
     if template_mode == "system_user" and "template_mode" in cfg:
         template_mode = str(cfg["template_mode"])
+
+    seq_norm = sequence_likelihood_normalization
+    if seq_norm is None:
+        if "sequence_likelihood_normalization" in cfg:
+            seq_norm = str(cfg["sequence_likelihood_normalization"])
+        elif isinstance(cfg.get("sequence_likelihood"), dict) and cfg["sequence_likelihood"].get("normalize_length", True):
+            seq_norm = "token_mean"
+        elif isinstance(cfg.get("sequence_likelihood"), dict) and not cfg["sequence_likelihood"].get("normalize_length", True):
+            seq_norm = "raw_sum"
+        else:
+            seq_norm = "token_mean"
+
+    temp = temperature
+    if temp is None:
+        if "temperature" in cfg:
+            temp = float(cfg["temperature"])
+        elif isinstance(cfg.get("sequence_likelihood"), dict) and "temperature" in cfg["sequence_likelihood"]:
+            temp = float(cfg["sequence_likelihood"]["temperature"])
+        else:
+            temp = 1.0
 
     cfg_hash = compute_string_or_dict_hash(cfg)
     if dataset_hash is not None:
@@ -260,6 +284,8 @@ def create_run_manifest(
         seed=seed,
         code_version=DEFAULT_CODE_VERSION,
         intervention_version=intervention_version,
+        sequence_likelihood_normalization=seq_norm,
+        temperature=temp,
         dry_run=dry_run,
     )
 
@@ -274,11 +300,12 @@ def is_manifest_matching(
     expected_prompt_hash: Optional[str] = None,
     expected_config_hash: Optional[str] = None,
     expected_dataset_hash: Optional[str] = None,
-    expected_code_version: Optional[str] = None,
+    expected_code_version: Optional[str] = DEFAULT_CODE_VERSION,
     expected_model_revision: Optional[str] = None,
     expected_tokenizer_revision: Optional[str] = None,
     expected_git_commit: Optional[str] = None,
     expected_dry_run: Optional[bool] = None,
+    expected_sequence_likelihood_normalization: Optional[str] = None,
 ) -> bool:
     """
     キャッシュの有効性を検証する。
@@ -330,9 +357,9 @@ def is_manifest_matching(
         if expected_git_commit and data.get("git_commit") != expected_git_commit:
             return False
 
+        if expected_sequence_likelihood_normalization and data.get("sequence_likelihood_normalization") != expected_sequence_likelihood_normalization:
+            return False
+
         return True
     except Exception:
         return False
-
-
-

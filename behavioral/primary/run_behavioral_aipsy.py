@@ -31,6 +31,10 @@ from affective_empathy_eval.likelihood import (
     compute_sequence_likelihoods_for_candidates,
 )
 from affective_empathy_eval.manifests import create_run_manifest
+from affective_empathy_eval.affect_directions import (
+    AIPSY_DIRECTION_VERSION,
+    AIPSY_DIRECTION_HASH,
+)
 
 
 def build_candidates():
@@ -155,7 +159,7 @@ def evaluate_aipsy_stimuli(
                 candidates=candidates,
                 device=device,
                 batch_size=batch_size,
-                normalize_length=False,
+                normalize_length=True,
             )
 
             # Expected values
@@ -325,6 +329,10 @@ def main():
         "candidate_hash": candidate_hash,
         "prompt_hash": prompt_hash,
         "actual_dtype": actual_dtype_str,
+        "sequence_likelihood_normalization": "token_mean",
+        "temperature": 1.0,
+        "affect_direction_version": AIPSY_DIRECTION_VERSION,
+        "affect_direction_hash": AIPSY_DIRECTION_HASH,
     }
     expected_config_hash = compute_string_or_dict_hash(manifest_config)
 
@@ -372,25 +380,54 @@ def main():
     if not skip_eval:
         if args.dry_run:
             print(f"[DRY-RUN] Simulating AIPsy 4-Split evaluation for {args.tag}...")
-            records = []
-            quads = ["high_v_high_a", "high_v_low_a", "low_v_high_a", "low_v_low_a"]
-            for i in range(16):
-                q = quads[i % 4]
-                records.append({
-                    "id": f"dry_aipsy_{i}",
-                    "text": f"Mock AIPsy text {i}",
-                    "quad": q,
-                    "valence": 7.0 if "high_v" in q else 3.0,
-                    "arousal": 7.0 if "high_a" in q else 3.0,
-                    "dominance": 5.0,
-                    "s_ev": 6.8 if "high_v" in q else 3.2,
-                    "s_ea": 6.5 if "high_a" in q else 3.5,
-                    "s_ed": 5.0,
-                    "r_ev": 6.9 if "high_v" in q else 3.1,
-                    "r_ea": 6.7 if "high_a" in q else 3.3,
-                    "r_ed": 5.0,
-                })
-            res_df = pd.DataFrame(records)
+            res_df = pd.read_csv(stim_path).copy()
+            if args.limit > 0:
+                res_df = res_df.head(args.limit)
+
+            from affective_empathy_eval.affect_directions import AIPSY_EXPECTED_DIRECTION
+            w_ev, w_ea, w_ed = [], [], []
+            r_ev, r_ea, r_ed = [], [], []
+            s_ev, s_ea, s_ed = [], [], []
+            for _, row in res_df.iterrows():
+                emo = str(row.get("emotion", "")).lower().strip()
+                split = str(row.get("split", "")).lower().strip()
+                dir_v = AIPSY_EXPECTED_DIRECTION.get(emo, {}).get("V", 0)
+                dir_a = AIPSY_EXPECTED_DIRECTION.get(emo, {}).get("A", 0)
+                dir_d = AIPSY_EXPECTED_DIRECTION.get(emo, {}).get("D", 0)
+
+                if split == "neutral":
+                    shift_scale = 0.0
+                elif split == "moderate":
+                    shift_scale = 0.8
+                elif split == "clinical":
+                    shift_scale = 1.6
+                else:  # complex_neutral
+                    shift_scale = 0.1
+
+                val_v = 5.0 + shift_scale * dir_v
+                val_a = 5.0 + shift_scale * dir_a
+                val_d = 5.0 + shift_scale * dir_d
+
+                w_ev.append(val_v)
+                w_ea.append(val_a)
+                w_ed.append(val_d)
+                r_ev.append(val_v)
+                r_ea.append(val_a)
+                r_ed.append(val_d)
+                s_ev.append(val_v * 0.9 + 0.5)
+                s_ea.append(val_a * 0.9 + 0.5)
+                s_ed.append(val_d * 0.9 + 0.5)
+
+            res_df["w_ev"] = w_ev
+            res_df["w_ea"] = w_ea
+            res_df["w_ed"] = w_ed
+            res_df["r_ev"] = r_ev
+            res_df["r_ea"] = r_ea
+            res_df["r_ed"] = r_ed
+            res_df["s_ev"] = s_ev
+            res_df["s_ea"] = s_ea
+            res_df["s_ed"] = s_ed
+
             res_df.to_csv(out_csv, index=False)
             res_df.to_csv(out_csv_compat, index=False)
         else:

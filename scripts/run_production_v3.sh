@@ -40,6 +40,13 @@ echo "==================================================================" | tee 
 echo "Starting Production V3 Pipeline Evaluation" | tee -a "${LOG_FILE}"
 echo "Timestamp : $(date -u +"%Y-%m-%dT%H:%M:%SZ")" | tee -a "${LOG_FILE}"
 echo "Device    : ${DEVICE}" | tee -a "${LOG_FILE}"
+echo "Python    : $(which python)" | tee -a "${LOG_FILE}"
+echo "Python Ver: $(python --version)" | tee -a "${LOG_FILE}"
+echo "Pip Ver   : $(python -m pip --version 2>/dev/null || true)" | tee -a "${LOG_FILE}"
+echo "Git SHA   : $(git rev-parse HEAD 2>/dev/null || echo 'unknown')" | tee -a "${LOG_FILE}"
+if [ -f "uv.lock" ]; then
+    echo "uv.lock   : $(sha256sum uv.lock | awk '{print $1}')" | tee -a "${LOG_FILE}"
+fi
 echo "Extra Args: ${EXTRA_ARGS[*]:-none}" | tee -a "${LOG_FILE}"
 echo "Log File  : ${LOG_FILE}" | tee -a "${LOG_FILE}"
 echo "Cohort    : primary_small (Target: Qwen | Confirmatory: Llama, Gemma, OLMo)" | tee -a "${LOG_FILE}"

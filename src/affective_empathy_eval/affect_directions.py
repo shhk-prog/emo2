@@ -7,6 +7,10 @@ Behavioral 分析および V1 Phase C 等で共通利用される科学的仕様
 
 from typing import Dict, Optional
 
+import hashlib
+
+AIPSY_DIRECTION_VERSION = "1.0.0"
+
 # Expected signs of displacement relative to neutral for clinical affect
 # +1: increases relative to neutral, -1: decreases relative to neutral
 AIPSY_EXPECTED_DIRECTION: Dict[str, Dict[str, int]] = {
@@ -19,6 +23,10 @@ AIPSY_EXPECTED_DIRECTION: Dict[str, Dict[str, int]] = {
     "amazement": {"V": +1, "A": +1, "D": -1},
     "vigilance": {"V": +1, "A": +1, "D": +1},
 }
+
+AIPSY_DIRECTION_HASH = hashlib.sha256(
+    str(sorted(AIPSY_EXPECTED_DIRECTION.items())).encode("utf-8")
+).hexdigest()[:16]
 
 
 def get_expected_sign(emotion: str, dimension: str) -> Optional[int]:

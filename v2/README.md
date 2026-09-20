@@ -77,7 +77,12 @@ $$
 \Delta d_{\mathrm{peak}} = d_C - d_D
 $$
 
-- **モデル内因果介入**: 各モデル内での因果力 $C(l)$ は、情動方向活性化の実介入（差分注入：$\hat{d}_V, \hat{d}_A$ および直交・直交ランダム統制方向の加算注入）に対する出力変位で測る。プローブ回帰係数の大きさ等、受動的観察量で代用しない。
+- **モデル内因果介入**: 各モデル内での因果力 $C(l)$ は、情動方向活性化の実介入（差分注入：$\hat{d}_V, \hat{d}_A$）に対する出力変位で測る。プローブ回帰係数の大きさ等、受動的観察量で代用しない。
+- **特異性コントロール（Primary Causal Metrics）**:
+  - 同一ノルムを持つ **ランダム方向統制 ($d_{\text{rand}}$)** および **直交方向統制 ($d_{\perp}$)** を並行実行。
+  - 深層ほど residual stream の摂動感受性が高まる交絡を排除するため、主たる因果指標を **Net Causal Effect**:
+    $$C_{\text{net\_rand}} = C_{\text{affect}} - C_{\text{rand}},\qquad C_{\text{net\_perp}} = C_{\text{affect}} - C_{\perp}$$
+    として評価・保存する。
 - **モデル間比較**: Base と Instruct の間で $d_C$ や $\Delta d_{\mathrm{peak}}$ を比較し、事後学習に伴う因果回路の再編（post-training-associated reorganization of causal peak）を評価する。
 - 条件は Family × (Base, Instruct) × (Reader, Self)。matched-plain 形式も走らせ、chat template だけの見かけの差かを見る。
 
@@ -90,6 +95,11 @@ Base の層活性化を Instruct の prompt-end に注入し、$9\times 9$ VA �
 $$
 \mathrm{Recovery} = \frac{W_1(P_{\mathrm{clean}}, P_{\mathrm{target}}) - W_1(P_{\mathrm{patch}}, P_{\mathrm{target}})}{W_1(P_{\mathrm{clean}}, P_{\mathrm{target}})}
 $$
+
+実発効条件と解釈の境界:
+1. **Matched-Plain Raw 条件**: Base の活性化テンソルを Instruct の同一位置へ直接注入（*direct interchangeability*）。
+2. **Procrustes Aligned 条件**: Base と Instruct の表現空間の直交回転を補正した上で注入（*coordinate-remapping-adjusted recovery*）。
+※ **解釈上の重要点**: Raw 条件で分布が十分に回復しない場合でも、それは情動情報自体の消失を意味せず、事後学習に伴う表現座標系の変化（*off-manifold* 化）に起因する可能性がある。Aligned 条件との対比により、座標系の幾何的再編と情報保持を厳密に切り分ける。
 
 実装（`v2/primary/run_rq4_recovery_patching.py` / `compute_emd_recovery_ratio`）:
 
@@ -115,8 +125,9 @@ $$
 - ラベル既定: 人間 `reader_V`, `reader_A`。モデル自己報告を主ラベルにしない
 - train/test は `pair_id` があれば Group split
 - held-out Ridge（`ridge_alpha: 1.0`）。幾何は PCA 後に Procrustes
-- RQ3 の $C(l)$ は実介入。プローブ係数の大きさで代用しない
-- RQ4 は Instruct 分布を Base へ近づける recovery。中立文脈へ感情を入れる操作ではない
+- マニフェスト照合: キャッシュ検証マニフェストには `v2_config` 全体を含め、YAML パラメータ（`train_ratio`, `ridge_alpha` 等）の変更時に自動的にキャッシュが無効化される設計
+- RQ3 の $C(l)$ は実介入。プローブ係数の大きさで代用しない。同 norm ランダム・直交方向統制との差分を Primary 化
+- RQ4 は Instruct 分布を Base へ近づける recovery。中立文脈へ感情を入れる操作ではない。Raw 条件と Aligned 条件の対比で評価
 - Bootstrap 95% CI（既定 $n=1000$）
 - 対比較は family 内 Base vs Instruct（paired）
 - 確証的統合: `v2/primary/run_confirmatory_analysis.py`（LMM, FDR）。Primary 4 family と Mistral 7B を同じ主表に混ぜない

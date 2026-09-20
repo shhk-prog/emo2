@@ -106,7 +106,7 @@ def evaluate_expected_va_batch(
             candidates=candidates,
             device=device,
             batch_size=sub_batch_size,
-            normalize_length=False,
+            normalize_length=True,
         )
         exp_v_list.append(float(np.sum(probs * vad_triplets[:, 0])))
         exp_a_list.append(float(np.sum(probs * vad_triplets[:, 1])))

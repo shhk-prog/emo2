@@ -47,6 +47,13 @@ echo "==================================================================" | tee 
 echo "MASTER PRODUCTION PIPELINE EXECUTION STARTED" | tee -a "${MASTER_LOG}"
 echo "Timestamp : $(date -u +"%Y-%m-%dT%H:%M:%SZ")" | tee -a "${MASTER_LOG}"
 echo "Device    : ${DEVICE}" | tee -a "${MASTER_LOG}"
+echo "Python    : $(which python)" | tee -a "${MASTER_LOG}"
+echo "Python Ver: $(python --version)" | tee -a "${MASTER_LOG}"
+echo "Pip Ver   : $(python -m pip --version 2>/dev/null || true)" | tee -a "${MASTER_LOG}"
+echo "Git SHA   : $(git rev-parse HEAD 2>/dev/null || echo 'unknown')" | tee -a "${MASTER_LOG}"
+if [ -f "uv.lock" ]; then
+    echo "uv.lock   : $(sha256sum uv.lock | awk '{print $1}')" | tee -a "${MASTER_LOG}"
+fi
 echo "Extra Args: ${EXTRA_ARGS[*]:-none}" | tee -a "${MASTER_LOG}"
 echo "Master Log: ${MASTER_LOG}" | tee -a "${MASTER_LOG}"
 echo "Cohort    : primary_small (4 families, 8 models total)" | tee -a "${MASTER_LOG}"

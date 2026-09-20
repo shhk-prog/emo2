@@ -95,6 +95,11 @@ confirmatory:
     min_mediated_attenuation_ci_lower: 0.0
     min_temporal_contrast: 0.0
 
+# Sequence Likelihood スコアリング設定 (Length-normalized token mean)
+sequence_likelihood:
+  normalize_length: true
+  temperature: 1.0
+
 # 出力設定
 output:
   raw_dir: "v3/results/raw"

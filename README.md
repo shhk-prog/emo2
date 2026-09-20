@@ -42,13 +42,14 @@ Covariation  →  Representation & Overlap  →  Reorganization  →  Causal Lev
 | **V2** | **Reorganization** (事後学習関連再編) | §6. Post-training-Associated Reorganization of Affect-Relevant Computations | *How does post-training associate with computational reorganization?* | 同一ファミリーの Base ↔ Instruct 幾何・共有性・分布回復（モデル内は活性化因果介入、モデル間は観察的再編） |
 | **V3** | **Causal Leverage** (因果的利用可能性と必然性) | §7. From Representation to Causal Utilization | *Where and when does affect-relevant information exert measurable causal leverage over self-report?* | Instruct 側の層 × 生成段階（十分性・特異性・内生関連性の局在） |
 
-- **Behavioral** (`behavioral/`): EmoBank 3-Way と AIPsy 4-Split。4軸は correspondence, Sensitivity, Dose-response / Specificity, Reader–Self coupling（刺激変化に対する $\Delta$ カップリング $\text{corr}(\Delta_R, \Delta_S)$ を Primary 化）。[`behavioral/README.md`](behavioral/README.md)
-- **V1** (`v1/`): decodability / 幾何（E1/E2）、意味統制感度（Phase B）、因果マップと交換可能性（E3/E4）、課題特異化（E6）。同一モデル内での部分的重複（partially overlapping causally relevant representations and intervention-sensitive sites）を検証。[`v1/README.md`](v1/README.md)
-- **V2** (`v2/`): 幾何再編、ピーク解離、2D OT 分布回復（RQ1〜RQ4。直交 Procrustes アラインメント統制）。各モデル内部の活性化操作（RQ3/RQ4）は**モデル内因果介入（within-model causal characterization）**として同定し、Base と Instruct のモデル間比較は**事後学習に伴う再編（post-training-associated reorganization）**として観察的に帰属（訓練過程そのものへの直接的因果介入ではないため過大主張を避ける）。[`v2/README.md`](v2/README.md)
+- **Behavioral** (`behavioral/`): EmoBank 3-Way と AIPsy 4-Split。4軸は correspondence, Sensitivity, Dose-response / Specificity, Reader–Self coupling（刺激変化に対する $\Delta$ カップリング $\text{corr}(\Delta_R, \Delta_S)$ を Primary 化）。`--dry-run` 時の出力完全隔離とチェックポイント再開時のメタデータ完全照合を実装。[`behavioral/README.md`](behavioral/README.md)
+- **V1** (`v1/`): decodability / 幾何（E1/E2）、意味統制感度（Phase B）、因果マップと交換可能性（E3/E4）、課題特異化（E6）。同一モデル内での部分的重複（partially overlapping causally relevant representations and intervention-sensitive sites）を検証。$\Delta h$ は感情操作関連変位として定義。E4 は $K=20$ 回の固定シード derangements による random donor distribution と比較。E6 は task-specific causal site sensitivity として位置づけ。`checkpoint_manifest.json` による厳格再開、left/right padding 双対応、silent truncation 検出を完備。[`v1/README.md`](v1/README.md)
+- **V2** (`v2/`): 幾何再編、ピーク解離、2D OT 分布回復（RQ1〜RQ4。直交 Procrustes アラインメント統制）。各モデル内部の活性化操作（RQ3/RQ4）は**モデル内因果介入（within-model causal characterization）**として同定し、Base と Instruct のモデル間比較は**事後学習に伴う再編（post-training-associated reorganization）**として観察的に帰属。RQ3 に同 norm ランダム・直交方向統制（Net Causal Effect）を導入。RQ4 では matched-plain raw（direct interchangeability）と Procrustes aligned（coordinate-remapping-adjusted recovery）を対比して off-manifold 幾何再編を論証。[`v2/README.md`](v2/README.md)
 - **V3** (`v3/`): AIPsy matched-neutral 192 pair での状態誘導ゲート、時空間 4-Map、mediated attenuation、確証的再現。
-  - **Direction Injection**: 中立文への方向加算注入（$h + \alpha \sigma_h \hat{d}$）による十分性と因果的影響力（*sufficiency / causal leverage*）
-  - **Subspace Removal**: 情動文に対する中心化2D直交部分空間除去による内生的な関連性（*endogenous relevance*）
-  - 因果的影響は特定の層、および teacher-forced candidate sequence 上の特定の計算段階に集中（*concentrated at particular layers and stages along the teacher-forced candidate sequence*）することを実証。[`v3/README.md`](v3/README.md)
+  - **Direction Injection**: 中立文への方向加算注入（$h + \alpha \sigma_h \hat{d}$）による十分性と因果的影響力（*sufficiency / causal leverage*）。RQ1 では $K=5$ 本のランダム・直交方向統制との差分を評価。
+  - **Spatiotemporal 4-Maps**: $\beta(l,t)$ の回帰目的変数を Self-report ($y_{\text{self}}$) に修正（Reader 内部予測スコア $\rightarrow$ Self-report $\mid$ 刺激共変量）。生成段階は `response_start = prompt_end`（`cand_start - 1`）に整合、`response_end` は negative control として配置。$\gamma$ スロープは 1 SD 正規化用量あたりの変化率として定義。
+  - **Subspace Removal**: 情動文に対する中心化2D直交部分空間除去による内生的な関連性（*endogenous relevance*）。RQ3 では matched-rank random 2D subspace removal コントロール ($Q_{\text{rand}}$) と比較し、任意の 2 次元破壊による非特異的変位減少と情動特異的減衰を分離。
+  - **Confirmatory Replication**: H1〜H4 の全仮説判定基準を **CI lower bound > preregistered threshold** に統一。架空値フォールバックを完全排除。[`v3/README.md`](v3/README.md)
 
 ### 3つの学術的貢献 (Main Contributions)
 
@@ -158,11 +159,11 @@ V3 は AIPsy の clinical–neutral 192 pair だけを wide 化する。EmoBank 
 |---|---|---|---|---|
 | **Candidate Space** | $9^3 = 729$ VAD | $9^3 = 729$ VAD | $9^2 = 81$ VA | $9^2 = 81$ VA |
 | **Prompt Format** | Plain (Base) / Chat (Instruct) | Plain (Base) / Chat (Instruct) | Plain (Base) / Chat & Matched-Plain (Instruct) | Chat (Instruct primary) |
-| **Token Position** | Sequence-end (log-likelihood) | `prompt_end` (Phase A/B/C) | `prompt_end` (D/C anchor 統一) | Spatiotemporal Grid (`prompt_end` + joint stage tokens) |
+| **Token Position** | Sequence-end (log-likelihood) | `valid_pos[-1]` (`prompt_end`) | `prompt_end` (D/C anchor 統一) | Spatiotemporal Grid (`prompt_end` + joint stage tokens) |
 | **Layer Coordinate** | N/A (Black-box behavioral) | Relative depth $d = l / (L-1)$ | Relative depth $d = l / (L-1)$ | Relative depth $d = l / (L-1)$ |
 | **Split Unit** | Pair-aware (`pair_id`) / Unpaired (EmoBank) | Stratified Group Split (`pair_id` 漏洩防止) | Stratified Group Split (`pair_id` 漏洩防止) | Matched-pair (192 clinical-neutral pairs) |
-| **Primary Metric** | $E[V], E[A]$, Cohen's $d_z$, Spearman $\rho$, $r_{RS}$ | $R^2$, Balanced Acc, RSA, Causal Shift $\Delta V, \Delta A$ | Cross-decoding $\Delta\Delta_{\text{cross}}$, $\Delta d_{\text{peak}}$, 2D OT EMD Recovery | Interventional slope $\gamma$, Subspace Attenuation, Causal Leverage $C$ |
-| **Statistical Test** | Direction-aligned IUT, 1-sample/paired $t$, FDR (BH), Bootstrap CI | 5-fold GroupKFold CV, FDR (BH), LMM (Phase C E6) | Bootstrap 95% CI, Permutation Test | Pre-registered Go/No-Go Gate, Bootstrap 95% CI, FDR |
+| **Primary Metric** | $E[V], E[A]$, Cohen's $d_z$, Spearman $\rho$, $r_{RS}$ | $R^2$, Balanced Acc, RSA, Causal Shift $\Delta V, \Delta A$, Specificity (vs 20-derangements) | Cross-decoding $\Delta\Delta_{\text{cross}}$, $\Delta d_{\text{peak}}$, Net Causal $C - C_{\text{rand}}$, 2D OT EMD Recovery (Raw vs Aligned) | Interventional slope $\gamma$, Net Subspace Attenuation (vs random 2D), Spatiotemporal $\beta$, Causal Leverage $C$ |
+| **Statistical Test** | Direction-aligned IUT, 1-sample/paired $t$, FDR (BH), Bootstrap CI | 5-fold GroupKFold CV, FDR (BH), LMM (Phase C E6), 20-derangements Permutation / Bootstrap CI | Paired family bootstrap 95% CI, Permutation Test | Pre-registered Go/No-Go Gate, Pair-Bootstrap 95% CI (全仮説 CI 下限判定), FDR |
 
 > **注記（Candidate 空間感度分析）**: Stage 間の絶対的 $E[V], E[A]$ は直接比較しません。同一刺激サブセットでの 729 VAD vs 81 VA の対応関係については、Supplementary 感度分析（`scripts/run_candidate_space_sensitivity.py`）により Pearson $r$、Spearman $\rho$、および変位方向一致率（direction agreement）を算出し、測定空間差異に対する感度を客観的に報告・検証します。
 

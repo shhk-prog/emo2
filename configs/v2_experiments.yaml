@@ -37,6 +37,11 @@ bootstrap:
   n_boot: 1000
   ci_level: 0.95
 
+# Sequence Likelihood スコアリング設定 (Length-normalized token mean)
+sequence_likelihood:
+  normalize_length: true
+  temperature: 1.0
+
 # 出力設定
 output:
   raw_dir: "v2/results/raw"

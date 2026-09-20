@@ -18,7 +18,7 @@ def test_paired_cohen_dz():
     x1 = np.array([5.0, 6.0, 7.0])
     x2 = np.array([3.0, 4.0, 5.0])
     dz = compute_paired_cohen_dz(x1, x2, ddof=1)
-    assert dz == 0.0 or np.isinf(dz) or dz > 1000  # std is 0
+    assert np.isnan(dz)  # std is 0 -> effect size is undefined (NaN)
 
     # With realistic differences
     x1 = np.array([5.0, 7.0, 6.0, 8.0, 9.0])

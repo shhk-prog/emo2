@@ -386,7 +386,7 @@ def compute_sequence_likelihoods_for_candidates(
     candidates: list[dict[str, Any]] | list[str] | None = None,
     device: str | torch.device = "cuda",
     batch_size: int = 81,
-    normalize_length: bool = False,
+    normalize_length: bool = True,
     delimiter: str = "",
     generation_patch: dict[str, Any] | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -548,6 +548,7 @@ def evaluate_expected_va_from_prompt(
     candidates: list[dict[str, Any]] | None = None,
     device: str | torch.device = "cuda",
     batch_size: int = 81,
+    normalize_length: bool = True,
     delimiter: str = "",
 ) -> tuple[float, float, np.ndarray]:
     """
@@ -564,6 +565,7 @@ def evaluate_expected_va_from_prompt(
         candidates=candidates,
         device=device,
         batch_size=batch_size,
+        normalize_length=normalize_length,
         delimiter=delimiter,
     )
     ev, ea = compute_expected_va(log_ll, candidates=candidates)
@@ -577,6 +579,7 @@ def evaluate_expected_vad_from_prompt(
     candidates: list[dict[str, Any]] | None = None,
     device: str | torch.device = "cuda",
     batch_size: int = 81,
+    normalize_length: bool = True,
     delimiter: str = "",
 ) -> tuple[float, float, float, np.ndarray]:
     """
@@ -593,6 +596,7 @@ def evaluate_expected_vad_from_prompt(
         candidates=candidates,
         device=device,
         batch_size=batch_size,
+        normalize_length=normalize_length,
         delimiter=delimiter,
     )
 

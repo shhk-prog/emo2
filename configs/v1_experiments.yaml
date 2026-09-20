@@ -20,5 +20,10 @@ phase_c:
   discovery_ratio: 0.5
   alphas: [0.0, 0.5, 1.0, 2.0]
 
+# Sequence Likelihood スコアリング設定 (Length-normalized token mean)
+sequence_likelihood:
+  normalize_length: true
+  temperature: 1.0
+
 output:
   derived_dir: "v1/results/derived"

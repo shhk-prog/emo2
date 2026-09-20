@@ -445,7 +445,8 @@ def test_compute_sequence_likelihoods_sliced_equivalence():
     for i, (f_ids, c_st) in enumerate(zip(seq_list, c_starts)):
         cand_toks = f_ids[c_st:]
         cur_ll = sum(full_log_probs[i, c_st - 1 + j, t].item() for j, t in enumerate(cand_toks))
-        expected_ll.append(cur_ll)
+        c_len = len(cand_toks)
+        expected_ll.append(cur_ll / c_len if c_len > 0 else cur_ll)
 
     assert np.allclose(ll, expected_ll, atol=1e-5)
     exp_expected_ll = np.exp(expected_ll - np.max(expected_ll))

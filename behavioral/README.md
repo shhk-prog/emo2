@@ -114,12 +114,25 @@ AIPsy の Clinical と Neutral のペア差分。Cohen's $d_z$、対応 $t$ 検�
 
 ### 3.3 Dose-Response & Specificity（用量反応と特異性）
 
-- Dose-response: Neutral → Moderate → Clinical の単調変位
-- Specificity: Complex Neutral（難解だが感情を含まない統制）に対する誤反応が小さいこと
+- Dose-response: Neutral → Moderate → Clinical の単調変位（線形対比・Page検定等）
+- Specificity: Complex Neutral（難解だが感情を含まない統制）に対する誤反応が小さいこと（Welch 独立2標本検定、BH-FDR）
 
 ### 3.4 Reader–Self Coupling（認識–自己報告連動）
 
 刺激ごとの $\mathrm{Corr}(R, S)$、および AIPsy では Clinical−Neutral の $\Delta R$ と $\Delta S$ の相関。高い相関は「刺激間での共変動」であり、「認識が自己報告へ因果伝播した」証拠ではない。因果は V1 Phase C 以降で別測定する。
+
+### 3.5 多重比較補正 (BH-FDR) Family の定義
+
+集計スクリプト（`summarize_behavioral_aipsy.py`）における Benjamini–Hochberg FDR 補正は、評価軸ごとに読み込まれた全モデル・全条件を 1 つの検定 Family として適用する：
+
+- **Sensitivity**: Primary cohort 8モデル × Perspective (Reader / Self) × 次元 (V / A)
+- **Dose-response**: Primary cohort 8モデル × Perspective (Reader / Self) × 次元 (V / A)
+- **Specificity**: Primary cohort 8モデル × Perspective (Reader / Self) × 次元 (V / A)
+- **Coupling**: Primary cohort 8モデル × 次元 (V / A)
+
+### 3.6 AIPsy Affect Direction Map の事前定義 (*a priori* 規約)
+
+AIPsy-Affect データセットには人間アノテーション済みの連続 VAD 評定値が存在しない。そのため、各感情カテゴリに対する期待変位符号（例: grief は V-, A-, D- / terror は V-, A+, D- / ecstasy は V+, A+, D+ 等）は、実験実行前に `src/affective_empathy_eval/affect_directions.py`（バージョン `1.0.0`）として研究者側で決定論的に固定定義されている。このハッシュ値は各モデルの実行 manifest に記録され、事後的な解釈の恣意性を完全に排除する。
 
 集計は `behavioral/analysis/summarize_behavioral_aipsy.py` が Sensitivity（対応 $t$、Cohen's $d_z$、Bootstrap CI、BH-FDR）、dose-response、specificity、coupling を出す。EmoBank 側は `summarize_behavioral_emobank.py` が課題×次元の $r$, $\rho$, MAE を出す。
 
@@ -242,7 +255,7 @@ python behavioral/analysis/summarize_behavioral_aipsy.py \
 
 ---
 
-## 8. 出力
+## 8. 出力と成果物保護
 
 | 出力 | 内容 |
 |---|---|
@@ -251,13 +264,16 @@ python behavioral/analysis/summarize_behavioral_aipsy.py \
 | `{tag}_aipsy_4split.csv` | `split` 付き。列例: `{w,r,s}_e{v,a,d}` |
 | `behavioral_*_summary.csv` | 4 軸のモデル横断表 |
 
+- **Dry-run 成果物の完全隔離**: `--dry-run` 実行時の出力先は自動的に `.../dry_run` サブディレクトリへ隔離され、本番成果物ディレクトリを上書き・汚染しない設計。サマライザーも dry-run 実行時は `dry_run` ディレクトリのみを集計する。
+- **チェックポイント再開の厳密性**: 中断再開は、CSV に加えて `checkpoint_metadata.json` が存在し、モデル設定、シード、データセットハッシュ等の全メタデータが完全一致する場合にのみ許可される。メタデータ欠損または不一致のチェックポイントは安全のため破棄・退避される。
+
 `{tag}` は `qwen_instruct` のように family と variant を表す。生応答は CSV に埋め込みすぎず、manifest（`run_id`、model_id、commit、設定）を残す。失敗・パース不能は削除せず理由コードとともに保存する。
 
 本番 bash は `.venv` を有効化し、`results/logs/production_behavioral_TIMESTAMP.log` に tee する。統合 CLI の `--device` 既定は `cpu`。`--model` と `--tag` は単独実行で必須。`--limit` は確認用。
 
 ---
 
-## 9. 解釈上の禁止事項
+## 9. 解釈上の留意事項と禁止事項
 
 - 高い $r$ を「共感」や「主観的感情」と読まない
 - Reader–Self coupling を認知的共感と情動的共感の一致と読まない
@@ -266,3 +282,4 @@ python behavioral/analysis/summarize_behavioral_aipsy.py \
 - 結果を見てから除外閾値を動かさない
 - Behavioral の数字を V1 の内部表現指標の代替にしない
 - 729 VAD の $E[V], E[A]$ を V2 / V3 の 81 VA 期待値と直接比較しない
+- **RQ3 Specificity の解釈境界**: Complex Neutral（48件）と Clinical（192件）の比較において、語彙的複雑性や文長の違いが交絡として残り得るため、単一の比較のみで絶対的特異性を断定せず、共変量統制分析やサブサンプル感度分析を併記すること。

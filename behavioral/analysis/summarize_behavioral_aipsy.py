@@ -62,7 +62,11 @@ def safe_corr(x, y):
 
 def analyze_model_aipsy(csv_path: str):
     df = pd.read_csv(csv_path)
-    model_name = Path(csv_path).stem.replace("_aipsy_4split", "")
+    stem = Path(csv_path).stem
+    if stem.startswith("behavioral_aipsy_") and stem.endswith("_4split"):
+        model_name = stem[len("behavioral_aipsy_") : -len("_4split")]
+    else:
+        model_name = stem.replace("_aipsy_4split", "")
     alignment = resolve_alignment(model_name)
     splits = set(df["split"].dropna().unique())
 
@@ -396,9 +400,9 @@ def main():
     if args.dry_run:
         args.input_dir = str(Path(args.input_dir) / "dry_run")
         args.out_dir = str(Path(args.out_dir) / "dry_run")
-        files = sorted(glob.glob(os.path.join(args.input_dir, "*_aipsy_4split.csv")))
+        files = sorted(glob.glob(os.path.join(args.input_dir, "behavioral_aipsy_*_4split.csv")))
     else:
-        files = sorted(glob.glob(os.path.join(args.input_dir, "*_aipsy_4split.csv")))
+        files = sorted(glob.glob(os.path.join(args.input_dir, "behavioral_aipsy_*_4split.csv")))
         if not files:
             # Fallback paths
             fallbacks = [
@@ -408,13 +412,14 @@ def main():
             ]
             for fb in fallbacks:
                 if os.path.exists(fb):
-                    files = sorted(glob.glob(os.path.join(fb, "*_aipsy_4split.csv")))
+                    files = sorted(glob.glob(os.path.join(fb, "behavioral_aipsy_*_4split.csv")))
                     if files:
                         break
 
     if not files:
-        print(f"No result CSVs found in {args.input_dir} or fallbacks.")
-        return
+        raise FileNotFoundError(
+            f"No AIPsy behavioral result CSVs found in {args.input_dir}"
+        )
 
     os.makedirs(args.out_dir, exist_ok=True)
     all_rq1 = []

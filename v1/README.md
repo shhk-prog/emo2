@@ -55,13 +55,16 @@ Phase C  因果
 ## 3. 共通プロトコル
 
 - **Sequence-Likelihood**: 主測定は 729 候補（$V,A,D \in \{1..9\}^3$）の条件付き対数尤度と $E[V], E[A]$。V2 / V3 の 81 VA 空間とは混ぜない。
-- **Prompt-End Normalized**: `add_special_tokens=False`、介入位置は `prompt_end = len(prompt_ids) - 1`。
+- **Prompt-End Normalized**: `add_special_tokens=False`、介入・抽出位置は left/right padding 双対応の `valid_pos[-1]`（`torch.nonzero(attention_mask)` 由来）で統一。
+- **Truncation ガード**: Phase A/B において `max_length=1024` によるサイレントな切り捨てを監視し、切り詰め発生時は例外を送出。
 - **相対深度**: $0 \le l < L$ に対し $d = l / (L-1)$（0-based）。論文・表は層番号ではなく $d$ で横断比較する。
 - **独立セッション**: Reader と Self は別フォワードパス。
 - **モデル正本**: `configs/models.yaml` の `primary_small`。
   - Qwen 2.5 1.5B / Llama 3.2 1B / Gemma 3 1B / OLMo 2 1B × Base / Instruct
 - **単独実行のモデル指定**: `--model-id` または `--family` が必須。Qwen ID への暗黙 default は禁止。
 - **データ役割**: EmoBank test1k は連続 VA ラベル（Phase A）。AIPsy は条件ラベルと matched-neutral（Phase A / C / E4）。Phase B は専用統制 CSV。V3 と同じ AIPsy ファイルを使っても、V1 は Reader↔Self の内部比較であり、V3 の状態誘導ゲートとは指標を混ぜない。
+- **Phase A 評価マスク**: `evaluated_mask` を適用し、スキップされた fold のサンプルが暗黙の 0 予測としてメトリクスに混入しないよう評価。
+- **厳密な中断再開とキャッシュ**: E3/E4 の途中 CSV は `checkpoint_manifest.json`（config_hash, model_revision, prompt_hash 等）が完全一致する場合のみ再開。activation cache は全プロンプトの完全ハッシュおよび環境情報と照合。
 - **出力先**: `v1/results/derived/`。raw を上書きせず、`{prefix}` ごとに分ける。
 
 ---
@@ -193,17 +196,18 @@ $$
 h_{S,i}^{\mathrm{neutral}} \leftarrow h_{S,i}^{\mathrm{neutral}} + \alpha\,\Delta h_{R,i}
 $$
 
-$\alpha \in \{-1.0, 0.0, 0.5, 1.0, 1.5\}$。
+- $\alpha$ の設定値: `configs/v1_experiments.yaml` の `alphas: [0.0, 0.5, 1.0, 2.0]` を source of truth として優先適用。
+- **解釈の境界**: $\Delta h$ は感情差に関連した隠れ状態変位（stimulus-pair specific context を含む **affect-manipulation-associated hidden-state difference**）であり、コンテキストから完全に遊離した「純粋な情動コード」とは主張しない。
 
 必須統制:
 
-1. Matched same-stimulus
-2. Random-stimulus（derangement）
-3. Same-task Reader
-4. Same-task Self
+1. Matched same-stimulus: 同一ペア $i$ の $\Delta h_{R,i}$
+2. **Random-stimulus (20-Derangements Control)**: 固定シードによる **20 回の完全撹乱順列（$K=20$ derangements）** を反復実行し、単一ドナー配置に依存しない random donor distribution、平均効果、標準偏差、matched − mean(random) 差分、permutation p、bootstrap CI を算出
+3. Same-task Reader: $\Delta h_{R,i}$ を Reader 自身の中立文へ注入
+4. Same-task Self: $\Delta h_{S,i}$ を Self 自身の中立文へ注入（因果的影響力の上限）
 
 $$
-\mathrm{Specificity} = \mathrm{Effect}_{\mathrm{matched}} - \mathrm{Effect}_{\mathrm{random}}
+\mathrm{Specificity} = \mathrm{Effect}_{\mathrm{matched}} - \mathrm{Mean}(\mathrm{Effect}_{\mathrm{random\_k}})
 $$
 
 不成立でも「完全に別系統」とは書かない。「直接の cross-task interchangeability は確認されない」と書く。off-manifold 化の余地を残す。
@@ -211,6 +215,8 @@ $$
 ### 6.3 E6 Task-Specific Causal Specialization
 
 **問い**: Reader-site と Self-site に課題特異的な因果があるか。
+
+※ **解釈上の留意点**: E6 の zero ablation 介入は対象層・トークンの residual stream 全体を 0 にするため、情動表現のみを特異的に除去したものではなく、「**task-specific causal site sensitivity (whole residual zeroing)**」を測るものである。
 
 サイトは E3 Discovery の因果変位から、タスク選択性コントラストで選ぶ。
 

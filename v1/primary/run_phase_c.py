@@ -39,6 +39,7 @@ from scipy import stats
 from scipy.spatial.distance import cosine
 import torch
 from tqdm import tqdm
+import yaml
 try:
     from transformers import AutoModelForCausalLM, AutoTokenizer
 except ImportError:  # --dry-run は transformers 未導入環境でも起動できるようにする
@@ -264,7 +265,7 @@ def evaluate_expected_va_batch(
             candidates=candidates,
             device=device,
             batch_size=sub_batch_size,
-            normalize_length=False,
+            normalize_length=True,
         )
         ev = float(np.sum(probs * vad_triplets[:, 0]))
         ea = float(np.sum(probs * vad_triplets[:, 1]))

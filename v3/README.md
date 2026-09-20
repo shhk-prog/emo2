@@ -75,10 +75,10 @@ v3/
 3. rank-aware SVD により有効 rank を判定し、直交情動部分空間 $Q$ を構成する。
 4. test で次を測る。
    - $\alpha$ sweep は軸を分ける。$d_V$ 注入 → Valence 用量反応、$d_A$ 注入 → Arousal 用量反応
-   - centered projection removal: $h' = h - QQ^\top(h-\mu_{\mathrm{neu}})$
-   - random control
-   - orthogonal / perpendicular control
-   - Topic control
+   - centered projection removal: $h' = h - QQ^\top(h-\mu_{\text{neu}})$
+   - random control: `num_random_controls: 5` 設定に基づき各軸 $K=5$ 本のランダム方向を評価し、平均効果 `mean_eff_rand_v`, `mean_eff_rand_a` および matched − mean(random) 差分を記録
+   - orthogonal / perpendicular control: 同様に各軸 $K=5$ 本の直交方向を評価
+   - Topic control: 非特異的課題崩壊の検証
 
 層は `--layer` が無ければ相対深度 $d=0.5$ から $l=\operatorname{round}(d(L-1))$ で決める（Qwen の 14 層固定ではない）。
 
@@ -89,7 +89,7 @@ v3/
 | 判定 | 内容 |
 |---|---|
 | Sufficiency / dose-response | 各軸の slope CI 下限が正（$d_V$ と $d_A$ を別 sweep） |
-| Specificity | matched 効果が random / orthogonal を上回る |
+| Specificity | matched 効果が $K=5$ 本の random / orthogonal controls の平均を上回る |
 | Necessity | 射影除去による attenuation の CI 下限が閾値超 |
 | Topic control | Topic 課題の TVD 上限が `max_topic_tvd` 未満 |
 
@@ -114,26 +114,27 @@ Primary は **4-Map × 2軸（V, A）** を同じ格子で出す。旧称のま�
 | Map | 記号 | 定義 |
 |---|---|---|
 | Decodability | $D_V, D_A$ | held-out Ridge $R^2$（Primary は Reader Prediction、Secondary は Self-report） |
-| Partial association | $\beta_V, \beta_A$ | 刺激共変量を統制した internal score → report の偏回帰 |
-| Interventional slope | $\gamma_V, \gamma_A$ | $\alpha$ sweep による因果応答の傾き |
+| Partial association | $\beta_V, \beta_A$ | 刺激共変量を統制した内部 Reader 予測スコア $\rightarrow$ **Self-report ($y_{\text{self}}$)** の偏回帰係数（pair bootstrap 95% CI 併記） |
+| Interventional slope | $\gamma_V, \gamma_A$ | $\gamma = \frac{\Delta\text{Report}}{\Delta\alpha}$（1 SD 正規化介入用量あたりの自己報告変化率） |
 | Causal displacement | $C_V, C_A$ | 介入による自己報告分布の変位 |
 
-出力キーは `D_V`, `D_A`, `beta_V`, `beta_A`, `abs_beta_V`, `abs_beta_A`, `gamma_V`, `gamma_A`, `C_V`, `C_A`。$D$ と $C$ だけを走らせる縮小版ではない。
+出力キーは `D_V`, `D_A`, `beta_V`, `beta_A`, `beta_V_ci`, `beta_A_ci`, `abs_beta_V`, `abs_beta_A`, `gamma_V`, `gamma_A`, `C_V`, `C_A`。$D$ と $C$ だけを走らせる縮小版ではない。
 
 意味段階（Teacher-forced candidate sequence 上の計算段階）:
 
-1. `response_start`（内部では `candidate_start` に正規化）
-2. `pre_V`
-3. `V_value`
-4. `pre_A`
-5. `A_value`
-6. `response_end`
+1. `response_start`: 最初の候補 token を生成する直前（`cand_start - 1` = `prompt_end`）。自己回帰的因果関係に整合。
+2. `candidate_start`: 候補の最初の token そのもの（`cand_start`）。
+3. `pre_V`: Valence トークン生成直前
+4. `V_value`: Valence トークン処理後
+5. `pre_A`: Arousal トークン生成直前
+6. `A_value`: Arousal トークン処理後
+7. `response_end`: 最終候補 token 処理後（因果効果が原理上消失する **Negative control** として保持）
 
 $C(l,t)$ と $\gamma(l,t)$ は実介入の $\alpha$ sweep から測る。プローブ係数で代用しない。生成段階の patch は joint sequence 上の token であり、`prompt_end` に丸めない。
 
 Valence 方向 $d_V$ の注入が $\gamma_V,C_V$、Arousal 方向 $d_A$ の注入が $\gamma_A,C_A$ である。片方の注入で両軸を同時に主張しない。
 
-$\beta$ は符号付き偏回帰係数を Primary に残し、`abs_beta_*` を併記する。
+$\beta$ は符号付き偏回帰係数を Primary に残し、`abs_beta_*` および pair bootstrap 95% CI を併記する。
 
 記述上の見込み（仮説であり結果ではない）: 刺激提示時の $D$ は中間層、生成時の $C$ は後期の pre-value トークンに寄る。これを時空間ピーク解離と呼ぶ。
 
@@ -157,8 +158,9 @@ RQ2 は全マップの探索的導出（Discovery）であり、出力に `analy
 |---|---|
 | Total affective shift | matched-neutral 基準の $|E[V]_{\mathrm{aff}}-E[V]_{\mathrm{neu}}|$（$A$ も同様） |
 | Residual shift after blocking | 部分空間除去後の同じ量 |
-| Mediated attenuation | Total − Residual（または比） |
+| Mediated attenuation | Total − Residual（または比）。Bootstrap CI |
 | Attenuation ratio | 減衰の割合。Bootstrap CI |
+| Random Subspace Control | **matched-rank random 2D subspace removal ($Q_{\text{rand}}$)**。任意の 2D 破壊による非特異的変位減少と、情動部分空間の特異的減衰を分離 |
 
 手順:
 
@@ -166,7 +168,8 @@ RQ2 は全マップの探索的導出（Discovery）であり、出力に `analy
 2. Discovery で mediator 層 $l_{\mathrm{med}}^*$ を実介入プロファイルから選ぶ
 3. Confirmation でその層だけを固定して遮断する
 4. matched-neutral baseline 必須
-5. 探索で見た split を確認に再利用しない
+5. matched-rank random 2D subspace removal による統制効果との差分（Net attenuation）を算出して内生特異性を検証
+6. 探索で見た split を確認に再利用しない
 
 「完全な因果媒介が証明された」ではなく、「遮断後に自己報告変位が減衰した」と書く。
 
@@ -176,14 +179,14 @@ RQ2 は全マップの探索的導出（Discovery）であり、出力に `analy
 
 正本: `v3/primary/run_confirmatory_replication.py`
 
-Target（Qwen）で立てた 4 仮説を、Llama 3.2 / Gemma 3 / OLMo 2 の Instruct で追試する。family が registry に無ければ落とす。
+Target（Qwen）で立てた 4 仮説を、Llama 3.2 / Gemma 3 / OLMo 2 の Instruct で追試する。family が registry に無ければ落とす。データ空時の架空値フォールバック（旧 1.0/0.5 等）は排除され、例外を送出する。
 
-仮説の骨格:
+仮説の骨格と厳密判定基準（**全仮説について CI lower bound > preregistered threshold で判定**）:
 
-1. Dissociation: $d_C$ が $d_D$ より深い
-2. Sufficiency: Valence 方向 sweep の slope と Arousal 方向 sweep の slope を別々に見る
-3. Necessity: attenuation が閾値を超える
-4. Temporal emergence: `pre_V` 付近の因果が `response_start` より大きい
+1. **H1 Dissociation**: $d_C$ が $d_D$ より深い（$\Delta d_{\text{peak}}, \Delta d_{\text{center}}$ の bootstrap 95% CI 下限 $> 0$）
+2. **H2 Sufficiency**: Valence/Arousal 方向注入の dose-response slope（$\gamma_V, \gamma_A$ の pair-bootstrap 95% CI 下限 $> \text{min\_slope}$）
+3. **H3 Endogenous Relevance**: mediated attenuation（絶対減衰量の bootstrap 95% CI 下限 $> \text{min\_atten\_ci\_lower}$）
+4. **H4 Temporal emergence**: `pre_V`/`pre_A` 付近の因果応答と `candidate_start` のコントラスト（temporal contrast の pair-bootstrap 95% CI 下限 $> \text{min\_temporal\_contrast}$）
 
 確認側でも GroupKFold / pair split を保つ。Discovery の数字を確認に再利用しない。Sufficiency で片方の注入から両軸を同時に主張しない。
 

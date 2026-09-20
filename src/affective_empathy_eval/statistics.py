@@ -336,10 +336,10 @@ def compute_paired_cohen_dz(
         d_arr = np.asarray(x, dtype=np.float64)
 
     if len(d_arr) < 2:
-        return 0.0
+        return np.nan
     s_delta = float(np.std(d_arr, ddof=ddof))
     if s_delta < 1e-9:
-        return 0.0
+        return np.nan
     return float(np.mean(d_arr) / s_delta)
 
 

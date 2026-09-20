@@ -26,7 +26,8 @@ class MockRepresentationExtractor:
         layers_to_extract: Optional[List[int]] = None
     ) -> List[ExtractionManifest]:
         
-        text_seed = abs(hash(stimulus_text or stimulus_id or "baseline")) % (2**32)
+        raw_key = (stimulus_text or stimulus_id or "baseline").encode("utf-8")
+        text_seed = int.from_bytes(hashlib.sha256(raw_key).digest()[:4], "big")
         local_rng = np.random.default_rng(text_seed)
         
         target_layers = layers_to_extract or list(range(self.num_layers))

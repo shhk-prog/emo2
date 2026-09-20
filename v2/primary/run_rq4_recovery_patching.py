@@ -789,7 +789,10 @@ def main():
             "family_id": fam_id,
             "family_name": fam_cfg.family_name,
             "base_model_id": spec_base.model_id if spec_base else None,
+            "base_revision": spec_base.revision if spec_base else None,
             "instruct_model_id": spec_inst.model_id if spec_inst else None,
+            "instruct_revision": spec_inst.revision if spec_inst else None,
+            "dtype": getattr(fam_cfg, "inference_dtype", "bfloat16"),
             "dataset_path": str(v2_config["dataset"]["path"]),
             "seed": v2_config.get("seed", 42),
             "n_boot": n_boot,
@@ -797,25 +800,40 @@ def main():
             "dry_run": bool(args.dry_run),
         }
 
+        from affective_empathy_eval.manifests import (
+            is_manifest_matching,
+            compute_file_hash,
+            compute_string_or_dict_hash,
+        )
         from affective_empathy_eval.io import save_experiment_result, is_experiment_completed
 
-        if not args.force and not args.dry_run:
-            target_check = modular_rq4_path if modular_rq4_path.exists() else out_path
-            man_p = str(manifest_path) if manifest_path.exists() else None
-            if is_experiment_completed(str(target_check), manifest_path=man_p):
-                try:
-                    read_p = modular_rq4_path if modular_rq4_path.exists() else out_path
-                    with open(read_p, "r", encoding="utf-8") as f:
-                        cached = json.load(f)
-                    logger.info(f"Loaded existing results for {fam_id} from {read_p}. Skipping computation.")
-                    all_recovery_results[fam_id] = cached
-                    fam_csv = raw_dir / f"v2_recovery_samples_{fam_id}.csv"
-                    if fam_csv.exists():
-                        df_cached_samples = pd.read_csv(fam_csv)
-                        all_sample_records.extend(df_cached_samples.to_dict(orient="records"))
-                    continue
-                except Exception as e:
-                    logger.warning(f"Cache check failed for {fam_id}: {e}")
+        ds_path_p = Path(v2_config["dataset"]["path"])
+        exp_ds_hash = compute_file_hash(ds_path_p) if ds_path_p.exists() else compute_string_or_dict_hash(str(ds_path_p))
+        exp_cfg_hash = compute_string_or_dict_hash(manifest_config)
+
+        if not args.force and not args.dry_run and manifest_path.exists():
+            manifest_valid = is_manifest_matching(
+                manifest_path=str(manifest_path),
+                expected_config_hash=exp_cfg_hash,
+                expected_dataset_hash=exp_ds_hash,
+                expected_dry_run=False,
+            )
+            if manifest_valid:
+                target_check = modular_rq4_path if modular_rq4_path.exists() else out_path
+                if is_experiment_completed(str(target_check), manifest_path=str(manifest_path)):
+                    try:
+                        read_p = modular_rq4_path if modular_rq4_path.exists() else out_path
+                        with open(read_p, "r", encoding="utf-8") as f:
+                            cached = json.load(f)
+                        logger.info(f"Loaded existing results matching manifest for {fam_id} from {read_p}. Skipping computation.")
+                        all_recovery_results[fam_id] = cached
+                        fam_csv = raw_dir / f"v2_recovery_samples_{fam_id}.csv"
+                        if fam_csv.exists():
+                            df_cached_samples = pd.read_csv(fam_csv)
+                            all_sample_records.extend(df_cached_samples.to_dict(orient="records"))
+                        continue
+                    except Exception as e:
+                        logger.warning(f"Cache check failed for {fam_id}: {e}")
 
         train_ratio = float(v2_config.get("dataset", {}).get("train_ratio", 0.7))
         logger.info(f"--- Running Recovery Patching for Family: {fam_id} (train_ratio={train_ratio}) ---")

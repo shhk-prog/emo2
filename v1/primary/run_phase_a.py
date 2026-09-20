@@ -603,6 +603,21 @@ def main():
     args = parser.parse_args()
     args.model_id, args.model_prefix = resolve_single_model_from_args(args)
 
+    # Production safety valve: ensure fixed model revision is resolved
+    if args.model_revision is None and not getattr(args, "dry_run", False):
+        from affective_empathy_eval.models.registry import get_registry
+        registry = get_registry()
+        fam_cfg = registry.get_family_by_model_id(args.model_id)
+        if fam_cfg:
+            for spec in (fam_cfg.base_model, fam_cfg.instruct_model):
+                if spec.model_id == args.model_id and spec.revision:
+                    args.model_revision = spec.revision
+                    break
+        if not args.model_revision:
+            raise ValueError(
+                f"Production run requires explicit fixed model revision for '{args.model_id}', but none was provided or resolved from registry."
+            )
+
     # Item 29: configs/v1_experiments.yaml の Phase A 設定読み込み
     cfg_path = Path(args.config)
     phase_a_cfg = {}
@@ -860,6 +875,7 @@ def main():
             model_revision=args.model_revision or "main",
             config=dry_cfg,
             dataset_path=dataset_paths[0] if dataset_paths else None,
+            dataset_hash=dataset_hash,
             candidate_space="N/A",
             measurement_space="prompt_end_hidden_state",
             seed=phase_a_seed,
@@ -1240,6 +1256,7 @@ def main():
         model_revision=args.model_revision or "main",
         config=manifest_config,
         dataset_path=dataset_paths[0] if dataset_paths else None,
+        dataset_hash=dataset_hash,
         candidate_space="N/A",
         measurement_space="prompt_end_hidden_state",
         actual_dtype=str(actual_torch_dtype).replace("torch.", ""),

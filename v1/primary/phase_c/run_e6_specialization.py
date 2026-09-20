@@ -310,6 +310,21 @@ def main():
     args = parser.parse_args()
     args.model_id, args.model_prefix = resolve_single_model_from_args(args)
 
+    # Production safety valve: ensure fixed model revision is resolved
+    if args.model_revision is None and not getattr(args, "dry_run", False):
+        from affective_empathy_eval.models.registry import get_registry
+        registry = get_registry()
+        fam_cfg = registry.get_family_by_model_id(args.model_id)
+        if fam_cfg:
+            for spec in (fam_cfg.base_model, fam_cfg.instruct_model):
+                if spec.model_id == args.model_id and spec.revision:
+                    args.model_revision = spec.revision
+                    break
+        if not args.model_revision:
+            raise ValueError(
+                f"Production run requires explicit fixed model revision for '{args.model_id}', but none was provided or resolved from registry."
+            )
+
     if args.dry_run:
         args.out_dir = os.path.join(args.out_dir, "dry_run")
 
@@ -324,6 +339,32 @@ def main():
         or "it" in args.model_id.lower()
     )
 
+    aipsy_check_path = Path("v1/data/processed/aipsy_4split_all.csv")
+    if not aipsy_check_path.exists():
+        aipsy_check_path = Path("data/processed/aipsy_4split_all.csv")
+
+    from affective_empathy_eval.manifests import (
+        is_manifest_matching,
+        compute_file_hash,
+        compute_string_or_dict_hash,
+    )
+
+    dataset_hash = compute_file_hash(aipsy_check_path) if aipsy_check_path.exists() else "unknown"
+
+    manifest_config = {
+        "model_prefix": args.model_prefix,
+        "model_id": args.model_id,
+        "model_revision": args.model_revision or "main",
+        "reader_layer": args.reader_layer,
+        "self_layer": args.self_layer,
+        "ablation_type": args.ablation_type,
+        "split_eval": args.split_eval,
+        "split_seed": args.split_seed,
+        "limit": args.limit,
+        "dataset_hash": dataset_hash,
+    }
+    expected_config_hash = compute_string_or_dict_hash(manifest_config)
+
     # Early skip if already completed and valid
     from affective_empathy_eval.io import save_experiment_result, is_experiment_completed
 
@@ -331,14 +372,23 @@ def main():
     manifest_path = os.path.join(model_dir, "manifest_e6.json")
     lmm_path = os.path.join(model_dir, "e6_lmm_results.json")
 
-    if not args.force and not args.dry_run:
-        target_check = modular_e6_json if os.path.exists(modular_e6_json) else lmm_path
-        if is_experiment_completed(target_check, manifest_path=manifest_path if os.path.exists(manifest_path) else None):
-            print(
-                f"[SKIP] Validated Phase C E6 results found in {model_dir}. "
-                f"Skipping computation for {args.model_prefix}. Use --force to rerun."
-            )
-            return
+    if not args.force and not args.dry_run and os.path.exists(manifest_path):
+        manifest_valid = is_manifest_matching(
+            manifest_path=manifest_path,
+            expected_model_name=args.model_id,
+            expected_config_hash=expected_config_hash,
+            expected_dataset_hash=dataset_hash,
+            expected_model_revision=args.model_revision,
+            expected_dry_run=False,
+        )
+        if manifest_valid:
+            target_check = modular_e6_json if os.path.exists(modular_e6_json) else lmm_path
+            if is_experiment_completed(target_check, manifest_path=manifest_path):
+                print(
+                    f"[SKIP] Validated Phase C E6 results matching manifest found in {model_dir}. "
+                    f"Skipping computation for {args.model_prefix}. Use --force to rerun."
+                )
+                return
 
     try:
         num_layers, _ = resolve_architecture_dims(args.model_id)
@@ -403,7 +453,7 @@ def main():
                 },
                 metadata=negative_result,
                 candidate_space="VAD_729",
-                measurement_space="VA_81",
+                measurement_space="VA_expectation_from_VAD_729",
                 intervention_version="none",
                 run_id=args.run_id,
                 dry_run=args.dry_run,
@@ -494,7 +544,7 @@ def main():
             },
             metadata=stat_results,
             candidate_space="VAD_729",
-            measurement_space="VA_81",
+            measurement_space="VA_expectation_from_VAD_729",
             intervention_version="prompt_end_normalized",
             run_id=args.run_id,
             dry_run=True,
@@ -846,7 +896,7 @@ def main():
         },
         metadata=stat_results,
         candidate_space="VAD_729",
-        measurement_space="VA_81",
+        measurement_space="VA_expectation_from_VAD_729",
         actual_dtype=str(actual_torch_dtype).replace("torch.", ""),
         intervention_version="prompt_end_normalized",
         run_id=args.run_id,

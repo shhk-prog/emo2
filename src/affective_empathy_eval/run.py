@@ -239,16 +239,18 @@ def run_v1(args, python_bin: str):
     for fid, cfg in models.items():
         # Iterate over both Base and Instruct models
         variants = [
-            (cfg.base_model.model_id, f"{fid.lower()}_base", False),
-            (cfg.instruct_model.model_id, f"{fid.lower()}_instruct", True),
+            (cfg.base_model, f"{fid.lower()}_base", False),
+            (cfg.instruct_model, f"{fid.lower()}_instruct", True),
         ]
-        for model_id, prefix, is_instruct in variants:
-            logger.info(f"--- Running V1 Pipeline for {prefix} ({model_id}) ---")
+        for model_spec, prefix, is_instruct in variants:
+            logger.info(f"--- Running V1 Pipeline for {prefix} ({model_spec.model_id}, revision={model_spec.revision}) ---")
             common_flags = [
-                "--model-id", model_id,
+                "--model-id", model_spec.model_id,
                 "--model-prefix", prefix,
                 "--device", args.device,
             ]
+            if model_spec.revision:
+                common_flags.extend(["--model-revision", model_spec.revision])
             if is_instruct:
                 common_flags.append("--is-instruct")
             if args.dry_run:
@@ -287,11 +289,12 @@ def run_behavioral(args, python_bin: str):
     models = resolve_models_from_args(args)
     for fid, cfg in models.items():
         variants = [
-            (cfg.base_model.model_id, f"{fid.lower()}_base", False),
-            (cfg.instruct_model.model_id, f"{fid.lower()}_instruct", True),
+            (cfg.base_model, f"{fid.lower()}_base", False),
+            (cfg.instruct_model, f"{fid.lower()}_instruct", True),
         ]
-        for model_id, tag, is_instruct in variants:
-            logger.info(f"Running behavioral evaluation for {tag} ({model_id})...")
+        for model_spec, tag, is_instruct in variants:
+            model_id = model_spec.model_id
+            logger.info(f"Running behavioral evaluation for {tag} ({model_id}, revision={model_spec.revision})...")
 
             # 1. EmoBank 3-Way VAD
             cmd_emobank = [
@@ -300,7 +303,10 @@ def run_behavioral(args, python_bin: str):
                 "--model", model_id,
                 "--tag", tag,
                 "--device", args.device,
+                "--dtype", getattr(cfg, "inference_dtype", "bfloat16"),
             ]
+            if model_spec.revision:
+                cmd_emobank.extend(["--model-revision", model_spec.revision])
             if is_instruct:
                 cmd_emobank.append("--is_instruct")
             if args.max_samples:
@@ -314,10 +320,12 @@ def run_behavioral(args, python_bin: str):
             cmd_aipsy = [
                 python_bin,
                 "behavioral/primary/run_behavioral_aipsy.py",
-                "--model", model_id,
+                "--model", model_spec.model_id,
                 "--tag", tag,
                 "--device", args.device,
             ]
+            if model_spec.revision:
+                cmd_aipsy.extend(["--model-revision", model_spec.revision])
             if is_instruct:
                 cmd_aipsy.append("--is-instruct")
             if args.max_samples:

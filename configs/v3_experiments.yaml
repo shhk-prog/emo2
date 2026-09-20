@@ -85,7 +85,10 @@ confirmatory:
   # Values must not be re-selected using Llama/Gemma/OLMo outcomes.
   selection_source: "qwen_discovery_frozen"
   sufficiency_relative_depth: 0.5
-  temporal_relative_depth: 0.65
+  temporal_relative_depth_v: 0.65
+  temporal_relative_depth_a: 0.65
+  temporal_stage_v: "pre_V"
+  temporal_stage_a: "pre_A"
   mediation_relative_depth: 0.65
   qc:
     min_sufficiency_slope: 0.1

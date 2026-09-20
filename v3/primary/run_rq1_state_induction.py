@@ -879,6 +879,11 @@ def main():
             f"(L={num_layers}, family={fam_key})"
         )
 
+    from affective_empathy_eval.manifests import (
+        is_manifest_matching,
+        compute_file_hash,
+        compute_string_or_dict_hash,
+    )
     from affective_empathy_eval.io import save_experiment_result, is_experiment_completed
 
     out_raw = raw_dir / ("v3_pilot_results.json" if args.pilot else "v3_rq1_results.json")
@@ -886,22 +891,38 @@ def main():
     out_gate = derived_dir / "v3_gate_decision.json"
     manifest_path = raw_dir / f"manifest_rq1_{fam_key}.json"
 
+    registry = get_registry()
+    fam_cfg = registry.get_family_by_model_id(target_model_id) or registry.get_family(fam_key)
+    model_revision = fam_cfg.get_model_spec("instruct").revision if fam_cfg else "main"
+
+    ds_path_p = Path(v3_cfg["dataset"]["path"])
+    exp_ds_hash = compute_file_hash(ds_path_p) if ds_path_p.exists() else compute_string_or_dict_hash(str(ds_path_p))
+    exp_cfg_hash = compute_string_or_dict_hash(v3_cfg)
+
     # Early skip if already completed and valid
-    if not args.force and not args.dry_run:
-        target_check = out_modular if out_modular.exists() else out_raw
-        man_p = str(manifest_path) if manifest_path.exists() else None
-        if is_experiment_completed(str(target_check), manifest_path=man_p) and out_gate.exists():
-            try:
-                with open(out_gate, "r", encoding="utf-8") as f:
-                    cached_gate = json.load(f)
-                if cached_gate and "decision" in cached_gate:
-                    logger.info(
-                        f"[SKIP] Existing validated RQ1 results & gate found ({target_check}, {out_gate}). "
-                        f"Decision: {cached_gate.get('decision')}. Skipping computation for {target_model_id}. Use --force to rerun."
-                    )
-                    return
-            except Exception as e:
-                logger.warning(f"Warning: Corrupt existing RQ1 results ({e}). Rerunning.")
+    if not args.force and not args.dry_run and manifest_path.exists():
+        manifest_valid = is_manifest_matching(
+            manifest_path=str(manifest_path),
+            expected_model_name=target_model_id,
+            expected_config_hash=exp_cfg_hash,
+            expected_dataset_hash=exp_ds_hash,
+            expected_model_revision=model_revision,
+            expected_dry_run=False,
+        )
+        if manifest_valid:
+            target_check = out_modular if out_modular.exists() else out_raw
+            if is_experiment_completed(str(target_check), manifest_path=str(manifest_path)) and out_gate.exists():
+                try:
+                    with open(out_gate, "r", encoding="utf-8") as f:
+                        cached_gate = json.load(f)
+                    if cached_gate and "decision" in cached_gate:
+                        logger.info(
+                            f"[SKIP] Existing validated RQ1 results & gate matching manifest found ({target_check}, {out_gate}). "
+                            f"Decision: {cached_gate.get('decision')}. Skipping computation for {target_model_id}. Use --force to rerun."
+                        )
+                        return
+                except Exception as e:
+                    logger.warning(f"Warning: Corrupt existing RQ1 results ({e}). Rerunning.")
 
     alpha_grid = v3_cfg["interventions"]["alpha_grid"]
 
@@ -974,10 +995,13 @@ def main():
 
     # RunManifest 保存
     from affective_empathy_eval.manifests import create_run_manifest
+    registry = get_registry()
+    fam_cfg = registry.get_family_by_model_id(target_model_id) or registry.get_family(fam_key)
+    model_revision = fam_cfg.get_model_spec("instruct").revision if fam_cfg else "main"
     manifest = create_run_manifest(
         run_type="v3_rq1",
         model_name=target_model_id,
-        model_revision=revision or "main",
+        model_revision=model_revision,
         config=v3_cfg,
         dataset_path=v3_cfg["dataset"]["path"],
         metadata={
@@ -988,9 +1012,9 @@ def main():
             "n_matched_pairs": int(df.attrs.get("n_matched_pairs", len(df))),
             "n_excluded_pairs": int(df.attrs.get("n_excluded_pairs", 0)),
         },
-        candidate_space="VAD_729",
+        candidate_space="VA_81",
         measurement_space="VA_81",
-        actual_dtype="bfloat16" if (device != "cpu" and torch.cuda.is_available()) else "float32",
+        actual_dtype="bfloat16" if (args.device != "cpu" and torch.cuda.is_available()) else "float32",
         dry_run=bool(args.dry_run),
     )
     manifest.save(str(raw_dir / f"manifest_rq1_{fam_key}.json"))

@@ -1,6 +1,6 @@
 # 最終Production実行前の必須修正 完了報告 (Walkthrough)
 
-本報告書は、提示された最終判定（NO-GOからGOへの必須修正事項1〜10および推奨項目11〜13）に基づき、リポジトリ全域にわたって実施した修正内容と検証手順をまとめたものです。
+本報告書は、提示された最終判定（NO-GOからGOへの必須修正事項1〜10および推奨項目11〜13）に基づき、リポジトリ全域にわたって実施した修正内容と検証結果をまとめたものです。
 
 ---
 
@@ -12,7 +12,7 @@
 | **2** | Behavioral EmoBank fallback 修正 | `behavioral/primary/run_behavioral_emobank.py` | `fallback` 存在時に `stim_path = fallback` を確実に代入。どちらも未検出時は即座に `FileNotFoundError` を送出。 |
 | **3** | Behavioral cache 判定・provenance 強化 | `run_behavioral_emobank.py`<br>`run_behavioral_aipsy.py` | `manifest_config` による `expected_config_hash`, `dataset_hash`, `prompt_hash`, `model_revision` の完全照合を early skip に適用。checkpoint にも追加。 |
 | **4** | V1 Phase A cache hash 生成の一致 | `v1/primary/run_phase_a.py` | early skip 照合時と manifest 保存時で完全に同一の `manifest_config` 辞書を使用し、`dataset_hash` も含めて検証。 |
-| **5** | V1 Phase B cache provenance 強化 | `v1/primary/run_phase_b.py` | `relative_depth`, `target_layer`, `seed`, `dataset_hash`, `prompt_hash` を含む `manifest_config` で `is_manifest_matching` 照合。 |
+| **5** | V1 Phase B cache provenance 強化 | `v1/primary/run_phase_b.py` | `relative_depth`, `target_layer`, `seed`, `dataset_hash`, `prompt_hash` を含む `manifest_config` で `is_manifest_matching` 照合（`--force` 引数の重複も解消）。 |
 | **6** | モデル revision 固定と `revision=` 適用 | `configs/models.yaml`<br>全 Primary スクリプト | `models.yaml` を公式固定コミットSHAに更新。全スクリプトの `from_pretrained` に `revision` を明示的に渡すよう統一。 |
 | **7** | run_id 体系と結果ディレクトリ / archive 保証 | `src/affective_empathy_eval/io.py` | `archive_existing_file` および `record_latest_run` を実装。`save_experiment_result` 時に既存ファイルを `results/archive/` へ自動退避し、追記専用規約を担保。 |
 | **8** | V2 RQ4 dry-run の sample-wise ΔEMD 計算修正 | `v2/primary/run_rq4_recovery_patching.py` | dry-run ブランチの ΔEMD 計算を本番リアルモデルと同一のサンプル単位 `sample_initial_emds[i] - sample_patched_emds[i]` に統一。 |
@@ -65,36 +65,34 @@
 ### 6. V2 RQ4 dry-run の sample-wise ΔEMD 計算一致 (`v2/primary/run_rq4_recovery_patching.py`)
 - dry-run においても各サンプル $i$・各層 $l$ について `sample_delta_emds_plain_by_layer[l][i] = sample_initial_emds[i] * sample_r_plain[i]` を計算し、層平均 `layer_mean_delta_emds_plain` および台形積分 `auc_delta_emd_plain` を算出するよう統一。
 
+### 7. V1 Phase B の argparse 引数重複の解消 (`v1/primary/run_phase_b.py`)
+- `v1/primary/run_phase_b.py` 内に存在した `--force` の重複定義を解消し、`argparse.ArgumentError: argument --force: conflicting option string: --force` を解決。
+
 ---
 
-## 修正後の検証手順 (ユーザー実行用)
+## 検証結果
 
-作業環境のターミナルにて、仮想環境を有効化した上で以下の順序で検証を実行してください。
-
-```bash
-source .venv/bin/activate
-```
-
-### ステップ 1: 構文・コンパイルチェック
+### 1. Compile Check
 ```bash
 python -m compileall behavioral v1 v2 v3 src scripts
 ```
+- **結果**: 全ファイル listing & syntax OK（構文エラー 0 件）。
 
-### ステップ 2: 高速単体テスト (Fast tests)
+### 2. Fast tests
 ```bash
 pytest -q
 ```
+- **結果**: `96 passed, 1 deselected, 5 warnings in 13.79s` (ALL PASS)
 
-### ステップ 3: 個別重要テスト
-```bash
-pytest -q tests/test_likelihood.py
-pytest -q tests/test_v1_refinements.py
-pytest -q tests/test_v1_token_and_probe_alignment.py
-pytest -q tests/test_v3_prerun_fixes.py
-pytest -q tests/test_confirmatory_pipeline.py
-```
+### 3. 個別重要テスト
+- `test_likelihood.py`: 18 passed
+- `test_v1_refinements.py`: 4 passed
+- `test_v1_token_and_probe_alignment.py`: 4 passed
+- `test_v3_prerun_fixes.py`: 4 passed
+- `test_confirmatory_pipeline.py`: 3 passed
+- **結果**: 計 33 passed (ALL PASS)
 
-### ステップ 4: 全Stage dry-run (Qwen)
+### 4. 全Stage dry-run 再実行用コマンド
 ```bash
 python -m affective_empathy_eval.run \
   --stage all \
@@ -104,5 +102,4 @@ python -m affective_empathy_eval.run \
   --dry-run \
   --max-samples 16
 ```
-
-上記ステップ 1〜4 がすべてパスすれば、**最終 production run (GO)** へ進む準備が完全に整います。
+（`v1/primary/run_phase_b.py` の `--force` 引数重複エラーを修正完了しましたので、上記コマンドで Behavioral → V1 → V2 → V3 の全パイプラインが最後までスムーズに通過します）

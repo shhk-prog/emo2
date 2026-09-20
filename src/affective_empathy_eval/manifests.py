@@ -177,6 +177,7 @@ def create_run_manifest(
     tokenizer_revision: str = "main",
     run_id: Optional[str] = None,
     dry_run: bool = False,
+    dataset_hash: Optional[str] = None,
 ) -> RunManifest:
     from datetime import datetime, timezone
     import subprocess
@@ -218,7 +219,14 @@ def create_run_manifest(
         template_mode = str(cfg["template_mode"])
 
     cfg_hash = compute_string_or_dict_hash(cfg)
-    ds_hash = compute_string_or_dict_hash(dataset_path) if dataset_path else "unknown"
+    if dataset_hash is not None:
+        ds_hash = dataset_hash
+    elif dataset_path and Path(dataset_path).exists():
+        ds_hash = compute_file_hash(Path(dataset_path))
+    elif dataset_path:
+        ds_hash = compute_string_or_dict_hash(dataset_path)
+    else:
+        ds_hash = "unknown"
 
     if run_id is None:
         run_id = generate_run_id(git_sha=git_sha, config_hash=cfg_hash)
@@ -259,7 +267,7 @@ def create_run_manifest(
 def is_manifest_matching(
     manifest_path: str,
     expected_model_name: Optional[str] = None,
-    expected_intervention_version: Optional[str] = DEFAULT_INTERVENTION_VERSION,
+    expected_intervention_version: Optional[str] = None,
     expected_candidate_space: Optional[str] = None,
     expected_measurement_space: Optional[str] = None,
     expected_prompt_version: Optional[str] = None,

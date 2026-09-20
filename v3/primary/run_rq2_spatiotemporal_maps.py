@@ -638,19 +638,36 @@ def main():
     manifest_path = raw_dir / f"manifest_rq2_{fam_key}.json"
 
     if not args.force and not args.dry_run:
-        target_check = modular_rq2_path if modular_rq2_path.exists() else out_raw
-        man_p = str(manifest_path) if manifest_path.exists() else None
-        if is_experiment_completed(str(target_check), manifest_path=man_p):
-            try:
-                read_p = modular_rq2_path if modular_rq2_path.exists() else out_raw
-                with open(read_p, "r", encoding="utf-8") as f:
-                    cached = json.load(f)
-                if cached and "maps" in cached:
-                    logger.info(f"Loaded existing discovery 4-maps from {read_p}. Skipping computation.")
-                    results = cached
-                    cache_hit = True
-            except Exception as e:
-                logger.warning(f"Cache check failed for {target_check}: {e}")
+        from affective_empathy_eval.manifests import (
+            is_manifest_matching,
+            compute_file_hash,
+            compute_string_or_dict_hash,
+        )
+        ds_path_p = Path(v3_cfg["dataset"]["path"])
+        exp_ds_hash = compute_file_hash(ds_path_p) if ds_path_p.exists() else compute_string_or_dict_hash(str(ds_path_p))
+        exp_cfg_hash = compute_string_or_dict_hash(manifest_config)
+
+        if manifest_path.exists():
+            manifest_valid = is_manifest_matching(
+                manifest_path=str(manifest_path),
+                expected_model_name=target_model_id,
+                expected_config_hash=exp_cfg_hash,
+                expected_dataset_hash=exp_ds_hash,
+                expected_dry_run=False,
+            )
+            if manifest_valid:
+                target_check = modular_rq2_path if modular_rq2_path.exists() else out_raw
+                if is_experiment_completed(str(target_check), manifest_path=str(manifest_path)):
+                    try:
+                        read_p = modular_rq2_path if modular_rq2_path.exists() else out_raw
+                        with open(read_p, "r", encoding="utf-8") as f:
+                            cached = json.load(f)
+                        if cached and "maps" in cached:
+                            logger.info(f"Loaded existing discovery 4-maps matching manifest from {read_p}. Skipping computation.")
+                            results = cached
+                            cache_hit = True
+                    except Exception as e:
+                        logger.warning(f"Cache check failed for {target_check}: {e}")
 
     if results is None:
         if args.dry_run:
@@ -700,10 +717,13 @@ def main():
 
     # Save manifest with explicit intervention sample count only on fresh computation
     if not cache_hit:
+        registry = get_registry()
+        fam_cfg = registry.get_family_by_model_id(target_model_id) or registry.get_family(fam_key)
+        model_revision = fam_cfg.get_model_spec("instruct").revision if fam_cfg else "main"
         manifest = create_run_manifest(
             run_type="v3_rq2_discovery_spatiotemporal_maps",
             model_name=target_model_id,
-            model_revision=fam_cfg.get_model_spec("instruct").revision if fam_cfg else "main",
+            model_revision=model_revision,
             config=manifest_config,
             metadata={
                 "analysis_role": "discovery",
@@ -716,9 +736,9 @@ def main():
                 "n_causal_intervention_samples": int(results.get("n_causal_intervention_samples", min(5, len(df)))),
                 "dissociation_summary": results["dissociation_summary"],
             },
-            candidate_space="VAD_729",
+            candidate_space="VA_81",
             measurement_space="VA_81",
-            actual_dtype="bfloat16" if (device != "cpu" and torch.cuda.is_available()) else "float32",
+            actual_dtype="bfloat16" if (args.device != "cpu" and torch.cuda.is_available()) else "float32",
             dry_run=bool(args.dry_run),
         )
         manifest.save(raw_dir / f"manifest_rq2_{fam_key}.json")

@@ -474,32 +474,41 @@ def main():
         config_payload = {
             "family_id": fam_id,
             "base_model": fam_cfg.base_model.model_id,
+            "base_revision": fam_cfg.base_model.revision,
             "instruct_model": fam_cfg.instruct_model.model_id,
+            "instruct_revision": fam_cfg.instruct_model.revision,
             "seed": seed,
             "max_samples": args.max_samples,
             "dry_run": bool(args.dry_run),
-            "dtype": "bfloat16" if getattr(fam_cfg, "dtype", "bfloat16") == "bfloat16" else "float16",
+            "dtype": getattr(fam_cfg, "inference_dtype", "bfloat16"),
         }
         exp_cfg_hash = compute_string_or_dict_hash(config_payload)
-        exp_ds_hash = compute_string_or_dict_hash(str(data_path))
+        exp_ds_hash = compute_file_hash(data_path) if data_path.exists() else compute_string_or_dict_hash(str(data_path))
 
-        if not args.force and not args.dry_run:
-            check_rq1 = rq1_out_path if rq1_out_path.exists() else fam_out_path
-            check_rq2 = rq2_out_path if rq2_out_path.exists() else fam_out_path
-            man_p = str(manifest_path) if manifest_path.exists() else None
-            if is_experiment_completed(str(check_rq1), manifest_path=man_p) and is_experiment_completed(str(check_rq2), manifest_path=man_p):
-                try:
-                    if fam_out_path.exists():
-                        with open(fam_out_path, "r", encoding="utf-8") as f:
-                            cached_res = json.load(f)
-                    else:
-                        with open(rq1_out_path, "r", encoding="utf-8") as f1, open(rq2_out_path, "r", encoding="utf-8") as f2:
-                            cached_res = {**json.load(f1), **json.load(f2)}
-                    logger.info(f"Loaded existing validated results for {fam_id}. Skipping computation.")
-                    all_family_results[fam_id] = cached_res
-                    continue
-                except Exception as e:
-                    logger.warning(f"Cache check failed for {fam_id}: {e}")
+        if not args.force and not args.dry_run and manifest_path.exists():
+            from affective_empathy_eval.manifests import is_manifest_matching
+            manifest_valid = is_manifest_matching(
+                manifest_path=str(manifest_path),
+                expected_config_hash=exp_cfg_hash,
+                expected_dataset_hash=exp_ds_hash,
+                expected_dry_run=False,
+            )
+            if manifest_valid:
+                check_rq1 = rq1_out_path if rq1_out_path.exists() else fam_out_path
+                check_rq2 = rq2_out_path if rq2_out_path.exists() else fam_out_path
+                if is_experiment_completed(str(check_rq1), manifest_path=str(manifest_path)) and is_experiment_completed(str(check_rq2), manifest_path=str(manifest_path)):
+                    try:
+                        if fam_out_path.exists():
+                            with open(fam_out_path, "r", encoding="utf-8") as f:
+                                cached_res = json.load(f)
+                        else:
+                            with open(rq1_out_path, "r", encoding="utf-8") as f1, open(rq2_out_path, "r", encoding="utf-8") as f2:
+                                cached_res = {**json.load(f1), **json.load(f2)}
+                        logger.info(f"Loaded existing validated results matching manifest for {fam_id}. Skipping computation.")
+                        all_family_results[fam_id] = cached_res
+                        continue
+                    except Exception as e:
+                        logger.warning(f"Cache check failed for {fam_id}: {e}")
 
 
         eff_num_layers = min(fam_cfg.num_layers, 4) if args.dry_run else fam_cfg.num_layers

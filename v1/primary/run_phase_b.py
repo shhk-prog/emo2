@@ -261,7 +261,7 @@ def main():
     parser.add_argument(
         "--force",
         action="store_true",
-        help="Force recomputation even if output files already exist",
+        help="Force recomputation even if valid cached results already exist",
     )
     parser.add_argument(
         "--task-type",
@@ -289,11 +289,6 @@ def main():
         help="Optional unique run_id for results organization",
     )
     parser.add_argument(
-        "--force",
-        action="store_true",
-        help="Force recomputation even if output already exists",
-    )
-    parser.add_argument(
         "--limit",
         type=int,
         default=0,
@@ -302,6 +297,21 @@ def main():
     add_model_selection_args(parser)
     args = parser.parse_args()
     args.model_id, args.model_prefix = resolve_single_model_from_args(args)
+
+    # Production safety valve: ensure fixed model revision is resolved
+    if args.model_revision is None and not getattr(args, "dry_run", False):
+        from affective_empathy_eval.models.registry import get_registry
+        registry = get_registry()
+        fam_cfg = registry.get_family_by_model_id(args.model_id)
+        if fam_cfg:
+            for spec in (fam_cfg.base_model, fam_cfg.instruct_model):
+                if spec.model_id == args.model_id and spec.revision:
+                    args.model_revision = spec.revision
+                    break
+        if not args.model_revision:
+            raise ValueError(
+                f"Production run requires explicit fixed model revision for '{args.model_id}', but none was provided or resolved from registry."
+            )
 
     # Load Phase B configuration from YAML (Item 20)
     phase_b_cfg = {}
@@ -411,8 +421,6 @@ def main():
             "n_nonfallback_reversal_pairs": 80,
             "n_primary_test_paraphrase_pairs": 80,
             "n_primary_test_reversal_pairs": 80,
-            "n_validated_paraphrase_pairs": 80,
-            "n_validated_reversal_pairs": 80,
             "sensitivity_held_out_paraphrase": 0.80,
             "sensitivity_held_out_reversal_drop": 0.55,
             "acc_paraphrase_invariance_all": 0.82,

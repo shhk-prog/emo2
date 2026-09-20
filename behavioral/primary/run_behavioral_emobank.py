@@ -267,7 +267,7 @@ def main():
     parser.add_argument("--is_instruct", action="store_true")
     parser.add_argument("--tag", type=str, required=True)
     parser.add_argument(
-        "--dtype", type=str, default="float16", choices=["float16", "bfloat16"]
+        "--dtype", type=str, default="bfloat16", choices=["float16", "bfloat16"]
     )
     parser.add_argument(
         "--stimuli-path",
@@ -311,6 +311,21 @@ def main():
     )
     args = parser.parse_args()
 
+    # Production safety valve: ensure fixed model revision is resolved
+    if args.model_revision is None and not getattr(args, "dry_run", False):
+        from affective_empathy_eval.models.registry import get_registry
+        registry = get_registry()
+        fam_cfg = registry.get_family_by_model_id(args.model)
+        if fam_cfg:
+            for spec in (fam_cfg.base_model, fam_cfg.instruct_model):
+                if spec.model_id == args.model and spec.revision:
+                    args.model_revision = spec.revision
+                    break
+        if not args.model_revision:
+            raise ValueError(
+                f"Production run requires explicit fixed model revision for '{args.model}', but none was provided or resolved from registry."
+            )
+
     # Find stimuli path if relative to workspace
     stim_path = Path(args.stimuli_path)
     if not stim_path.exists():
@@ -351,6 +366,9 @@ def main():
     prompt_hash = compute_prompt_hash(prompt_template_desc)
     dataset_hash = compute_file_hash(stim_path) if stim_path.exists() else "unknown"
 
+    all_candidates, _ = get_vad_candidates_and_triplets()
+    candidate_hash = compute_string_or_dict_hash(all_candidates)
+
     manifest_config = {
         "model_id": args.model,
         "model_revision": args.model_revision or "main",
@@ -359,13 +377,11 @@ def main():
         "limit": args.limit,
         "dataset_hash": dataset_hash,
         "candidate_space": "VAD_729",
+        "candidate_hash": candidate_hash,
         "prompt_hash": prompt_hash,
         "actual_dtype": actual_dtype_str,
     }
     expected_config_hash = compute_string_or_dict_hash(manifest_config)
-
-    candidates_sample, _ = get_vad_candidates_and_triplets()
-    candidate_hash = compute_string_or_dict_hash(candidates_sample[:10])
 
     expected_meta = {
         "model": args.model,
@@ -598,6 +614,7 @@ def main():
         dataset_path=str(stim_path),
         prompt_hash=prompt_hash,
         candidate_space="VAD_729",
+        measurement_space="VAD_expectation_from_VAD_729",
         actual_dtype=actual_dtype_str,
         intervention_version="none",
         run_id=args.run_id,

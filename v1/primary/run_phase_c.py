@@ -339,6 +339,21 @@ def main():
     args = parser.parse_args()
     args.model_id, args.model_prefix = resolve_single_model_from_args(args)
 
+    # Production safety valve: ensure fixed model revision is resolved
+    if args.model_revision is None and not getattr(args, "dry_run", False):
+        from affective_empathy_eval.models.registry import get_registry
+        registry = get_registry()
+        fam_cfg = registry.get_family_by_model_id(args.model_id)
+        if fam_cfg:
+            for spec in (fam_cfg.base_model, fam_cfg.instruct_model):
+                if spec.model_id == args.model_id and spec.revision:
+                    args.model_revision = spec.revision
+                    break
+        if not args.model_revision:
+            raise ValueError(
+                f"Production run requires explicit fixed model revision for '{args.model_id}', but none was provided or resolved from registry."
+            )
+
     if args.full:
         args.limit = 0
 
@@ -361,6 +376,33 @@ def main():
         or "it" in args.model_id.lower()
     )
 
+    data_file = Path(args.data_path)
+    if not data_file.exists():
+        fallback = Path("data/processed/aipsy_4split_all.csv")
+        if fallback.exists():
+            data_file = fallback
+
+    from affective_empathy_eval.manifests import (
+        is_manifest_matching,
+        compute_file_hash,
+        compute_string_or_dict_hash,
+    )
+
+    dataset_hash = compute_file_hash(data_file) if data_file.exists() else "unknown"
+
+    manifest_config = {
+        "model_prefix": args.model_prefix,
+        "model_id": args.model_id,
+        "model_revision": args.model_revision or "main",
+        "mode": args.mode,
+        "limit": args.limit,
+        "alphas": args.alphas,
+        "split_seed": args.split_seed,
+        "dataset_hash": dataset_hash,
+        "zero_forward_optimized": True,
+    }
+    expected_config_hash = compute_string_or_dict_hash(manifest_config)
+
     # Modular output paths
     from affective_empathy_eval.io import save_experiment_result, is_experiment_completed
 
@@ -373,18 +415,27 @@ def main():
     e3_path = os.path.join(model_dir, "e3_causal_map.csv")
     e4_path = os.path.join(model_dir, "e4_interchangeability_results.csv")
 
-    if not args.force and not args.dry_run:
-        e3_done = is_experiment_completed(modular_e3_json if os.path.exists(modular_e3_json) else e3_path, manifest_path=manifest_path if os.path.exists(manifest_path) else None)
-        e4_done = is_experiment_completed(modular_e4_json if os.path.exists(modular_e4_json) else e4_path, manifest_path=manifest_path if os.path.exists(manifest_path) else None)
-        if args.mode == "e3" and e3_done:
-            print(f"[SKIP] Validated Phase C E3 results found in {model_dir}. Skipping computation for {args.model_prefix}. Use --force to rerun.")
-            return
-        elif args.mode == "e4" and e4_done:
-            print(f"[SKIP] Validated Phase C E4 results found in {model_dir}. Skipping computation for {args.model_prefix}. Use --force to rerun.")
-            return
-        elif args.mode == "all" and e3_done and e4_done:
-            print(f"[SKIP] Validated Phase C (E3 & E4) results found in {model_dir}. Skipping computation for {args.model_prefix}. Use --force to rerun.")
-            return
+    if not args.force and not args.dry_run and os.path.exists(manifest_path):
+        manifest_valid = is_manifest_matching(
+            manifest_path=manifest_path,
+            expected_model_name=args.model_id,
+            expected_config_hash=expected_config_hash,
+            expected_dataset_hash=dataset_hash,
+            expected_model_revision=args.model_revision,
+            expected_dry_run=False,
+        )
+        if manifest_valid:
+            e3_done = is_experiment_completed(modular_e3_json if os.path.exists(modular_e3_json) else e3_path, manifest_path=manifest_path)
+            e4_done = is_experiment_completed(modular_e4_json if os.path.exists(modular_e4_json) else e4_path, manifest_path=manifest_path)
+            if args.mode == "e3" and e3_done:
+                print(f"[SKIP] Validated Phase C E3 results matching manifest found in {model_dir}. Skipping computation for {args.model_prefix}. Use --force to rerun.")
+                return
+            elif args.mode == "e4" and e4_done:
+                print(f"[SKIP] Validated Phase C E4 results matching manifest found in {model_dir}. Skipping computation for {args.model_prefix}. Use --force to rerun.")
+                return
+            elif args.mode == "all" and e3_done and e4_done:
+                print(f"[SKIP] Validated Phase C (E3 & E4) results matching manifest found in {model_dir}. Skipping computation for {args.model_prefix}. Use --force to rerun.")
+                return
 
     print(
         f"=== Starting V1 Phase C Causal Intervention (Prompt-End Normalized) ==="
@@ -487,7 +538,7 @@ def main():
             },
             metadata={"e3_records": e3_records, "e4_records": e4_records},
             candidate_space="VAD_729",
-            measurement_space="VA_81",
+            measurement_space="VA_expectation_from_VAD_729",
             intervention_version="none",
             run_id=args.run_id,
             dry_run=True,
@@ -1590,7 +1641,7 @@ def main():
             "zero_forward_optimized": True,
         },
         candidate_space="VAD_729",
-        measurement_space="VA_81",
+        measurement_space="VA_expectation_from_VAD_729",
         actual_dtype=str(actual_torch_dtype).replace("torch.", ""),
         run_id=args.run_id,
         dry_run=args.dry_run,

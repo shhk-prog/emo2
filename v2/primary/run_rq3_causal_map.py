@@ -448,31 +448,49 @@ def main():
             "max_samples": args.max_samples,
             "dry_run": bool(args.dry_run),
             "base_model_id": fam_cfg.base_model.model_id,
+            "base_revision": fam_cfg.base_model.revision,
             "instruct_model_id": fam_cfg.instruct_model.model_id,
+            "instruct_revision": fam_cfg.instruct_model.revision,
+            "dtype": getattr(fam_cfg, "inference_dtype", "bfloat16"),
             "dataset_path": str(v2_config["dataset"]["path"]),
             "seed": v2_config.get("seed", 42),
         }
 
+        from affective_empathy_eval.manifests import (
+            is_manifest_matching,
+            compute_file_hash,
+            compute_string_or_dict_hash,
+        )
         from affective_empathy_eval.io import save_experiment_result, is_experiment_completed
 
-        if not args.force and not args.dry_run:
-            target_check = modular_rq3_path if modular_rq3_path.exists() else out_path
-            man_p = str(manifest_path) if manifest_path.exists() else None
-            if is_experiment_completed(str(target_check), manifest_path=man_p):
-                try:
-                    read_p = modular_rq3_path if modular_rq3_path.exists() else out_path
-                    with open(read_p, "r", encoding="utf-8") as f:
-                        cached = json.load(f)
-                    if fam_pair_path.exists():
-                        logger.info(f"Loaded existing results and pair-level CSV for {fam_id}. Skipping computation.")
-                        all_causal_results[fam_id] = cached
-                        cached_pairs_df = pd.read_csv(fam_pair_path)
-                        all_pair_level_records.extend(cached_pairs_df.to_dict("records"))
-                        continue
-                    else:
-                        logger.warning(f"Pair-level artifact missing for {fam_id} ({fam_pair_path}) => cache invalid, recomputing.")
-                except Exception as e:
-                    logger.warning(f"Cache check failed for {fam_id}: {e}")
+        ds_path_p = Path(v2_config["dataset"]["path"])
+        exp_ds_hash = compute_file_hash(ds_path_p) if ds_path_p.exists() else compute_string_or_dict_hash(str(ds_path_p))
+        exp_cfg_hash = compute_string_or_dict_hash(manifest_config)
+
+        if not args.force and not args.dry_run and manifest_path.exists():
+            manifest_valid = is_manifest_matching(
+                manifest_path=str(manifest_path),
+                expected_config_hash=exp_cfg_hash,
+                expected_dataset_hash=exp_ds_hash,
+                expected_dry_run=False,
+            )
+            if manifest_valid:
+                target_check = modular_rq3_path if modular_rq3_path.exists() else out_path
+                if is_experiment_completed(str(target_check), manifest_path=str(manifest_path)):
+                    try:
+                        read_p = modular_rq3_path if modular_rq3_path.exists() else out_path
+                        with open(read_p, "r", encoding="utf-8") as f:
+                            cached = json.load(f)
+                        if fam_pair_path.exists():
+                            logger.info(f"Loaded existing results matching manifest for {fam_id}. Skipping computation.")
+                            all_causal_results[fam_id] = cached
+                            cached_pairs_df = pd.read_csv(fam_pair_path)
+                            all_pair_level_records.extend(cached_pairs_df.to_dict("records"))
+                            continue
+                        else:
+                            logger.warning(f"Pair-level artifact missing for {fam_id} ({fam_pair_path}) => cache invalid, recomputing.")
+                    except Exception as e:
+                        logger.warning(f"Cache check failed for {fam_id}: {e}")
 
 
         eff_num_layers = min(fam_cfg.num_layers, 4) if args.dry_run else fam_cfg.num_layers

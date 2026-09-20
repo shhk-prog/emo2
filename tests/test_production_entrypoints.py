@@ -168,3 +168,29 @@ def test_all_dispatched_commands_argparse_compatibility(monkeypatch):
                 f"Dispatched flag '{flag}' is not recognized in {script_path}'s argument parser!\n"
                 f"Full command: {' '.join(cmd)}"
             )
+
+
+def test_run_phase_b_help_exit_zero():
+    """Verify that python v1/primary/run_phase_b.py --help returns exit code 0."""
+    import subprocess
+    import os
+
+    repo_root = Path(__file__).resolve().parent.parent
+    src_path = str(repo_root / "src")
+    env = os.environ.copy()
+    existing_pythonpath = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = f"{src_path}:{existing_pythonpath}" if existing_pythonpath else src_path
+
+    res = subprocess.run(
+        [sys.executable, "v1/primary/run_phase_b.py", "--help"],
+        capture_output=True,
+        text=True,
+        timeout=10,
+        env=env,
+        cwd=str(repo_root),
+    )
+    assert res.returncode == 0, f"run_phase_b.py --help failed with exit code {res.returncode}: {res.stderr}"
+    assert "--force" in res.stdout
+    normalized_stdout = " ".join(res.stdout.split())
+    assert "Force recomputation even if valid cached results already exist" in normalized_stdout
+

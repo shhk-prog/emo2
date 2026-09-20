@@ -678,21 +678,38 @@ def main():
     }
 
     if not args.force and not args.dry_run:
-        target_check = modular_rq3_path if modular_rq3_path.exists() else out_raw
-        man_p = str(manifest_path) if manifest_path.exists() else None
-        if is_experiment_completed(str(target_check), manifest_path=man_p):
-            try:
-                read_p = modular_rq3_path if modular_rq3_path.exists() else out_raw
-                with open(read_p, "r", encoding="utf-8") as f:
-                    cached = json.load(f)
-                if cached and "confirmation" in cached:
-                    logger.info(f"Loaded existing results from {read_p}. Skipping computation.")
-                    full_output = cached
-                    discovery_res = cached["discovery"]
-                    confirmation_res = cached["confirmation"]
-                    cache_hit = True
-            except Exception as e:
-                logger.warning(f"Cache check failed for {target_check}: {e}")
+        from affective_empathy_eval.manifests import (
+            is_manifest_matching,
+            compute_file_hash,
+            compute_string_or_dict_hash,
+        )
+        ds_path_p = Path(v3_cfg["dataset"]["path"])
+        exp_ds_hash = compute_file_hash(ds_path_p) if ds_path_p.exists() else compute_string_or_dict_hash(str(ds_path_p))
+        exp_cfg_hash = compute_string_or_dict_hash(manifest_config)
+
+        if manifest_path.exists():
+            manifest_valid = is_manifest_matching(
+                manifest_path=str(manifest_path),
+                expected_model_name=target_model_id,
+                expected_config_hash=exp_cfg_hash,
+                expected_dataset_hash=exp_ds_hash,
+                expected_dry_run=False,
+            )
+            if manifest_valid:
+                target_check = modular_rq3_path if modular_rq3_path.exists() else out_raw
+                if is_experiment_completed(str(target_check), manifest_path=str(manifest_path)):
+                    try:
+                        read_p = modular_rq3_path if modular_rq3_path.exists() else out_raw
+                        with open(read_p, "r", encoding="utf-8") as f:
+                            cached = json.load(f)
+                        if cached and "confirmation" in cached:
+                            logger.info(f"Loaded existing results matching manifest from {read_p}. Skipping computation.")
+                            full_output = cached
+                            discovery_res = cached["discovery"]
+                            confirmation_res = cached["confirmation"]
+                            cache_hit = True
+                    except Exception as e:
+                        logger.warning(f"Cache check failed for {target_check}: {e}")
 
     if full_output is None or discovery_res is None or confirmation_res is None:
         if args.dry_run:
@@ -744,11 +761,14 @@ def main():
 
     # Save manifest only on fresh computation to prevent washing old artifacts
     if not cache_hit:
+        registry = get_registry()
+        fam_cfg = registry.get_family_by_model_id(target_model_id) or registry.get_family(fam_key)
+        model_revision = fam_cfg.get_model_spec("instruct").revision if fam_cfg else "main"
         n_intervention_manifest = int(full_output.get("n_intervention_samples", len(df)))
         manifest = create_run_manifest(
             run_type="v3_rq3_path_mediation",
             model_name=target_model_id,
-            model_revision=fam_cfg.get_model_spec("instruct").revision if fam_cfg else "main",
+            model_revision=model_revision,
             config=manifest_config,
             metadata={
                 "n_dataset_total": int(len(df)),
@@ -763,9 +783,9 @@ def main():
                 "valence_attenuation_ratio": confirmation_res["valence"]["attenuation_ratio"]["mean"],
                 "arousal_attenuation_ratio": confirmation_res["arousal"]["attenuation_ratio"]["mean"],
             },
-            candidate_space="VAD_729",
+            candidate_space="VA_81",
             measurement_space="VA_81",
-            actual_dtype="bfloat16" if (device != "cpu" and torch.cuda.is_available()) else "float32",
+            actual_dtype="bfloat16" if (args.device != "cpu" and torch.cuda.is_available()) else "float32",
             dry_run=bool(args.dry_run),
         )
         manifest.save(raw_dir / f"manifest_rq3_{fam_key}.json")

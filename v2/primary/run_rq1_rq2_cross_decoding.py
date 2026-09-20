@@ -25,6 +25,7 @@ except ImportError:  # --dry-run は transformers 未導入環境でも起動で
 from affective_empathy_eval.data import describe_loaded_frame, dry_run_va_label_vector
 from affective_empathy_eval.manifests import (
     DEFAULT_CODE_VERSION,
+    compute_file_hash,
     compute_string_or_dict_hash,
     create_run_manifest,
     is_manifest_matching,

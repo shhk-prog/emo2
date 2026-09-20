@@ -290,6 +290,18 @@ def main():
         help="Mock dry-run mode for quick pipeline smoke testing",
     )
     parser.add_argument(
+        "--model-revision",
+        type=str,
+        default=None,
+        help="Specific HuggingFace model git commit SHA or branch",
+    )
+    parser.add_argument(
+        "--run-id",
+        type=str,
+        default=None,
+        help="Optional unique run_id for results organization",
+    )
+    parser.add_argument(
         "--force",
         action="store_true",
         help="Force recomputation even if output files already exist",
@@ -382,6 +394,7 @@ def main():
             manifest = create_run_manifest(
                 run_type="v1_phase_c_e6_specialization",
                 model_name=args.model_id,
+                model_revision=args.model_revision or "main",
                 config={
                     "model_prefix": args.model_prefix,
                     "site_selection_method": site_selection_method,
@@ -389,6 +402,11 @@ def main():
                     "dry_run": args.dry_run,
                 },
                 metadata=negative_result,
+                candidate_space="VAD_729",
+                measurement_space="VA_81",
+                intervention_version="none",
+                run_id=args.run_id,
+                dry_run=args.dry_run,
             )
             manifest.save(os.path.join(model_dir, "manifest_e6.json"))
             print(f"Recorded negative result to {model_dir}/e6_lmm_results.json and {modular_e6_json}")
@@ -464,6 +482,7 @@ def main():
         manifest = create_run_manifest(
             run_type="v1_phase_c_e6_specialization",
             model_name=args.model_id,
+            model_revision=args.model_revision or "main",
             config={
                 "model_prefix": args.model_prefix,
                 "reader_layer": args.reader_layer,
@@ -475,6 +494,9 @@ def main():
             },
             metadata=stat_results,
             candidate_space="VAD_729",
+            measurement_space="VA_81",
+            intervention_version="prompt_end_normalized",
+            run_id=args.run_id,
             dry_run=True,
         )
         manifest.save(os.path.join(model_dir, "manifest_e6.json"))
@@ -531,14 +553,24 @@ def main():
 
     n_pairs = len(eval_df)
 
-    tokenizer = AutoTokenizer.from_pretrained(args.model_id, trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(
+        args.model_id,
+        revision=args.model_revision,
+        trust_remote_code=True,
+    )
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
     is_cuda = str(args.device).startswith("cuda") and torch.cuda.is_available()
+    actual_torch_dtype = (
+        torch.bfloat16
+        if is_cuda and torch.cuda.is_bf16_supported()
+        else (torch.float16 if is_cuda else torch.float32)
+    )
     model = AutoModelForCausalLM.from_pretrained(
         args.model_id,
-        torch_dtype=torch.float16 if is_cuda else torch.float32,
+        revision=args.model_revision,
+        torch_dtype=actual_torch_dtype,
         device_map=args.device if is_cuda else None,
         trust_remote_code=True,
     )
@@ -801,6 +833,7 @@ def main():
     manifest = create_run_manifest(
         run_type="v1_phase_c_e6_specialization",
         model_name=args.model_id,
+        model_revision=args.model_revision or "main",
         config={
             "model_prefix": args.model_prefix,
             "reader_layer": args.reader_layer,
@@ -813,6 +846,11 @@ def main():
         },
         metadata=stat_results,
         candidate_space="VAD_729",
+        measurement_space="VA_81",
+        actual_dtype=str(actual_torch_dtype).replace("torch.", ""),
+        intervention_version="prompt_end_normalized",
+        run_id=args.run_id,
+        dry_run=args.dry_run,
     )
     manifest.save(os.path.join(model_dir, "manifest_e6.json"))
     print(f"E6 causal specialization analysis complete. Saved to {model_dir}")

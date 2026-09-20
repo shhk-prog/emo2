@@ -250,21 +250,40 @@ def run_real_state_induction(
             f"specificity_reference_alpha={specificity_reference_alpha} must be present in alpha_grid={alpha_grid}"
         )
     ref_alpha_idx = alpha_grid.index(specificity_reference_alpha)
-    logger.info(f"Loading tokenizer and model: {model_id} on {device}...")
-    tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
+    registry = get_registry()
+    fam_cfg = registry.get_family_by_model_id(model_id)
+    model_spec = None
+    if fam_cfg:
+        for role in ("instruct", "base"):
+            spec = fam_cfg.get_model_spec(role)
+            if spec.model_id == model_id:
+                model_spec = spec
+                break
+    revision = model_spec.revision if model_spec else None
+
+    logger.info(f"Loading tokenizer and model: {model_id} (revision={revision}) on {device}...")
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_id,
+        revision=revision,
+        trust_remote_code=True,
+    )
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
+    is_cuda = device != "cpu" and torch.cuda.is_available()
+    actual_torch_dtype = (
+        torch.bfloat16
+        if is_cuda and torch.cuda.is_bf16_supported()
+        else (torch.float16 if is_cuda else torch.float32)
+    )
     model = AutoModelForCausalLM.from_pretrained(
         model_id,
-        torch_dtype=torch.float16 if device != "cpu" and torch.cuda.is_available() else torch.float32,
-        device_map=device if device != "cpu" and torch.cuda.is_available() else None,
+        revision=revision,
+        torch_dtype=actual_torch_dtype,
+        device_map=device if is_cuda else None,
         trust_remote_code=True,
     )
     model.eval()
-
-    registry = get_registry()
-    fam_cfg = registry.get_family_by_model_id(model_id)
     adapter = get_model_adapter(model, fam_cfg)
 
     # 1. データを config の train_ratio に基づき厳格分割 (pair_id に基づく Group split)
@@ -958,13 +977,20 @@ def main():
     manifest = create_run_manifest(
         run_type="v3_rq1",
         model_name=target_model_id,
+        model_revision=revision or "main",
         config=v3_cfg,
         dataset_path=v3_cfg["dataset"]["path"],
         metadata={
             "target_family": fam_key,
             "layer": args.layer,
             "gate_decision": gate_decision["decision"],
+            "n_input_pairs": int(df.attrs.get("n_input_pairs", len(df))),
+            "n_matched_pairs": int(df.attrs.get("n_matched_pairs", len(df))),
+            "n_excluded_pairs": int(df.attrs.get("n_excluded_pairs", 0)),
         },
+        candidate_space="VAD_729",
+        measurement_space="VA_81",
+        actual_dtype="bfloat16" if (device != "cpu" and torch.cuda.is_available()) else "float32",
         dry_run=bool(args.dry_run),
     )
     manifest.save(str(raw_dir / f"manifest_rq1_{fam_key}.json"))

@@ -1,3 +1,4 @@
+import hashlib
 import os
 import numpy as np
 from typing import Dict, List, Optional, Any
@@ -58,7 +59,7 @@ class MockRepresentationExtractor:
                     layer=layer,
                     extraction_position=pos_name,
                     token_offset=-1,
-                    prompt_hash=str(hash(full_prompt_text)),
+                    prompt_hash=hashlib.sha256(full_prompt_text.encode("utf-8")).hexdigest(),
                     tensor_shape=list(tensor.shape),
                     dtype="float16"
                 )
@@ -168,7 +169,7 @@ class PyTorchRepresentationExtractor:
         self._register_hooks(layers_to_extract)
         os.makedirs(output_dir, exist_ok=True)
         manifests = []
-        prompt_hash = str(hash(full_prompt_text))
+        prompt_hash = hashlib.sha256(full_prompt_text.encode("utf-8")).hexdigest()
         
         try:
             inputs = self.tokenizer(full_prompt_text, return_tensors="pt")
@@ -280,7 +281,7 @@ class PyTorchRepresentationExtractor:
                 seq_len = input_ids_np.shape[1]
                 prompt_last_idx = seq_len - 1
                 first_generated_idx = prompt_last_idx
-                prompt_hash = str(hash(req["full_prompt_text"]))
+                prompt_hash = hashlib.sha256(req["full_prompt_text"].encode("utf-8")).hexdigest()
                 
                 stimulus_offset_start = req.get("stimulus_offset_start")
                 stimulus_offset_end = req.get("stimulus_offset_end")

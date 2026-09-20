@@ -97,18 +97,35 @@ def run_recovery_patching_for_task(
         layer_mean_emds = []
         layer_mean_ratios = []
         layer_ratios_ci = []
+        layer_mean_ratios_plain = []
+        layer_mean_ratios_aligned = []
+
+        sample_ratios_direct_by_layer = {l: [] for l in range(num_layers)}
+        sample_ratios_plain_by_layer = {l: [] for l in range(num_layers)}
+        sample_ratios_aligned_by_layer = {l: [] for l in range(num_layers)}
+        sample_delta_emds_plain_by_layer = {l: [] for l in range(num_layers)}
 
         # 中間層 (d ~ 0.5 - 0.7) で最も Base 分布への回復効果が高いシミュレーション
-        # Self は Reader より回復ピークが高い傾向をシミュレート
         peak_amp = 0.85 if task == TaskType.SELF else 0.70
-        for d in depths:
+        for l_idx, d in enumerate(depths):
             rec_base = float(peak_amp * np.exp(-((d - 0.6) ** 2) / 0.05))
             sample_ratios = [
                 float(np.clip(rec_base + rng.normal(0, 0.08), 0.0, 1.0))
                 for _ in range(N)
             ]
+            sample_r_plain = [float(np.clip(r * 1.05 + rng.normal(0, 0.02), 0.0, 1.0)) for r in sample_ratios]
+            sample_r_aligned = [float(np.clip(r * 0.95 + rng.normal(0, 0.02), 0.0, 1.0)) for r in sample_ratios]
+
+            sample_ratios_direct_by_layer[l_idx] = sample_ratios
+            sample_ratios_plain_by_layer[l_idx] = sample_r_plain
+            sample_ratios_aligned_by_layer[l_idx] = sample_r_aligned
+
             sample_patched_emds = [
                 sample_initial_emds[i] * (1.0 - sample_ratios[i])
+                for i in range(N)
+            ]
+            sample_delta_emds_plain_by_layer[l_idx] = [
+                sample_initial_emds[i] * sample_r_plain[i]
                 for i in range(N)
             ]
 
@@ -119,13 +136,8 @@ def run_recovery_patching_for_task(
             layer_mean_emds.append(mean_emd)
             layer_mean_ratios.append(mean_ratio)
             layer_ratios_ci.append({"mean": pt_r, "ci_lower": r_low, "ci_upper": r_up})
-
-        # Prompt-format control (Base plain -> Instruct matched-plain)
-        layer_mean_ratios_plain = [float(np.clip(r * 1.05 + rng.normal(0, 0.02), 0.0, 1.0)) for r in layer_mean_ratios]
-
-        # Aligned activation patch control (Procrustes aligned Base -> Instruct)
-        # 幾何整列を行っても内部表現と出力写像の再編により完全回復しないことを検証
-        layer_mean_ratios_aligned = [float(np.clip(r * 0.95 + rng.normal(0, 0.02), 0.0, 1.0)) for r in layer_mean_ratios]
+            layer_mean_ratios_plain.append(float(np.mean(sample_r_plain)))
+            layer_mean_ratios_aligned.append(float(np.mean(sample_r_aligned)))
 
         best_l_native = int(np.argmax(layer_mean_ratios))
         best_l_matched = int(np.argmax(layer_mean_ratios_plain))
@@ -135,18 +147,24 @@ def run_recovery_patching_for_task(
         auc_recovery_plain = float(trapz_func(layer_mean_ratios_plain, depths))
         auc_recovery_aligned = float(trapz_func(layer_mean_ratios_aligned, depths))
 
+        # Item 9: サンプル単位 Delta EMD の層平均および台形積分 AUC
+        layer_mean_delta_emds_plain = [
+            float(np.mean([sample_delta_emds_plain_by_layer[l][i] for i in range(N)]))
+            for l in range(num_layers)
+        ]
+        auc_delta_emd_plain = float(trapz_func(layer_mean_delta_emds_plain, depths))
+
         # サンプルごとの層方向 AUC および各サンプルの best layer での指標
         sample_records = []
         for i in range(N):
-            sample_ratios_i = [sample_patched_emds_per_layer[l][i] for l in range(num_layers)] if "sample_patched_emds_per_layer" in locals() else [
-                float(np.clip(float(peak_amp * np.exp(-((depths[l] - 0.6) ** 2) / 0.05)) + rng.normal(0, 0.08), 0.0, 1.0))
-                for l in range(num_layers)
-            ]
-            sample_r_plain_i = [float(np.clip(r * 1.05 + rng.normal(0, 0.02), 0.0, 1.0)) for r in sample_ratios_i]
-            sample_r_aligned_i = [float(np.clip(r * 0.95 + rng.normal(0, 0.02), 0.0, 1.0)) for r in sample_ratios_i]
-            s_auc = float(trapz_func(sample_ratios_i, depths))
-            s_auc_plain = float(trapz_func(sample_r_plain_i, depths))
-            s_auc_aligned = float(trapz_func(sample_r_aligned_i, depths))
+            sample_r_direct = [sample_ratios_direct_by_layer[l][i] for l in range(num_layers)]
+            sample_r_plain = [sample_ratios_plain_by_layer[l][i] for l in range(num_layers)]
+            sample_r_aligned = [sample_ratios_aligned_by_layer[l][i] for l in range(num_layers)]
+            sample_d_plain = [sample_delta_emds_plain_by_layer[l][i] for l in range(num_layers)]
+            s_auc = float(trapz_func(sample_r_direct, depths))
+            s_auc_plain = float(trapz_func(sample_r_plain, depths))
+            s_auc_aligned = float(trapz_func(sample_r_aligned, depths))
+            s_auc_delta_plain = float(trapz_func(sample_d_plain, depths))
             pair_id = str(df.iloc[i].get("pair_id", f"pair_{i}")) if "pair_id" in df.columns else f"pair_{i}"
             item_id = str(df.iloc[i].get("item_id", f"item_{i}")) if "item_id" in df.columns else f"item_{i}"
             sample_records.append({
@@ -161,13 +179,14 @@ def run_recovery_patching_for_task(
                 "best_layer_native": best_l_native,
                 "best_layer_matched_plain": best_l_matched,
                 "best_layer_aligned": best_l_aligned,
-                "recovery_ratio": sample_ratios_i[best_l_native],
-                "recovery_ratio_matched_plain": sample_r_plain_i[best_l_matched],
-                "recovery_ratio_aligned": sample_r_aligned_i[best_l_aligned],
+                "recovery_ratio": sample_r_direct[best_l_native],
+                "recovery_ratio_matched_plain": sample_r_plain[best_l_matched],
+                "recovery_ratio_aligned": sample_r_aligned[best_l_aligned],
                 "auc_recovery": s_auc,
                 "auc_recovery_matched_plain": s_auc_plain,
                 "auc_recovery_aligned": s_auc_aligned,
-                "delta_emd_matched_plain": float(sample_initial_emds[i] * sample_r_plain_i[best_l_matched]),
+                "delta_emd_matched_plain": sample_d_plain[best_l_matched],
+                "auc_delta_emd_matched_plain": s_auc_delta_plain,
             })
 
         return {
@@ -192,12 +211,12 @@ def run_recovery_patching_for_task(
             "auc_recovery": auc_recovery,
             "auc_recovery_matched_plain": auc_recovery_plain,
             "auc_recovery_aligned": auc_recovery_aligned,
-            "delta_emd_matched_plain_by_layer": [float(initial_emd_mean * r) for r in layer_mean_ratios_plain],
-            "auc_delta_emd_matched_plain": float(initial_emd_mean * auc_recovery_plain),
+            "delta_emd_matched_plain_by_layer": layer_mean_delta_emds_plain,
+            "auc_delta_emd_matched_plain": auc_delta_emd_plain,
             "primary_matched_plain": {
                 "auc_recovery": auc_recovery_plain,
-                "delta_emd_auc": float(initial_emd_mean * auc_recovery_plain),
-                "delta_emd_by_layer": [float(initial_emd_mean * r) for r in layer_mean_ratios_plain],
+                "delta_emd_auc": auc_delta_emd_plain,
+                "delta_emd_by_layer": layer_mean_delta_emds_plain,
                 "layer_recovery_ratios": layer_mean_ratios_plain,
             },
             "secondary_peak_localization": {
@@ -607,18 +626,27 @@ def run_recovery_patching_for_family(
     else:
         spec_base = fam_cfg.get_model_spec("base")
         spec_inst = fam_cfg.get_model_spec("instruct")
-        logger.info(f"Loading Base model: {spec_base.model_id}...")
-        tok_base = AutoTokenizer.from_pretrained(spec_base.model_id)
+        torch_dtype = torch.bfloat16 if "cuda" in device else torch.float32
+        logger.info(f"Loading Base model: {spec_base.model_id} (revision={spec_base.revision})...")
+        tok_base = AutoTokenizer.from_pretrained(
+            spec_base.model_id,
+            revision=spec_base.revision,
+        )
         model_base = AutoModelForCausalLM.from_pretrained(
             spec_base.model_id,
-            torch_dtype=torch.bfloat16 if "cuda" in device else torch.float32,
+            revision=spec_base.revision,
+            torch_dtype=torch_dtype,
             device_map=device if "cuda" in device else None,
         )
-        logger.info(f"Loading Instruct model: {spec_inst.model_id}...")
-        tok_inst = AutoTokenizer.from_pretrained(spec_inst.model_id)
+        logger.info(f"Loading Instruct model: {spec_inst.model_id} (revision={spec_inst.revision})...")
+        tok_inst = AutoTokenizer.from_pretrained(
+            spec_inst.model_id,
+            revision=spec_inst.revision,
+        )
         model_inst = AutoModelForCausalLM.from_pretrained(
             spec_inst.model_id,
-            torch_dtype=torch.bfloat16 if "cuda" in device else torch.float32,
+            revision=spec_inst.revision,
+            torch_dtype=torch_dtype,
             device_map=device if "cuda" in device else None,
         )
 

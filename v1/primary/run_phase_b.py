@@ -277,6 +277,23 @@ def main():
         help="Path to experiment configuration YAML",
     )
     parser.add_argument(
+        "--model-revision",
+        type=str,
+        default=None,
+        help="Specific HuggingFace model git commit SHA or branch",
+    )
+    parser.add_argument(
+        "--run-id",
+        type=str,
+        default=None,
+        help="Optional unique run_id for results organization",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force recomputation even if output already exists",
+    )
+    parser.add_argument(
         "--limit",
         type=int,
         default=0,
@@ -313,43 +330,73 @@ def main():
         or "it" in args.model_id.lower()
     )
 
-    # Early skip if already completed and valid
-    from affective_empathy_eval.io import save_experiment_result, is_experiment_completed
-    from affective_empathy_eval.manifests import is_manifest_matching
-
-    modular_json_path = os.path.join(model_dir, f"v1_e5_semantic_controls_{args.model_prefix}_{args.task_type}.json")
-    modular_csv_path = os.path.join(model_dir, f"v1_e5_semantic_controls_{args.model_prefix}_{args.task_type}.csv")
-    res_path = os.path.join(model_dir, "phase_b_semantic_controls.csv")
-    manifest_path = os.path.join(model_dir, "manifest.json")
-
-    if not args.force and not args.dry_run:
-        target_check = modular_json_path if os.path.exists(modular_json_path) else res_path
-        if is_experiment_completed(target_check, manifest_path=manifest_path if os.path.exists(manifest_path) else None):
-            print(
-                f"[SKIP] Validated Phase B (V1 E5) results found in {model_dir}. "
-                f"Skipping computation for {args.model_prefix}. Use --force to rerun."
-            )
-            return
-
+    # Dynamic layer resolution first so it can be verified in manifest
     data_file = Path(args.data_path)
     if not data_file.exists():
         fallback = Path("data/processed/v1_e5_semantic_controls.csv")
         if fallback.exists():
             data_file = fallback
 
-    # 動的レイヤー決定
     target_layer = args.layer
     if target_layer is None:
         try:
             num_layers, _ = resolve_architecture_dims(args.model_id)
             target_layer = int(round(args.relative_depth * (num_layers - 1)))
-        except Exception as exc:
-            raise ValueError(
-                f"Unable to resolve Phase B target layer from relative_depth={args.relative_depth} "
-                f"for model '{args.model_id}'. Specify --layer explicitly."
-            ) from exc
+        except Exception:
+            target_layer = None
 
-    print(f"=== Starting V1 Phase B Semantic Audit: {args.model_id} ===")
+    from affective_empathy_eval.io import save_experiment_result, is_experiment_completed
+    from affective_empathy_eval.manifests import (
+        is_manifest_matching,
+        compute_file_hash,
+        compute_prompt_hash,
+        compute_string_or_dict_hash,
+        create_run_manifest,
+    )
+
+    dataset_hash = compute_file_hash(data_file) if data_file.exists() else "unknown"
+    prompt_hash = compute_prompt_hash(f"task_type={args.task_type}|is_instruct={is_instruct}|v1_phase_b_audit")
+
+    manifest_config = {
+        "model_prefix": args.model_prefix,
+        "model_id": args.model_id,
+        "model_revision": args.model_revision or "main",
+        "task_type": args.task_type,
+        "relative_depth": float(args.relative_depth),
+        "target_layer": int(target_layer) if target_layer is not None else None,
+        "seed": int(cfg_seed),
+        "train_ratio": float(cfg_train_ratio),
+        "cv_folds": int(cfg_cv_folds),
+        "dataset_hash": dataset_hash,
+        "prompt_hash": prompt_hash,
+        "limit": args.limit,
+    }
+    expected_cfg_hash = compute_string_or_dict_hash(manifest_config)
+
+    modular_json_path = os.path.join(model_dir, f"v1_e5_semantic_controls_{args.model_prefix}_{args.task_type}.json")
+    modular_csv_path = os.path.join(model_dir, f"v1_e5_semantic_controls_{args.model_prefix}_{args.task_type}.csv")
+    res_path = os.path.join(model_dir, "phase_b_semantic_controls.csv")
+    manifest_path = os.path.join(model_dir, "manifest.json")
+
+    if not args.force and not args.dry_run and os.path.exists(manifest_path):
+        target_check = modular_json_path if os.path.exists(modular_json_path) else res_path
+        if is_experiment_completed(target_check, manifest_path=manifest_path):
+            if is_manifest_matching(
+                manifest_path=manifest_path,
+                expected_model_name=args.model_id,
+                expected_config_hash=expected_cfg_hash,
+                expected_dataset_hash=dataset_hash,
+                expected_prompt_hash=prompt_hash,
+                expected_model_revision=args.model_revision,
+                expected_dry_run=False,
+            ):
+                print(
+                    f"[SKIP] Validated Phase B (V1 E5) results matching manifest found in {model_dir}. "
+                    f"Skipping computation for {args.model_prefix}. Use --force to rerun."
+                )
+                return
+
+    print(f"=== Starting V1 Phase B Semantic Audit: {args.model_id} (revision={args.model_revision}) ===")
     print(
         f"Data Path: {data_file} | Target Layer: {target_layer} (relative_depth={args.relative_depth:.2f})"
     )
@@ -393,20 +440,20 @@ def main():
         )
         pd.DataFrame([results]).to_csv(modular_csv_path, index=False)
         pd.DataFrame([results]).to_csv(res_path, index=False)
+        dry_cfg = dict(manifest_config)
+        dry_cfg["dry_run"] = True
         manifest = create_run_manifest(
             run_type="v1_phase_b",
             model_name=args.model_id,
-            config={
-                "model_prefix": args.model_prefix,
-                "task_type": args.task_type,
-                "target_layer": target_layer,
-                "relative_depth": args.relative_depth,
-                "num_pairs": 100,
-                "dry_run": True,
-            },
+            model_revision=args.model_revision or "main",
+            config=dry_cfg,
+            dataset_path=str(data_file),
+            prompt_hash=prompt_hash,
             metadata=results,
-            candidate_space="VAD_729",
+            candidate_space="N/A",
+            measurement_space="prompt_end_hidden_state",
             intervention_version="none",
+            run_id=args.run_id,
             dry_run=True,
         )
         manifest.save(os.path.join(model_dir, "manifest.json"))
@@ -421,23 +468,34 @@ def main():
     n_pairs = len(df)
     print(describe_loaded_frame(df, "V1 Phase B semantic controls", str(data_file)))
 
-    tokenizer = AutoTokenizer.from_pretrained(args.model_id, trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(
+        args.model_id,
+        revision=args.model_revision,
+        trust_remote_code=True,
+    )
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
     device = args.device
     is_cuda = str(device).startswith("cuda") and torch.cuda.is_available()
+    actual_torch_dtype = (
+        torch.bfloat16
+        if is_cuda and torch.cuda.is_bf16_supported()
+        else (torch.float16 if is_cuda else torch.float32)
+    )
     if is_cuda:
         model = AutoModelForCausalLM.from_pretrained(
             args.model_id,
-            torch_dtype=torch.float16,
+            revision=args.model_revision,
+            torch_dtype=actual_torch_dtype,
             device_map=device if device.startswith("cuda:") else "auto",
             trust_remote_code=True,
         )
     else:
         model = AutoModelForCausalLM.from_pretrained(
             args.model_id,
-            torch_dtype=torch.float32,
+            revision=args.model_revision,
+            torch_dtype=actual_torch_dtype,
             device_map=None,
             trust_remote_code=True,
         ).to(device)
@@ -674,20 +732,21 @@ def main():
     df_audit.to_csv(os.path.join(model_dir, "phase_b_pairs_quality_audit.csv"), index=False)
 
     # Save manifest
+    manifest_config["num_pairs"] = n_pairs
+    manifest_config["target_layer"] = target_layer
     manifest = create_run_manifest(
         run_type="v1_phase_b",
         model_name=args.model_id,
-        config={
-            "model_prefix": args.model_prefix,
-            "task_type": args.task_type,
-            "target_layer": target_layer,
-            "relative_depth": args.relative_depth,
-            "num_pairs": n_pairs,
-        },
+        model_revision=args.model_revision or "main",
+        config=manifest_config,
         metadata=results,
+        dataset_path=str(data_file),
+        prompt_hash=prompt_hash,
         candidate_space="N/A",
         measurement_space="prompt_end_hidden_state",
+        actual_dtype=str(actual_torch_dtype).replace("torch.", ""),
         intervention_version="none",
+        run_id=args.run_id,
         dry_run=args.dry_run,
     )
     manifest.save(os.path.join(model_dir, "manifest.json"))

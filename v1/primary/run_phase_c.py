@@ -323,6 +323,18 @@ def main():
         default="configs/v1_experiments.yaml",
         help="Path to experiment configuration YAML",
     )
+    parser.add_argument(
+        "--model-revision",
+        type=str,
+        default=None,
+        help="Specific HuggingFace model git commit SHA or branch",
+    )
+    parser.add_argument(
+        "--run-id",
+        type=str,
+        default=None,
+        help="Optional unique run_id for results organization",
+    )
     add_model_selection_args(parser)
     args = parser.parse_args()
     args.model_id, args.model_prefix = resolve_single_model_from_args(args)
@@ -466,13 +478,18 @@ def main():
         manifest = create_run_manifest(
             run_type="v1_phase_c",
             model_name=args.model_id,
+            model_revision=args.model_revision or "main",
             config={
                 "model_prefix": args.model_prefix,
                 "mode": args.mode,
                 "limit": args.limit,
                 "dry_run": True,
             },
+            metadata={"e3_records": e3_records, "e4_records": e4_records},
             candidate_space="VAD_729",
+            measurement_space="VA_81",
+            intervention_version="none",
+            run_id=args.run_id,
             dry_run=True,
         )
         manifest.save(os.path.join(model_dir, "manifest.json"))
@@ -528,14 +545,24 @@ def main():
         for pid in merged["pair_id"]
     ]
 
-    tokenizer = AutoTokenizer.from_pretrained(args.model_id, trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(
+        args.model_id,
+        revision=args.model_revision,
+        trust_remote_code=True,
+    )
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
     is_cuda = str(args.device).startswith("cuda") and torch.cuda.is_available()
+    actual_torch_dtype = (
+        torch.bfloat16
+        if is_cuda and torch.cuda.is_bf16_supported()
+        else (torch.float16 if is_cuda else torch.float32)
+    )
     model = AutoModelForCausalLM.from_pretrained(
         args.model_id,
-        torch_dtype=torch.float16 if is_cuda else torch.float32,
+        revision=args.model_revision,
+        torch_dtype=actual_torch_dtype,
         device_map=args.device if is_cuda else None,
         trust_remote_code=True,
     )
@@ -1552,6 +1579,7 @@ def main():
     manifest = create_run_manifest(
         run_type="v1_phase_c",
         model_name=args.model_id,
+        model_revision=args.model_revision or "main",
         config={
             "model_prefix": args.model_prefix,
             "mode": args.mode,
@@ -1562,6 +1590,10 @@ def main():
             "zero_forward_optimized": True,
         },
         candidate_space="VAD_729",
+        measurement_space="VA_81",
+        actual_dtype=str(actual_torch_dtype).replace("torch.", ""),
+        run_id=args.run_id,
+        dry_run=args.dry_run,
     )
     manifest.save(os.path.join(model_dir, "manifest.json"))
     print(f"Phase C completed. Results saved to {model_dir}")

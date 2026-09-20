@@ -1,0 +1,32 @@
+# タスクリスト: 最終Production実行前の必須修正 (Pre-production Critical Fixes)
+
+- [x] 計画立案と設計方針の合意 <!-- id: 0 -->
+    - [x] 現状コード・指摘箇所の調査と計画書作成 <!-- id: 0-1 -->
+    - [x] ユーザー承認の取得 <!-- id: 0-2 -->
+- [x] 1. V1 hidden-state の異常値置換（nan_to_num / clip）削除 <!-- id: 1 -->
+    - [x] `v1/primary/run_phase_a.py` の activation 抽出後: non-finite チェックで `FloatingPointError` を送出、Primary で clip しない <!-- id: 1-1 -->
+    - [x] `v1/primary/run_phase_a.py` の `evaluate_cross_decoding_and_geometry()`: `H_R, H_S` の finite チェックと float32 変換 <!-- id: 1-2 -->
+- [x] 2. Behavioral EmoBank fallback の修正 <!-- id: 2 -->
+    - [x] `behavioral/primary/run_behavioral_emobank.py` で `fallback` 存在時に `stim_path = fallback` を代入、存在しない場合は `FileNotFoundError` 送出 <!-- id: 2-1 -->
+- [x] 3. Behavioral cache 判定・provenance 強化 <!-- id: 3 -->
+    - [x] `run_behavioral_aipsy.py` / `run_behavioral_emobank.py` で `manifest_config` 生成と `is_manifest_matching` による厳密照合 <!-- id: 3-1 -->
+    - [x] checkpoint の `expected_meta` に `model_revision`, `dataset_hash`, `prompt_hash`, `candidate_hash`, `dtype` を追加 <!-- id: 3-2 -->
+- [x] 4. V1 Phase A cache hash 生成の一致 <!-- id: 4 -->
+    - [x] `v1/primary/run_phase_a.py` で early skip 照合時と manifest 保存時で同一の `manifest_config` dict を使用 <!-- id: 4-1 -->
+- [x] 5. V1 Phase B cache provenance 強化 <!-- id: 5 -->
+    - [x] `v1/primary/run_phase_b.py` で `manifest_config` を厳密化し、skip 時・保存時で照合 <!-- id: 5-1 -->
+- [x] 6. モデル revision 固定と各 Stage loader への `revision=` 適用 <!-- id: 6 -->
+    - [x] `configs/models.yaml` の各モデル revision を固定コミットSHAに更新 <!-- id: 6-1 -->
+    - [x] Behavioral, V1, V2, V3 の全 Primary runner で `AutoTokenizer` / `AutoModelForCausalLM` に `revision` を渡す <!-- id: 6-2 -->
+- [x] 7. run_id 体系と結果ディレクトリ / archive 保証 <!-- id: 7 -->
+    - [x] `src/affective_empathy_eval/io.py` に `archive_existing_file` および `record_latest_run` を実装し、既存結果の自動退避と追記専用規約を担保 <!-- id: 7-1 -->
+- [x] 8. V2 RQ4 dry-run の sample-wise ΔEMD 計算修正 <!-- id: 8 -->
+    - [x] `v2/primary/run_rq4_recovery_patching.py` の dry-run 側で本番リアルモデルと同一の sample-wise ΔEMD 計算を実装 <!-- id: 8-1 -->
+- [x] 9. 推論 dtype の統一 (bf16 / float32) <!-- id: 9 -->
+    - [x] `configs/models.yaml` の `inference_dtype` を尊重し、V1/V3 の fp16 ハードコードを解消、manifest に `actual_dtype` を記録 <!-- id: 9-1 -->
+- [x] 10. prompt hash の SHA-256 完全化と推奨項目の適用 <!-- id: 10 -->
+    - [x] `src/affective_empathy_eval/extraction.py` 内の Python 組み込み `hash()` を `hashlib.sha256` に置換 <!-- id: 10-1 -->
+    - [x] `load_v3_matched_pair_table` に `n_input_pairs`, `n_matched_pairs`, `n_excluded_pairs` を保持し、V3 各 Stage の manifest に記録 <!-- id: 10-2 -->
+- [x] 11. 総合検証手順の整備 <!-- id: 11 -->
+    - [x] 検証コマンドリスト（compileall, pytest, dry-run）の整理 <!-- id: 11-1 -->
+    - [x] `walkthrough.md` の作成・保存 <!-- id: 11-2 -->

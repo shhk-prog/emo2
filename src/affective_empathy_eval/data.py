@@ -270,8 +270,10 @@ def load_v3_matched_pair_table(
             f"No matched affective–neutral pairs could be built from {filepath}."
         )
     out = pd.DataFrame(records).reset_index(drop=True)
-    if skipped:
-        out.attrs["n_skipped_unmatched"] = int(skipped)
+    out.attrs["n_input_pairs"] = int(len(aff))
+    out.attrs["n_matched_pairs"] = int(len(records))
+    out.attrs["n_excluded_pairs"] = int(skipped)
+    out.attrs["n_skipped_unmatched"] = int(skipped)
     return out
 
 

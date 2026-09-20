@@ -208,27 +208,41 @@ def run_real_spatiotemporal_maps(
        Primary Grounding: Reader Prediction (感情認知予測値) に基づくデコード能および情動方向
        Secondary Grounding: Self-Report (自己報告値) に基づくデコード能
     """
-    logger.info(f"Loading model {model_id} for Spatiotemporal 4-Map Analysis on {device}...")
-    if causal_reference_alpha not in alpha_sweep:
-        raise ValueError(
-            f"causal_reference_alpha={causal_reference_alpha} must be present in alpha_sweep={alpha_sweep}"
-        )
-    ref_alpha_idx = alpha_sweep.index(causal_reference_alpha)
+    registry = get_registry()
+    fam_cfg = registry.get_family_by_model_id(model_id)
+    model_spec = None
+    if fam_cfg:
+        for role in ("instruct", "base"):
+            spec = fam_cfg.get_model_spec(role)
+            if spec.model_id == model_id:
+                model_spec = spec
+                break
+    revision = model_spec.revision if model_spec else None
 
-    tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
+    logger.info(f"Loading model {model_id} (revision={revision}) for Spatiotemporal 4-Map Analysis on {device}...")
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_id,
+        revision=revision,
+        trust_remote_code=True,
+    )
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
+    is_cuda = device != "cpu" and torch.cuda.is_available()
+    actual_torch_dtype = (
+        torch.bfloat16
+        if is_cuda and torch.cuda.is_bf16_supported()
+        else (torch.float16 if is_cuda else torch.float32)
+    )
     model = AutoModelForCausalLM.from_pretrained(
         model_id,
-        torch_dtype=torch.float16 if device != "cpu" and torch.cuda.is_available() else torch.float32,
-        device_map=device if device != "cpu" and torch.cuda.is_available() else None,
+        revision=revision,
+        torch_dtype=actual_torch_dtype,
+        device_map=device if is_cuda else None,
         trust_remote_code=True,
     )
     model.eval()
 
-    registry = get_registry()
-    fam_cfg = registry.get_family_by_model_id(model_id)
     adapter = get_model_adapter(model, fam_cfg)
     num_layers = fam_cfg.num_layers
     relative_depths = [l / (num_layers - 1) if num_layers > 1 else 0.0 for l in range(num_layers)]
@@ -689,15 +703,22 @@ def main():
         manifest = create_run_manifest(
             run_type="v3_rq2_discovery_spatiotemporal_maps",
             model_name=target_model_id,
+            model_revision=fam_cfg.get_model_spec("instruct").revision if fam_cfg else "main",
             config=manifest_config,
             metadata={
                 "analysis_role": "discovery",
                 "n_dataset_total": int(len(df)),
+                "n_input_pairs": int(df.attrs.get("n_input_pairs", len(df))),
+                "n_matched_pairs": int(df.attrs.get("n_matched_pairs", len(df))),
+                "n_excluded_pairs": int(df.attrs.get("n_excluded_pairs", 0)),
                 "n_map_samples": int(results.get("n_map_samples", len(df))),
                 "n_intervene_samples": int(results.get("n_intervene_samples", min(5, len(df)))),
                 "n_causal_intervention_samples": int(results.get("n_causal_intervention_samples", min(5, len(df)))),
                 "dissociation_summary": results["dissociation_summary"],
             },
+            candidate_space="VAD_729",
+            measurement_space="VA_81",
+            actual_dtype="bfloat16" if (device != "cpu" and torch.cuda.is_available()) else "float32",
             dry_run=bool(args.dry_run),
         )
         manifest.save(raw_dir / f"manifest_rq2_{fam_key}.json")

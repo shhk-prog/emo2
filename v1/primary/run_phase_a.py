@@ -15,6 +15,7 @@ Strict Features:
 
 import argparse
 import json
+import logging
 import os
 from pathlib import Path
 import sys
@@ -57,6 +58,7 @@ from affective_empathy_eval.models.registry import (
 
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
+logger = logging.getLogger(__name__)
 
 
 def format_prompt(
@@ -154,10 +156,18 @@ def extract_hidden_states_batched(
     final_reps = {}
     for layer, batches in all_layer_reps.items():
         arr = np.concatenate(batches, axis=0)
-        # Sanitize non-finite/extreme values (e.g., for Gemma 3 or unaligned base models)
-        arr = np.nan_to_num(arr, nan=0.0, posinf=1e4, neginf=-1e4)
-        arr = np.clip(arr, -1e4, 1e4)
-        final_reps[layer] = arr.astype(np.float32)
+        if not np.all(np.isfinite(arr)):
+            bad_count = int(arr.size - np.isfinite(arr).sum())
+            raise FloatingPointError(
+                f"Non-finite hidden states detected: {bad_count}"
+            )
+        max_abs = float(np.max(np.abs(arr)))
+        logger.info(
+            "Hidden-state max abs = %.6f",
+            max_abs,
+        )
+        arr = arr.astype(np.float32)
+        final_reps[layer] = arr
     return final_reps
 
 
@@ -402,8 +412,16 @@ def evaluate_cross_decoding_and_geometry(
     cv: int = 5,
     seed: int = 42,
 ) -> Dict[str, Any]:
-    H_R = np.clip(np.nan_to_num(H_R, nan=0.0, posinf=1e4, neginf=-1e4), -1e4, 1e4).astype(np.float32)
-    H_S = np.clip(np.nan_to_num(H_S, nan=0.0, posinf=1e4, neginf=-1e4), -1e4, 1e4).astype(np.float32)
+    for name, H in {
+        "Reader": H_R,
+        "Self": H_S,
+    }.items():
+        if not np.all(np.isfinite(H)):
+            raise FloatingPointError(
+                f"{name} hidden states contain non-finite values."
+            )
+    H_R = H_R.astype(np.float32)
+    H_S = H_S.astype(np.float32)
     n_samples = len(y)
     if group_ids is not None:
         group_ids = np.array([str(g) for g in group_ids])
@@ -565,6 +583,18 @@ def main():
         help="Mock dry-run mode for quick pipeline smoke testing",
     )
     parser.add_argument(
+        "--model-revision",
+        type=str,
+        default=None,
+        help="Specific HuggingFace model git commit SHA or branch",
+    )
+    parser.add_argument(
+        "--run-id",
+        type=str,
+        default=None,
+        help="Optional unique run_id for results organization",
+    )
+    parser.add_argument(
         "--force",
         action="store_true",
         help="Force recomputation even if output files already exist",
@@ -601,21 +631,54 @@ def main():
 
     manifest_path = os.path.join(model_dir, "manifest.json")
     required_outputs = []
+    dataset_paths = []
     if args.dataset in {"emobank", "both"}:
         required_outputs.extend([
             os.path.join(model_dir, "e1_emobank_decodability.csv"),
             os.path.join(model_dir, "e2_emobank_geometry.csv"),
         ])
+        p_emo = Path("v1/data/processed/stimuli_vad_3way_test1k.csv")
+        if not p_emo.exists():
+            p_emo = Path("data/processed/stimuli_vad_3way_test1k.csv")
+        if p_emo.exists():
+            dataset_paths.append(str(p_emo))
     if args.dataset in {"aipsy", "both"}:
         required_outputs.extend([
             os.path.join(model_dir, "e1_aipsy_classification.csv"),
             os.path.join(model_dir, "e1_aipsy_intensity.csv"),
             os.path.join(model_dir, "e1_aipsy_emotion_secondary.csv"),
         ])
+        p_aip = Path("v1/data/processed/aipsy_4split_all.csv")
+        if not p_aip.exists():
+            p_aip = Path("data/processed/aipsy_4split_all.csv")
+        if p_aip.exists():
+            dataset_paths.append(str(p_aip))
 
-    from affective_empathy_eval.manifests import is_manifest_matching, compute_string_or_dict_hash
+    from affective_empathy_eval.manifests import (
+        is_manifest_matching,
+        compute_string_or_dict_hash,
+        compute_file_hash,
+    )
     from affective_empathy_eval.io import is_experiment_completed
-    expected_cfg_hash = compute_string_or_dict_hash(phase_a_cfg) if phase_a_cfg else None
+
+    dataset_hash = (
+        compute_string_or_dict_hash([compute_file_hash(Path(dp)) for dp in dataset_paths])
+        if dataset_paths
+        else "unknown"
+    )
+
+    manifest_config = {
+        "model_prefix": args.model_prefix,
+        "model_id": args.model_id,
+        "model_revision": args.model_revision or "main",
+        "dataset": args.dataset,
+        "dataset_hash": dataset_hash,
+        "limit": args.limit,
+        "seed": phase_a_seed,
+        "cv_folds": phase_a_cv,
+        "ridge_alpha": phase_a_alpha,
+    }
+    expected_cfg_hash = compute_string_or_dict_hash(manifest_config)
 
     e1_json_path = os.path.join(model_dir, f"v1_e1_decodability_{args.model_prefix}.json")
     if not args.force and not args.dry_run and os.path.exists(manifest_path) and all(os.path.exists(p) for p in required_outputs):
@@ -623,6 +686,8 @@ def main():
             manifest_path=manifest_path,
             expected_model_name=args.model_id,
             expected_config_hash=expected_cfg_hash,
+            expected_dataset_hash=dataset_hash,
+            expected_model_revision=args.model_revision,
             expected_dry_run=False,
         ):
             try:
@@ -690,6 +755,10 @@ def main():
         ]
         e2_align_records = [
             {"layer": l, "relative_depth": l / (dummy_layers - 1), "target": "Valence_human", "r2_aligned_transfer": 0.55, "geometry_pattern": "Operational: Shared Geometry"}
+            for l in range(dummy_layers)
+        ]
+        e2_records = [
+            {**e2_cd_records[l], **e2_rsa_records[l], **e2_align_records[l]}
             for l in range(dummy_layers)
         ]
         pd.DataFrame(e2_records).to_csv(
@@ -783,17 +852,19 @@ def main():
         pd.DataFrame(aipsy_sec_records).to_csv(
             os.path.join(model_dir, "e1_aipsy_emotion_secondary.csv"), index=False
         )
+        dry_cfg = dict(manifest_config)
+        dry_cfg["dry_run"] = True
         manifest = create_run_manifest(
             run_type="v1_phase_a",
             model_name=args.model_id,
-            config={
-                "model_prefix": args.model_prefix,
-                "dataset": args.dataset,
-                "limit": args.limit,
-                "dry_run": True,
-            },
-            candidate_space="VAD_729",
+            model_revision=args.model_revision or "main",
+            config=dry_cfg,
+            dataset_path=dataset_paths[0] if dataset_paths else None,
+            candidate_space="N/A",
+            measurement_space="prompt_end_hidden_state",
+            seed=phase_a_seed,
             intervention_version="none",
+            run_id=args.run_id,
             dry_run=True,
         )
         manifest.save(os.path.join(model_dir, "manifest.json"))
@@ -801,17 +872,27 @@ def main():
         return
 
     print(
-        f"=== Starting V1 Phase A Probing for Model: {args.model_id} (Instruct={is_instruct}) ==="
+        f"=== Starting V1 Phase A Probing for Model: {args.model_id} (Instruct={is_instruct}, revision={args.model_revision}) ==="
     )
 
-    tokenizer = AutoTokenizer.from_pretrained(args.model_id, trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(
+        args.model_id,
+        revision=args.model_revision,
+        trust_remote_code=True,
+    )
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
     is_cuda = str(args.device).startswith("cuda") and torch.cuda.is_available()
+    actual_torch_dtype = (
+        torch.bfloat16
+        if is_cuda and torch.cuda.is_bf16_supported()
+        else (torch.float16 if is_cuda else torch.float32)
+    )
     model = AutoModelForCausalLM.from_pretrained(
         args.model_id,
-        torch_dtype=torch.float16 if is_cuda else torch.float32,
+        revision=args.model_revision,
+        torch_dtype=actual_torch_dtype,
         device_map=args.device if is_cuda else None,
         trust_remote_code=True,
     )
@@ -1156,18 +1237,14 @@ def main():
     manifest = create_run_manifest(
         run_type="v1_phase_a",
         model_name=args.model_id,
-        config={
-            "model_prefix": args.model_prefix,
-            "dataset": args.dataset,
-            "limit": args.limit,
-            "num_layers": num_layers,
-            "seed": phase_a_seed,
-            "cv_folds": phase_a_cv,
-            "ridge_alpha": phase_a_alpha,
-        },
+        model_revision=args.model_revision or "main",
+        config=manifest_config,
+        dataset_path=dataset_paths[0] if dataset_paths else None,
         candidate_space="N/A",
         measurement_space="prompt_end_hidden_state",
+        actual_dtype=str(actual_torch_dtype).replace("torch.", ""),
         seed=phase_a_seed,
+        run_id=args.run_id,
         dry_run=args.dry_run,
     )
     manifest.save(manifest_path)

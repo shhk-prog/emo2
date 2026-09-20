@@ -227,6 +227,23 @@ def main():
         default="cuda" if torch.cuda.is_available() else "cpu",
     )
     parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Run in dry-run mock mode without loading model weights",
+    )
+    parser.add_argument(
+        "--model-revision",
+        type=str,
+        default=None,
+        help="Specific HuggingFace model git commit SHA or branch",
+    )
+    parser.add_argument(
+        "--run-id",
+        type=str,
+        default=None,
+        help="Optional unique run_id for results organization",
+    )
+    parser.add_argument(
         "--force",
         action="store_true",
         help="Force recomputation even if output CSV already exists",
@@ -249,14 +266,50 @@ def main():
     ckpt_csv = os.path.join(ckpt_dir, f"{args.tag}_aipsy_4split_checkpoint.csv")
     ckpt_meta = os.path.join(ckpt_dir, f"{args.tag}_aipsy_4split_meta.json")
 
-    from affective_empathy_eval.manifests import compute_file_hash, is_manifest_matching
+    from affective_empathy_eval.manifests import (
+        compute_file_hash,
+        compute_prompt_hash,
+        compute_string_or_dict_hash,
+        is_manifest_matching,
+        create_run_manifest,
+    )
     from affective_empathy_eval.io import save_experiment_result, is_experiment_completed
+
+    device_str = args.device
+    actual_dtype_str = "bfloat16" if (device_str != "cpu" and torch.cuda.is_available()) else "float32"
+    prompt_template_desc = (
+        "v1_aipsy_4split_vad_json|"
+        f"is_instruct={args.is_instruct}|"
+        "tasks=writer,reader,self|aipsy_prompts"
+    )
+    prompt_hash = compute_prompt_hash(prompt_template_desc)
+    dataset_hash = compute_file_hash(stim_path) if stim_path.exists() else "unknown"
+
+    manifest_config = {
+        "model_id": args.model,
+        "model_revision": args.model_revision or "main",
+        "tag": args.tag,
+        "is_instruct": args.is_instruct,
+        "limit": args.limit,
+        "dataset_hash": dataset_hash,
+        "candidate_space": "VAD_729",
+        "prompt_hash": prompt_hash,
+        "actual_dtype": actual_dtype_str,
+    }
+    expected_config_hash = compute_string_or_dict_hash(manifest_config)
+
+    candidates_sample = [f"candidate_{i}" for i in range(10)]
+    candidate_hash = compute_string_or_dict_hash(candidates_sample)
 
     expected_meta = {
         "model": args.model,
+        "model_revision": args.model_revision or "main",
         "limit": args.limit,
         "is_instruct": args.is_instruct,
-        "stimuli_hash": compute_file_hash(stim_path) if stim_path.exists() else "unknown",
+        "stimuli_hash": dataset_hash,
+        "prompt_hash": prompt_hash,
+        "candidate_hash": candidate_hash,
+        "dtype": actual_dtype_str,
     }
 
     # Early skip if already evaluated and valid (Resume support)
@@ -268,12 +321,21 @@ def main():
             expected_min = args.limit if (args.limit and args.limit > 0) else 1
             if len(cached_df) >= expected_min and "s_ev" in cached_df.columns:
                 if os.path.exists(out_json) and is_experiment_completed(out_json, manifest_path=manifest_path, force=args.force):
-                    print(
-                        f"[SKIP] Existing validated results found at {check_path} (n={len(cached_df)}). "
-                        f"Skipping model loading & evaluation for {args.tag}. Use --force to rerun."
-                    )
-                    res_df = cached_df
-                    skip_eval = True
+                    if is_manifest_matching(
+                        manifest_path=manifest_path,
+                        expected_model_name=args.model,
+                        expected_config_hash=expected_config_hash,
+                        expected_dataset_hash=dataset_hash,
+                        expected_prompt_hash=prompt_hash,
+                        expected_model_revision=args.model_revision,
+                        expected_dry_run=args.dry_run,
+                    ):
+                        print(
+                            f"[SKIP] Existing validated results matching manifest found at {check_path} (n={len(cached_df)}). "
+                            f"Skipping model loading & evaluation for {args.tag}. Use --force to rerun."
+                        )
+                        res_df = cached_df
+                        skip_eval = True
         except Exception as e:
             print(f"Warning: Corrupt or unreadable output at {check_path} ({e}). Rerunning.")
             skip_eval = False
@@ -281,70 +343,101 @@ def main():
         skip_eval = False
 
     if not skip_eval:
-        # Save checkpoint meta
-        with open(ckpt_meta, "w", encoding="utf-8") as f:
-            json.dump(expected_meta, f, indent=2)
-
-        print("=" * 60)
-        print(
-            f"Evaluating Model: {args.model} (Tag: {args.tag}, Instruct: {args.is_instruct})"
-        )
-        print(f"Stimuli Path: {stim_path} (Device: {args.device})")
-        print("=" * 60)
-
-        tokenizer = AutoTokenizer.from_pretrained(args.model, trust_remote_code=True)
-        if tokenizer.pad_token is None:
-            tokenizer.pad_token = tokenizer.eos_token
-
-        device = args.device
-        torch_dtype = torch.bfloat16 if device != "cpu" and torch.cuda.is_available() else torch.float32
-
-        if device.startswith("cuda:"):
-            model = AutoModelForCausalLM.from_pretrained(
-                args.model,
-                torch_dtype=torch_dtype,
-                device_map=device,
-                trust_remote_code=True,
-            )
-        elif device == "cuda":
-            model = AutoModelForCausalLM.from_pretrained(
-                args.model,
-                torch_dtype=torch_dtype,
-                device_map="auto",
-                trust_remote_code=True,
-            )
-        else:
-            model = AutoModelForCausalLM.from_pretrained(
-                args.model,
-                torch_dtype=torch_dtype,
-                device_map=None,
-                trust_remote_code=True,
-            ).to(device)
-        model.eval()
-
-        candidates, vad_triplets = build_candidates()
-        print(f"Generated {len(candidates)} VAD candidate triplets in {{1..9}}^3.")
-
-        res_df = evaluate_aipsy_stimuli(
-            model,
-            tokenizer,
-            args.device,
-            candidates,
-            vad_triplets,
-            stimuli_path=str(stim_path),
-            is_instruct=args.is_instruct,
-            limit=args.limit,
-            batch_size=args.batch_size,
-            checkpoint_path=ckpt_csv,
-            checkpoint_meta_path=ckpt_meta,
-            expected_meta=expected_meta,
-        )
-
-        res_df.to_csv(out_csv, index=False)
-        try:
+        if args.dry_run:
+            print(f"[DRY-RUN] Simulating AIPsy 4-Split evaluation for {args.tag}...")
+            records = []
+            quads = ["high_v_high_a", "high_v_low_a", "low_v_high_a", "low_v_low_a"]
+            for i in range(16):
+                q = quads[i % 4]
+                records.append({
+                    "id": f"dry_aipsy_{i}",
+                    "text": f"Mock AIPsy text {i}",
+                    "quad": q,
+                    "valence": 7.0 if "high_v" in q else 3.0,
+                    "arousal": 7.0 if "high_a" in q else 3.0,
+                    "dominance": 5.0,
+                    "s_ev": 6.8 if "high_v" in q else 3.2,
+                    "s_ea": 6.5 if "high_a" in q else 3.5,
+                    "s_ed": 5.0,
+                    "r_ev": 6.9 if "high_v" in q else 3.1,
+                    "r_ea": 6.7 if "high_a" in q else 3.3,
+                    "r_ed": 5.0,
+                })
+            res_df = pd.DataFrame(records)
+            res_df.to_csv(out_csv, index=False)
             res_df.to_csv(out_csv_compat, index=False)
-        except Exception:
-            pass
+        else:
+            # Save checkpoint meta
+            with open(ckpt_meta, "w", encoding="utf-8") as f:
+                json.dump(expected_meta, f, indent=2)
+
+            print("=" * 60)
+            print(
+                f"Evaluating Model: {args.model} (Tag: {args.tag}, Instruct: {args.is_instruct})"
+            )
+            print(f"Stimuli Path: {stim_path} (Device: {args.device})")
+            print("=" * 60)
+
+            tokenizer = AutoTokenizer.from_pretrained(
+                args.model,
+                revision=args.model_revision,
+                trust_remote_code=True,
+            )
+            if tokenizer.pad_token is None:
+                tokenizer.pad_token = tokenizer.eos_token
+
+            device = args.device
+            torch_dtype = torch.bfloat16 if device != "cpu" and torch.cuda.is_available() else torch.float32
+
+            if device.startswith("cuda:"):
+                model = AutoModelForCausalLM.from_pretrained(
+                    args.model,
+                    revision=args.model_revision,
+                    torch_dtype=torch_dtype,
+                    device_map=device,
+                    trust_remote_code=True,
+                )
+            elif device == "cuda":
+                model = AutoModelForCausalLM.from_pretrained(
+                    args.model,
+                    revision=args.model_revision,
+                    torch_dtype=torch_dtype,
+                    device_map="auto",
+                    trust_remote_code=True,
+                )
+            else:
+                model = AutoModelForCausalLM.from_pretrained(
+                    args.model,
+                    revision=args.model_revision,
+                    torch_dtype=torch_dtype,
+                    device_map=None,
+                    trust_remote_code=True,
+                ).to(device)
+            model.eval()
+
+            candidates, vad_triplets = build_candidates()
+            print(f"Generated {len(candidates)} VAD candidate triplets in {{1..9}}^3.")
+
+            res_df = evaluate_aipsy_stimuli(
+                model,
+                tokenizer,
+                args.device,
+                candidates,
+                vad_triplets,
+                stimuli_path=str(stim_path),
+                is_instruct=args.is_instruct,
+                limit=args.limit,
+                batch_size=args.batch_size,
+                checkpoint_path=ckpt_csv,
+                checkpoint_meta_path=ckpt_meta,
+                expected_meta=expected_meta,
+            )
+
+            res_df.to_csv(out_csv, index=False)
+            try:
+                res_df.to_csv(out_csv_compat, index=False)
+            except Exception:
+                pass
     if os.path.exists(ckpt_csv):
         try:
             os.remove(ckpt_csv)
@@ -378,16 +471,16 @@ def main():
     manifest = create_run_manifest(
         run_type="behavioral_aipsy_4split",
         model_name=args.model,
-        config={
-            "tag": args.tag,
-            "is_instruct": args.is_instruct,
-            "stimuli_path": str(stim_path),
-            "limit": args.limit,
-        },
+        model_revision=args.model_revision or "main",
+        config=manifest_config,
         metadata=summary,
         dataset_path=str(stim_path),
+        prompt_hash=prompt_hash,
         candidate_space="VAD_729",
+        actual_dtype=actual_dtype_str,
         intervention_version="none",
+        run_id=args.run_id,
+        dry_run=args.dry_run,
     )
     manifest.save(manifest_path)
     try:

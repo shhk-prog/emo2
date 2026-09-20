@@ -205,21 +205,41 @@ def run_real_path_mediation(
     1. Discovery split で全層のデコード・因果変位から Mediator 層 l_med* を自動選定
     2. Confirmation split で固定した l_med* の情動部分空間を除去し、Total Shift, Residual Shift, Attenuation, Attenuation Ratio を測定
     """
-    logger.info(f"Loading model {model_id} for Path Mediation on {device}...")
-    tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
+    registry = get_registry()
+    fam_cfg = registry.get_family_by_model_id(model_id)
+    model_spec = None
+    if fam_cfg:
+        for role in ("instruct", "base"):
+            spec = fam_cfg.get_model_spec(role)
+            if spec.model_id == model_id:
+                model_spec = spec
+                break
+    revision = model_spec.revision if model_spec else None
+
+    logger.info(f"Loading model {model_id} (revision={revision}) for Path Mediation on {device}...")
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_id,
+        revision=revision,
+        trust_remote_code=True,
+    )
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
+    is_cuda = device != "cpu" and torch.cuda.is_available()
+    actual_torch_dtype = (
+        torch.bfloat16
+        if is_cuda and torch.cuda.is_bf16_supported()
+        else (torch.float16 if is_cuda else torch.float32)
+    )
     model = AutoModelForCausalLM.from_pretrained(
         model_id,
-        torch_dtype=torch.float16 if device != "cpu" and torch.cuda.is_available() else torch.float32,
-        device_map=device if device != "cpu" and torch.cuda.is_available() else None,
+        revision=revision,
+        torch_dtype=actual_torch_dtype,
+        device_map=device if is_cuda else None,
         trust_remote_code=True,
     )
     model.eval()
 
-    registry = get_registry()
-    fam_cfg = registry.get_family_by_model_id(model_id)
     adapter = get_model_adapter(model, fam_cfg)
     num_layers = fam_cfg.num_layers
     relative_depths = [l / (num_layers - 1) if num_layers > 1 else 0.0 for l in range(num_layers)]
@@ -728,9 +748,13 @@ def main():
         manifest = create_run_manifest(
             run_type="v3_rq3_path_mediation",
             model_name=target_model_id,
+            model_revision=fam_cfg.get_model_spec("instruct").revision if fam_cfg else "main",
             config=manifest_config,
             metadata={
                 "n_dataset_total": int(len(df)),
+                "n_input_pairs": int(df.attrs.get("n_input_pairs", len(df))),
+                "n_matched_pairs": int(df.attrs.get("n_matched_pairs", len(df))),
+                "n_excluded_pairs": int(df.attrs.get("n_excluded_pairs", 0)),
                 "n_intervention_samples": n_intervention_manifest,
                 "mediator_layer": confirmation_res["mediator_layer"],
                 "mediator_relative_depth": confirmation_res.get("mediator_relative_depth", float(confirmation_res["mediator_layer"] / (num_layers - 1))),
@@ -739,6 +763,9 @@ def main():
                 "valence_attenuation_ratio": confirmation_res["valence"]["attenuation_ratio"]["mean"],
                 "arousal_attenuation_ratio": confirmation_res["arousal"]["attenuation_ratio"]["mean"],
             },
+            candidate_space="VAD_729",
+            measurement_space="VA_81",
+            actual_dtype="bfloat16" if (device != "cpu" and torch.cuda.is_available()) else "float32",
             dry_run=bool(args.dry_run),
         )
         manifest.save(raw_dir / f"manifest_rq3_{fam_key}.json")

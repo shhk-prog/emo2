@@ -498,9 +498,13 @@ def main():
                 tokenizer = None
             else:
                 logger.info(f"Loading weights for {model_spec.model_id} ({format_cond}) onto {args.device}...")
-                tokenizer = AutoTokenizer.from_pretrained(model_spec.model_id)
+                tokenizer = AutoTokenizer.from_pretrained(
+                    model_spec.model_id,
+                    revision=model_spec.revision,
+                )
                 model = AutoModelForCausalLM.from_pretrained(
                     model_spec.model_id,
+                    revision=model_spec.revision,
                     torch_dtype=torch.bfloat16 if "cuda" in args.device else torch.float32,
                     device_map=args.device if "cuda" in args.device else None,
                 )

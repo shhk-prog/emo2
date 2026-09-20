@@ -229,21 +229,41 @@ def run_real_model_confirmatory(
     H2(十分性), H3(必然性), H4(時間的局在) をすべて同一の Cross-Fitting (GroupKFold) ループ内で
     train fold のみから推定・test fold のみで評価する完全独立評価に統一。
     """
-    logger.info(f"Loading {family} model: {model_id} on {device}...")
-    tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
+    registry = get_registry()
+    fam_cfg = registry.get_family_by_model_id(model_id)
+    model_spec = None
+    if fam_cfg:
+        for role in ("instruct", "base"):
+            spec = fam_cfg.get_model_spec(role)
+            if spec.model_id == model_id:
+                model_spec = spec
+                break
+    revision = model_spec.revision if model_spec else None
+
+    logger.info(f"Loading {family} model: {model_id} (revision={revision}) on {device}...")
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_id,
+        revision=revision,
+        trust_remote_code=True,
+    )
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
+    is_cuda = device != "cpu" and torch.cuda.is_available()
+    actual_torch_dtype = (
+        torch.bfloat16
+        if is_cuda and torch.cuda.is_bf16_supported()
+        else (torch.float16 if is_cuda else torch.float32)
+    )
     model = AutoModelForCausalLM.from_pretrained(
         model_id,
-        torch_dtype=torch.float16 if device != "cpu" and torch.cuda.is_available() else torch.float32,
-        device_map=device if device != "cpu" and torch.cuda.is_available() else None,
+        revision=revision,
+        torch_dtype=actual_torch_dtype,
+        device_map=device if is_cuda else None,
         trust_remote_code=True,
     )
     model.eval()
 
-    registry = get_registry()
-    fam_cfg = registry.get_family_by_model_id(model_id)
     adapter = get_model_adapter(model, fam_cfg)
     num_layers = fam_cfg.num_layers
     relative_depths = [l / (num_layers - 1) if num_layers > 1 else 0.0 for l in range(num_layers)]
@@ -1013,15 +1033,22 @@ def main():
         manifest = create_run_manifest(
             run_type="v3_confirmatory",
             model_name=model_id,
+            model_revision=fam_cfg.get_model_spec("instruct").revision if fam_cfg else "main",
             config=manifest_config,
             metadata={
                 "family": fam_name,
                 "confirmatory_site_selection_source": selection_source,
+                "n_input_pairs": int(df.attrs.get("n_input_pairs", len(df))),
+                "n_matched_pairs": int(df.attrs.get("n_matched_pairs", len(df))),
+                "n_excluded_pairs": int(df.attrs.get("n_excluded_pairs", 0)),
                 "slope_v": res["h2_sufficiency"]["slope_v"],
                 "slope_a": res["h2_sufficiency"]["slope_a"],
                 "auxiliary_qc_all_pass": res.get("auxiliary_qc_all_pass", res.get("all_confirmed", False)),
                 "all_confirmed": res.get("all_confirmed", False),
             },
+            candidate_space="VAD_729",
+            measurement_space="VA_81",
+            actual_dtype="bfloat16" if (device != "cpu" and torch.cuda.is_available()) else "float32",
             dry_run=bool(args.dry_run),
         )
         manifest.save(str(manifest_path))

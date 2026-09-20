@@ -11,6 +11,7 @@ import json
 import logging
 import os
 from pathlib import Path
+import shutil
 import tempfile
 from typing import Any, Dict, Optional
 
@@ -32,6 +33,8 @@ def save_experiment_result(
     トップレベルに成否フラグ、ステージ、実験ID、タイムスタンプを付与。
     """
     path = Path(output_path)
+    if path.exists():
+        archive_existing_file(path, stage=stage)
     path.parent.mkdir(parents=True, exist_ok=True)
 
     envelope = {
@@ -104,3 +107,46 @@ def is_experiment_completed(
     except Exception as e:
         logger.warning(f"Failed to inspect existing result at {path}: {e}. Will re-run.")
         return False
+
+
+def archive_existing_file(filepath: Path | str, stage: Optional[str] = None) -> Optional[Path]:
+    """
+    AGENTS.md 1.3 準拠: 既存結果ファイルを上書きせず results/archive/ へ退避する。
+    """
+    p = Path(filepath)
+    if not p.exists():
+        return None
+    now_str = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    archive_dir = p.parent.parent / "archive" if p.parent.name in {"raw", "derived", "dry_run"} else p.parent / "archive"
+    archive_dir.mkdir(parents=True, exist_ok=True)
+    archived_name = f"{now_str}_{p.name}"
+    archived_path = archive_dir / archived_name
+    try:
+        shutil.copy2(p, archived_path)
+        logger.info(f"Archived existing result {p} to {archived_path}")
+        return archived_path
+    except Exception as e:
+        logger.warning(f"Failed to archive existing result {p}: {e}")
+        return None
+
+
+def record_latest_run(stage_dir: Path | str, run_id: str, metadata: Optional[Dict[str, Any]] = None):
+    """
+    AGENTS.md 5.3 準拠: stage の results/latest.json に最新 run_id を記録する。
+    """
+    p = Path(stage_dir)
+    res_dir = p / "results" if (p / "results").exists() else p
+    latest_file = res_dir / "latest.json"
+    latest_file.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "run_id": run_id,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "metadata": metadata or {},
+    }
+    try:
+        with open(latest_file, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2)
+        logger.info(f"Recorded latest run {run_id} to {latest_file}")
+    except Exception as e:
+        logger.warning(f"Failed to record latest run to {latest_file}: {e}")
+

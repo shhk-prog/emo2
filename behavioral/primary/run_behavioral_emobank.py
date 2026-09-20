@@ -288,6 +288,23 @@ def main():
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--batch-size", type=int, default=81)
     parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Run in dry-run mock mode without loading model weights",
+    )
+    parser.add_argument(
+        "--model-revision",
+        type=str,
+        default=None,
+        help="Specific HuggingFace model git commit SHA or branch",
+    )
+    parser.add_argument(
+        "--run-id",
+        type=str,
+        default=None,
+        help="Optional unique run_id for results organization",
+    )
+    parser.add_argument(
         "--force",
         action="store_true",
         help="Force recomputation even if output CSV already exists",
@@ -298,7 +315,13 @@ def main():
     stim_path = Path(args.stimuli_path)
     if not stim_path.exists():
         fallback = Path("data/processed/stimuli_vad_3way.csv")
-        os.makedirs(args.out_dir, exist_ok=True)
+        if fallback.exists():
+            stim_path = fallback
+        else:
+            raise FileNotFoundError(
+                f"Stimuli dataset not found: {args.stimuli_path} or {fallback}"
+            )
+    os.makedirs(args.out_dir, exist_ok=True)
     out_csv = os.path.join(args.out_dir, f"behavioral_emobank_{args.tag}_3way_vad.csv")
     out_csv_compat = os.path.join(args.out_dir, f"{args.tag}_3way_vad.csv")
     out_json = os.path.join(args.out_dir, f"behavioral_emobank_{args.tag}_summary.json")
@@ -308,14 +331,51 @@ def main():
     ckpt_csv = os.path.join(ckpt_dir, f"{args.tag}_checkpoint.csv")
     ckpt_meta = os.path.join(ckpt_dir, f"{args.tag}_checkpoint_meta.json")
 
-    from affective_empathy_eval.manifests import compute_file_hash, is_manifest_matching
+    from affective_empathy_eval.manifests import (
+        compute_file_hash,
+        compute_prompt_hash,
+        compute_string_or_dict_hash,
+        is_manifest_matching,
+        create_run_manifest,
+    )
     from affective_empathy_eval.io import save_experiment_result, is_experiment_completed
+
+    actual_dtype_str = args.dtype if (args.device != "cpu" and torch.cuda.is_available()) else "float32"
+    prompt_template_desc = (
+        "v1_emobank_3way_vad_json|"
+        f"is_instruct={args.is_instruct}|"
+        "writer=estimate affective state of the writer|"
+        "reader=estimate affective response in average human reader|"
+        "self=report your affective state"
+    )
+    prompt_hash = compute_prompt_hash(prompt_template_desc)
+    dataset_hash = compute_file_hash(stim_path) if stim_path.exists() else "unknown"
+
+    manifest_config = {
+        "model_id": args.model,
+        "model_revision": args.model_revision or "main",
+        "tag": args.tag,
+        "is_instruct": args.is_instruct,
+        "limit": args.limit,
+        "dataset_hash": dataset_hash,
+        "candidate_space": "VAD_729",
+        "prompt_hash": prompt_hash,
+        "actual_dtype": actual_dtype_str,
+    }
+    expected_config_hash = compute_string_or_dict_hash(manifest_config)
+
+    candidates_sample, _ = get_vad_candidates_and_triplets()
+    candidate_hash = compute_string_or_dict_hash(candidates_sample[:10])
 
     expected_meta = {
         "model": args.model,
+        "model_revision": args.model_revision or "main",
         "limit": args.limit,
         "is_instruct": args.is_instruct,
-        "stimuli_hash": compute_file_hash(stim_path) if stim_path.exists() else "unknown",
+        "stimuli_hash": dataset_hash,
+        "prompt_hash": prompt_hash,
+        "candidate_hash": candidate_hash,
+        "dtype": actual_dtype_str,
     }
 
     # Early skip if already evaluated and valid (Resume support)
@@ -327,12 +387,21 @@ def main():
             expected_min = args.limit if args.limit is not None else 1
             if len(cached_df) >= expected_min and "s_ev" in cached_df.columns:
                 if os.path.exists(out_json) and is_experiment_completed(out_json, manifest_path=manifest_path, force=args.force):
-                    print(
-                        f"[SKIP] Existing validated results found at {check_path} (n={len(cached_df)}). "
-                        f"Skipping model loading & evaluation for {args.tag}. Use --force to rerun."
-                    )
-                    res_df = cached_df
-                    skip_eval = True
+                    if is_manifest_matching(
+                        manifest_path=manifest_path,
+                        expected_model_name=args.model,
+                        expected_config_hash=expected_config_hash,
+                        expected_dataset_hash=dataset_hash,
+                        expected_prompt_hash=prompt_hash,
+                        expected_model_revision=args.model_revision,
+                        expected_dry_run=args.dry_run,
+                    ):
+                        print(
+                            f"[SKIP] Existing validated results matching manifest found at {check_path} (n={len(cached_df)}). "
+                            f"Skipping model loading & evaluation for {args.tag}. Use --force to rerun."
+                        )
+                        res_df = cached_df
+                        skip_eval = True
         except Exception as e:
             print(f"Warning: Corrupt or unreadable output at {check_path} ({e}). Rerunning.")
             skip_eval = False
@@ -340,57 +409,103 @@ def main():
         skip_eval = False
 
     if not skip_eval:
-        # Save checkpoint meta
-        with open(ckpt_meta, "w", encoding="utf-8") as f:
-            json.dump(expected_meta, f, indent=2)
-
-        device = args.device
-        torch_dtype = torch.bfloat16 if args.dtype == "bfloat16" else (torch.float16 if device != "cpu" else torch.float32)
-
-        print(
-            f"Loading Model: {args.model} (tag: {args.tag}, dtype: {args.dtype}, device: {device})..."
-        )
-        tokenizer = AutoTokenizer.from_pretrained(args.model, trust_remote_code=True)
-        if device.startswith("cuda:"):
-            model = AutoModelForCausalLM.from_pretrained(
-                args.model,
-                torch_dtype=torch_dtype,
-                device_map=device,
-                trust_remote_code=True,
-            )
-        elif device == "cuda":
-            model = AutoModelForCausalLM.from_pretrained(
-                args.model,
-                torch_dtype=torch_dtype,
-                device_map="auto",
-                trust_remote_code=True,
-            )
+        if args.dry_run:
+            print(f"[DRY-RUN] Simulating EmoBank 3-Way VAD evaluation for {args.tag}...")
+            records = []
+            for i in range(10):
+                records.append({
+                    "id": f"dry_{i}",
+                    "text": f"Mock text {i}",
+                    "human_writer_v": 5.0 + (i % 3 - 1) * 1.5,
+                    "human_writer_a": 4.0 + (i % 2) * 1.0,
+                    "human_writer_d": 5.0,
+                    "human_reader_v": 5.1 + (i % 3 - 1) * 1.4,
+                    "human_reader_a": 4.1 + (i % 2) * 0.9,
+                    "human_reader_d": 5.0,
+                    "w_ev": 5.0 + (i % 3 - 1) * 1.3,
+                    "w_ea": 4.0 + (i % 2) * 0.8,
+                    "w_ed": 5.0,
+                    "r_ev": 5.1 + (i % 3 - 1) * 1.4,
+                    "r_ea": 4.0 + (i % 2) * 0.9,
+                    "r_ed": 5.0,
+                    "s_ev": 5.2 + (i % 3 - 1) * 1.2,
+                    "s_ea": 4.1 + (i % 2) * 0.8,
+                    "s_ed": 5.0,
+                    "b_ev": 5.0,
+                    "b_ea": 4.0,
+                    "b_ed": 5.0,
+                    "s_gv": 5,
+                    "s_ga": 5,
+                    "s_gd": 5,
+                    "r_gv": 5,
+                    "r_ga": 5,
+                    "r_gd": 5,
+                    "w_gv": 5,
+                    "w_ga": 5,
+                    "w_gd": 5,
+                })
+            res_df = pd.DataFrame(records)
+            res_df.to_csv(out_csv, index=False)
+            res_df.to_csv(out_csv_compat, index=False)
         else:
-            model = AutoModelForCausalLM.from_pretrained(
+            # Save checkpoint meta
+            with open(ckpt_meta, "w", encoding="utf-8") as f:
+                json.dump(expected_meta, f, indent=2)
+
+            device = args.device
+            torch_dtype = torch.bfloat16 if args.dtype == "bfloat16" else (torch.float16 if device != "cpu" else torch.float32)
+
+            print(
+                f"Loading Model: {args.model} (tag: {args.tag}, revision: {args.model_revision}, dtype: {args.dtype}, device: {device})..."
+            )
+            tokenizer = AutoTokenizer.from_pretrained(
                 args.model,
-                torch_dtype=torch_dtype,
-                device_map=None,
+                revision=args.model_revision,
                 trust_remote_code=True,
-            ).to(device)
-        model.eval()
+            )
+            if device.startswith("cuda:"):
+                model = AutoModelForCausalLM.from_pretrained(
+                    args.model,
+                    revision=args.model_revision,
+                    torch_dtype=torch_dtype,
+                    device_map=device,
+                    trust_remote_code=True,
+                )
+            elif device == "cuda":
+                model = AutoModelForCausalLM.from_pretrained(
+                    args.model,
+                    revision=args.model_revision,
+                    torch_dtype=torch_dtype,
+                    device_map="auto",
+                    trust_remote_code=True,
+                )
+            else:
+                model = AutoModelForCausalLM.from_pretrained(
+                    args.model,
+                    revision=args.model_revision,
+                    torch_dtype=torch_dtype,
+                    device_map=None,
+                    trust_remote_code=True,
+                ).to(device)
+            model.eval()
 
-        candidates, vad_triplets = get_vad_candidates_and_triplets()
-        print(f"Generated {len(candidates)} canonical VAD candidates in {{1..9}}^3.")
+            candidates, vad_triplets = get_vad_candidates_and_triplets()
+            print(f"Generated {len(candidates)} canonical VAD candidates in {{1..9}}^3.")
 
-        res_df = evaluate_model(
-            model,
-            tokenizer,
-            device,
-            candidates,
-            vad_triplets,
-            stimuli_path=str(stim_path),
-            is_instruct=args.is_instruct,
-            limit=args.limit,
-            batch_size=args.batch_size,
-            checkpoint_path=ckpt_csv,
-            checkpoint_meta_path=ckpt_meta,
-            expected_meta=expected_meta,
-        )
+            res_df = evaluate_model(
+                model,
+                tokenizer,
+                device,
+                candidates,
+                vad_triplets,
+                stimuli_path=str(stim_path),
+                is_instruct=args.is_instruct,
+                limit=args.limit,
+                batch_size=args.batch_size,
+                checkpoint_path=ckpt_csv,
+                checkpoint_meta_path=ckpt_meta,
+                expected_meta=expected_meta,
+            )
 
         res_df.to_csv(out_csv, index=False)
         try:
@@ -477,16 +592,16 @@ def main():
     manifest = create_run_manifest(
         run_type="behavioral_emobank_3way",
         model_name=args.model,
-        config={
-            "tag": args.tag,
-            "is_instruct": args.is_instruct,
-            "stimuli_path": str(stim_path),
-            "limit": args.limit,
-        },
+        model_revision=args.model_revision or "main",
+        config=manifest_config,
         metadata=summary,
         dataset_path=str(stim_path),
+        prompt_hash=prompt_hash,
         candidate_space="VAD_729",
+        actual_dtype=actual_dtype_str,
         intervention_version="none",
+        run_id=args.run_id,
+        dry_run=args.dry_run,
     )
     manifest.save(manifest_path)
     try:

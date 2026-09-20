@@ -1,0 +1,38 @@
+{
+  "run_type": "v3_rq3_path_mediation",
+  "model_name": "Qwen/Qwen2.5-1.5B-Instruct",
+  "config": {
+    "analysis_role": "discovery_mediation",
+    "family": "qwen",
+    "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
+    "dataset_path": "v1/data/processed/aipsy_4split_all.csv",
+    "subsample": 0,
+    "bootstrap_n": 1000,
+    "seed": 42,
+    "dry_run": true
+  },
+  "metadata": {
+    "n_dataset_total": 192,
+    "n_intervention_samples": 192,
+    "mediator_layer": 18,
+    "mediator_relative_depth": 0.6666666666666666,
+    "valence_attenuation": 0.9546305589567173,
+    "arousal_attenuation": 0.7900625496692081,
+    "valence_attenuation_ratio": 0.7444935294856366,
+    "arousal_attenuation_ratio": 0.7344321351441326
+  },
+  "timestamp_utc": "2026-09-20T17:40:57.557543+00:00",
+  "git_commit": "893b608",
+  "run_id": "20260920T174057Z_893b608_cefe6f43",
+  "config_hash": "cefe6f43e00d2d7c",
+  "dataset_hash": "192b57bbb0dc27e5",
+  "model_revision": "main",
+  "tokenizer_revision": "main",
+  "prompt_version": "1.0.0",
+  "prompt_hash": "unknown",
+  "candidate_space": "VA_81",
+  "seed": 42,
+  "code_version": "0.3.0",
+  "intervention_version": "none",
+  "dry_run": true
+}

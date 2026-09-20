@@ -14,7 +14,7 @@ import argparse
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 import numpy as np
 import pandas as pd
 import torch
@@ -198,6 +198,7 @@ def run_real_path_mediation(
     device: str = "cpu",
     subsample: int = 0,
     bootstrap_n: int = 1000,
+    v3_cfg: Optional[Dict[str, Any]] = None,
 ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """
     実モデルを用いた V3-RQ3 Path Mediation 解析
@@ -223,25 +224,28 @@ def run_real_path_mediation(
     num_layers = fam_cfg.num_layers
     relative_depths = [l / (num_layers - 1) if num_layers > 1 else 0.0 for l in range(num_layers)]
 
-    # 1. 厳格な 50/50 Data Splitting (seed 42, pair_id に基づく Group split)
-    seed = 42
+    # 1. Config に基づく Data Splitting (Item 11: seed & discovery_ratio from config, strict disjoint)
+    seed = int(v3_cfg.get("seed", 42)) if v3_cfg else 42
+    discovery_ratio = float(v3_cfg.get("path_mediation", {}).get("discovery_ratio", 0.5)) if v3_cfg else 0.5
     rng = np.random.RandomState(seed)
     if "pair_id" in df.columns and df["pair_id"].nunique() > 1:
         unique_pairs = df["pair_id"].unique()
         rng.shuffle(unique_pairs)
-        half_pairs = len(unique_pairs) // 2
-        disc_pairs = set(unique_pairs[:half_pairs])
+        n_disc = int(round(len(unique_pairs) * discovery_ratio))
+        disc_pairs = set(unique_pairs[:n_disc])
+        conf_pairs = set(unique_pairs[n_disc:])
+        assert disc_pairs.isdisjoint(conf_pairs), "Data leakage! Discovery and Confirmation pair sets must be strictly disjoint."
         disc_df = df[df["pair_id"].isin(disc_pairs)].copy().reset_index(drop=True)
-        conf_df = df[~df["pair_id"].isin(disc_pairs)].copy().reset_index(drop=True)
+        conf_df = df[df["pair_id"].isin(conf_pairs)].copy().reset_index(drop=True)
         if subsample is not None and subsample > 0:
             disc_df = disc_df.head(subsample)
             conf_df = conf_df.head(subsample)
-        logger.info(f"Group split on pair_id: {len(disc_pairs)} pairs Discovery ({len(disc_df)} samples), {len(unique_pairs) - half_pairs} pairs Confirmation ({len(conf_df)} samples)")
+        logger.info(f"Group split on pair_id: {len(disc_pairs)} pairs Discovery ({len(disc_df)} samples), {len(conf_pairs)} pairs Confirmation ({len(conf_df)} samples)")
     else:
         indices = rng.permutation(len(df))
-        half = len(df) // 2
-        disc_df = df.iloc[indices[:half]].copy().reset_index(drop=True)
-        conf_df = df.iloc[indices[half:]].copy().reset_index(drop=True)
+        n_disc = int(round(len(df) * discovery_ratio))
+        disc_df = df.iloc[indices[:n_disc]].copy().reset_index(drop=True)
+        conf_df = df.iloc[indices[n_disc:]].copy().reset_index(drop=True)
         if subsample is not None and subsample > 0:
             disc_df = disc_df.head(subsample)
             conf_df = conf_df.head(subsample)
@@ -690,6 +694,7 @@ def main():
                 device=args.device,
                 subsample=args.subsample,
                 bootstrap_n=bootstrap_n,
+                v3_cfg=v3_cfg,
             )
 
         n_intervention = int(args.subsample if args.subsample and args.subsample > 0 else len(df))
@@ -790,16 +795,23 @@ def main():
 
     med_rel_depth = float(confirmation_res.get("mediator_relative_depth", float(confirmation_res["mediator_layer"] / (num_layers - 1)) if num_layers > 1 else 0.65))
 
+    stage_v = rq2_data.get("temporal_stage_v", rq2_data.get("causal_peak_stage_v", "pre_V")) if rq2_sites_path.exists() else "pre_V"
+    stage_a = rq2_data.get("temporal_stage_a", rq2_data.get("causal_peak_stage_a", "pre_A")) if rq2_sites_path.exists() else "pre_A"
+
     frozen_sites = {
         "discovery_model": target_model_id,
         "discovery_family": fam_key,
         "generation_stage": "post_rq3_canonical",
         "sufficiency_relative_depth": suff_rel_depth,
         "temporal_relative_depth": temp_rel_depth,
+        "temporal_stage_v": stage_v,
+        "temporal_stage_a": stage_a,
+        "a_priori_test_stage_v": rq2_data.get("a_priori_test_stage_v", "pre_V") if rq2_sites_path.exists() else "pre_V",
+        "a_priori_test_stage_a": rq2_data.get("a_priori_test_stage_a", "pre_A") if rq2_sites_path.exists() else "pre_A",
         "mediation_relative_depth": med_rel_depth,
         "target_stages": target_stages,
-        "causal_peak_stage_v": "pre_V",
-        "causal_peak_stage_a": "pre_A",
+        "causal_peak_stage_v": stage_v,
+        "causal_peak_stage_a": stage_a,
     }
     frozen_sites_path = derived_dir / "frozen_confirmatory_sites.json"
     with open(frozen_sites_path, "w", encoding="utf-8") as f:

@@ -343,10 +343,14 @@ def run_real_model_confirmatory(
     # 評価を独立な test fold のみで実行する。
     base_seed = v3_cfg.get("seed", 42) if v3_cfg else 42
     frozen_sites = v3_cfg.get("frozen_sites") if v3_cfg else None
+    stage_v = "pre_V"
+    stage_a = "pre_A"
     if frozen_sites:
         suff_rel_depth = float(frozen_sites.get("sufficiency_relative_depth", 0.5))
         temp_rel_depth = float(frozen_sites.get("temporal_relative_depth", 0.65))
         med_rel_depth = float(frozen_sites.get("mediation_relative_depth", 0.65))
+        stage_v = str(frozen_sites.get("temporal_stage_v", frozen_sites.get("causal_peak_stage_v", "pre_V")))
+        stage_a = str(frozen_sites.get("temporal_stage_a", frozen_sites.get("causal_peak_stage_a", "pre_A")))
     else:
         suff_rel_depth = float(v3_cfg.get("confirmatory", {}).get("sufficiency_relative_depth", 0.5)) if v3_cfg else 0.5
         temp_rel_depth = float(v3_cfg.get("confirmatory", {}).get("temporal_relative_depth", 0.65)) if v3_cfg else 0.65
@@ -715,8 +719,8 @@ def run_real_model_confirmatory(
     stage_causal_v = {stg: float(np.mean(test_stage_shifts_v[stg])) if test_stage_shifts_v[stg] else 0.0 for stg in stage_keys}
     stage_causal_a = {stg: float(np.mean(test_stage_shifts_a[stg])) if test_stage_shifts_a[stg] else 0.0 for stg in stage_keys}
 
-    contrast_v = float(stage_causal_v.get("pre_V", 0.0) - stage_causal_v.get("candidate_start", 0.0))
-    contrast_a = float(stage_causal_a.get("pre_A", 0.0) - stage_causal_a.get("candidate_start", 0.0))
+    contrast_v = float(stage_causal_v.get(stage_v, 0.0) - stage_causal_v.get("candidate_start", 0.0))
+    contrast_a = float(stage_causal_a.get(stage_a, 0.0) - stage_causal_a.get("candidate_start", 0.0))
 
     qc_cfg = v3_cfg.get("confirmatory", {}).get("qc", {})
     min_slope = float(qc_cfg.get("min_sufficiency_slope", 0.1))

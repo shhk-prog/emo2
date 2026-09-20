@@ -1,0 +1,125 @@
+{
+  "run_type": "v3_rq1",
+  "model_name": "Qwen/Qwen2.5-1.5B-Instruct",
+  "config": {
+    "experiment_name": "v3_state_to_report",
+    "seed": 42,
+    "dataset": {
+      "path": "v1/data/processed/aipsy_4split_all.csv",
+      "paired": true,
+      "train_ratio": 0.7,
+      "pilot_size": 50,
+      "text_column": "text",
+      "id_column": "id",
+      "pair_id_column": "pair_id",
+      "neutral_text_column": "neutral_text",
+      "external_labels": {
+        "valence": null,
+        "arousal": null
+      }
+    },
+    "target_family": "qwen",
+    "interventions": {
+      "alpha_grid": [
+        -1.0,
+        -0.5,
+        0.0,
+        0.5,
+        1.0
+      ],
+      "specificity_reference_alpha": 1.0,
+      "use_centered_projection": true,
+      "use_subspace_removal": true,
+      "num_random_controls": 5
+    },
+    "semantic_generation_stages": [
+      "response_start",
+      "pre_V",
+      "V_value",
+      "pre_A",
+      "A_value",
+      "response_end"
+    ],
+    "gate_criteria": {
+      "min_sufficiency_slope": 0.1,
+      "min_specificity_diff": 0.05,
+      "min_necessity_attenuation": 0.05,
+      "max_topic_tvd": 0.15,
+      "bootstrap_n": 1000,
+      "ci_level": 0.95
+    },
+    "spatiotemporal": {
+      "layer_sampling": "all",
+      "n_causal_samples": 15,
+      "semantic_stages": [
+        "response_start",
+        "pre_V",
+        "V_value",
+        "pre_A",
+        "A_value",
+        "response_end"
+      ],
+      "alpha_sweep": [
+        -2.0,
+        -1.0,
+        -0.5,
+        0.0,
+        0.5,
+        1.0,
+        2.0
+      ],
+      "causal_reference_alpha": 1.0,
+      "patching_conditions": [
+        "val_high_to_low",
+        "val_low_to_high",
+        "aro_high_to_low",
+        "aro_low_to_high"
+      ]
+    },
+    "path_mediation": {
+      "discovery_ratio": 0.5,
+      "confirmation_ratio": 0.5,
+      "eval_bootstrap_n": 1000,
+      "candidate_mediator_layers": "auto"
+    },
+    "confirmatory_families": [
+      "llama",
+      "gemma",
+      "olmo"
+    ],
+    "confirmatory": {
+      "selection_source": "qwen_discovery_frozen",
+      "sufficiency_relative_depth": 0.5,
+      "temporal_relative_depth": 0.65,
+      "mediation_relative_depth": 0.65,
+      "qc": {
+        "min_sufficiency_slope": 0.1,
+        "min_mediated_attenuation_ci_lower": 0.0,
+        "min_temporal_contrast": 0.0
+      }
+    },
+    "output": {
+      "raw_dir": "v3/results/raw",
+      "derived_dir": "v3/results/derived"
+    }
+  },
+  "metadata": {
+    "target_family": "qwen",
+    "layer": 14,
+    "gate_decision": "GO"
+  },
+  "timestamp_utc": "2026-09-20T17:40:04.645473+00:00",
+  "git_commit": "893b608",
+  "run_id": "20260920T174004Z_893b608_0c2b587b",
+  "config_hash": "0c2b587bbdfcd8c4",
+  "dataset_hash": "192b57bbb0dc27e5",
+  "model_revision": "main",
+  "tokenizer_revision": "main",
+  "prompt_version": "1.0.0",
+  "prompt_hash": "unknown",
+  "candidate_space": "VA_81",
+  "seed": 42,
+  "code_version": "0.3.0",
+  "intervention_version": "none",
+  "dry_run": true
+}

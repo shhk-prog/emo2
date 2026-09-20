@@ -1,0 +1,23 @@
+{
+  "discovery_model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "discovery_family": "qwen",
+  "temporal_relative_depth": 0.6666666666666666,
+  "target_stages": [
+    "candidate_start",
+    "pre_V",
+    "V_value",
+    "pre_A",
+    "A_value",
+    "response_end"
+  ],
+  "a_priori_test_stage_v": "pre_V",
+  "a_priori_test_stage_a": "pre_A",
+  "empirical_peak_stage_v": "pre_V",
+  "empirical_peak_stage_a": "pre_A",
+  "temporal_stage_v": "pre_V",
+  "temporal_stage_a": "pre_A",
+  "valence_d_peak_D": 0.48148148148148145,
+  "valence_d_peak_C": 0.6666666666666666,
+  "arousal_d_peak_D": 0.48148148148148145,
+  "arousal_d_peak_C": 0.7037037037037037
+}

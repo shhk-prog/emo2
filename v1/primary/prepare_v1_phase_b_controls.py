@@ -20,7 +20,7 @@ import os
 from pathlib import Path
 import random
 import re
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 
@@ -36,7 +36,7 @@ def shuffle_words(text: str, seed: int = 42) -> str:
     return " ".join(shuffled)
 
 
-def generate_outcome_reversal(text: str) -> str:
+def generate_outcome_reversal(text: str) -> Tuple[str, str, bool]:
     """E5 Outcome Reversal: Reverses the affective resolution while retaining situational context."""
     replacements = [
         (r'\b(terminal|malignant|fatal)\b', 'benign'),
@@ -50,23 +50,29 @@ def generate_outcome_reversal(text: str) -> str:
     ]
     reversed_text = text
     changed = False
+    used_method = ""
     for pat, rep in replacements:
         if re.search(pat, reversed_text, flags=re.IGNORECASE):
             reversed_text = re.sub(pat, rep, reversed_text, flags=re.IGNORECASE)
             changed = True
+            used_method = f"regex:{pat}"
             break
 
     if not changed:
         if "lost" in text:
             reversed_text = text.replace("lost", "won")
+            return reversed_text, "keyword_swap:lost->won", False
         elif "won" in text:
             reversed_text = text.replace("won", "lost")
+            return reversed_text, "keyword_swap:won->lost", False
         else:
             reversed_text = text.rstrip(".") + ". Fortunately, everything was completely resolved without any harm."
-    return reversed_text
+            return reversed_text, "resolution_clause_fallback", True
+
+    return reversed_text, used_method, False
 
 
-def generate_paraphrase(text: str) -> str:
+def generate_paraphrase(text: str) -> Tuple[str, str, bool]:
     """E5 Paraphrase Invariance: Alters surface words while preserving situational meaning."""
     paraphrase_map = [
         ("The papers were spread across the floor", "Documents lay scattered across the room"),
@@ -82,12 +88,16 @@ def generate_paraphrase(text: str) -> str:
         ("The kitchen counter still had the grocery list", "The shopping notes remained visible on the kitchen counter"),
     ]
     p_text = text
+    applied_rules = []
     for orig, para in paraphrase_map:
         if orig in p_text:
             p_text = p_text.replace(orig, para)
+            applied_rules.append(orig)
+
     if p_text == text:
         p_text = "It was documented that " + text[:1].lower() + text[1:]
-    return p_text
+        return p_text, "reporting_clause_fallback", True
+    return p_text, f"lexical_substitution:{len(applied_rules)}_rules", False
 
 
 def prepare_semantic_controls(
@@ -120,10 +130,10 @@ def prepare_semantic_controls(
         t_neu = str(row["text_neu"]).strip()
 
         # Deterministic transformations
-        t_para = generate_paraphrase(t_aff)
+        t_para, para_method, para_fallback = generate_paraphrase(t_aff)
         t_shuf_aff = shuffle_words(t_aff, seed=seed + idx)
         t_shuf_neu = shuffle_words(t_neu, seed=seed + 1000 + idx)
-        t_rev = generate_outcome_reversal(t_aff)
+        t_rev, rev_method, rev_fallback = generate_outcome_reversal(t_aff)
 
         records.append({
             "pair_id": row["pair_id"],
@@ -132,9 +142,13 @@ def prepare_semantic_controls(
             "text_original_affective": t_aff,
             "text_original_neutral": t_neu,
             "text_paraphrase_affective": t_para,
+            "paraphrase_method": para_method,
+            "paraphrase_fallback": para_fallback,
             "text_shuffled_affective": t_shuf_aff,
             "text_shuffled_neutral": t_shuf_neu,
             "text_reversed_affective": t_rev,
+            "reversal_method": rev_method,
+            "reversal_fallback": rev_fallback,
         })
 
     df_out = pd.DataFrame(records)

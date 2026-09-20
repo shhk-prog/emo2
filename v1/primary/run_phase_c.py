@@ -40,7 +40,7 @@ from affective_empathy_eval.likelihood import (
     build_vad_candidates,
     compute_sequence_likelihoods_for_candidates,
 )
-from affective_empathy_eval.manifests import create_run_manifest
+from affective_empathy_eval.manifests import create_run_manifest, is_manifest_matching
 from affective_empathy_eval.models.registry import (
     add_model_selection_args,
     resolve_architecture_dims,
@@ -317,6 +317,12 @@ def main():
         action="store_true",
         help="Mock dry-run mode for quick pipeline smoke testing",
     )
+    parser.add_argument(
+        "--config",
+        type=str,
+        default="configs/v1_experiments.yaml",
+        help="Path to experiment configuration YAML",
+    )
     add_model_selection_args(parser)
     args = parser.parse_args()
     args.model_id, args.model_prefix = resolve_single_model_from_args(args)
@@ -343,20 +349,30 @@ def main():
         or "it" in args.model_id.lower()
     )
 
-    # Early skip if already completed and valid
+    # Early skip if already completed and valid with matching manifest
     manifest_path = os.path.join(model_dir, "manifest.json")
     e3_path = os.path.join(model_dir, "e3_causal_map.csv")
     e4_path = os.path.join(model_dir, "e4_interchangeability_results.csv")
     if not args.force and not args.dry_run and os.path.exists(manifest_path) and os.path.exists(e3_path) and os.path.exists(e4_path):
         try:
-            df_e3 = pd.read_csv(e3_path)
-            df_e4 = pd.read_csv(e4_path)
-            if len(df_e3) > 0 and len(df_e4) > 0:
-                print(
-                    f"[SKIP] Validated Phase C results found in {model_dir}. "
-                    f"Skipping computation for {args.model_prefix}. Use --force to rerun."
-                )
-                return
+            if is_manifest_matching(
+                manifest_path,
+                expected_model_name=args.model_id,
+                expected_candidate_space="VAD_729",
+                expected_dry_run=False,
+            ):
+                df_e3 = pd.read_csv(e3_path)
+                df_e4 = pd.read_csv(e4_path)
+                if len(df_e3) > 0 and len(df_e4) > 0:
+                    print(
+                        f"[SKIP] Validated Phase C results and matching manifest found in {model_dir}. "
+                        f"Skipping computation for {args.model_prefix}. Use --force to rerun."
+                    )
+                    return
+                else:
+                    print(f"Warning: Empty Phase C results in {model_dir}. Rerunning.")
+            else:
+                print(f"Manifest mismatch or dry_run cache found in {model_dir}. Rerunning.")
         except Exception as e:
             print(f"Warning: Corrupt existing Phase C results in {model_dir} ({e}). Rerunning.")
 
@@ -475,9 +491,19 @@ def main():
     rng_split = np.random.default_rng(args.split_seed)
     unique_pairs = merged["pair_id"].unique()
     perm_pairs = rng_split.permutation(unique_pairs)
-    split_cut = len(perm_pairs) // 2
+    phase_c_cfg = {}
+    cfg_path = Path(args.config)
+    if cfg_path.exists():
+        with open(cfg_path, "r", encoding="utf-8") as f:
+            phase_c_cfg = yaml.safe_load(f).get("phase_c", {})
+    discovery_ratio = float(phase_c_cfg.get("discovery_ratio", 0.5))
+
+    split_cut = int(round(len(perm_pairs) * discovery_ratio))
     discovery_pairs_set = set(perm_pairs[:split_cut])
     confirmation_pairs_set = set(perm_pairs[split_cut:])
+    assert discovery_pairs_set.isdisjoint(confirmation_pairs_set), (
+        "Data leakage! Discovery and Confirmation pair sets must be strictly disjoint."
+    )
 
     merged["eval_split"] = [
         "discovery" if pid in discovery_pairs_set else "confirmation"

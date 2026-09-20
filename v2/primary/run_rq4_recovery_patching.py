@@ -73,6 +73,7 @@ def run_recovery_patching_for_task(
     tok_base: Any = None,
     tok_inst: Any = None,
     seed: int = 42,
+    train_ratio: float = 0.7,
     train_indices: Optional[list[int]] = None,
     eval_indices: Optional[list[int]] = None,
 ) -> dict[str, Any]:
@@ -306,17 +307,22 @@ def run_recovery_patching_for_task(
         if "pair_id" in df.columns:
             unique_pairs = list(df["pair_id"].unique())
             rng_split.shuffle(unique_pairs)
-            n_train_pairs = max(1, int(0.7 * len(unique_pairs)))
+            n_train_pairs = max(1, int(train_ratio * len(unique_pairs)))
             train_pairs = set(unique_pairs[:n_train_pairs])
+            eval_pairs = set(unique_pairs[n_train_pairs:])
             train_indices = [idx for idx, pid in enumerate(df["pair_id"]) if pid in train_pairs]
-            eval_indices = [idx for idx, pid in enumerate(df["pair_id"]) if pid not in train_pairs]
-            if len(eval_indices) == 0:
-                eval_indices = train_indices
+            eval_indices = [idx for idx, pid in enumerate(df["pair_id"]) if pid in eval_pairs]
+            if len(train_indices) == 0 or len(eval_indices) == 0:
+                raise ValueError("Independent evaluation split could not be constructed.")
+            assert train_pairs.isdisjoint(eval_pairs), "Train and eval pair sets must be disjoint!"
         else:
             perm = list(rng_split.permutation(N))
-            n_train = max(2, int(0.7 * N))
+            n_train = max(1, int(train_ratio * N))
             train_indices = perm[:n_train]
-            eval_indices = perm[n_train:] if N > n_train else perm
+            eval_indices = perm[n_train:]
+            if len(train_indices) == 0 or len(eval_indices) == 0:
+                raise ValueError("Independent evaluation split could not be constructed.")
+            assert set(train_indices).isdisjoint(set(eval_indices)), "Train and eval indices must be disjoint!"
 
     for l in range(num_layers):
         # SVD による直交 Procrustes 行列 R の学習 (Train split のみ)
@@ -499,6 +505,7 @@ def run_recovery_patching_for_family(
     is_dry_run: bool = False,
     n_boot: int = 1000,
     seed: int = 42,
+    train_ratio: float = 0.7,
 ) -> dict[str, Any]:
     """
     1ファミリーについて Base/Instruct モデルをロードし、Reader と Self の両タスクで回復パッチングを実行
@@ -513,17 +520,22 @@ def run_recovery_patching_for_family(
     if "pair_id" in df.columns:
         unique_pairs = list(df["pair_id"].unique())
         rng_split.shuffle(unique_pairs)
-        n_train_pairs = max(1, int(0.7 * len(unique_pairs)))
+        n_train_pairs = max(1, int(train_ratio * len(unique_pairs)))
         train_pairs = set(unique_pairs[:n_train_pairs])
+        eval_pairs = set(unique_pairs[n_train_pairs:])
         train_indices = [idx for idx, pid in enumerate(df["pair_id"]) if pid in train_pairs]
-        eval_indices = [idx for idx, pid in enumerate(df["pair_id"]) if pid not in train_pairs]
-        if len(eval_indices) == 0:
-            eval_indices = train_indices
+        eval_indices = [idx for idx, pid in enumerate(df["pair_id"]) if pid in eval_pairs]
+        if len(train_indices) == 0 or len(eval_indices) == 0:
+            raise ValueError("Independent evaluation split could not be constructed.")
+        assert train_pairs.isdisjoint(eval_pairs), "Train and eval pair sets must be disjoint!"
     else:
         perm = list(rng_split.permutation(N))
-        n_train = max(2, int(0.7 * N))
+        n_train = max(1, int(train_ratio * N))
         train_indices = perm[:n_train]
-        eval_indices = perm[n_train:] if N > n_train else perm
+        eval_indices = perm[n_train:]
+        if len(train_indices) == 0 or len(eval_indices) == 0:
+            raise ValueError("Independent evaluation split could not be constructed.")
+        assert set(train_indices).isdisjoint(set(eval_indices)), "Train and eval indices must be disjoint!"
 
     if is_dry_run:
         model_base, model_inst, tok_base, tok_inst = None, None, None, None
@@ -560,6 +572,7 @@ def run_recovery_patching_for_family(
         tok_base=tok_base,
         tok_inst=tok_inst,
         seed=seed,
+        train_ratio=train_ratio,
         train_indices=train_indices,
         eval_indices=eval_indices,
     )
@@ -579,6 +592,7 @@ def run_recovery_patching_for_family(
         tok_base=tok_base,
         tok_inst=tok_inst,
         seed=seed,
+        train_ratio=train_ratio,
         train_indices=train_indices,
         eval_indices=eval_indices,
     )
@@ -714,7 +728,8 @@ def main():
             except Exception as e:
                 logger.warning(f"Cache check failed for {fam_id}: {e}")
 
-        logger.info(f"--- Running Recovery Patching for Family: {fam_id} ---")
+        train_ratio = float(v2_config.get("dataset", {}).get("train_ratio", 0.7))
+        logger.info(f"--- Running Recovery Patching for Family: {fam_id} (train_ratio={train_ratio}) ---")
         res = run_recovery_patching_for_family(
             fam_id=fam_id,
             fam_cfg=fam_cfg,
@@ -723,6 +738,7 @@ def main():
             is_dry_run=args.dry_run,
             n_boot=n_boot,
             seed=v2_config.get("seed", 42),
+            train_ratio=train_ratio,
         )
         res["dry_run"] = bool(args.dry_run)
         all_recovery_results[fam_id] = res

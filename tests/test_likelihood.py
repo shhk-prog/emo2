@@ -453,5 +453,70 @@ def test_compute_sequence_likelihoods_sliced_equivalence():
     assert np.allclose(probs, expected_probs, atol=1e-5)
 
 
+def test_prepare_joint_sequence_boundary_and_bpe_merge():
+    """
+    BPE マージ・トークン境界の整合性検証テスト (AGENTS.md 8.2 / P1 Item 16)。
+    プロンプト末尾と candidate 先頭が結合された際のトークン化挙動を検証。
+    """
+    from affective_empathy_eval.likelihood import prepare_joint_sequence_with_boundary
+
+    class MockBPETokenizer:
+        """
+        特定の隣接文字ペア（例: 'a' + '{' -> 'a{', ' ' + '{' -> ' {') がマージされる BPE 挙動を模擬。
+        """
+        def __init__(self):
+            self.vocab = {
+                "<pad>": 0, "prompt": 1, "prompt_end": 2, "a": 3, "{": 4, "valence": 5,
+                ":": 6, "5": 7, "}": 8, "a{": 9, " {": 10, " ": 11,
+            }
+
+        def encode(self, text: str, add_special_tokens: bool = False) -> list[int]:
+            tokens = []
+            i = 0
+            while i < len(text):
+                # 2文字の合成トークン（BPE merge）を最長一致で検出
+                if i + 2 <= len(text) and text[i:i+2] in self.vocab:
+                    tokens.append(self.vocab[text[i:i+2]])
+                    i += 2
+                elif i + 1 <= len(text) and text[i] in self.vocab:
+                    tokens.append(self.vocab[text[i]])
+                    i += 1
+                elif text[i:].startswith("prompt"):
+                    tokens.append(self.vocab["prompt"])
+                    i += len("prompt")
+                elif text[i:].startswith("valence"):
+                    tokens.append(self.vocab["valence"])
+                    i += len("valence")
+                else:
+                    tokens.append(99)  # unknown
+                    i += 1
+            return tokens
+
+    tok = MockBPETokenizer()
+
+    # Case A: 境界でマージが起きないケース (prompt = "prompt ", candidate = "valence")
+    prompt_a = "prompt "
+    cand_a = "valence"
+    full_ids_a, cand_start_a = prepare_joint_sequence_with_boundary(prompt_a, cand_a, tok)
+    prompt_ids_a = tok.encode(prompt_a)
+    assert cand_start_a == len(prompt_ids_a)
+    assert full_ids_a[:cand_start_a] == prompt_ids_a
+    assert full_ids_a[cand_start_a:] == tok.encode(cand_a)
+
+    # Case B: 境界でマージが起きるケース (prompt = "a", candidate = "{" -> "a{" = [9])
+    # 単独: encode("a") = [3], encode("{") = [4]. 結合: encode("a{") = [9].
+    prompt_b = "a"
+    cand_b = "{"
+    full_ids_b, cand_start_b = prepare_joint_sequence_with_boundary(prompt_b, cand_b, tok)
+    # 結合後は1トークン [9] にマージされ、最長共通プレフィックス長は 0 となる
+    assert full_ids_b == [9]
+    assert cand_start_b == 0
+
+    # Case C: require_strict_prefix=True で境界マージが起きた場合は ValueError が送出されること
+    with pytest.raises(ValueError, match="Strict prefix property violated"):
+        prepare_joint_sequence_with_boundary(prompt_b, cand_b, tok, require_strict_prefix=True)
+
+
+
 
 

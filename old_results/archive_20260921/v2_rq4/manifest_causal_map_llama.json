@@ -1,0 +1,70 @@
+{
+  "run_type": "v2_causal_map",
+  "model_name": "Llama 3.2",
+  "config": {
+    "v2_config": {
+      "experiment_name": "v2_2x2_cross_decoding",
+      "seed": 42,
+      "dataset": {
+        "path": "v1/data/processed/stimuli_vad_3way_test1k.csv",
+        "train_ratio": 0.7,
+        "text_column": "text",
+        "id_column": "id",
+        "external_labels": {
+          "valence": "reader_V",
+          "arousal": "reader_A"
+        }
+      },
+      "families": [
+        "Qwen",
+        "Llama",
+        "Gemma",
+        "OLMo"
+      ],
+      "formats": [
+        "native",
+        "matched_plain"
+      ],
+      "decoding": {
+        "ridge_alpha": 1.0,
+        "metrics": [
+          "r2",
+          "procrustes",
+          "rsa"
+        ]
+      },
+      "bootstrap": {
+        "n_boot": 1000,
+        "ci_level": 0.95
+      },
+      "output": {
+        "raw_dir": "v2/results/raw",
+        "derived_dir": "v2/results/derived"
+      }
+    },
+    "family_id": "llama",
+    "family_name": "Llama 3.2",
+    "model_set": "primary_small",
+    "max_samples": null,
+    "dry_run": false,
+    "base_model_id": "meta-llama/Llama-3.2-1B",
+    "instruct_model_id": "meta-llama/Llama-3.2-1B-Instruct",
+    "dataset_path": "v1/data/processed/stimuli_vad_3way_test1k.csv",
+    "seed": 42
+  },
+  "metadata": {
+    "num_layers": 16
+  },
+  "timestamp_utc": "2026-09-20T10:31:19.978570+00:00",
+  "git_commit": "536f0ee",
+  "config_hash": "fb0d574179861edd",
+  "dataset_hash": "110d14a871220379",
+  "model_revision": "main",
+  "tokenizer_revision": "main",
+  "prompt_version": "1.0.0",
+  "candidate_space": "VA_81",
+  "seed": 42,
+  "code_version": "0.3.0",
+  "intervention_version": "none",
+  "dry_run": false
+}

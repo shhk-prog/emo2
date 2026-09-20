@@ -164,7 +164,7 @@ V3 は AIPsy の clinical–neutral 192 pair だけを wide 化する。EmoBank 
 | **Primary Metric** | $E[V], E[A]$, Cohen's $d_z$, Spearman $\rho$, $r_{RS}$ | $R^2$, Balanced Acc, RSA, Causal Shift $\Delta V, \Delta A$ | Cross-decoding $\Delta\Delta_{\text{cross}}$, $\Delta d_{\text{peak}}$, 2D OT EMD Recovery | Interventional slope $\gamma$, Subspace Attenuation, Causal Leverage $C$ |
 | **Statistical Test** | Direction-aligned IUT, 1-sample/paired $t$, FDR (BH), Bootstrap CI | 5-fold GroupKFold CV, FDR (BH), LMM (Phase C E6) | Bootstrap 95% CI, Permutation Test | Pre-registered Go/No-Go Gate, Bootstrap 95% CI, FDR |
 
-> **注記（空間差異）**: Stage 間の絶対的 $E[V], E[A]$ は直接比較しません。同一刺激サブセットでの 729 VAD vs 81 VA 感度分析（`scripts/run_candidate_space_sensitivity.py`）により、主要傾向（相関・変位方向・順序関係）が完全に保たれることを確認しています。
+> **注記（Candidate 空間感度分析）**: Stage 間の絶対的 $E[V], E[A]$ は直接比較しません。同一刺激サブセットでの 729 VAD vs 81 VA の対応関係については、Supplementary 感度分析（`scripts/run_candidate_space_sensitivity.py`）により Pearson $r$、Spearman $\rho$、および変位方向一致率（direction agreement）を算出し、測定空間差異に対する感度を客観的に報告・検証します。
 
 ---
 

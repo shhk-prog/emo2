@@ -28,10 +28,11 @@ from scipy.stats import pearsonr, spearmanr
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LogisticRegression, Ridge
 from sklearn.metrics import balanced_accuracy_score, r2_score, roc_auc_score
-from sklearn.model_selection import KFold, StratifiedGroupKFold, StratifiedKFold
+from sklearn.model_selection import GroupKFold, KFold, StratifiedGroupKFold, StratifiedKFold
 from sklearn.preprocessing import StandardScaler
 import torch
 from tqdm import tqdm
+import yaml
 try:
     from transformers import AutoModelForCausalLM, AutoTokenizer
 except ImportError:  # --dry-run は transformers 未導入環境でも起動できるようにする
@@ -180,12 +181,20 @@ def evaluate_probe_accuracy(
     """
     X = np.nan_to_num(X, nan=0.0, posinf=1e4, neginf=-1e4)
     X = np.clip(X, -1e4, 1e4).astype(np.float32)
-    if groups is not None and len(np.unique(groups)) >= cv:
-        splitter = StratifiedGroupKFold(n_splits=cv, shuffle=True, random_state=seed)
-        split_gen = splitter.split(X, y, groups=groups)
+    if groups is not None:
+        n_groups = len(np.unique(groups))
+        if n_groups < 2:
+            return float("nan")
+        n_splits = min(cv, n_groups)
+        try:
+            splitter = StratifiedGroupKFold(n_splits=n_splits, shuffle=True, random_state=seed)
+            split_gen = list(splitter.split(X, y, groups=groups))
+        except ValueError:
+            splitter = GroupKFold(n_splits=n_splits)
+            split_gen = list(splitter.split(X, y, groups=groups))
     else:
         splitter = StratifiedKFold(n_splits=cv, shuffle=True, random_state=seed)
-        split_gen = splitter.split(X, y)
+        split_gen = list(splitter.split(X, y))
 
     preds = np.zeros_like(y)
     for train_idx, val_idx in split_gen:
@@ -259,14 +268,24 @@ def main():
         help="Task prompt framing (reader or self)",
     )
     parser.add_argument(
-        "--limit",
-        type=int,
-        default=0,
-        help="Sample limit (0 for full dataset)",
+        "--config",
+        type=str,
+        default="configs/v1_experiments.yaml",
+        help="Path to experiment configuration YAML",
     )
     add_model_selection_args(parser)
     args = parser.parse_args()
     args.model_id, args.model_prefix = resolve_single_model_from_args(args)
+
+    # Load Phase B configuration from YAML (Item 20)
+    phase_b_cfg = {}
+    cfg_path = Path(args.config)
+    if cfg_path.exists():
+        with open(cfg_path, "r", encoding="utf-8") as f:
+            phase_b_cfg = yaml.safe_load(f).get("phase_b", {})
+    cfg_seed = int(phase_b_cfg.get("seed", 42))
+    cfg_train_ratio = float(phase_b_cfg.get("train_ratio", 0.7))
+    cfg_cv_folds = int(phase_b_cfg.get("cv_folds", 5))
 
     if args.dry_run:
         args.out_dir = os.path.join(args.out_dir, "dry_run")
@@ -327,10 +346,13 @@ def main():
         print(f"[DRY-RUN] V1 Phase B for Model: {args.model_id} (Instruct={is_instruct})")
         results = {
             "acc_original_minimal_pair": 0.85,
-            "acc_paraphrase_invariance": 0.82,
-            "acc_transformation_sensitivity_paraphrase": 0.82,
-            "acc_pair_aware_held_out_paraphrase": 0.80,
+            "acc_pair_aware_held_out_paraphrase": 0.82,
             "pair_aware_held_out_reversal_drop": 0.58,
+            "n_validated_paraphrase_pairs": 80,
+            "n_validated_reversal_pairs": 80,
+            "sensitivity_held_out_paraphrase": 0.80,
+            "sensitivity_held_out_reversal_drop": 0.55,
+            "acc_paraphrase_invariance_all": 0.82,
             "acc_word_shuffle": 0.52,
             "mean_affective_prob_original": 0.80,
             "mean_affective_prob_outcome_reversed": 0.20,
@@ -457,14 +479,12 @@ def main():
 
     # Condition 1: Minimal Pair (Strict Pair-Aware Cross-Validation via StratifiedGroupKFold)
     X_orig = np.concatenate([H_orig_aff, H_orig_neu], axis=0)
-    acc_orig = evaluate_probe_accuracy(X_orig, y_orig, groups=groups)
+    acc_orig = evaluate_probe_accuracy(X_orig, y_orig, groups=groups, cv=cfg_cv_folds, seed=cfg_seed)
 
     # Condition 2: Paraphrase / Surface Perturbation (Semantic Transformation Sensitivity)
-    # NOTE: Evaluates transformation sensitivity on the decision boundary established by the original
-    # minimal pairs (within-sample transformation sensitivity).
     scaler = StandardScaler()
     X_orig_scaled = scaler.fit_transform(X_orig)
-    clf = LogisticRegression(max_iter=500, random_state=42)
+    clf = LogisticRegression(max_iter=500, random_state=cfg_seed)
     clf.fit(X_orig_scaled, y_orig)
 
     X_para = np.concatenate([H_para_aff, H_orig_neu], axis=0)
@@ -474,10 +494,9 @@ def main():
 
     # Condition 3: Word Shuffle Test (Pair-Aware Cross-Validation)
     X_shuf = np.concatenate([H_shuf_aff, H_shuf_neu], axis=0)
-    acc_shuffled = evaluate_probe_accuracy(X_shuf, y_orig, groups=groups)
+    acc_shuffled = evaluate_probe_accuracy(X_shuf, y_orig, groups=groups, cv=cfg_cv_folds, seed=cfg_seed)
 
     # Condition 4: Outcome Reversal Test
-    # NOTE: Evaluates semantic directional sensitivity under identical lexical context.
     X_rev = np.concatenate([H_rev_aff, H_orig_neu], axis=0)
     X_rev_scaled = scaler.transform(X_rev)
     probs_rev_aff = clf.predict_proba(X_rev_scaled[:n_pairs])[:, 1]
@@ -487,22 +506,19 @@ def main():
     outcome_reversal_drop = mean_prob_orig - mean_prob_rev
 
     # Condition 5: Strict Pair-Aware Evaluation (Generalization to Held-Out Stimuli Pairs)
-    # Train: original stimuli from training pair_ids
-    # Test: paraphrase and outcome reversal from strictly held-out pair_ids
     unique_pairs = np.unique(pair_ids)
-    rng_split = np.random.default_rng(42)
+    rng_split = np.random.default_rng(cfg_seed)
     shuffled_pairs = rng_split.permutation(unique_pairs)
-    n_train_pairs = max(1, int(0.7 * len(shuffled_pairs)))
+    n_train_pairs = max(1, int(cfg_train_ratio * len(shuffled_pairs)))
     train_pair_ids = set(shuffled_pairs[:n_train_pairs])
     test_pair_ids = set(shuffled_pairs[n_train_pairs:])
-    if len(test_pair_ids) == 0:
-        test_pair_ids = train_pair_ids  # 極小サンプル時のフォールバック
+    if len(train_pair_ids) == 0 or len(test_pair_ids) == 0:
+        raise ValueError("Independent train/test pair split cannot be constructed.")
 
-    # 厳格なデータリーク防止アサート
-    if len(shuffled_pairs) > 1:
-        assert len(train_pair_ids.intersection(test_pair_ids)) == 0, (
-            "Data leakage detected! Training and test pair sets must be completely disjoint."
-        )
+    # 厳格なデータリーク防止アサート (Item 2)
+    assert train_pair_ids.isdisjoint(test_pair_ids), (
+        "Data leakage detected! Training and test pair sets must be completely disjoint."
+    )
 
     train_mask = np.isin(pair_ids, list(train_pair_ids))
     test_mask = np.isin(pair_ids, list(test_pair_ids))
@@ -512,28 +528,68 @@ def main():
 
     scaler_pa = StandardScaler()
     X_tr_scaled = scaler_pa.fit_transform(X_tr_orig)
-    clf_pa = LogisticRegression(max_iter=500, random_state=42)
+    clf_pa = LogisticRegression(max_iter=500, random_state=cfg_seed)
     clf_pa.fit(X_tr_scaled, y_tr_orig)
 
-    # Held-out paraphrase evaluation
-    X_te_para = np.concatenate([H_para_aff[test_mask], H_orig_neu[test_mask]], axis=0)
-    y_te_para = np.array([1] * int(np.sum(test_mask)) + [0] * int(np.sum(test_mask)))
-    preds_te_para = clf_pa.predict(scaler_pa.transform(X_te_para))
-    acc_held_out_paraphrase = float(balanced_accuracy_score(y_te_para, preds_te_para))
+    # Fallback filtering for Item 3:
+    # Primary analysis uses strictly validated transformations without fallbacks.
+    # Sensitivity analysis includes all transformations (including fallback clause additions).
+    has_para_fallback = "paraphrase_fallback" in df.columns
+    has_rev_fallback = "reversal_fallback" in df.columns
 
-    # Held-out outcome reversal drop
-    X_te_rev_aff = scaler_pa.transform(H_rev_aff[test_mask])
-    X_te_orig_aff = scaler_pa.transform(H_orig_aff[test_mask])
-    p_orig_te = clf_pa.predict_proba(X_te_orig_aff)[:, 1]
-    p_rev_te = clf_pa.predict_proba(X_te_rev_aff)[:, 1]
-    held_out_reversal_drop = float(np.mean(p_orig_te) - np.mean(p_rev_te))
+    if has_para_fallback:
+        valid_para_pair_mask = ~df["paraphrase_fallback"].astype(bool).values
+    else:
+        valid_para_pair_mask = np.ones(n_pairs, dtype=bool)
+
+    if has_rev_fallback:
+        valid_rev_pair_mask = ~df["reversal_fallback"].astype(bool).values
+    else:
+        valid_rev_pair_mask = np.ones(n_pairs, dtype=bool)
+
+    # 1) Sensitivity (All test pairs)
+    X_te_para_all = np.concatenate([H_para_aff[test_mask], H_orig_neu[test_mask]], axis=0)
+    y_te_para_all = np.array([1] * int(np.sum(test_mask)) + [0] * int(np.sum(test_mask)))
+    preds_te_para_all = clf_pa.predict(scaler_pa.transform(X_te_para_all))
+    acc_held_out_paraphrase_all = float(balanced_accuracy_score(y_te_para_all, preds_te_para_all))
+
+    X_te_rev_all = scaler_pa.transform(H_rev_aff[test_mask])
+    X_te_orig_all = scaler_pa.transform(H_orig_aff[test_mask])
+    p_orig_te_all = clf_pa.predict_proba(X_te_orig_all)[:, 1]
+    p_rev_te_all = clf_pa.predict_proba(X_te_rev_all)[:, 1]
+    held_out_reversal_drop_all = float(np.mean(p_orig_te_all) - np.mean(p_rev_te_all))
+
+    # 2) Primary (Validated transformations only)
+    test_para_valid_mask = test_mask & valid_para_pair_mask
+    if np.sum(test_para_valid_mask) > 0:
+        X_te_para_prim = np.concatenate([H_para_aff[test_para_valid_mask], H_orig_neu[test_para_valid_mask]], axis=0)
+        y_te_para_prim = np.array([1] * int(np.sum(test_para_valid_mask)) + [0] * int(np.sum(test_para_valid_mask)))
+        preds_te_para_prim = clf_pa.predict(scaler_pa.transform(X_te_para_prim))
+        acc_held_out_paraphrase_primary = float(balanced_accuracy_score(y_te_para_prim, preds_te_para_prim))
+    else:
+        acc_held_out_paraphrase_primary = float("nan")
+
+    test_rev_valid_mask = test_mask & valid_rev_pair_mask
+    if np.sum(test_rev_valid_mask) > 0:
+        X_te_rev_prim = scaler_pa.transform(H_rev_aff[test_rev_valid_mask])
+        X_te_orig_prim = scaler_pa.transform(H_orig_aff[test_rev_valid_mask])
+        p_orig_te_prim = clf_pa.predict_proba(X_te_orig_prim)[:, 1]
+        p_rev_te_prim = clf_pa.predict_proba(X_te_rev_prim)[:, 1]
+        held_out_reversal_drop_primary = float(np.mean(p_orig_te_prim) - np.mean(p_rev_te_prim))
+    else:
+        held_out_reversal_drop_primary = float("nan")
 
     results = {
+        # Primary indicators (Validated semantic controls)
         "acc_original_minimal_pair": acc_orig,
-        "acc_paraphrase_invariance": acc_paraphrase,
-        "acc_transformation_sensitivity_paraphrase": acc_paraphrase,
-        "acc_pair_aware_held_out_paraphrase": acc_held_out_paraphrase,
-        "pair_aware_held_out_reversal_drop": held_out_reversal_drop,
+        "acc_pair_aware_held_out_paraphrase": acc_held_out_paraphrase_primary,
+        "pair_aware_held_out_reversal_drop": held_out_reversal_drop_primary,
+        "n_validated_paraphrase_pairs": int(np.sum(valid_para_pair_mask)),
+        "n_validated_reversal_pairs": int(np.sum(valid_rev_pair_mask)),
+        # Sensitivity indicators (All pairs including fallbacks)
+        "sensitivity_held_out_paraphrase": acc_held_out_paraphrase_all,
+        "sensitivity_held_out_reversal_drop": held_out_reversal_drop_all,
+        "acc_paraphrase_invariance_all": acc_paraphrase,
         "acc_word_shuffle": acc_shuffled,
         "mean_affective_prob_original": mean_prob_orig,
         "mean_affective_prob_outcome_reversed": mean_prob_rev,

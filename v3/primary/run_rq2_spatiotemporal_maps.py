@@ -479,6 +479,7 @@ def run_real_spatiotemporal_maps(
             C_V[l, s_idx] = float(np.mean(sample_c_v)) if sample_c_v else 0.0
             C_A[l, s_idx] = float(np.mean(sample_c_a)) if sample_c_a else 0.0
 
+    # A priori test stages (事前定義アンカー)
     pre_v_idx = semantic_stages.index("pre_V") if "pre_V" in semantic_stages else 1
     d_vals_v = D_V[:, pre_v_idx].tolist()
     c_vals_v = C_V[:, pre_v_idx].tolist()
@@ -488,6 +489,17 @@ def run_real_spatiotemporal_maps(
     d_vals_a = D_A[:, pre_a_idx].tolist()
     c_vals_a = C_A[:, pre_a_idx].tolist()
     dissoc_a = compute_layer_dissociation(relative_depths, d_vals_a, c_vals_a)
+
+    # Empirical full-map peak discovery (全 stage × 全 layer 探索: Item 9)
+    max_c_v_idx = np.unravel_index(np.argmax(C_V), C_V.shape)
+    empirical_peak_layer_v = int(max_c_v_idx[0])
+    empirical_peak_stage_v = semantic_stages[max_c_v_idx[1]]
+    empirical_peak_depth_v = relative_depths[empirical_peak_layer_v]
+
+    max_c_a_idx = np.unravel_index(np.argmax(C_A), C_A.shape)
+    empirical_peak_layer_a = int(max_c_a_idx[0])
+    empirical_peak_stage_a = semantic_stages[max_c_a_idx[1]]
+    empirical_peak_depth_a = relative_depths[empirical_peak_layer_a]
 
 
     return {
@@ -522,8 +534,32 @@ def run_real_spatiotemporal_maps(
             "D_A_self": secondary_D_A.tolist(),
         },
         "dissociation_summary": {
-            "valence": dissoc_v,
-            "arousal": dissoc_a,
+            "valence": {
+                **dissoc_v,
+                "a_priori_test_stage": "pre_V",
+                "empirical_peak_stage": empirical_peak_stage_v,
+                "empirical_peak_layer": empirical_peak_layer_v,
+                "empirical_peak_depth": empirical_peak_depth_v,
+            },
+            "arousal": {
+                **dissoc_a,
+                "a_priori_test_stage": "pre_A",
+                "empirical_peak_stage": empirical_peak_stage_a,
+                "empirical_peak_layer": empirical_peak_layer_a,
+                "empirical_peak_depth": empirical_peak_depth_a,
+            },
+            "empirical_discovery": {
+                "valence": {
+                    "peak_stage": empirical_peak_stage_v,
+                    "peak_layer": empirical_peak_layer_v,
+                    "relative_depth": empirical_peak_depth_v,
+                },
+                "arousal": {
+                    "peak_stage": empirical_peak_stage_a,
+                    "peak_layer": empirical_peak_layer_a,
+                    "relative_depth": empirical_peak_depth_a,
+                },
+            },
         }
     }
 
@@ -676,8 +712,12 @@ def main():
         "discovery_family": fam_key,
         "temporal_relative_depth": d_peak_C,
         "target_stages": normalized_stages,
-        "causal_peak_stage_v": "pre_V",
-        "causal_peak_stage_a": "pre_A",
+        "a_priori_test_stage_v": "pre_V",
+        "a_priori_test_stage_a": "pre_A",
+        "empirical_peak_stage_v": v_dissoc.get("empirical_peak_stage", "pre_V"),
+        "empirical_peak_stage_a": a_dissoc.get("empirical_peak_stage", "pre_A"),
+        "temporal_stage_v": v_dissoc.get("empirical_peak_stage", "pre_V"),
+        "temporal_stage_a": a_dissoc.get("empirical_peak_stage", "pre_A"),
         "valence_d_peak_D": d_peak_D,
         "valence_d_peak_C": d_peak_C,
         "arousal_d_peak_D": float(a_dissoc.get("d_peak_D", 0.50)),

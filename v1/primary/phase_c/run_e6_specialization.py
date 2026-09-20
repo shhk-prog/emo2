@@ -19,6 +19,7 @@ import pandas as pd
 from scipy import stats
 import torch
 from tqdm import tqdm
+import yaml
 try:
     from transformers import AutoModelForCausalLM, AutoTokenizer
 except ImportError:  # --dry-run は transformers 未導入環境でも起動できるようにする
@@ -256,7 +257,13 @@ def main():
         "--split-seed",
         type=int,
         default=42,
-        help="Seed for 50/50 Discovery/Confirmation split (matching E3/E4)",
+        help="Seed for Discovery/Confirmation split (matching E3/E4)",
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        default="configs/v1_experiments.yaml",
+        help="Path to experiment configuration YAML",
     )
     parser.add_argument(
         "--split-eval",
@@ -474,12 +481,23 @@ def main():
     if args.limit > 0:
         merged = merged.head(args.limit)
 
-    # 50/50 Group split by pair_id matching E3/E4
+    # Group split by pair_id matching E3/E4 from config
+    phase_c_cfg = {}
+    cfg_path = Path(args.config)
+    if cfg_path.exists():
+        with open(cfg_path, "r", encoding="utf-8") as f:
+            phase_c_cfg = yaml.safe_load(f).get("phase_c", {})
+    discovery_ratio = float(phase_c_cfg.get("discovery_ratio", 0.5))
+
     rng_split = np.random.default_rng(args.split_seed)
     unique_pairs = merged["pair_id"].unique()
     perm_pairs = rng_split.permutation(unique_pairs)
-    split_cut = len(perm_pairs) // 2
+    split_cut = int(round(len(perm_pairs) * discovery_ratio))
     discovery_pairs_set = set(perm_pairs[:split_cut])
+    confirmation_pairs_set = set(perm_pairs[split_cut:])
+    assert discovery_pairs_set.isdisjoint(confirmation_pairs_set), (
+        "Data leakage! Discovery and Confirmation pair sets must be strictly disjoint."
+    )
     
     merged["eval_split"] = [
         "discovery" if pid in discovery_pairs_set else "confirmation"

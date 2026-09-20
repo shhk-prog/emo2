@@ -1,0 +1,40 @@
+{
+  "run_type": "v1_phase_b",
+  "model_name": "Qwen/Qwen2.5-1.5B",
+  "config": {
+    "model_prefix": "qwen_base",
+    "task_type": "reader",
+    "target_layer": 14,
+    "relative_depth": 0.5,
+    "num_pairs": 100,
+    "dry_run": true
+  },
+  "metadata": {
+    "acc_original_minimal_pair": 0.85,
+    "acc_pair_aware_held_out_paraphrase": 0.82,
+    "pair_aware_held_out_reversal_drop": 0.58,
+    "n_validated_paraphrase_pairs": 80,
+    "n_validated_reversal_pairs": 80,
+    "sensitivity_held_out_paraphrase": 0.8,
+    "sensitivity_held_out_reversal_drop": 0.55,
+    "acc_paraphrase_invariance_all": 0.82,
+    "acc_word_shuffle": 0.52,
+    "mean_affective_prob_original": 0.8,
+    "mean_affective_prob_outcome_reversed": 0.2,
+    "outcome_reversal_prob_drop": 0.6
+  },
+  "timestamp_utc": "2026-09-20T17:38:19.672232+00:00",
+  "git_commit": "893b608",
+  "run_id": "20260920T173819Z_893b608_ca588918",
+  "config_hash": "ca5889187993892f",
+  "dataset_hash": "unknown",
+  "model_revision": "main",
+  "tokenizer_revision": "main",
+  "prompt_version": "1.0.0",
+  "prompt_hash": "unknown",
+  "candidate_space": "VAD_729",
+  "seed": 42,
+  "code_version": "0.3.0",
+  "intervention_version": "none",
+  "dry_run": true
+}

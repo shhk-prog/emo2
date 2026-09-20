@@ -269,8 +269,8 @@ def run_real_state_induction(
 
     # 1. データを config の train_ratio に基づき厳格分割 (pair_id に基づく Group split)
     train_ratio = float(v3_cfg.get("dataset", {}).get("train_ratio", 0.7))
-    seed = 42
-    rng = np.random.RandomState(seed)
+    base_seed = int(v3_cfg.get("seed", 42))
+    rng = np.random.RandomState(base_seed)
     if "pair_id" in df.columns and df["pair_id"].nunique() > 1:
         unique_pairs = list(df["pair_id"].unique())
         rng.shuffle(unique_pairs)
@@ -363,8 +363,8 @@ def run_real_state_induction(
     logger.info(f"Reader-Grounded vs Self-Derived Direction Alignment: cos_V={alignment_v:.3f}, cos_A={alignment_a:.3f}")
 
     Q_sub, _ = compute_orthonormal_subspace(d_v, d_a)  # (D, 2)
-    d_rand_v, d_perp_v = generate_control_directions(d_v, seed=42)
-    d_rand_a, d_perp_a = generate_control_directions(d_a, seed=43)
+    d_rand_v, d_perp_v = generate_control_directions(d_v, seed=base_seed + 1)
+    d_rand_a, d_perp_a = generate_control_directions(d_a, seed=base_seed + 2)
 
     h_std_v = float(np.std(H_train @ d_v)) or 1.0
     h_std_a = float(np.std(H_train @ d_a)) or 1.0

@@ -94,6 +94,7 @@ def resolve_architecture_dims(model_id: str) -> Tuple[int, int]:
 class ModelSpec:
     model_id: str
     format: str = "plain"  # "plain" or "chat"
+    revision: Optional[str] = None
 
 
 class ModelFamilyConfig:
@@ -203,12 +204,15 @@ def load_model_set(
             role = finfo.get("role", "replication")
             family_name = finfo.get("family_name", fid.capitalize())
 
+            base_rev = finfo.get("base_revision", None)
+            inst_rev = finfo.get("instruct_revision", None)
+
             fam_config = ModelFamilyConfig(
                 family_id=fid,
                 family_name=family_name,
                 scale=scale,
-                base_model=ModelSpec(model_id=base_id, format="plain"),
-                instruct_model=ModelSpec(model_id=instruct_id, format="chat"),
+                base_model=ModelSpec(model_id=base_id, format="plain", revision=base_rev),
+                instruct_model=ModelSpec(model_id=instruct_id, format="chat", revision=inst_rev),
                 adapter=adapter_name,
                 role=role,
                 enabled=True,

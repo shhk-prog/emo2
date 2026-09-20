@@ -1,0 +1,2 @@
+acc_original_minimal_pair,acc_paraphrase_invariance,acc_transformation_sensitivity_paraphrase,acc_pair_aware_held_out_paraphrase,pair_aware_held_out_reversal_drop,acc_word_shuffle,mean_affective_prob_original,mean_affective_prob_outcome_reversed,outcome_reversal_prob_drop
+0.85,0.82,0.82,0.8,0.58,0.52,0.8,0.2,0.6

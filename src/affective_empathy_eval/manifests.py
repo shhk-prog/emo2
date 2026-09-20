@@ -84,6 +84,29 @@ def compute_string_or_dict_hash(obj: Any) -> str:
     return hashlib.sha256(s.encode("utf-8")).hexdigest()[:16]
 
 
+def generate_run_id(git_sha: Optional[str] = None, config_hash: Optional[str] = None) -> str:
+    """
+    AGENTS.md 5.3 準拠の一意の run_id 生成関数:
+    YYYYMMDDTHHMMSSZ_<git-short-sha>_<config-short-hash>
+    """
+    from datetime import datetime, timezone
+    import subprocess
+
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    if git_sha is None:
+        try:
+            git_sha = (
+                subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], stderr=subprocess.DEVNULL)
+                .decode("utf-8")
+                .strip()
+            )
+        except Exception:
+            git_sha = "unknown"
+    if config_hash is None:
+        config_hash = "00000000"
+    return f"{timestamp}_{git_sha}_{config_hash[:8]}"
+
+
 @dataclass
 class RunManifest:
     """Run manifest storing metadata for reproducibility and cache validation."""
@@ -93,11 +116,13 @@ class RunManifest:
     metadata: Dict[str, Any]
     timestamp_utc: str
     git_commit: str
+    run_id: str = "unknown"
     config_hash: str = "unknown"
     dataset_hash: str = "unknown"
     model_revision: str = "main"
     tokenizer_revision: str = "main"
     prompt_version: str = DEFAULT_PROMPT_VERSION
+    prompt_hash: str = "unknown"
     candidate_space: str = DEFAULT_CANDIDATE_SPACE
     seed: int = 42
     code_version: str = DEFAULT_CODE_VERSION
@@ -113,6 +138,11 @@ class RunManifest:
             json.dump(self.to_dict(), f, indent=2)
 
 
+def compute_prompt_hash(prompt_text_or_template: str) -> str:
+    """AGENTS.md 5.2 準拠: sha256(template.encode()) の先頭16文字"""
+    return hashlib.sha256(prompt_text_or_template.encode("utf-8")).hexdigest()[:16]
+
+
 def create_run_manifest(
     run_type: str,
     model_name: str,
@@ -120,10 +150,12 @@ def create_run_manifest(
     metadata: Optional[Dict[str, Any]] = None,
     dataset_path: Optional[str] = None,
     prompt_version: str = DEFAULT_PROMPT_VERSION,
+    prompt_hash: Optional[str] = None,
     candidate_space: str = DEFAULT_CANDIDATE_SPACE,
     seed: int = 42,
     intervention_version: str = DEFAULT_INTERVENTION_VERSION,
     model_revision: str = "main",
+    run_id: Optional[str] = None,
     dry_run: bool = False,
 ) -> RunManifest:
     from datetime import datetime, timezone
@@ -158,6 +190,17 @@ def create_run_manifest(
     cfg_hash = compute_string_or_dict_hash(cfg)
     ds_hash = compute_string_or_dict_hash(dataset_path) if dataset_path else "unknown"
 
+    if run_id is None:
+        run_id = generate_run_id(git_sha=git_sha, config_hash=cfg_hash)
+
+    if prompt_hash is None:
+        if "prompt_hash" in cfg:
+            prompt_hash = str(cfg["prompt_hash"])
+        elif "prompt_template" in cfg:
+            prompt_hash = compute_prompt_hash(str(cfg["prompt_template"]))
+        else:
+            prompt_hash = "unknown"
+
     return RunManifest(
         run_type=run_type,
         model_name=model_name,
@@ -165,11 +208,13 @@ def create_run_manifest(
         metadata=meta,
         timestamp_utc=datetime.now(timezone.utc).isoformat(),
         git_commit=git_sha,
+        run_id=run_id,
         config_hash=cfg_hash,
         dataset_hash=ds_hash,
         model_revision=model_revision,
         tokenizer_revision="main",
         prompt_version=prompt_version,
+        prompt_hash=prompt_hash,
         candidate_space=candidate_space,
         seed=seed,
         code_version=DEFAULT_CODE_VERSION,
@@ -184,6 +229,7 @@ def is_manifest_matching(
     expected_intervention_version: Optional[str] = DEFAULT_INTERVENTION_VERSION,
     expected_candidate_space: Optional[str] = None,
     expected_prompt_version: Optional[str] = None,
+    expected_prompt_hash: Optional[str] = None,
     expected_config_hash: Optional[str] = None,
     expected_dataset_hash: Optional[str] = None,
     expected_code_version: Optional[str] = None,
@@ -214,6 +260,9 @@ def is_manifest_matching(
             return False
 
         if expected_prompt_version and data.get("prompt_version") != expected_prompt_version:
+            return False
+
+        if expected_prompt_hash and data.get("prompt_hash") != expected_prompt_hash:
             return False
 
         if expected_config_hash and data.get("config_hash") != expected_config_hash:

@@ -1,0 +1,24 @@
+# V1 実験設定ファイル
+experiment_name: "v1_representational_divergence"
+seed: 42
+
+# Phase A 設定
+phase_a:
+  seed: 42
+  cv_folds: 5
+  ridge_alpha: 1.0
+
+# Phase B 設定 (Item 20)
+phase_b:
+  seed: 42
+  train_ratio: 0.7
+  cv_folds: 5
+
+# Phase C 設定 (Item 21)
+phase_c:
+  seed: 42
+  discovery_ratio: 0.5
+  alphas: [0.0, 0.5, 1.0, 2.0]
+
+output:
+  derived_dir: "v1/results/derived"

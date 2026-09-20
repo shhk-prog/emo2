@@ -372,7 +372,29 @@ def analyze_v2_geometry_and_sharing(
     # 重心とピーク
     primary_axis = "valence" if "valence" in targets else list(targets.keys())[0]
     p_sharing = results["rq2_sharing"][primary_axis]
-    results["summary_metrics"] = {
+
+    # Primary summary metrics (Matched Plain: Base plain vs Instruct matched-plain)
+    if has_matched and "inst_matched_cross_r_to_s" in p_sharing:
+        primary_matched = {
+            "com_distortion_reader": compute_center_of_mass(results["rq1_geometry"].get("reader_distortion_matched", results["rq1_geometry"]["reader_distortion"]), depths),
+            "com_distortion_self": compute_center_of_mass(results["rq1_geometry"].get("self_distortion_matched", results["rq1_geometry"]["self_distortion"]), depths),
+            "peak_depth_base_cross": compute_peak_depth(p_sharing["base_cross_r_to_s"], depths),
+            "peak_depth_inst_cross": compute_peak_depth(p_sharing["inst_matched_cross_r_to_s"], depths),
+            "peak_depth_delta_share": compute_peak_depth(p_sharing["delta_sharing_matched"], depths),
+            "mean_delta_sharing": float(np.mean(p_sharing["delta_sharing_matched"])),
+        }
+    else:
+        primary_matched = {
+            "com_distortion_reader": compute_center_of_mass(results["rq1_geometry"]["reader_distortion"], depths),
+            "com_distortion_self": compute_center_of_mass(results["rq1_geometry"]["self_distortion"], depths),
+            "peak_depth_base_cross": compute_peak_depth(p_sharing["base_cross_r_to_s"], depths),
+            "peak_depth_inst_cross": compute_peak_depth(p_sharing["inst_cross_r_to_s"], depths),
+            "peak_depth_delta_share": compute_peak_depth(p_sharing["delta_sharing"], depths),
+            "mean_delta_sharing": float(np.mean(p_sharing["delta_sharing"])),
+        }
+
+    # Secondary summary metrics (Native Chat)
+    secondary_native = {
         "com_distortion_reader": compute_center_of_mass(results["rq1_geometry"]["reader_distortion"], depths),
         "com_distortion_self": compute_center_of_mass(results["rq1_geometry"]["self_distortion"], depths),
         "peak_depth_base_cross": compute_peak_depth(p_sharing["base_cross_r_to_s"], depths),
@@ -380,9 +402,21 @@ def analyze_v2_geometry_and_sharing(
         "peak_depth_delta_share": compute_peak_depth(p_sharing["delta_sharing"], depths),
         "mean_delta_sharing": float(np.mean(p_sharing["delta_sharing"])),
     }
-    if has_matched:
-        results["summary_metrics"]["mean_delta_sharing_matched"] = float(np.mean(p_sharing["delta_sharing_matched"]))
-        results["summary_metrics"]["mean_delta_sharing_format"] = float(np.mean(p_sharing["delta_sharing_format"]))
+
+    # Format Confound Effect (Native Chat - Matched Plain)
+    format_effect = {
+        "mean_delta_sharing_format": float(np.mean(p_sharing["delta_sharing_format"])) if has_matched and "delta_sharing_format" in p_sharing else 0.0,
+    }
+
+    results["summary_metrics"] = {
+        "primary_matched_plain": primary_matched,
+        "secondary_native_chat": secondary_native,
+        "format_effect": format_effect,
+        # Flatten primary matched-plain metrics to root for backward compatibility
+        **primary_matched,
+        "mean_delta_sharing_matched": primary_matched["mean_delta_sharing"],
+        "mean_delta_sharing_format": format_effect["mean_delta_sharing_format"],
+    }
 
     results["relative_depths"] = [float(d) for d in depths]
     results["num_layers"] = num_layers
@@ -563,29 +597,62 @@ def main():
     summary_path = derived_dir / "v2_cross_family_summary.json"
     summary_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # 指標リストの収集
+    # 指標リストの収集 (Item 6: Primary matched-plain metrics for cross-family bootstrap)
     fams = list(all_family_results.keys())
-    com_dist_r = [all_family_results[f]["summary_metrics"]["com_distortion_reader"] for f in fams]
-    com_dist_s = [all_family_results[f]["summary_metrics"]["com_distortion_self"] for f in fams]
-    pk_base_cross = [all_family_results[f]["summary_metrics"]["peak_depth_base_cross"] for f in fams]
-    pk_inst_cross = [all_family_results[f]["summary_metrics"]["peak_depth_inst_cross"] for f in fams]
-    mean_delta_share = [all_family_results[f]["summary_metrics"]["mean_delta_sharing"] for f in fams]
+
+    # 1) Primary: Matched Plain
+    com_dist_r_prim = [all_family_results[f]["summary_metrics"]["primary_matched_plain"]["com_distortion_reader"] for f in fams]
+    com_dist_s_prim = [all_family_results[f]["summary_metrics"]["primary_matched_plain"]["com_distortion_self"] for f in fams]
+    pk_base_cross_prim = [all_family_results[f]["summary_metrics"]["primary_matched_plain"]["peak_depth_base_cross"] for f in fams]
+    pk_inst_cross_prim = [all_family_results[f]["summary_metrics"]["primary_matched_plain"]["peak_depth_inst_cross"] for f in fams]
+    mean_delta_share_prim = [all_family_results[f]["summary_metrics"]["primary_matched_plain"]["mean_delta_sharing"] for f in fams]
+
+    # 2) Secondary: Native Chat
+    com_dist_r_sec = [all_family_results[f]["summary_metrics"]["secondary_native_chat"]["com_distortion_reader"] for f in fams]
+    com_dist_s_sec = [all_family_results[f]["summary_metrics"]["secondary_native_chat"]["com_distortion_self"] for f in fams]
+    pk_inst_cross_sec = [all_family_results[f]["summary_metrics"]["secondary_native_chat"]["peak_depth_inst_cross"] for f in fams]
+    mean_delta_share_sec = [all_family_results[f]["summary_metrics"]["secondary_native_chat"]["mean_delta_sharing"] for f in fams]
 
     n_boot = 10 if args.dry_run else (v2_config.get("bootstrap", {}).get("n_boot") or v2_config.get("statistics", {}).get("n_boot", 1000))
 
-    # Bootstrap 信頼区間の計算
-    pt_com_r, com_r_low, com_r_up = compute_bootstrap_ci(com_dist_r, n_boot=n_boot)
-    pt_com_s, com_s_low, com_s_up = compute_bootstrap_ci(com_dist_s, n_boot=n_boot)
-    pt_base_pk, base_pk_low, base_pk_up = compute_bootstrap_ci(pk_base_cross, n_boot=n_boot)
-    pt_inst_pk, inst_pk_low, inst_pk_up = compute_bootstrap_ci(pk_inst_cross, n_boot=n_boot)
-    pt_share, share_low, share_up = compute_bootstrap_ci(mean_delta_share, n_boot=n_boot)
+    # Bootstrap 信頼区間の計算 (Primary)
+    pt_com_r, com_r_low, com_r_up = compute_bootstrap_ci(com_dist_r_prim, n_boot=n_boot)
+    pt_com_s, com_s_low, com_s_up = compute_bootstrap_ci(com_dist_s_prim, n_boot=n_boot)
+    pt_base_pk, base_pk_low, base_pk_up = compute_bootstrap_ci(pk_base_cross_prim, n_boot=n_boot)
+    pt_inst_pk, inst_pk_low, inst_pk_up = compute_bootstrap_ci(pk_inst_cross_prim, n_boot=n_boot)
+    pt_share, share_low, share_up = compute_bootstrap_ci(mean_delta_share_prim, n_boot=n_boot)
 
-    # Paired comparison (Base vs Instruct cross-decoding peak shift)
-    paired_peak_comp = paired_family_comparison(pk_inst_cross, pk_base_cross)
+    # Bootstrap 信頼区間の計算 (Secondary)
+    pt_com_r_sec, com_r_sec_low, com_r_sec_up = compute_bootstrap_ci(com_dist_r_sec, n_boot=n_boot)
+    pt_com_s_sec, com_s_sec_low, com_s_sec_up = compute_bootstrap_ci(com_dist_s_sec, n_boot=n_boot)
+    pt_inst_pk_sec, inst_pk_sec_low, inst_pk_sec_up = compute_bootstrap_ci(pk_inst_cross_sec, n_boot=n_boot)
+    pt_share_sec, share_sec_low, share_sec_up = compute_bootstrap_ci(mean_delta_share_sec, n_boot=n_boot)
+
+    # Paired comparison (Base vs Instruct cross-decoding peak shift) on Primary
+    paired_peak_comp = paired_family_comparison(pk_inst_cross_prim, pk_base_cross_prim)
 
     summary_data = {
         "families": fams,
         "per_family_summary": {fam_id: res["summary_metrics"] for fam_id, res in all_family_results.items()},
+        "primary_matched_plain": {
+            "bootstrap_ci_95": {
+                "com_distortion_reader": {"mean": pt_com_r, "ci_lower": com_r_low, "ci_upper": com_r_up},
+                "com_distortion_self": {"mean": pt_com_s, "ci_lower": com_s_low, "ci_upper": com_s_up},
+                "peak_depth_base_cross": {"mean": pt_base_pk, "ci_lower": base_pk_low, "ci_upper": base_pk_up},
+                "peak_depth_inst_cross": {"mean": pt_inst_pk, "ci_lower": inst_pk_low, "ci_upper": inst_pk_up},
+                "mean_delta_sharing": {"mean": pt_share, "ci_lower": share_low, "ci_upper": share_up},
+            },
+            "paired_peak_depth_comparison": paired_peak_comp,
+        },
+        "secondary_native_chat": {
+            "bootstrap_ci_95": {
+                "com_distortion_reader": {"mean": pt_com_r_sec, "ci_lower": com_r_sec_low, "ci_upper": com_r_sec_up},
+                "com_distortion_self": {"mean": pt_com_s_sec, "ci_lower": com_s_sec_low, "ci_upper": com_s_sec_up},
+                "peak_depth_inst_cross": {"mean": pt_inst_pk_sec, "ci_lower": inst_pk_sec_low, "ci_upper": inst_pk_sec_up},
+                "mean_delta_sharing": {"mean": pt_share_sec, "ci_lower": share_sec_low, "ci_upper": share_sec_up},
+            },
+        },
+        # Root fallback for backward compatibility
         "bootstrap_ci_95": {
             "com_distortion_reader": {"mean": pt_com_r, "ci_lower": com_r_low, "ci_upper": com_r_up},
             "com_distortion_self": {"mean": pt_com_s, "ci_lower": com_s_low, "ci_upper": com_s_up},

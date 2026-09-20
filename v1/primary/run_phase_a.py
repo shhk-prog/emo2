@@ -255,7 +255,14 @@ def evaluate_classification_probe(
         min_class_count = np.min(np.bincount(y_enc))
         actual_cv = min(cv, min_class_count)
         if actual_cv < 2:
-            return {"roc_auc": float("nan"), "balanced_acc": float("nan"), "f1_macro": float("nan")}
+            return {
+                "roc_auc": float("nan"),
+                "balanced_acc": float("nan"),
+                "f1_macro": float("nan"),
+                "status": "failed",
+                "failure_reason": "insufficient_samples_or_classes",
+                "n_valid_folds": 0,
+            }
 
     if group_ids is not None:
         from sklearn.model_selection import StratifiedGroupKFold
@@ -311,13 +318,20 @@ def evaluate_classification_probe(
             auc = float(
                 roc_auc_score(y_enc, y_probs, multi_class="ovr", average="macro", labels=np.arange(num_classes))
             )
-    except Exception:
-        auc = 0.5
+        status = "success"
+        failure_reason = ""
+    except Exception as e:
+        auc = float("nan")
+        status = "partial_failure"
+        failure_reason = str(e)
 
     return {
-        "roc_auc": auc if not np.isnan(auc) else 0.5,
-        "balanced_acc": bal_acc if not np.isnan(bal_acc) else 0.0,
-        "f1_macro": f1_macro if not np.isnan(f1_macro) else 0.0,
+        "roc_auc": auc,
+        "balanced_acc": bal_acc,
+        "f1_macro": f1_macro,
+        "status": status,
+        "failure_reason": failure_reason,
+        "n_valid_folds": len(splits),
     }
 
 
@@ -420,9 +434,10 @@ def evaluate_cross_decoding_and_geometry(
     r2_aligned_transfer = float(r2_score(y, pred_aligned_s_to_r))
     rsa_score = float(np.mean(rsa_scores)) if rsa_scores else 0.0
 
-    direct_transfer_score = max(0.0, (r2_r_to_s + r2_s_to_r) / 2.0)
+    direct_transfer_score_raw = (r2_r_to_s + r2_s_to_r) / 2.0
+    direct_transfer_score_clipped = max(0.0, direct_transfer_score_raw)
 
-    if direct_transfer_score >= 0.3:
+    if direct_transfer_score_raw >= 0.3:
         pattern = "Operational: Shared Geometry"
     elif r2_aligned_transfer >= 0.3 or rsa_score >= 0.6:
         pattern = "Operational: Alignable Geometry"
@@ -436,7 +451,9 @@ def evaluate_cross_decoding_and_geometry(
         "r2_cross_s_to_r": r2_s_to_r,
         "r2_cross_r_to_s_task_scaled": r2_r_to_s_task_scaled,
         "r2_cross_s_to_r_task_scaled": r2_s_to_r_task_scaled,
-        "direct_transfer_score": direct_transfer_score,
+        "direct_transfer_score": direct_transfer_score_raw,
+        "direct_transfer_score_raw": direct_transfer_score_raw,
+        "direct_transfer_score_clipped": direct_transfer_score_clipped,
         "rsa_correlation": rsa_score,
         "r2_aligned_transfer": r2_aligned_transfer,
         "geometry_pattern": pattern,
@@ -505,17 +522,32 @@ def main():
         or "it" in args.model_id.lower()
     )
 
-    # Early skip if already completed and valid
+    # Early skip if already completed and valid (Item 1: dataset-aware verification)
     manifest_path = os.path.join(model_dir, "manifest.json")
-    e1_path = os.path.join(model_dir, "e1_emobank_decodability.csv")
-    e2_path = os.path.join(model_dir, "e2_emobank_geometry.csv")
-    if not args.force and not args.dry_run and os.path.exists(manifest_path) and os.path.exists(e1_path) and os.path.exists(e2_path):
+    required_outputs = []
+    if args.dataset in {"emobank", "both"}:
+        required_outputs.extend([
+            os.path.join(model_dir, "e1_emobank_decodability.csv"),
+            os.path.join(model_dir, "e2_emobank_geometry.csv"),
+        ])
+    if args.dataset in {"aipsy", "both"}:
+        required_outputs.extend([
+            os.path.join(model_dir, "e1_aipsy_classification.csv"),
+            os.path.join(model_dir, "e1_aipsy_intensity.csv"),
+            os.path.join(model_dir, "e1_aipsy_emotion_secondary.csv"),
+        ])
+
+    if not args.force and not args.dry_run and os.path.exists(manifest_path) and all(os.path.exists(p) for p in required_outputs):
         try:
-            df_check1 = pd.read_csv(e1_path)
-            df_check2 = pd.read_csv(e2_path)
-            if len(df_check1) > 0 and len(df_check2) > 0:
+            valid_all = True
+            for p in required_outputs:
+                df_check = pd.read_csv(p)
+                if len(df_check) == 0:
+                    valid_all = False
+                    break
+            if valid_all:
                 print(
-                    f"[SKIP] Validated Phase A results found in {model_dir}. "
+                    f"[SKIP] Validated Phase A results found in {model_dir} for dataset '{args.dataset}'. "
                     f"Skipping model loading & probing for {args.model_prefix}. Use --force to rerun."
                 )
                 return
@@ -551,6 +583,8 @@ def main():
                 "relative_depth": l / (dummy_layers - 1),
                 "target": "Valence_human",
                 "direct_transfer_score": 0.5,
+                "direct_transfer_score_raw": 0.5,
+                "direct_transfer_score_clipped": 0.5,
                 "rsa_correlation": 0.7,
                 "r2_aligned_transfer": 0.55,
                 "geometry_pattern": "Operational: Shared Geometry",

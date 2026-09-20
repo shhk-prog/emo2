@@ -336,21 +336,18 @@ def run_behavioral(args, python_bin: str):
                 cmd_aipsy.append("--force")
 
             if args.dry_run:
-                logger.info(f"[Dry-run] Simulated EmoBank execution for {model_id} (tag={tag})")
-                logger.info(f"[Dry-run] Simulated AIPsy execution for {model_id} (tag={tag})")
-            else:
-                run_command(cmd_emobank)
-                run_command(cmd_aipsy)
+                cmd_emobank.append("--dry-run")
+                cmd_aipsy.append("--dry-run")
+
+            run_command(cmd_emobank)
+            run_command(cmd_aipsy)
 
     # 3. 自動要約・統計集計・論文用 derived CSV 生成 (Unified Pipeline)
     logger.info("--- Generating Behavioral Summary and Derived Tables ---")
     cmd_sum_emobank = [python_bin, "behavioral/analysis/summarize_behavioral_emobank.py"]
     cmd_sum_aipsy = [python_bin, "behavioral/analysis/summarize_behavioral_aipsy.py"]
-    if args.dry_run:
-        logger.info("[Dry-run] Simulated Behavioral summarization (EmoBank & AIPsy)")
-    else:
-        run_command(cmd_sum_emobank)
-        run_command(cmd_sum_aipsy)
+    run_command(cmd_sum_emobank)
+    run_command(cmd_sum_aipsy)
 
 
 

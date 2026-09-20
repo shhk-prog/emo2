@@ -649,6 +649,8 @@ def main():
             config=config_payload,
             metadata={"num_layers": eff_num_layers, "hidden_dim": eff_hidden_dim},
             dataset_path=str(data_path),
+            candidate_space="N/A",
+            measurement_space="prompt_end_hidden_state",
             seed=seed,
             dry_run=bool(args.dry_run),
         )

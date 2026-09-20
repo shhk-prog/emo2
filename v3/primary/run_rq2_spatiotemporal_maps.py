@@ -617,10 +617,15 @@ def main():
     results = None
     cache_hit = False
 
+    registry = get_registry()
+    fam_cfg = registry.get_family_by_model_id(target_model_id) or registry.get_family(fam_key)
+    model_revision = fam_cfg.get_model_spec("instruct").revision if fam_cfg else "main"
+
     manifest_config = {
         "analysis_role": "discovery",
         "family": fam_key,
         "model_id": target_model_id,
+        "model_revision": model_revision,
         "dataset_path": str(v3_cfg["dataset"]["path"]),
         "semantic_stages": normalized_stages,
         "alpha_sweep": alpha_sweep,
@@ -653,6 +658,8 @@ def main():
                 expected_model_name=target_model_id,
                 expected_config_hash=exp_cfg_hash,
                 expected_dataset_hash=exp_ds_hash,
+                expected_model_revision=model_revision,
+                expected_tokenizer_revision=model_revision,
                 expected_dry_run=False,
             )
             if manifest_valid:

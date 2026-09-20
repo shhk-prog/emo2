@@ -666,10 +666,15 @@ def main():
     modular_rq3_path = raw_dir / f"v3_rq3_path_mediation_{fam_key}.json"
     manifest_path = raw_dir / f"manifest_rq3_{fam_key}.json"
 
+    registry = get_registry()
+    fam_cfg = registry.get_family_by_model_id(target_model_id) or registry.get_family(fam_key)
+    model_revision = fam_cfg.get_model_spec("instruct").revision if fam_cfg else "main"
+
     manifest_config = {
         "analysis_role": "discovery_mediation",
         "family": fam_key,
         "model_id": target_model_id,
+        "model_revision": model_revision,
         "dataset_path": str(v3_cfg["dataset"]["path"]),
         "subsample": args.subsample,
         "bootstrap_n": bootstrap_n,
@@ -693,6 +698,8 @@ def main():
                 expected_model_name=target_model_id,
                 expected_config_hash=exp_cfg_hash,
                 expected_dataset_hash=exp_ds_hash,
+                expected_model_revision=model_revision,
+                expected_tokenizer_revision=model_revision,
                 expected_dry_run=False,
             )
             if manifest_valid:

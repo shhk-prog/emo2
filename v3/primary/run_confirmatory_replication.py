@@ -223,6 +223,7 @@ def run_real_model_confirmatory(
     device: str = "cpu",
     subsample: int = 0,
     v3_cfg: Optional[Dict[str, Any]] = None,
+    dry_run: bool = False,
 ) -> Dict[str, Any]:
     """
     実モデル (Llama 3.2, Gemma 3, OLMo 2) に対する 4大仮説の Confirmatory 検証
@@ -316,6 +317,10 @@ def run_real_model_confirmatory(
         splitter = GroupKFold(n_splits=n_splits)
         split_gen_fn = lambda data: splitter.split(data, y_v, groups=eval_df["pair_id"].values)
     else:
+        if not dry_run:
+            raise ValueError(
+                "Confirmatory analysis requires >=2 independent pair groups ('pair_id') for GroupKFold cross-fitting in production."
+            )
         n_splits = min(5, max(2, N))
         splitter = KFold(n_splits=n_splits, shuffle=True, random_state=v3_cfg.get("seed", 42) if v3_cfg else 42)
         split_gen_fn = lambda data: splitter.split(data)
@@ -1037,6 +1042,7 @@ def main():
                 device=args.device,
                 subsample=args.subsample,
                 v3_cfg=v3_cfg,
+                dry_run=bool(args.dry_run),
             )
 
         family_results[fam_name] = res

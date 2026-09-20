@@ -401,7 +401,7 @@ def main():
                 expected_dry_run=False,
             ):
                 print(
-                    f"[SKIP] Validated Phase B (V1 E5) results matching manifest found in {model_dir}. "
+                    f"[SKIP] Completed Phase B (V1 E5) results matching manifest found in {model_dir}. "
                     f"Skipping computation for {args.model_prefix}. Use --force to rerun."
                 )
                 return
@@ -629,8 +629,8 @@ def main():
     clf_pa = LogisticRegression(max_iter=500, random_state=cfg_seed)
     clf_pa.fit(X_tr_scaled, y_tr_orig)
 
-    # Fallback filtering for Item 3:
-    # Primary analysis uses strictly validated transformations without fallbacks.
+    # Fallback filtering:
+    # Primary analysis uses nonfallback rule-based transformations without identity fallbacks.
     # Sensitivity analysis includes all transformations (including fallback clause additions).
     has_para_fallback = "paraphrase_fallback" in df.columns
     has_rev_fallback = "reversal_fallback" in df.columns
@@ -657,7 +657,7 @@ def main():
     p_rev_te_all = clf_pa.predict_proba(X_te_rev_all)[:, 1]
     held_out_reversal_drop_all = float(np.mean(p_orig_te_all) - np.mean(p_rev_te_all))
 
-    # 2) Primary (Validated transformations only)
+    # 2) Primary (Nonfallback rule-based transformations only)
     test_para_valid_mask = test_mask & valid_para_pair_mask
     if np.sum(test_para_valid_mask) > 0:
         X_te_para_prim = np.concatenate([H_para_aff[test_para_valid_mask], H_orig_neu[test_para_valid_mask]], axis=0)
@@ -740,14 +740,15 @@ def main():
     df_audit.to_csv(os.path.join(model_dir, "phase_b_pairs_quality_audit.csv"), index=False)
 
     # Save manifest
-    manifest_config["num_pairs"] = n_pairs
-    manifest_config["target_layer"] = target_layer
     manifest = create_run_manifest(
         run_type="v1_phase_b",
         model_name=args.model_id,
         model_revision=args.model_revision or "main",
         config=manifest_config,
-        metadata=results,
+        metadata={
+            **results,
+            "num_pairs": n_pairs,
+        },
         dataset_path=str(data_file),
         prompt_hash=prompt_hash,
         candidate_space="N/A",

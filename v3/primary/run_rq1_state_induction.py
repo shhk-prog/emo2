@@ -237,6 +237,7 @@ def run_real_state_induction(
     specificity_reference_alpha: float = 1.0,
     device: str = "cpu",
     batch_size: int = 81,
+    dry_run: bool = False,
 ) -> Dict[str, Any]:
     """
     実モデルを用いた V3-RQ1 State Induction パイプライン
@@ -300,12 +301,16 @@ def run_real_state_induction(
         test_df = df[~train_mask].copy().reset_index(drop=True)
         logger.info(f"Group split on pair_id (ratio={train_ratio}): {len(train_pairs)} pairs train ({len(train_df)} rows), {len(unique_pairs) - n_train_pairs} pairs test ({len(test_df)} rows)")
     else:
+        if not dry_run:
+            raise ValueError(
+                "RQ1 analysis requires >=2 independent pair groups ('pair_id') for group-split in production."
+            )
         indices = rng.permutation(len(df))
         n_train = max(1, int(round(len(df) * train_ratio)))
         train_idx, test_idx = indices[:n_train], indices[n_train:]
         train_df = df.iloc[train_idx].copy().reset_index(drop=True)
         test_df = df.iloc[test_idx].copy().reset_index(drop=True)
-        logger.info(f"Index split (ratio={train_ratio}): {len(train_df)} train, {len(test_df)} test")
+        logger.info(f"[DRY-RUN] Index split fallback (ratio={train_ratio}): {len(train_df)} train, {len(test_df)} test")
     logger.info(f"Split dataset: {len(train_df)} train pairs, {len(test_df)} held-out test pairs")
 
     # 2. Train split による情動方向 d_V, d_A の推定 (Reader-grounded Primary / Self-derived Secondary)
@@ -940,6 +945,7 @@ def main():
             specificity_reference_alpha=spec_ref_alpha,
             device=args.device,
             batch_size=v3_cfg.get("inference", {}).get("batch_size", 81),
+            dry_run=bool(args.dry_run),
         )
 
     # Go/No-Go ゲート判定の評価 (CI ベース)

@@ -12,7 +12,7 @@ import argparse
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 from scipy.stats import pearsonr, spearmanr
@@ -93,10 +93,6 @@ def run_sensitivity_simulation(n_pairs: int = 20, seed: int = 42) -> Tuple[Dict[
             "direction_agreement": dir_agree_a,
             "mae": float(np.mean(np.abs(delta_a_729 - delta_a_81))),
         },
-        "conclusion": (
-            "Consistent Delta V and Delta A direction agreement and rank order preserved between 729 VAD and 81 VA spaces. "
-            "Confirms that candidate space dimensionality does not alter the main affective reactivity conclusions."
-        ),
     }
     return summary, records
 
@@ -104,6 +100,7 @@ def run_sensitivity_simulation(n_pairs: int = 20, seed: int = 42) -> Tuple[Dict[
 def run_sensitivity_analysis(
     model_id: str,
     stimuli_path: str,
+    model_revision: Optional[str] = None,
     n_pairs: int = 20,
     device: str = "cpu",
     task: str = "self",
@@ -116,14 +113,19 @@ def run_sensitivity_analysis(
 
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
-    logger.info(f"Loading model {model_id} on {device} (task={task})...")
-    tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
+    logger.info(f"Loading model {model_id} (revision={model_revision}) on {device} (task={task})...")
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_id,
+        revision=model_revision,
+        trust_remote_code=True,
+    )
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
     is_cuda = str(device).startswith("cuda") and torch.cuda.is_available()
     model = AutoModelForCausalLM.from_pretrained(
         model_id,
+        revision=model_revision,
         torch_dtype=torch.bfloat16 if is_cuda else torch.float32,
         device_map=device if is_cuda else None,
         trust_remote_code=True,
@@ -149,11 +151,15 @@ def run_sensitivity_analysis(
     with torch.no_grad():
         for pair_id in selected_pairs:
             pair_rows = df[df["pair_id"] == pair_id]
-            neu_rows = pair_rows[pair_rows["intensity"] == "none"]
-            clin_rows = pair_rows[pair_rows["intensity"] != "none"]
+            intensity = pair_rows["intensity"].astype(str).str.lower()
+            neu_rows = pair_rows[intensity.eq("none")]
+            clin_rows = pair_rows[intensity.isin(["peak", "clinical"])]
 
-            if len(neu_rows) == 0 or len(clin_rows) == 0:
-                continue
+            if len(neu_rows) != 1 or len(clin_rows) != 1:
+                raise ValueError(
+                    f"Pair {pair_id} does not have exactly 1 neutral row and 1 clinical/peak row. "
+                    f"Found {len(neu_rows)} neutral, {len(clin_rows)} clinical rows."
+                )
 
             neu_text = str(neu_rows.iloc[0]["text"])
             clin_text = str(clin_rows.iloc[0]["text"])
@@ -216,6 +222,7 @@ def run_sensitivity_analysis(
         "status": "success",
         "dry_run": False,
         "model_id": model_id,
+        "model_revision": model_revision or "main",
         "task": task,
         "stimuli_path": stimuli_path,
         "n_pairs": len(records),
@@ -231,9 +238,6 @@ def run_sensitivity_analysis(
             "direction_agreement": dir_agree_a,
             "mae": float(np.mean(np.abs(da_729 - da_81))) if len(da_729) > 0 else 0.0,
         },
-        "conclusion": (
-            "Consistent Delta V and Delta A direction agreement and rank order preserved between 729 VAD and 81 VA spaces on AIPsy matched pairs."
-        ),
     }
     return summary, records
 
@@ -247,14 +251,18 @@ def main():
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
     parser.add_argument("--dry-run", action="store_true", help="Run simulation dry-run")
     parser.add_argument("--out-dir", type=str, default="results/derived/candidate_space_sensitivity")
+    parser.add_argument("--model-revision", type=str, default=None, help="HuggingFace model git commit SHA or branch")
     add_model_selection_args(parser)
     args = parser.parse_args()
 
     reg = get_registry()
     target_family = args.family or "qwen"
+    target_revision = args.model_revision
     if target_family in reg.families:
         fam_cfg = reg.families[target_family]
         target_model_id = fam_cfg.instruct_model.model_id
+        if not target_revision:
+            target_revision = fam_cfg.instruct_model.revision
     else:
         target_model_id = args.model_id or "Qwen/Qwen2.5-1.5B-Instruct"
 
@@ -264,6 +272,7 @@ def main():
     summary, records = run_sensitivity_analysis(
         model_id=target_model_id,
         stimuli_path=args.stimuli_path,
+        model_revision=target_revision,
         n_pairs=args.n_samples,
         device=args.device,
         task=args.task,
@@ -279,9 +288,11 @@ def main():
     manifest = create_run_manifest(
         run_type="candidate_space_sensitivity",
         model_name=target_model_id,
+        model_revision=target_revision or "main",
         config={
             "n_pairs": args.n_samples,
             "seed": args.seed,
+            "model_revision": target_revision,
             "dry_run": args.dry_run,
         },
         metadata=summary,

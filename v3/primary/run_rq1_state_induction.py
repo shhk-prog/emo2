@@ -52,6 +52,13 @@ from affective_empathy_eval.prompts import (
     find_semantic_anchors,
 )
 from affective_empathy_eval.statistics import compute_bootstrap_ci
+from affective_empathy_eval.manifests import (
+    create_run_manifest,
+    is_manifest_matching,
+    compute_file_hash,
+    compute_string_or_dict_hash,
+    DEFAULT_CODE_VERSION,
+)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -884,11 +891,6 @@ def main():
             f"(L={num_layers}, family={fam_key})"
         )
 
-    from affective_empathy_eval.manifests import (
-        is_manifest_matching,
-        compute_file_hash,
-        compute_string_or_dict_hash,
-    )
     from affective_empathy_eval.io import save_experiment_result, is_experiment_completed
 
     out_raw = raw_dir / ("v3_pilot_results.json" if args.pilot else "v3_rq1_results.json")

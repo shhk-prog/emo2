@@ -39,6 +39,7 @@ from affective_empathy_eval.manifests import (
     create_run_manifest,
     is_manifest_matching,
     compute_string_or_dict_hash,
+    compute_file_hash,
     DEFAULT_CODE_VERSION,
 )
 from affective_empathy_eval.models.adapters import get_model_adapter
@@ -683,11 +684,6 @@ def main():
     }
 
     if not args.force and not args.dry_run:
-        from affective_empathy_eval.manifests import (
-            is_manifest_matching,
-            compute_file_hash,
-            compute_string_or_dict_hash,
-        )
         ds_path_p = Path(v3_cfg["dataset"]["path"])
         exp_ds_hash = compute_file_hash(ds_path_p) if ds_path_p.exists() else compute_string_or_dict_hash(str(ds_path_p))
         exp_cfg_hash = compute_string_or_dict_hash(manifest_config)

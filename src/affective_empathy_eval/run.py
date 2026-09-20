@@ -346,6 +346,9 @@ def run_behavioral(args, python_bin: str):
     logger.info("--- Generating Behavioral Summary and Derived Tables ---")
     cmd_sum_emobank = [python_bin, "behavioral/analysis/summarize_behavioral_emobank.py"]
     cmd_sum_aipsy = [python_bin, "behavioral/analysis/summarize_behavioral_aipsy.py"]
+    if args.dry_run:
+        cmd_sum_emobank.append("--dry-run")
+        cmd_sum_aipsy.append("--dry-run")
     run_command(cmd_sum_emobank)
     run_command(cmd_sum_aipsy)
 

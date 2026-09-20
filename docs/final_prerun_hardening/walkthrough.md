@@ -43,25 +43,58 @@
 
 ---
 
-## 2. 本番全実行（Clean Production Run）手順
+## 2. 検証結果
 
-旧結果をアーカイブした上で、以下の本番コマンドを順次実行してください。
+1. **構文チェック**:
+   ```bash
+   python -m compileall behavioral v1 v2 v3 src scripts
+   ```
+   -> エラーなし（全てのPythonファイルが正常コンパイル）
+2. **ユニットテスト**:
+   ```bash
+   pytest -q
+   ```
+   -> **97 passed, 1 deselected, 5 warnings**
+3. **全ステージ一気通貫 Dry-run 実行**:
+   ```bash
+   python -m affective_empathy_eval.run --stage all --model-set primary_small --family qwen --device cpu --dry-run --max-samples 16 --force
+   ```
+   -> **`All requested stages completed successfully!`**
+   - **Behavioral**: EmoBank 3-way, AIPsy 4-split の実行および要約集計（`summarize_behavioral_emobank.py` 等）が完全通過。
+   - **V1**: Phase A, Phase B (Reader/Self), Phase C, E6 Specialization, Phase C Summary の全パイプラインが完全通過。
+   - **V2**: RQ1 & RQ2 (Cross-decoding & Geometry), RQ3 (Causal Map & LMM), RQ4 (Recovery Patching) が完全通過。
+   - **V3**: RQ1 (State Induction & Gate Evaluation: GO), RQ2 (Spatiotemporal 4-Maps), RQ3 (Path Mediation & Frozen Confirmatory Sites), Step 7 Confirmatory Replication (Llama 3.2, Gemma 3, OLMo 2) が完全通過。
+
+---
+
+## 3. 判定および本番全実行（Clean Production Run）手順
+
+### 最終判定: **GO** (すべての懸念・潜在的バグの解消を確認)
+
+旧結果がクリアされた状態で、以下の手順にて本番実行を行ってください。
 
 ```bash
 # 仮想環境の有効化と確認
 source .venv/bin/activate
 which python  # -> /mnt/nas/home/hiromi/src/emo2/.venv/bin/python
 
-# 1. 念のため v1/.env を削除
+# 1. 不要な env ファイルの削除確認
 rm -f v1/.env
 
-# 2. 構文チェックとテストの最終確認
-python -m compileall behavioral v1 v2 v3 src scripts
-pytest -q
-
-# 3. 本番順次実行
+# 2. 本番順次実行（各ステージ個別実行）
 bash scripts/run_production_behavioral.sh cuda:0 --force
 bash scripts/run_production_v1.sh cuda:0 --force
 bash scripts/run_production_v2.sh cuda:0 --force
 bash scripts/run_production_v3.sh cuda:0 --force
 ```
+
+または、統合ランナーからファミリー別に順次実行することも可能です：
+
+```bash
+# 例: Qwen ファミリーの本番実行
+python -m affective_empathy_eval.run --stage all --model-set primary_small --family qwen --device cuda:0 --force
+
+# 例: Llama ファミリーの本番実行
+python -m affective_empathy_eval.run --stage all --model-set primary_small --family llama --device cuda:0 --force
+```
+

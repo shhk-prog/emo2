@@ -7,12 +7,22 @@ Evaluates:
   - E3: Shared Causal Map (Magnitude + 2D Directional Vector Cosine Similarity across layers)
   - E4: Causal Interchangeability (Matched vs. Random Difference-Vector Patching on Candidate Layers)
 
+Scientific Interpretation Guards:
+  - E3/E4 Difference Vector:
+      Δh = h_clinical - h_neutral reflects affect-manipulation-associated hidden-state differences
+      (incorporating stimulus pair nuances), rather than an isolated context-free affect code.
+  - E4 Interchangeability Controls:
+      Evaluated against a distribution of multiple random derangements (default K=20) to ensure
+      the observed causal specificity is robust across donor assignments.
+  - Whole-residual interventions (e.g. zero ablation) reflect task-specific causal site sensitivity
+      rather than emotion-specific ablation.
+
 Strict Features:
-  - Prompt-End Normalized: strictly uses `add_special_tokens=False` and `prompt_end = len(prompt_ids) - 1`
+  - Prompt-End Normalized: strictly uses `add_special_tokens=False` and `valid_pos[-1]`
   - Canonical relative depth: d = l / (num_layers - 1)
   - Zero-forward optimization for alpha = 0.0
-  - Pre-caching mechanism for clean baselines & representations
-  - 50:50 Discovery / Confirmation split with exact derangement
+  - Pre-caching mechanism for clean baselines & representations with strict manifests
+  - 50:50 Discovery / Confirmation split with exact derangements (K=20 controls)
 """
 
 import argparse
@@ -94,10 +104,16 @@ def compute_cache_metadata(
     model_id: str,
     tokenizer: Any,
     df: pd.DataFrame,
-    prompts_sample: List[str],
+    all_prompts: List[str],
     intervention_position: str = "prompt_end",
     candidate_schema: str = "vad_triplets_729",
+    model_revision: str | None = None,
+    tokenizer_revision: str | None = None,
+    dtype: str | None = None,
 ) -> Dict[str, Any]:
+    import transformers
+    import torch
+
     dataset_str = "".join(
         df["pair_id"].astype(str)
         + df["text_aff"].astype(str)
@@ -105,7 +121,7 @@ def compute_cache_metadata(
     )
     dataset_hash = hashlib.sha256(dataset_str.encode("utf-8")).hexdigest()[:16]
 
-    prompt_str = "".join(prompts_sample)
+    prompt_str = "".join(all_prompts)
     prompt_hash = hashlib.sha256(prompt_str.encode("utf-8")).hexdigest()[:16]
 
     tok_name = tokenizer.__class__.__name__ if tokenizer is not None else "unknown"
@@ -113,6 +129,11 @@ def compute_cache_metadata(
 
     return {
         "model_id": str(model_id),
+        "model_revision": str(model_revision or "unknown"),
+        "tokenizer_revision": str(tokenizer_revision or getattr(tokenizer, "name_or_path", "unknown")),
+        "dtype": str(dtype or "unknown"),
+        "torch_version": str(torch.__version__),
+        "transformers_version": str(transformers.__version__),
         "git_commit": get_git_commit(),
         "dataset_hash": dataset_hash,
         "prompt_hash": prompt_hash,
@@ -137,6 +158,43 @@ def validate_cache_metadata(meta_file: str, current_meta: Dict[str, Any]) -> boo
         return True
     except Exception as ex:
         print(f"[CACHE ERROR] Failed reading {meta_file}: {ex}")
+        return False
+
+
+def make_phase_c_checkpoint_manifest(
+    model_id: str,
+    model_revision: str,
+    tokenizer_revision: str,
+    config_hash: str,
+    dataset_hash: str,
+    prompt_hash: str,
+    stage_type: str,
+) -> Dict[str, Any]:
+    return {
+        "stage_type": str(stage_type),
+        "model_id": str(model_id),
+        "model_revision": str(model_revision),
+        "tokenizer_revision": str(tokenizer_revision),
+        "config_hash": str(config_hash),
+        "dataset_hash": str(dataset_hash),
+        "prompt_hash": str(prompt_hash),
+        "intervention_version": "v1_phase_c_v2",
+    }
+
+
+def is_checkpoint_manifest_valid(manifest_path: str, expected_manifest: Dict[str, Any]) -> bool:
+    if not os.path.exists(manifest_path):
+        return False
+    try:
+        with open(manifest_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        for k, v in expected_manifest.items():
+            if data.get(k) != v:
+                print(f"[CHECKPOINT MANIFEST MISMATCH {k}]: cached={data.get(k)} != expected={v}")
+                return False
+        return True
+    except Exception as ex:
+        print(f"[CHECKPOINT MANIFEST ERROR]: {ex}")
         return False
 
 
@@ -240,15 +298,17 @@ def extract_hidden_states(
             attention_mask=encoded["attention_mask"],
             output_hidden_states=True,
         )
-        seq_lengths = encoded["attention_mask"].sum(dim=1) - 1
+        att_mask = encoded["attention_mask"]
         num_blocks = getattr(model.config, "num_hidden_layers", len(outputs.hidden_states) - 1)
         for block_idx in range(num_blocks):
             layer_tensor = get_block_hidden_state(outputs.hidden_states, block_idx)
             if block_idx not in all_layer_vecs:
                 all_layer_vecs[block_idx] = []
             for b in range(len(chunk)):
+                valid_pos = torch.nonzero(att_mask[b], as_tuple=False).flatten()
+                last_pos = int(valid_pos[-1]) if len(valid_pos) > 0 else int(att_mask.shape[1] - 1)
                 vec = (
-                    layer_tensor[b, seq_lengths[b].item(), :]
+                    layer_tensor[b, last_pos, :]
                     .detach()
                     .cpu()
                     .float()
@@ -288,7 +348,8 @@ def main():
         "--alphas",
         type=float,
         nargs="+",
-        default=[-1.0, 0.0, 0.5, 1.0, 1.5],
+        default=None,
+        help="Alpha scaling factors (default: loaded from YAML config)",
     )
     parser.add_argument("--layers", type=int, nargs="+", default=None)
     parser.add_argument("--all-layers", action="store_true")
@@ -296,7 +357,7 @@ def main():
         "--candidate-layers", type=int, nargs="+", default=None
     )
     parser.add_argument("--num-e4-layers", type=int, default=4)
-    parser.add_argument("--split-seed", type=int, default=42)
+    parser.add_argument("--split-seed", type=int, default=None, help="Seed for split (default: loaded from YAML)")
     parser.add_argument(
         "--device",
         type=str,
@@ -327,7 +388,13 @@ def main():
         "--model-revision",
         type=str,
         default=None,
-        help="Specific HuggingFace model git commit SHA or branch",
+        help="Model revision / snapshot commit SHA for strict caching",
+    )
+    parser.add_argument(
+        "--n-random-derangements",
+        type=int,
+        default=None,
+        help="Number of random derangement donor runs in E4 (default: 20, or 2 if dry-run)",
     )
     parser.add_argument(
         "--run-id",
@@ -344,6 +411,19 @@ def main():
     add_model_selection_args(parser)
     args = parser.parse_args()
     args.model_id, args.model_prefix = resolve_single_model_from_args(args)
+
+    # Load Phase C configuration from YAML source of truth
+    phase_c_cfg = {}
+    cfg_path = Path(args.config)
+    if cfg_path.exists():
+        with open(cfg_path, "r", encoding="utf-8") as f:
+            full_v1_cfg = yaml.safe_load(f) or {}
+            phase_c_cfg = full_v1_cfg.get("phase_c", {})
+
+    if args.alphas is None:
+        args.alphas = list(phase_c_cfg.get("alphas", [0.0, 0.5, 1.0, 2.0]))
+    if args.split_seed is None:
+        args.split_seed = int(phase_c_cfg.get("seed", 42))
 
     # Production safety valve: ensure fixed model revision is resolved
     if args.model_revision is None and not getattr(args, "dry_run", False):
@@ -583,11 +663,6 @@ def main():
     rng_split = np.random.default_rng(args.split_seed)
     unique_pairs = merged["pair_id"].unique()
     perm_pairs = rng_split.permutation(unique_pairs)
-    phase_c_cfg = {}
-    cfg_path = Path(args.config)
-    if cfg_path.exists():
-        with open(cfg_path, "r", encoding="utf-8") as f:
-            phase_c_cfg = yaml.safe_load(f).get("phase_c", {})
     discovery_ratio = float(phase_c_cfg.get("discovery_ratio", 0.5))
 
     split_cut = int(round(len(perm_pairs) * discovery_ratio))
@@ -653,14 +728,18 @@ def main():
         for t in merged["text_neu"]
     ]
 
-    # Compute current run cache metadata
+    # Compute current run cache metadata using all prompt types
+    all_prompts = prompts_r_aff + prompts_r_neu + prompts_s_aff + prompts_s_neu
     current_cache_meta = compute_cache_metadata(
         model_id=args.model_id,
         tokenizer=tokenizer,
         df=merged,
-        prompts_sample=prompts_r_aff[:10] + prompts_s_aff[:10],
+        all_prompts=all_prompts,
         intervention_position="prompt_end",
         candidate_schema="vad_triplets_729",
+        model_revision=args.model_revision,
+        tokenizer_revision=getattr(tokenizer, "name_or_path", "unknown"),
+        dtype=str(torch_dtype),
     )
 
     # Baselines
@@ -825,36 +904,57 @@ def main():
     if args.mode in ["all", "e3"]:
         skip_e3 = False
         completed_layers = set()
-        if not args.force and os.path.exists(e3_csv_path):
-            try:
-                cached_e3_df = pd.read_csv(e3_csv_path)
-                if "layer" in cached_e3_df.columns:
-                    completed_layers = set(cached_e3_df["layer"].astype(int).tolist())
-                    e3_causal_records = cached_e3_df.to_dict("records")
-                if os.path.exists(e3_pair_csv_path):
-                    cached_pair_df = pd.read_csv(e3_pair_csv_path)
-                    e3_pair_records = cached_pair_df.to_dict("records")
+        e3_ckpt_manifest_path = os.path.join(model_dir, "e3_checkpoint_manifest.json")
+        expected_e3_manifest = make_phase_c_checkpoint_manifest(
+            model_id=args.model_id,
+            model_revision=args.model_revision or "main",
+            tokenizer_revision=getattr(tokenizer, "name_or_path", "unknown"),
+            config_hash=expected_config_hash,
+            dataset_hash=dataset_hash,
+            prompt_hash=current_cache_meta["prompt_hash"],
+            stage_type="e3_causal_map",
+        )
 
-                remaining_layers = [l for l in target_layers if l not in completed_layers]
-                if len(remaining_layers) == 0:
-                    print(
-                        f"\n==================================================================\n"
-                        f"[SKIP] Existing validated E3 Causal Map found at {e3_csv_path}\n"
-                        f"       (all {len(completed_layers)} layers completed).\n"
-                        f"       Skipping E3 computation and proceeding directly to E4.\n"
-                        f"==================================================================\n",
-                        flush=True,
-                    )
-                    skip_e3 = True
-                elif len(completed_layers) > 0:
-                    print(
-                        f"\n[RESUME] Resuming E3 from layer checkpoint: {len(completed_layers)}/{len(target_layers)} layers already completed.\n"
-                        f"         Remaining: {len(remaining_layers)} layers. Skipping completed layers.\n",
-                        flush=True,
-                    )
-            except Exception as e:
-                print(f"Warning: Failed to load cached E3 results ({e}). Recalculating E3.", flush=True)
-                skip_e3 = False
+        if not args.force and os.path.exists(e3_csv_path):
+            if is_checkpoint_manifest_valid(e3_ckpt_manifest_path, expected_e3_manifest):
+                try:
+                    cached_e3_df = pd.read_csv(e3_csv_path)
+                    if "layer" in cached_e3_df.columns:
+                        completed_layers = set(cached_e3_df["layer"].astype(int).tolist())
+                        e3_causal_records = cached_e3_df.to_dict("records")
+                    if os.path.exists(e3_pair_csv_path):
+                        cached_pair_df = pd.read_csv(e3_pair_csv_path)
+                        e3_pair_records = cached_pair_df.to_dict("records")
+
+                    remaining_layers = [l for l in target_layers if l not in completed_layers]
+                    if len(remaining_layers) == 0:
+                        print(
+                            f"\n==================================================================\n"
+                            f"[SKIP] Existing validated E3 Causal Map found at {e3_csv_path}\n"
+                            f"       (all {len(completed_layers)} layers completed).\n"
+                            f"       Skipping E3 computation and proceeding directly to E4.\n"
+                            f"==================================================================\n",
+                            flush=True,
+                        )
+                        skip_e3 = True
+                    elif len(completed_layers) > 0:
+                        print(
+                            f"\n[RESUME] Resuming E3 from layer checkpoint: {len(completed_layers)}/{len(target_layers)} layers already completed.\n"
+                            f"         Remaining: {len(remaining_layers)} layers. Skipping completed layers.\n",
+                            flush=True,
+                        )
+                except Exception as e:
+                    print(f"Warning: Failed to load cached E3 results ({e}). Recalculating E3.", flush=True)
+                    skip_e3 = False
+                    completed_layers = set()
+                    e3_causal_records = []
+                    e3_pair_records = []
+            else:
+                print(
+                    f"\n[RESUME REJECTED] E3 checkpoint manifest missing or mismatched at {e3_ckpt_manifest_path}.\n"
+                    f"                  Discarding stale partial E3 CSV and recalculating E3 from scratch.\n",
+                    flush=True,
+                )
                 completed_layers = set()
                 e3_causal_records = []
                 e3_pair_records = []
@@ -1055,6 +1155,8 @@ def main():
                     metadata={"model_id": args.model_id, "model_prefix": args.model_prefix, "completed_layers": list(completed_layers)},
                 )
                 pd.DataFrame(e3_pair_records).to_csv(e3_pair_csv_path, index=False)
+                with open(e3_ckpt_manifest_path, "w", encoding="utf-8") as f:
+                    json.dump(expected_e3_manifest, f, indent=2)
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()
 
@@ -1109,46 +1211,67 @@ def main():
 
         skip_e4 = False
         completed_e4_conditions = set()
-        if not args.force and os.path.exists(e4_csv_path):
-            try:
-                cached_e4_df = pd.read_csv(e4_csv_path)
-                if not cached_e4_df.empty and {"layer", "alpha"}.issubset(cached_e4_df.columns):
-                    completed_e4_conditions = set(
-                        zip(cached_e4_df["layer"].astype(int), cached_e4_df["alpha"].astype(float))
-                    )
-                    e4_patching_records = cached_e4_df.to_dict("records")
-                if os.path.exists(e4_pair_csv_path):
-                    cached_e4_pair_df = pd.read_csv(e4_pair_csv_path)
-                    e4_pair_records = cached_e4_pair_df.to_dict("records")
+        e4_ckpt_manifest_path = os.path.join(model_dir, "e4_checkpoint_manifest.json")
+        expected_e4_manifest = make_phase_c_checkpoint_manifest(
+            model_id=args.model_id,
+            model_revision=args.model_revision or "main",
+            tokenizer_revision=getattr(tokenizer, "name_or_path", "unknown"),
+            config_hash=expected_config_hash,
+            dataset_hash=dataset_hash,
+            prompt_hash=current_cache_meta["prompt_hash"],
+            stage_type="e4_interchangeability",
+        )
 
-                target_e4_conditions = [
-                    (int(l), float(alpha))
-                    for l in e4_layers
-                    for alpha in args.alphas
-                ]
-                remaining_e4_conditions = [
-                    cond for cond in target_e4_conditions
-                    if cond not in completed_e4_conditions
-                ]
-                if len(remaining_e4_conditions) == 0:
-                    print(
-                        f"\n==================================================================\n"
-                        f"[SKIP] Existing validated E4 Interchangeability found at {e4_csv_path}\n"
-                        f"       (all {len(completed_e4_conditions)} conditions completed).\n"
-                        f"       Skipping E4 computation.\n"
-                        f"==================================================================\n",
-                        flush=True,
-                    )
-                    skip_e4 = True
-                elif len(completed_e4_conditions) > 0:
-                    print(
-                        f"\n[RESUME] Resuming E4 from checkpoint: {len(completed_e4_conditions)}/{len(target_e4_conditions)} conditions completed.\n"
-                        f"         Remaining: {len(remaining_e4_conditions)} conditions. Skipping completed conditions.\n",
-                        flush=True,
-                    )
-            except Exception as e:
-                print(f"Warning: Failed to load cached E4 results ({e}). Recalculating E4.", flush=True)
-                skip_e4 = False
+        if not args.force and os.path.exists(e4_csv_path):
+            if is_checkpoint_manifest_valid(e4_ckpt_manifest_path, expected_e4_manifest):
+                try:
+                    cached_e4_df = pd.read_csv(e4_csv_path)
+                    if not cached_e4_df.empty and {"layer", "alpha"}.issubset(cached_e4_df.columns):
+                        completed_e4_conditions = set(
+                            zip(cached_e4_df["layer"].astype(int), cached_e4_df["alpha"].astype(float))
+                        )
+                        e4_patching_records = cached_e4_df.to_dict("records")
+                    if os.path.exists(e4_pair_csv_path):
+                        cached_e4_pair_df = pd.read_csv(e4_pair_csv_path)
+                        e4_pair_records = cached_e4_pair_df.to_dict("records")
+
+                    target_e4_conditions = [
+                        (int(l), float(alpha))
+                        for l in e4_layers
+                        for alpha in args.alphas
+                    ]
+                    remaining_e4_conditions = [
+                        cond for cond in target_e4_conditions
+                        if cond not in completed_e4_conditions
+                    ]
+                    if len(remaining_e4_conditions) == 0:
+                        print(
+                            f"\n==================================================================\n"
+                            f"[SKIP] Existing validated E4 Interchangeability found at {e4_csv_path}\n"
+                            f"       (all {len(completed_e4_conditions)} conditions completed).\n"
+                            f"       Skipping E4 computation.\n"
+                            f"==================================================================\n",
+                            flush=True,
+                        )
+                        skip_e4 = True
+                    elif len(completed_e4_conditions) > 0:
+                        print(
+                            f"\n[RESUME] Resuming E4 from checkpoint: {len(completed_e4_conditions)}/{len(target_e4_conditions)} conditions completed.\n"
+                            f"         Remaining: {len(remaining_e4_conditions)} conditions. Skipping completed conditions.\n",
+                            flush=True,
+                        )
+                except Exception as e:
+                    print(f"Warning: Failed to load cached E4 results ({e}). Recalculating E4.", flush=True)
+                    skip_e4 = False
+                    completed_e4_conditions = set()
+                    e4_patching_records = []
+                    e4_pair_records = []
+            else:
+                print(
+                    f"\n[RESUME REJECTED] E4 checkpoint manifest missing or mismatched at {e4_ckpt_manifest_path}.\n"
+                    f"                  Discarding stale partial E4 CSV and recalculating E4 from scratch.\n",
+                    flush=True,
+                )
                 completed_e4_conditions = set()
                 e4_patching_records = []
                 e4_pair_records = []
@@ -1171,18 +1294,25 @@ def main():
                     )
 
             n_conf = len(conf_indices)
-            rng_derange = np.random.default_rng(args.split_seed + 100)
-            deranged_sub_indices = generate_derangement(n_conf, rng_derange)
-            random_indices_map = {
-                conf_indices[i]: conf_indices[deranged_sub_indices[i]]
-                for i in range(n_conf)
-            }
+            n_random_derangements = (
+                args.n_random_derangements
+                if getattr(args, "n_random_derangements", None) is not None
+                else (2 if args.dry_run else 20)
+            )
+            random_indices_maps = []
+            for k in range(n_random_derangements):
+                rng_derange_k = np.random.default_rng(args.split_seed + 100 + k)
+                deranged_sub_indices = generate_derangement(n_conf, rng_derange_k)
+                random_indices_maps.append({
+                    conf_indices[i]: conf_indices[deranged_sub_indices[i]]
+                    for i in range(n_conf)
+                })
             EXPECTED_DIRECTION = AIPSY_EXPECTED_DIRECTION
 
             total_e4_conditions = len(e4_layers) * len(args.alphas)
             print(
                 f"Running E4 Interchangeability on Layers {e4_layers} "
-                f"(total conditions: {total_e4_conditions}, already done: {len(completed_e4_conditions)})...",
+                f"(total conditions: {total_e4_conditions}, random derangements: {n_random_derangements}, already done: {len(completed_e4_conditions)})...",
                 flush=True,
             )
             with tqdm(
@@ -1242,6 +1372,7 @@ def main():
                             if is_zero_alpha:
                                 m_sv, m_sa = 0.0, 0.0
                                 r_sv, r_sa = 0.0, 0.0
+                                r_sv_list, r_sa_list = [0.0] * n_random_derangements, [0.0] * n_random_derangements
                                 ss_v, ss_a = 0.0, 0.0
                                 rr_v, rr_a = 0.0, 0.0
                                 sr_v, sr_a = 0.0, 0.0
@@ -1268,28 +1399,33 @@ def main():
                                     m_sv = float(m_ev[0] - clean_ev_s_neu[p_idx])
                                     m_sa = float(m_ea[0] - clean_ea_s_neu[p_idx])
 
-                                # 2. Control 1: Reader -> Self (Random Permuted)
-                                rnd_idx = random_indices_map[p_idx]
-                                diff_random = delta_h_r[rnd_idx]
-                                with PyTorchActivationPatcher(
-                                    model,
-                                    l,
-                                    diff_random,
-                                    patch_weight=alpha,
-                                    position=pos_s,
-                                    intervention_type="add",
-                                ):
-                                    rnd_ev, rnd_ea = evaluate_expected_va_batch(
+                                # 2. Control 1: Reader -> Self (Random Permuted - multiple derangements)
+                                r_sv_list = []
+                                r_sa_list = []
+                                for k_derange in range(n_random_derangements):
+                                    rnd_idx = random_indices_maps[k_derange][p_idx]
+                                    diff_random = delta_h_r[rnd_idx]
+                                    with PyTorchActivationPatcher(
                                         model,
-                                        tokenizer,
-                                        [prompts_s_neu[p_idx]],
-                                        candidates,
-                                        vad_triplets,
-                                        device=args.device,
-                                        sub_batch_size=args.sub_batch_size,
-                                    )
-                                    r_sv = float(rnd_ev[0] - clean_ev_s_neu[p_idx])
-                                    r_sa = float(rnd_ea[0] - clean_ea_s_neu[p_idx])
+                                        l,
+                                        diff_random,
+                                        patch_weight=alpha,
+                                        position=pos_s,
+                                        intervention_type="add",
+                                    ):
+                                        rnd_ev, rnd_ea = evaluate_expected_va_batch(
+                                            model,
+                                            tokenizer,
+                                            [prompts_s_neu[p_idx]],
+                                            candidates,
+                                            vad_triplets,
+                                            device=args.device,
+                                            sub_batch_size=args.sub_batch_size,
+                                        )
+                                        r_sv_list.append(float(rnd_ev[0] - clean_ev_s_neu[p_idx]))
+                                        r_sa_list.append(float(rnd_ea[0] - clean_ea_s_neu[p_idx]))
+                                r_sv = float(np.mean(r_sv_list)) if r_sv_list else 0.0
+                                r_sa = float(np.mean(r_sa_list)) if r_sa_list else 0.0
 
                                 # 3. Same-task Control: Self -> Self (Upper bound of causal influence)
                                 diff_s = delta_h_s[p_idx]
@@ -1425,6 +1561,8 @@ def main():
                                     "matched_shift_A": m_sa,
                                     "random_shift_V": r_sv,
                                     "random_shift_A": r_sa,
+                                    "random_shift_V_std": float(np.std(r_sv_list, ddof=1)) if len(r_sv_list) > 1 else 0.0,
+                                    "random_shift_A_std": float(np.std(r_sa_list, ddof=1)) if len(r_sa_list) > 1 else 0.0,
                                     "self_self_shift_V": ss_v,
                                     "self_self_shift_A": ss_a,
                                     "reader_reader_shift_V": rr_v,
@@ -1525,6 +1663,7 @@ def main():
                                 "layer": l,
                                 "relative_depth": rel_d,
                                 "alpha": alpha,
+                                "n_random_derangements": n_random_derangements,
                                 # Primary: Direction-aligned effects
                                 "aligned_matched_shift_V": mean_al_m_v,
                                 "aligned_matched_shift_A": mean_al_m_a,
@@ -1573,6 +1712,8 @@ def main():
                         # Incremental disk save per condition
                         pd.DataFrame(e4_patching_records).sort_values(["layer", "alpha"]).to_csv(e4_csv_path, index=False)
                         pd.DataFrame(e4_pair_records).to_csv(e4_pair_csv_path, index=False)
+                        with open(e4_ckpt_manifest_path, "w", encoding="utf-8") as f:
+                            json.dump(expected_e4_manifest, f, indent=2)
                         if torch.cuda.is_available():
                             torch.cuda.empty_cache()
 
@@ -1617,6 +1758,8 @@ def main():
             df_e4.to_csv(e4_csv_path, index=False)
             df_e4.to_csv(modular_e4_csv, index=False)
             pd.DataFrame(e4_pair_records).to_csv(e4_pair_csv_path, index=False)
+            with open(e4_ckpt_manifest_path, "w", encoding="utf-8") as f:
+                json.dump(expected_e4_manifest, f, indent=2)
             save_experiment_result(
                 output_path=modular_e4_json,
                 payload={"interchangeability": df_e4.to_dict("records")},

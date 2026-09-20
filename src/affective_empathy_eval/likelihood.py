@@ -357,11 +357,20 @@ def resolve_joint_stage_index(
     stage_offsets: dict[str, int],
     seq_len: int,
 ) -> int:
-    """生成段階の絶対 token 位置。prompt_end への丸めはしない。"""
-    key = "candidate_start" if stage_name == "response_start" else stage_name
-    if key not in stage_offsets:
-        raise KeyError(f"Unknown generation stage {stage_name!r}; available={sorted(stage_offsets)}")
-    t_idx = int(cand_start) + int(stage_offsets[key])
+    """
+    生成段階の絶対 token 位置。
+    Causal LM では位置 t の hidden state は t+1 以降のトークン生成に影響するため、
+    最初の response token を生成する直前（response_start）は cand_start - 1 (prompt_end) となる。
+    response_end は最終候補トークン処理後であり、因果的負の対照（negative control）として機能する。
+    """
+    if stage_name == "response_start":
+        t_idx = int(cand_start) - 1
+    else:
+        key = "candidate_start" if stage_name == "candidate_start" else stage_name
+        if key not in stage_offsets:
+            raise KeyError(f"Unknown generation stage {stage_name!r}; available={sorted(stage_offsets)}")
+        t_idx = int(cand_start) + int(stage_offsets[key])
+
     if t_idx < 0 or t_idx >= int(seq_len):
         raise ValueError(
             f"Generation-stage index {t_idx} is outside joint sequence [0, {seq_len}). "

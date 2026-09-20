@@ -304,8 +304,16 @@ def run_causal_patching_for_model(
             std_a = float(np.std(proj_a)) if np.std(proj_a) > 1e-6 else float(np.std(H_train))
             std_a = max(1e-4, std_a)
 
+            from affective_empathy_eval.interventions import generate_control_directions
+            d_rand_v, d_perp_v = generate_control_directions(d_v, seed=seed + l * 100 + 1)
+            d_rand_a, d_perp_a = generate_control_directions(d_a, seed=seed + l * 100 + 2)
+
             d_v_t = torch.tensor(d_v, dtype=torch.float32, device=device).reshape(1, 1, -1)
             d_a_t = torch.tensor(d_a, dtype=torch.float32, device=device).reshape(1, 1, -1)
+            d_rand_v_t = torch.tensor(d_rand_v, dtype=torch.float32, device=device).reshape(1, 1, -1)
+            d_perp_v_t = torch.tensor(d_perp_v, dtype=torch.float32, device=device).reshape(1, 1, -1)
+            d_rand_a_t = torch.tensor(d_rand_a, dtype=torch.float32, device=device).reshape(1, 1, -1)
+            d_perp_a_t = torch.tensor(d_perp_a, dtype=torch.float32, device=device).reshape(1, 1, -1)
 
             # Test fold で介入評価
             for i in test_idx:
@@ -332,6 +340,29 @@ def run_causal_patching_for_model(
                     ev_v, _ = compute_expected_va(log_v, candidates)
                     cv, _ = compute_causal_leverage(ev_v, ev_clean)
 
+                # 3-1-ctrl: Random & Orthogonal controls for V
+                with ActivationHookManager(adapter) as hook_mgr:
+                    hook_mgr.register_direction_intervention_hook(
+                        layer_idx=l, direction=d_rand_v_t, alpha=1.0, hidden_std=std_v,
+                        token_indices=patch_pos, hook_point=HookPoint.POST_MLP_RESID, mode="inject",
+                    )
+                    log_rv, _ = compute_sequence_likelihoods_for_candidates(
+                        model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device
+                    )
+                    ev_rv, _ = compute_expected_va(log_rv, candidates)
+                    cv_rand, _ = compute_causal_leverage(ev_rv, ev_clean)
+
+                with ActivationHookManager(adapter) as hook_mgr:
+                    hook_mgr.register_direction_intervention_hook(
+                        layer_idx=l, direction=d_perp_v_t, alpha=1.0, hidden_std=std_v,
+                        token_indices=patch_pos, hook_point=HookPoint.POST_MLP_RESID, mode="inject",
+                    )
+                    log_pv, _ = compute_sequence_likelihoods_for_candidates(
+                        model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device
+                    )
+                    ev_pv, _ = compute_expected_va(log_pv, candidates)
+                    cv_perp, _ = compute_causal_leverage(ev_pv, ev_clean)
+
                 # 3-2. Primary: 情動特異的介入 (d_A 加算注入 -> C_A 測定)
                 with ActivationHookManager(adapter) as hook_mgr:
                     hook_mgr.register_direction_intervention_hook(
@@ -348,6 +379,29 @@ def run_causal_patching_for_model(
                     )
                     _, ea_a = compute_expected_va(log_a, candidates)
                     ca, _ = compute_causal_leverage(ea_a, ea_clean)
+
+                # 3-2-ctrl: Random & Orthogonal controls for A
+                with ActivationHookManager(adapter) as hook_mgr:
+                    hook_mgr.register_direction_intervention_hook(
+                        layer_idx=l, direction=d_rand_a_t, alpha=1.0, hidden_std=std_a,
+                        token_indices=patch_pos, hook_point=HookPoint.POST_MLP_RESID, mode="inject",
+                    )
+                    log_ra, _ = compute_sequence_likelihoods_for_candidates(
+                        model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device
+                    )
+                    _, ea_ra = compute_expected_va(log_ra, candidates)
+                    ca_rand, _ = compute_causal_leverage(ea_ra, ea_clean)
+
+                with ActivationHookManager(adapter) as hook_mgr:
+                    hook_mgr.register_direction_intervention_hook(
+                        layer_idx=l, direction=d_perp_a_t, alpha=1.0, hidden_std=std_a,
+                        token_indices=patch_pos, hook_point=HookPoint.POST_MLP_RESID, mode="inject",
+                    )
+                    log_pa, _ = compute_sequence_likelihoods_for_candidates(
+                        model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device
+                    )
+                    _, ea_pa = compute_expected_va(log_pa, candidates)
+                    ca_perp, _ = compute_causal_leverage(ea_pa, ea_clean)
 
                 # 3-3. Secondary: 非特異的ゼロアブレーション統制
                 with ActivationHookManager(adapter) as hook_mgr:
@@ -376,6 +430,14 @@ def run_causal_patching_for_model(
                     "relative_depth": rel_d,
                     "c_v": cv,
                     "c_a": ca,
+                    "c_v_rand": cv_rand,
+                    "c_v_perp": cv_perp,
+                    "c_a_rand": ca_rand,
+                    "c_a_perp": ca_perp,
+                    "c_v_net_rand": cv - cv_rand,
+                    "c_v_net_perp": cv - cv_perp,
+                    "c_a_net_rand": ca - ca_rand,
+                    "c_a_net_perp": ca - ca_perp,
                     "c_v_zero": cv_z,
                     "c_a_zero": ca_z,
                     "fold_id": fold_idx,

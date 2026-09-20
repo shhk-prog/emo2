@@ -386,21 +386,31 @@ def main():
         default="behavioral/results/derived/aipsy_4split_summary",
         help="Output directory for reports",
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Summarize only dry_run results",
+    )
     args = parser.parse_args()
 
-    files = sorted(glob.glob(os.path.join(args.input_dir, "*_aipsy_4split.csv")))
-    if not files:
-        # Fallback paths
-        fallbacks = [
-            "behavioral/results/raw/aipsy_4split",
-            "results/raw/behavioral/aipsy_4split",
-            "v1/results/aipsy_4split_eval",
-        ]
-        for fb in fallbacks:
-            if os.path.exists(fb):
-                files = sorted(glob.glob(os.path.join(fb, "*_aipsy_4split.csv")))
-                if files:
-                    break
+    if args.dry_run:
+        args.input_dir = str(Path(args.input_dir) / "dry_run")
+        args.out_dir = str(Path(args.out_dir) / "dry_run")
+        files = sorted(glob.glob(os.path.join(args.input_dir, "*_aipsy_4split.csv")))
+    else:
+        files = sorted(glob.glob(os.path.join(args.input_dir, "*_aipsy_4split.csv")))
+        if not files:
+            # Fallback paths
+            fallbacks = [
+                "behavioral/results/raw/aipsy_4split",
+                "results/raw/behavioral/aipsy_4split",
+                "v1/results/aipsy_4split_eval",
+            ]
+            for fb in fallbacks:
+                if os.path.exists(fb):
+                    files = sorted(glob.glob(os.path.join(fb, "*_aipsy_4split.csv")))
+                    if files:
+                        break
 
     if not files:
         print(f"No result CSVs found in {args.input_dir} or fallbacks.")

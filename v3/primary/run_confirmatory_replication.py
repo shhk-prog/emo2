@@ -706,11 +706,37 @@ def run_real_model_confirmatory(
                     test_stage_shifts_a[stg].append(abs(ea_stg_a - clean_ea_list[sample_idx]))
 
     # 全 Test fold からの指標集計
+    # H2: dose-response slopes & bootstrap CIs
     shifts_v = [float(np.mean(test_shifts_v[a])) if test_shifts_v[a] else 0.0 for a in alphas]
     shifts_a = [float(np.mean(test_shifts_a[a])) if test_shifts_a[a] else 0.0 for a in alphas]
     slope_v = estimate_interventional_slope(alphas, shifts_v)
     slope_a = estimate_interventional_slope(alphas, shifts_a)
 
+    n_h2_samples_v = len(test_shifts_v[alphas[0]]) if alphas and alphas[0] in test_shifts_v else 0
+    n_h2_samples_a = len(test_shifts_a[alphas[0]]) if alphas and alphas[0] in test_shifts_a else 0
+    if n_h2_samples_v >= 2:
+        rng_boot = np.random.default_rng(42)
+        slope_v_boots = []
+        for _ in range(1000):
+            idx = rng_boot.integers(0, n_h2_samples_v, size=n_h2_samples_v)
+            sh_v_b = [float(np.mean([test_shifts_v[a][i] for i in idx])) for a in alphas]
+            slope_v_boots.append(estimate_interventional_slope(alphas, sh_v_b))
+        slope_v_ci = [float(np.percentile(slope_v_boots, 2.5)), float(np.percentile(slope_v_boots, 97.5))]
+    else:
+        slope_v_ci = [float(slope_v), float(slope_v)]
+
+    if n_h2_samples_a >= 2:
+        rng_boot = np.random.default_rng(43)
+        slope_a_boots = []
+        for _ in range(1000):
+            idx = rng_boot.integers(0, n_h2_samples_a, size=n_h2_samples_a)
+            sh_a_b = [float(np.mean([test_shifts_a[a][i] for i in idx])) for a in alphas]
+            slope_a_boots.append(estimate_interventional_slope(alphas, sh_a_b))
+        slope_a_ci = [float(np.percentile(slope_a_boots, 2.5)), float(np.percentile(slope_a_boots, 97.5))]
+    else:
+        slope_a_ci = [float(slope_a), float(slope_a)]
+
+    # H1: C(l) profiles & dissociation bootstrap CIs
     c_profile_v = [
         float(np.mean(test_c_profile_shifts_v[l])) if test_c_profile_shifts_v[l] else 0.0
         for l in range(num_layers)
@@ -722,12 +748,55 @@ def run_real_model_confirmatory(
     dissoc_v = compute_layer_dissociation(relative_depths, d_profile_v, c_profile_v)
     dissoc_a = compute_layer_dissociation(relative_depths, d_profile_a, c_profile_a)
 
-    natural_shift_v = float(np.mean(nat_shifts_v)) if nat_shifts_v else 1.0
-    attenuated_shift_v = float(np.mean(att_shifts_v)) if att_shifts_v else 0.5
+    n_h1_samples_v = len(test_c_profile_shifts_v[0]) if num_layers > 0 and 0 in test_c_profile_shifts_v else 0
+    n_h1_samples_a = len(test_c_profile_shifts_a[0]) if num_layers > 0 and 0 in test_c_profile_shifts_a else 0
+    if n_h1_samples_v >= 2:
+        rng_boot = np.random.default_rng(44)
+        h1_v_peak_boots, h1_v_center_boots = [], []
+        for _ in range(1000):
+            idx = rng_boot.integers(0, n_h1_samples_v, size=n_h1_samples_v)
+            c_b = [float(np.mean([test_c_profile_shifts_v[l][i] for i in idx])) for l in range(num_layers)]
+            d_b = compute_layer_dissociation(relative_depths, d_profile_v, c_b)
+            h1_v_peak_boots.append(d_b["delta_d_peak"])
+            h1_v_center_boots.append(d_b["delta_d_center"])
+        dissoc_v["delta_d_peak_ci"] = [float(np.percentile(h1_v_peak_boots, 2.5)), float(np.percentile(h1_v_peak_boots, 97.5))]
+        dissoc_v["delta_d_center_ci"] = [float(np.percentile(h1_v_center_boots, 2.5)), float(np.percentile(h1_v_center_boots, 97.5))]
+    else:
+        dissoc_v["delta_d_peak_ci"] = [float(dissoc_v["delta_d_peak"]), float(dissoc_v["delta_d_peak"])]
+        dissoc_v["delta_d_center_ci"] = [float(dissoc_v["delta_d_center"]), float(dissoc_v["delta_d_center"])]
+
+    if n_h1_samples_a >= 2:
+        rng_boot = np.random.default_rng(45)
+        h1_a_peak_boots, h1_a_center_boots = [], []
+        for _ in range(1000):
+            idx = rng_boot.integers(0, n_h1_samples_a, size=n_h1_samples_a)
+            c_b = [float(np.mean([test_c_profile_shifts_a[l][i] for i in idx])) for l in range(num_layers)]
+            d_b = compute_layer_dissociation(relative_depths, d_profile_a, c_b)
+            h1_a_peak_boots.append(d_b["delta_d_peak"])
+            h1_a_center_boots.append(d_b["delta_d_center"])
+        dissoc_a["delta_d_peak_ci"] = [float(np.percentile(h1_a_peak_boots, 2.5)), float(np.percentile(h1_a_peak_boots, 97.5))]
+        dissoc_a["delta_d_center_ci"] = [float(np.percentile(h1_a_center_boots, 2.5)), float(np.percentile(h1_a_center_boots, 97.5))]
+    else:
+        dissoc_a["delta_d_peak_ci"] = [float(dissoc_a["delta_d_peak"]), float(dissoc_a["delta_d_peak"])]
+        dissoc_a["delta_d_center_ci"] = [float(dissoc_a["delta_d_center"]), float(dissoc_a["delta_d_center"])]
+
+    if not nat_shifts_v or not att_shifts_v or not nat_shifts_a or not att_shifts_a:
+        raise RuntimeError(
+            "Confirmatory replication failed: empty shift samples collected. "
+            f"(nat_shifts_v={len(nat_shifts_v)}, att_shifts_v={len(att_shifts_v)}, "
+            f"nat_shifts_a={len(nat_shifts_a)}, att_shifts_a={len(att_shifts_a)})"
+        )
+    if min(len(nat_shifts_v), len(att_shifts_v), len(nat_shifts_a), len(att_shifts_a)) < 2:
+        raise RuntimeError(
+            "Confirmatory replication requires at least 2 valid samples per condition for bootstrap CI calculation."
+        )
+
+    natural_shift_v = float(np.mean(nat_shifts_v))
+    attenuated_shift_v = float(np.mean(att_shifts_v))
     mediated_attenuation_v = natural_shift_v - attenuated_shift_v
 
-    natural_shift_a = float(np.mean(nat_shifts_a)) if nat_shifts_a else 1.0
-    attenuated_shift_a = float(np.mean(att_shifts_a)) if att_shifts_a else 0.5
+    natural_shift_a = float(np.mean(nat_shifts_a))
+    attenuated_shift_a = float(np.mean(att_shifts_a))
     mediated_attenuation_a = natural_shift_a - attenuated_shift_a
 
     # Primary: Absolute mediated attenuation samples & CI
@@ -768,25 +837,50 @@ def run_real_model_confirmatory(
     contrast_v = float(stage_causal_v.get(stage_v, 0.0) - stage_causal_v.get("candidate_start", 0.0))
     contrast_a = float(stage_causal_a.get(stage_a, 0.0) - stage_causal_a.get("candidate_start", 0.0))
 
+    sample_contrast_v = [
+        float(test_stage_shifts_v[stage_v][i] - test_stage_shifts_v["candidate_start"][i])
+        for i in range(len(test_stage_shifts_v.get(stage_v, [])))
+    ] if stage_v in test_stage_shifts_v and "candidate_start" in test_stage_shifts_v else []
+
+    sample_contrast_a = [
+        float(test_stage_shifts_a[stage_a][i] - test_stage_shifts_a["candidate_start"][i])
+        for i in range(len(test_stage_shifts_a.get(stage_a, [])))
+    ] if stage_a in test_stage_shifts_a and "candidate_start" in test_stage_shifts_a else []
+
+    if len(sample_contrast_v) >= 2:
+        _, c_v_low, c_v_high = compute_bootstrap_ci(sample_contrast_v)
+        contrast_v_ci = [float(c_v_low), float(c_v_high)]
+    else:
+        contrast_v_ci = [float(contrast_v), float(contrast_v)]
+
+    if len(sample_contrast_a) >= 2:
+        _, c_a_low, c_a_high = compute_bootstrap_ci(sample_contrast_a)
+        contrast_a_ci = [float(c_a_low), float(c_a_high)]
+    else:
+        contrast_a_ci = [float(contrast_a), float(contrast_a)]
+
     qc_cfg = v3_cfg.get("confirmatory", {}).get("qc", {})
     min_slope = float(qc_cfg.get("min_sufficiency_slope", 0.1))
     min_atten_ci_low = float(qc_cfg.get("min_mediated_attenuation_ci_lower", 0.0))
     min_contrast = float(qc_cfg.get("min_temporal_contrast", 0.0))
 
-    # 判定は補助QCとし、効果量とCIを主出力とする
-    h1_pass_v = dissoc_v["delta_d_peak"] > 0 and dissoc_v["delta_d_center"] > 0
-    h1_pass_a = dissoc_a["delta_d_peak"] > 0 and dissoc_a["delta_d_center"] > 0
+    # Confirmatory: 全指標について CI lower bound > preregistered threshold で判定
+    h1_pass_v = bool(dissoc_v["delta_d_peak_ci"][0] > 0 and dissoc_v["delta_d_center_ci"][0] > 0)
+    h1_pass_a = bool(dissoc_a["delta_d_peak_ci"][0] > 0 and dissoc_a["delta_d_center_ci"][0] > 0)
     h1_pass = bool(h1_pass_v and h1_pass_a)
 
-    h2_pass = bool(slope_v > min_slope and slope_a > min_slope)
+    h2_pass_v = bool(slope_v_ci[0] > min_slope)
+    h2_pass_a = bool(slope_a_ci[0] > min_slope)
+    h2_pass = bool(h2_pass_v and h2_pass_a)
+
     # Primary: Absolute mediated attenuation CI lower > min_atten_ci_low
     h3_pass_v = bool(atten_v_low > min_atten_ci_low)
     h3_pass_a = bool(atten_a_low > min_atten_ci_low)
     h3_pass = bool(h3_pass_v and h3_pass_a)
 
-    # Temporal emergence = decodability != uniform causal leverage
-    h4_pass_v = bool(contrast_v > min_contrast)
-    h4_pass_a = bool(contrast_a > min_contrast)
+    # Temporal emergence = decodability != uniform causal leverage (CI lower > min_contrast)
+    h4_pass_v = bool(contrast_v_ci[0] > min_contrast)
+    h4_pass_a = bool(contrast_a_ci[0] > min_contrast)
     h4_pass = bool(h4_pass_v and h4_pass_a)
 
     auxiliary_qc_all_pass = bool(h1_pass and h2_pass and h3_pass and h4_pass)
@@ -809,6 +903,8 @@ def run_real_model_confirmatory(
         "h2_sufficiency": {
             "slope_v": float(slope_v),
             "slope_a": float(slope_a),
+            "slope_v_ci": [float(slope_v_ci[0]), float(slope_v_ci[1])],
+            "slope_a_ci": [float(slope_a_ci[0]), float(slope_a_ci[1])],
             "passed": bool(h2_pass),
         },
         "h3_endogenous_relevance": {
@@ -855,7 +951,9 @@ def run_real_model_confirmatory(
             "stage_causal_a": stage_causal_a,
             "contrast_v": contrast_v,
             "contrast_a": contrast_a,
-            "non_uniform_leverage": True,
+            "contrast_v_ci": [float(contrast_v_ci[0]), float(contrast_v_ci[1])],
+            "contrast_a_ci": [float(contrast_a_ci[0]), float(contrast_a_ci[1])],
+            "non_uniform_leverage": bool(h4_pass),
             "passed_valence": bool(h4_pass_v),
             "passed_arousal": bool(h4_pass_a),
             "passed": bool(h4_pass),

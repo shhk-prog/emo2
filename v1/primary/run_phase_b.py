@@ -132,6 +132,14 @@ def extract_single_layer_hidden_states(
 
     for start_idx in range(0, len(prompts), batch_size):
         batch_prompts = prompts[start_idx : start_idx + batch_size]
+        # Guard against silent prompt truncation
+        for b_idx, p in enumerate(batch_prompts):
+            raw_len = len(tokenizer.encode(p, add_special_tokens=False))
+            if raw_len > 1024:
+                raise RuntimeError(
+                    f"Prompt truncated by max_length=1024! Prompt index: {start_idx + b_idx}, token length: {raw_len}. "
+                    "Primary samples must not be silently truncated."
+                )
         encoded = tokenizer(
             batch_prompts,
             padding=True,
@@ -155,7 +163,8 @@ def extract_single_layer_hidden_states(
         seq_lengths = attention_mask.sum(dim=1) - 1
 
         for b_idx in range(len(batch_prompts)):
-            last_pos = seq_lengths[b_idx].item()
+            valid_pos = torch.nonzero(attention_mask[b_idx], as_tuple=False).flatten()
+            last_pos = int(valid_pos[-1]) if len(valid_pos) > 0 else int(attention_mask.shape[1] - 1)
             vec = (
                 layer_tensor[b_idx, last_pos, :].detach().cpu().float().numpy()
             )

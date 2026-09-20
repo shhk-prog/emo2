@@ -40,7 +40,8 @@ def test_joint_stage_index_is_not_clamped_to_prompt_end():
     cand_start = 20
     seq_len = 40
     assert resolve_joint_stage_index(cand_start, "pre_V", offsets, seq_len) == 22
-    assert resolve_joint_stage_index(cand_start, "response_start", offsets, seq_len) == 20
+    assert resolve_joint_stage_index(cand_start, "candidate_start", offsets, seq_len) == 20
+    assert resolve_joint_stage_index(cand_start, "response_start", offsets, seq_len) == 19
     with pytest.raises(ValueError, match="outside joint sequence"):
         resolve_joint_stage_index(cand_start, "response_end", offsets, seq_len=25)
 

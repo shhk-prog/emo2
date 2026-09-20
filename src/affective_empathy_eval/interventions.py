@@ -156,24 +156,24 @@ def generate_control_directions(
 
 
 def estimate_interventional_slope(
-    delta_z_list: list[float],
-    delta_report_list: list[float],
+    dose_grid: list[float] | np.ndarray,
+    report_shift: list[float] | np.ndarray,
 ) -> float:
     """
-    複数強度 alpha 介入における (delta_z, delta_report) から
-    Interventional Slope gamma = partial Delta Report / partial Delta z を線形回帰で推定
+    複数強度 alpha 介入における (dose_grid, report_shift) から
+    Interventional Slope gamma (Self-report shift per one-SD normalized intervention dose) を線形回帰で推定
     """
-    z = np.asarray(delta_z_list, dtype=np.float64)
-    y = np.asarray(delta_report_list, dtype=np.float64)
+    d = np.asarray(dose_grid, dtype=np.float64)
+    y = np.asarray(report_shift, dtype=np.float64)
 
-    if len(z) < 2 or np.all(z == z[0]):
+    if len(d) < 2 or np.all(d == d[0]):
         return 0.0
 
-    # slope = Cov(z, y) / Var(z)
-    z_mean = np.mean(z)
+    # slope = Cov(d, y) / Var(d)
+    d_mean = np.mean(d)
     y_mean = np.mean(y)
-    numerator = np.sum((z - z_mean) * (y - y_mean))
-    denominator = np.sum((z - z_mean) ** 2)
+    numerator = np.sum((d - d_mean) * (y - y_mean))
+    denominator = np.sum((d - d_mean) ** 2)
 
     if denominator < 1e-12:
         return 0.0

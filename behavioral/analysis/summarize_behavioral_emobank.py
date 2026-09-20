@@ -176,20 +176,30 @@ def main():
         default="behavioral/results/derived/emobank_3way_summary",
         help="Output directory for reports",
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Summarize only dry_run results",
+    )
     args = parser.parse_args()
 
-    files = sorted(glob.glob(os.path.join(args.input_dir, "*_3way_vad.csv")))
-    if not files:
-        # Fallbacks: legacy path and v1 results
-        fallbacks = [
-            "behavioral/results/emobank_3way",
-            "v1/results/emobank_3way_vad_test1k",
-        ]
-        for fb in fallbacks:
-            if os.path.exists(fb):
-                files = sorted(glob.glob(os.path.join(fb, "*_3way_vad.csv")))
-                if files:
-                    break
+    if args.dry_run:
+        args.input_dir = str(Path(args.input_dir) / "dry_run")
+        args.out_dir = str(Path(args.out_dir) / "dry_run")
+        files = sorted(glob.glob(os.path.join(args.input_dir, "*_3way_vad.csv")))
+    else:
+        files = sorted(glob.glob(os.path.join(args.input_dir, "*_3way_vad.csv")))
+        if not files:
+            # Fallbacks: legacy path and v1 results
+            fallbacks = [
+                "behavioral/results/emobank_3way",
+                "v1/results/emobank_3way_vad_test1k",
+            ]
+            for fb in fallbacks:
+                if os.path.exists(fb):
+                    files = sorted(glob.glob(os.path.join(fb, "*_3way_vad.csv")))
+                    if files:
+                        break
 
     if not files:
         print(f"No result CSVs found in {args.input_dir} or fallback.")

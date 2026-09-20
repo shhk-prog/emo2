@@ -106,8 +106,9 @@ def evaluate_aipsy_stimuli(
     processed_ids = set()
 
     if checkpoint_path and os.path.exists(checkpoint_path):
-        can_resume = True
+        can_resume = False
         if checkpoint_meta_path and os.path.exists(checkpoint_meta_path) and expected_meta:
+            can_resume = True
             try:
                 with open(checkpoint_meta_path, "r", encoding="utf-8") as f:
                     saved_meta = json.load(f)
@@ -119,6 +120,9 @@ def evaluate_aipsy_stimuli(
             except Exception as e:
                 print(f"Failed to read checkpoint meta: {e}. Starting fresh.")
                 can_resume = False
+        else:
+            print(f"Checkpoint exists at {checkpoint_path} but expected metadata file ({checkpoint_meta_path}) is missing. Discarding unverified checkpoint.")
+            can_resume = False
 
         if can_resume:
             try:
@@ -274,6 +278,9 @@ def main():
             raise FileNotFoundError(
                 f"Stimuli dataset not found: {args.stimuli_path} or {fallback}"
             )
+
+    if getattr(args, "dry_run", False):
+        args.out_dir = str(Path(args.out_dir) / "dry_run")
 
     os.makedirs(args.out_dir, exist_ok=True)
     out_csv = os.path.join(args.out_dir, f"behavioral_aipsy_{args.tag}_4split.csv")

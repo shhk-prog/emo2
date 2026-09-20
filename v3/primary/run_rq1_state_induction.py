@@ -394,8 +394,19 @@ def run_real_state_induction(
     logger.info(f"Reader-Grounded vs Self-Derived Direction Alignment: cos_V={alignment_v:.3f}, cos_A={alignment_a:.3f}")
 
     Q_sub, _ = compute_orthonormal_subspace(d_v, d_a)  # (D, 2)
-    d_rand_v, d_perp_v = generate_control_directions(d_v, seed=base_seed + 1)
-    d_rand_a, d_perp_a = generate_control_directions(d_a, seed=base_seed + 2)
+    num_random_controls = int(v3_cfg.get("interventions", {}).get("num_random_controls", 5))
+    rand_controls_v, perp_controls_v = [], []
+    rand_controls_a, perp_controls_a = [], []
+    for k in range(max(1, num_random_controls)):
+        rv, pv = generate_control_directions(d_v, seed=base_seed + 10 + k)
+        ra, pa = generate_control_directions(d_a, seed=base_seed + 100 + k)
+        rand_controls_v.append(rv)
+        perp_controls_v.append(pv)
+        rand_controls_a.append(ra)
+        perp_controls_a.append(pa)
+
+    d_rand_v, d_perp_v = rand_controls_v[0], perp_controls_v[0]
+    d_rand_a, d_perp_a = rand_controls_a[0], perp_controls_a[0]
 
     h_std_v = float(np.std(H_train @ d_v)) or 1.0
     h_std_a = float(np.std(H_train @ d_a)) or 1.0
@@ -514,78 +525,88 @@ def run_real_state_induction(
             sample_slopes_a.append(estimate_interventional_slope(alpha_grid, alpha_shifts_a))
 
             # 3. Specificity: neutral 側へランダム方向・直交方向を注入して比較 (alpha = 1.0)
-            # Valence: d_V vs d_rand_v vs d_perp_v
-            with ActivationHookManager(adapter) as hook_mgr:
-                hook_mgr.register_direction_intervention_hook(
-                    layer_idx=target_layer,
-                    direction=d_rand_v,
-                    alpha=specificity_reference_alpha,
-                    hidden_std=h_std_v,
-                    token_indices=patch_pos_neu,
-                    hook_point=HookPoint.POST_MLP_RESID,
-                    mode="inject",
-                )
-                log_rand_v, probs_rand_v = compute_sequence_likelihoods_for_candidates(
-                    model=model, tokenizer=tokenizer, prompt=prompt_neu_self, candidates=candidates, device=device, batch_size=batch_size
-                )
-            ev_rand_v, _ = compute_expected_va(log_rand_v, candidates)
+            # Valence: d_V vs rand_controls_v (K本) vs perp_controls_v (K本)
+            rand_effs_v, perp_effs_v = [], []
+            for r_dir in rand_controls_v:
+                with ActivationHookManager(adapter) as hook_mgr:
+                    hook_mgr.register_direction_intervention_hook(
+                        layer_idx=target_layer,
+                        direction=r_dir,
+                        alpha=specificity_reference_alpha,
+                        hidden_std=h_std_v,
+                        token_indices=patch_pos_neu,
+                        hook_point=HookPoint.POST_MLP_RESID,
+                        mode="inject",
+                    )
+                    log_r_v, _ = compute_sequence_likelihoods_for_candidates(
+                        model=model, tokenizer=tokenizer, prompt=prompt_neu_self, candidates=candidates, device=device, batch_size=batch_size
+                    )
+                ev_r_v, _ = compute_expected_va(log_r_v, candidates)
+                rand_effs_v.append(abs(ev_r_v - clean_neu_ev))
 
-            with ActivationHookManager(adapter) as hook_mgr:
-                hook_mgr.register_direction_intervention_hook(
-                    layer_idx=target_layer,
-                    direction=d_perp_v,
-                    alpha=specificity_reference_alpha,
-                    hidden_std=h_std_v,
-                    token_indices=patch_pos_neu,
-                    hook_point=HookPoint.POST_MLP_RESID,
-                    mode="inject",
-                )
-                log_perp_v, probs_perp_v = compute_sequence_likelihoods_for_candidates(
-                    model=model, tokenizer=tokenizer, prompt=prompt_neu_self, candidates=candidates, device=device, batch_size=batch_size
-                )
-            ev_perp_v, _ = compute_expected_va(log_perp_v, candidates)
+            for p_dir in perp_controls_v:
+                with ActivationHookManager(adapter) as hook_mgr:
+                    hook_mgr.register_direction_intervention_hook(
+                        layer_idx=target_layer,
+                        direction=p_dir,
+                        alpha=specificity_reference_alpha,
+                        hidden_std=h_std_v,
+                        token_indices=patch_pos_neu,
+                        hook_point=HookPoint.POST_MLP_RESID,
+                        mode="inject",
+                    )
+                    log_p_v, _ = compute_sequence_likelihoods_for_candidates(
+                        model=model, tokenizer=tokenizer, prompt=prompt_neu_self, candidates=candidates, device=device, batch_size=batch_size
+                    )
+                ev_p_v, _ = compute_expected_va(log_p_v, candidates)
+                perp_effs_v.append(abs(ev_p_v - clean_neu_ev))
 
             eff_affect_v = abs(alpha_shifts_v[ref_alpha_idx])  # reference alpha (default 1.0, relative to clean_neu_ev)
-            eff_rand_v = abs(ev_rand_v - clean_neu_ev)
-            eff_perp_v = abs(ev_perp_v - clean_neu_ev)
+            eff_rand_v = float(np.mean(rand_effs_v))
+            eff_perp_v = float(np.mean(perp_effs_v))
             sample_spec_diff_v.append(eff_affect_v - max(eff_rand_v, eff_perp_v))
             sample_spec_rand_v.append(eff_affect_v - eff_rand_v)
             sample_spec_perp_v.append(eff_affect_v - eff_perp_v)
 
-            # Arousal: d_A vs d_rand_a vs d_perp_a
-            with ActivationHookManager(adapter) as hook_mgr:
-                hook_mgr.register_direction_intervention_hook(
-                    layer_idx=target_layer,
-                    direction=d_rand_a,
-                    alpha=specificity_reference_alpha,
-                    hidden_std=h_std_a,
-                    token_indices=patch_pos_neu,
-                    hook_point=HookPoint.POST_MLP_RESID,
-                    mode="inject",
-                )
-                log_rand_a, probs_rand_a = compute_sequence_likelihoods_for_candidates(
-                    model=model, tokenizer=tokenizer, prompt=prompt_neu_self, candidates=candidates, device=device, batch_size=batch_size
-                )
-            _, ea_rand_a = compute_expected_va(log_rand_a, candidates)
+            # Arousal: d_A vs rand_controls_a (K本) vs perp_controls_a (K本)
+            rand_effs_a, perp_effs_a = [], []
+            for r_dir in rand_controls_a:
+                with ActivationHookManager(adapter) as hook_mgr:
+                    hook_mgr.register_direction_intervention_hook(
+                        layer_idx=target_layer,
+                        direction=r_dir,
+                        alpha=specificity_reference_alpha,
+                        hidden_std=h_std_a,
+                        token_indices=patch_pos_neu,
+                        hook_point=HookPoint.POST_MLP_RESID,
+                        mode="inject",
+                    )
+                    log_r_a, _ = compute_sequence_likelihoods_for_candidates(
+                        model=model, tokenizer=tokenizer, prompt=prompt_neu_self, candidates=candidates, device=device, batch_size=batch_size
+                    )
+                _, ea_r_a = compute_expected_va(log_r_a, candidates)
+                rand_effs_a.append(abs(ea_r_a - clean_neu_ea))
 
-            with ActivationHookManager(adapter) as hook_mgr:
-                hook_mgr.register_direction_intervention_hook(
-                    layer_idx=target_layer,
-                    direction=d_perp_a,
-                    alpha=specificity_reference_alpha,
-                    hidden_std=h_std_a,
-                    token_indices=patch_pos_neu,
-                    hook_point=HookPoint.POST_MLP_RESID,
-                    mode="inject",
-                )
-                log_perp_a, probs_perp_a = compute_sequence_likelihoods_for_candidates(
-                    model=model, tokenizer=tokenizer, prompt=prompt_neu_self, candidates=candidates, device=device, batch_size=batch_size
-                )
-            _, ea_perp_a = compute_expected_va(log_perp_a, candidates)
+            for p_dir in perp_controls_a:
+                with ActivationHookManager(adapter) as hook_mgr:
+                    hook_mgr.register_direction_intervention_hook(
+                        layer_idx=target_layer,
+                        direction=p_dir,
+                        alpha=specificity_reference_alpha,
+                        hidden_std=h_std_a,
+                        token_indices=patch_pos_neu,
+                        hook_point=HookPoint.POST_MLP_RESID,
+                        mode="inject",
+                    )
+                    log_p_a, _ = compute_sequence_likelihoods_for_candidates(
+                        model=model, tokenizer=tokenizer, prompt=prompt_neu_self, candidates=candidates, device=device, batch_size=batch_size
+                    )
+                _, ea_p_a = compute_expected_va(log_p_a, candidates)
+                perp_effs_a.append(abs(ea_p_a - clean_neu_ea))
 
             eff_affect_a = abs(alpha_shifts_a[ref_alpha_idx])  # reference alpha (default 1.0)
-            eff_rand_a = abs(ea_rand_a - clean_neu_ea)
-            eff_perp_a = abs(ea_perp_a - clean_neu_ea)
+            eff_rand_a = float(np.mean(rand_effs_a))
+            eff_perp_a = float(np.mean(perp_effs_a))
             sample_spec_diff_a.append(eff_affect_a - max(eff_rand_a, eff_perp_a))
             sample_spec_rand_a.append(eff_affect_a - eff_rand_a)
             sample_spec_perp_a.append(eff_affect_a - eff_perp_a)
@@ -715,6 +736,7 @@ def run_real_state_induction(
 
     return {
         "affect_direction_grounding": "reader_prediction",
+        "num_random_controls": num_random_controls,
         "alignment_reader_vs_self_directions": {
             "valence": alignment_v,
             "arousal": alignment_a,

@@ -264,6 +264,8 @@ def run_real_spatiotemporal_maps(
     secondary_D_A = np.zeros((num_layers, num_stages))
     beta_V = np.zeros((num_layers, num_stages))
     beta_A = np.zeros((num_layers, num_stages))
+    beta_V_ci = np.zeros((num_layers, num_stages, 2))
+    beta_A_ci = np.zeros((num_layers, num_stages, 2))
     abs_beta_V = np.zeros((num_layers, num_stages))
     abs_beta_A = np.zeros((num_layers, num_stages))
     gamma_V = np.zeros((num_layers, num_stages))
@@ -419,16 +421,35 @@ def run_real_spatiotemporal_maps(
             secondary_D_V[l, s_idx] = r2_v_s
             secondary_D_A[l, s_idx] = r2_a_s
 
-            # 3. 偏回帰係数 beta: 刺激ラベル covar を共変量として統制した内部予測スコアの寄与度
-            # y = beta_0 + beta * s_pred + gamma * covar
+            # 3. 偏回帰係数 beta: 刺激ラベル covar を共変量として統制した内部予測スコア -> Self-report への寄与度
+            # y_self = beta_0 + beta * s_pred + gamma * covar
             X_cov_v = np.column_stack([preds_v, covar_v])
             X_cov_a = np.column_stack([preds_a, covar_a])
-            reg_v = LinearRegression().fit(X_cov_v, y_v)
-            reg_a = LinearRegression().fit(X_cov_a, y_a)
+            reg_v = LinearRegression().fit(X_cov_v, y_v_self)
+            reg_a = LinearRegression().fit(X_cov_a, y_a_self)
             beta_V[l, s_idx] = float(reg_v.coef_[0])
             beta_A[l, s_idx] = float(reg_a.coef_[0])
             abs_beta_V[l, s_idx] = float(abs(reg_v.coef_[0]))
             abs_beta_A[l, s_idx] = float(abs(reg_a.coef_[0]))
+
+            # Pair bootstrap for beta CI
+            boot_beta_v, boot_beta_a = [], []
+            rng = np.random.RandomState(42 + l * 100 + s_idx)
+            n_samples = len(y_v_self)
+            if n_samples >= 5:
+                for _ in range(100):
+                    b_idx = rng.randint(0, n_samples, size=n_samples)
+                    try:
+                        b_reg_v = LinearRegression().fit(X_cov_v[b_idx], y_v_self[b_idx])
+                        b_reg_a = LinearRegression().fit(X_cov_a[b_idx], y_a_self[b_idx])
+                        boot_beta_v.append(float(b_reg_v.coef_[0]))
+                        boot_beta_a.append(float(b_reg_a.coef_[0]))
+                    except Exception:
+                        pass
+            ci_v_low, ci_v_high = (np.percentile(boot_beta_v, [2.5, 97.5]).tolist() if len(boot_beta_v) >= 20 else [float(beta_V[l, s_idx]), float(beta_V[l, s_idx])])
+            ci_a_low, ci_a_high = (np.percentile(boot_beta_a, [2.5, 97.5]).tolist() if len(boot_beta_a) >= 20 else [float(beta_A[l, s_idx]), float(beta_A[l, s_idx])])
+            beta_V_ci[l, s_idx] = [float(ci_v_low), float(ci_v_high)]
+            beta_A_ci[l, s_idx] = [float(ci_a_low), float(ci_a_high)]
 
             # 4. 介入: d_V → gamma_V,C_V / d_A → gamma_A,C_A（生成段階は joint sequence 上）
             # Cross-fitting: 方向ベクトルを train fold のみで学習し、held-out test サンプル（かつ sub_eval_idx）で介入評価
@@ -541,6 +562,8 @@ def run_real_spatiotemporal_maps(
             "D_A": D_A.tolist(),
             "beta_V": beta_V.tolist(),
             "beta_A": beta_A.tolist(),
+            "beta_V_ci": beta_V_ci.tolist(),
+            "beta_A_ci": beta_A_ci.tolist(),
             "abs_beta_V": abs_beta_V.tolist(),
             "abs_beta_A": abs_beta_A.tolist(),
             "gamma_V": gamma_V.tolist(),

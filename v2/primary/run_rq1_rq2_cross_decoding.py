@@ -473,6 +473,7 @@ def main():
         rq2_out_path = raw_dir / f"v2_rq2_geometry_transformation_{fam_id}.json"
         manifest_path = raw_dir / f"manifest_geometry_{fam_id}.json"
         config_payload = {
+            "v2_config": v2_config,
             "family_id": fam_id,
             "base_model": fam_cfg.base_model.model_id,
             "base_revision": fam_cfg.base_model.revision,

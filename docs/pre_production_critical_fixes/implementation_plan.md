@@ -1,216 +1,117 @@
-# 最終Production実行前の必須修正 実装計画 (Pre-production Critical Fixes)
+# 本番実行前必須修正 (Pre-Production Critical Fixes) 実装計画
 
-本計画は、実験の最終production runを開始する前に残されている、測定妥当性・再現性・Provenance（追跡可能性）・データ完全性に関わる必須修正項目（1〜10）および推奨改善項目を漏れなく確実に解消するための設計・実装手順を定めたものです。
-
----
-
-## ユーザー確認事項 (User Review Required)
-
-> [!IMPORTANT]
-> **1. モデルRevisionの指定方針**  
-> `configs/models.yaml` の `base_revision` / `instruct_revision` に指定するコミットSHAについて：  
-> オフラインまたは既存のローカルキャッシュ環境で安全にロードできるよう、各モデルの最新固定コミットSHA（または既にキャッシュされているスナップショットSHA）を反映します。各モデルのPrimary runner CLIにも `--model-revision` を追加し、指定がない場合は設定ファイルの値を継承します。
-> 
-> **2. Results ディレクトリと run_id 体系の扱い**  
-> `AGENTS.md` の「results/rawは追記専用」に準拠し、各実験スクリプトで `--run-id` を受け入れ、指定時や production 実行時に `results/raw/<run_id>/` に直接出力できるように拡張します。同時に、既存のフラットなパス（`results/raw/foo.json`）を参照する既存ツールや可視化スクリプトとの後方互換性のため、`results/latest.json` や最新結果へのシンボリックリンク/コピーを維持します。また、既存結果の誤上書き防止のため、run開始時に既存結果がある場合はバックアップディレクトリへ自動退避（archive）する安全策を組み込みます。
-> 
-> **3. 推論 dtype の統一方針**  
-> `configs/models.yaml` の `inference_dtype: "bfloat16"` に統一し、V1/V3 の `torch.float16` ハードコードを解消します。GPU環境で bfloat16 が利用可能な場合は bfloat16 を使用し、CPU等の環境では float32 へ安全にフォールバックさせ、manifest に `actual_dtype` を必ず保存します。
+## 概要
+研究論文の主張と測定ロジックを完全に一致させ、成果物の再現性・完全性を保証するため、指摘された必須項目（項目1〜14）および因果主張・再現性強化項目（項目15〜25）、さらに対応するテストスイート15項目を実装・検証します。
 
 ---
 
-## 修正対象コンポーネントと詳細設計
+## 修正方針と対象ファイル
+
+### 1. 【最重要】V3 $\beta$ の目的変数を Self-report に修正
+- **対象ファイル**: [`v3/primary/run_rq2_spatiotemporal_maps.py`](file:///mnt/nas/home/hiromi/src/emo2/v3/primary/run_rq2_spatiotemporal_maps.py)
+- **変更内容**:
+  - `reg_v = LinearRegression().fit(X_cov_v, y_v)` → `LinearRegression().fit(X_cov_v, y_v_self)` に修正（Valence/Arousal 共に）。
+  - 刺激ラベル共変量（`covar_v`, `covar_a`）を統制した内部表現スコア $\rightarrow$ モデル自己報告（Self-report）への偏回帰係数 $\beta$ を計算。
+  - pair bootstrap による $\beta$ の 95% 信頼区間（CI）を推定し、出力マップおよびサマリー辞書に記録。
+
+### 2. 【最重要】V3 生成時刻 `response_start` のインデックス修正
+- **対象ファイル**: [`src/affective_empathy_eval/likelihood.py`](file:///mnt/nas/home/hiromi/src/emo2/src/affective_empathy_eval/likelihood.py)
+- **変更内容**:
+  - `resolve_joint_stage_index()` において、Causal LM の自己回帰的因果効果（位置 $t$ の隠れ層は $t+1$ 以降のトークン生成に影響）に準拠。
+  - `if stage_name == "response_start": t_idx = cand_start - 1` （プロンプト最終トークン＝最初の回答トークン生成直前）とする。
+  - `response_end` については負の対照（negative control）として位置づけ、ドキュメント・コメントを整備。
+
+### 3. V3 $\gamma$ の定義・実装・変数名の整理
+- **対象ファイル**: [`src/affective_empathy_eval/interventions.py`](file:///mnt/nas/home/hiromi/src/emo2/src/affective_empathy_eval/interventions.py)
+- **変更内容**:
+  - `estimate_interventional_slope(dose_grid, report_shift)` に引数名をリネーム。
+  - $\gamma$ を「1-SD 正規化介入ドーズ（$\alpha \times \mathrm{std}$）あたりの自己報告変位（Self-report shift）」として定義を統一。
+  - `delta_z_list` などの古い名称を廃止。
+
+### 4. V3 RQ1 コントロール方向（`num_random_controls: 5`）の適用
+- **対象ファイル**: [`v3/primary/run_rq1_state_induction.py`](file:///mnt/nas/home/hiromi/src/emo2/v3/primary/run_rq1_state_induction.py), [`configs/v3_experiments.yaml`](file:///mnt/nas/home/hiromi/src/emo2/configs/v3_experiments.yaml)
+- **変更内容**:
+  - `K = v3_cfg.get("interventions", {}).get("num_random_controls", 5)` を読み込み。
+  - V/A それぞれについて $K$ 本のランダム方向および直交方向を生成（`seed = base_seed + k`）。
+  - 各コントロール方向に対する変位を収集し、平均変位、分布、ターゲットとの差（target − mean(random), target − mean(orthogonal)）、および bootstrap CI を保存。
+
+### 5 & 6. V3 Confirmatory のフォールバック排除と H4 連動
+- **対象ファイル**: [`v3/primary/run_confirmatory_replication.py`](file:///mnt/nas/home/hiromi/src/emo2/v3/primary/run_confirmatory_replication.py)
+- **変更内容**:
+  - `nat_shifts_v`, `att_shifts_v` が空の場合の `1.0 / 0.5` フォールバックを完全排除し、`RuntimeError("No valid shift samples collected...")` を送出。最低サンプル数のアサーションを追加。
+  - `non_uniform_leverage` をハードコード `True` から `bool(h4_pass)` に修正。
+
+### 7. V1 Phase C の $\alpha$ および split-seed を YAML から読み込む
+- **対象ファイル**: [`v1/primary/run_phase_c.py`](file:///mnt/nas/home/hiromi/src/emo2/v1/primary/run_phase_c.py)
+- **変更内容**:
+  - `--alphas` の CLI default を `None` に設定し、未指定時は `configs/v1_experiments.yaml` の `phase_c.alphas` (`[0.0, 0.5, 1.0, 2.0]`) を適用。
+  - `--split-seed` も同様に config の `phase_c.seed` を優先。
+
+### 8. V1 Phase C の E3/E4 チェックポイント再開時 manifest 検証
+- **対象ファイル**: [`v1/primary/run_phase_c.py`](file:///mnt/nas/home/hiromi/src/emo2/v1/primary/run_phase_c.py)
+- **変更内容**:
+  - E3/E4 の層別チェックポイント保存時に `e3_checkpoint_manifest.json` / `e4_checkpoint_manifest.json` を生成。
+  - config hash, dataset hash, model revision, tokenizer revision, prompt hash, intervention version を記録し、完全一致する場合のみ resume。不一致時は安全に破棄・再計算。
+
+### 9. V1 Phase C activation cache 識別情報の拡張
+- **対象ファイル**: [`v1/primary/run_phase_c.py`](file:///mnt/nas/home/hiromi/src/emo2/v1/primary/run_phase_c.py)
+- **変更内容**:
+  - `compute_cache_metadata()` において、一部サンプルではなく Reader/Self × affective/neutral の全プロンプトをハッシュ化。
+  - `model_revision`, `tokenizer_revision`, `dtype`, `torch_version`, `transformers_version` をメタデータに含め、モデルリビジョン変更時に確実にキャッシュを無効化。
+
+### 10. V1 Phase A/B/C のトークン抽出における left/right padding 対応
+- **対象ファイル**: [`v1/primary/run_phase_a.py`](file:///mnt/nas/home/hiromi/src/emo2/v1/primary/run_phase_a.py), [`v1/primary/run_phase_b.py`](file:///mnt/nas/home/hiromi/src/emo2/v1/primary/run_phase_b.py), [`v1/primary/run_phase_c.py`](file:///mnt/nas/home/hiromi/src/emo2/v1/primary/run_phase_c.py)
+- **変更内容**:
+  - `seq_lengths = attention_mask.sum(dim=1) - 1` に依存せず、
+    `valid_pos = torch.nonzero(attention_mask[b_idx], as_tuple=False).flatten()`
+    `last_pos = int(valid_pos[-1])` に統一。
+
+### 11. V1 Phase A 分類におけるスキップ済み fold の評価除外
+- **対象ファイル**: [`v1/primary/run_phase_a.py`](file:///mnt/nas/home/hiromi/src/emo2/v1/primary/run_phase_a.py)
+- **変更内容**:
+  - `StratifiedGroupKFold` を使用して極力単一クラス fold の発生を防止。
+  - `evaluated_mask = np.zeros(len(y_enc), dtype=bool)` を用意し、有効に予測されたサンプルのみを対象に `balanced_accuracy_score` を計算。スキップされたサンプルが暗黙に class 0 として計算されるのを防ぐ。
+
+### 12 & 13. Behavioral の `--dry-run` 隔離とチェックポイント堅牢化
+- **対象ファイル**: [`behavioral/primary/run_behavioral_aipsy.py`](file:///mnt/nas/home/hiromi/src/emo2/behavioral/primary/run_behavioral_aipsy.py), [`behavioral/primary/run_behavioral_emobank.py`](file:///mnt/nas/home/hiromi/src/emo2/behavioral/primary/run_behavioral_emobank.py), [`behavioral/analysis/summarize_behavioral_aipsy.py`](file:///mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_aipsy.py), [`behavioral/analysis/summarize_behavioral_emobank.py`](file:///mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py), [`src/affective_empathy_eval/run.py`](file:///mnt/nas/home/hiromi/src/emo2/src/affective_empathy_eval/run.py)
+- **変更内容**:
+  - `--dry-run` 指定時は出力ディレクトリを `.../dry_run` に隔離。サマライザーも `--dry-run` フラグを受け取り、本番結果CSV・manifestの上書きを防止。
+  - チェックポイント再開時、`checkpoint_meta_path` が存在し、かつ全メタデータキーが完全一致する場合のみ `can_resume = True` とする。メタデータ欠損・不一致時は再開せず新規開始。
+
+### 14. V2 RQ1/RQ2 manifest への実験設定全体の包含
+- **対象ファイル**: [`v2/primary/run_rq1_rq2_cross_decoding.py`](file:///mnt/nas/home/hiromi/src/emo2/v2/primary/run_rq1_rq2_cross_decoding.py)
+- **変更内容**:
+  - `config_payload` に `"v2_config": v2_config` 全体を含め、`train_ratio`, `ridge_alpha` 等の YAML 設定変更時に確実にキャッシュが無効化されるように統一。
+
+### 15〜25. 因果主張・再現性強化
+- **V2 RQ3 コントロール**: ランダム方向・直交方向の介入変位を算出し、$C_{\text{affect}} - C_{\text{random}}$, $C_{\text{affect}} - C_{\perp}$ を出力。
+- **V3 RQ3 部分空間コントロール**: matched-rank random 2D subspace removal を追加。
+- **V1 E4 ドナー拡張**: 20回の固定シード derangements による random donor 分布と CI を算出。
+- **ドキュメント・命名整理**: V1 E3/E4, E6, V2 RQ4 (off-manifold), V3 Confirmatory H1/H2/H4 CI, sequence likelihood トークン長検査などを実施。
 
 ---
 
-### 1. V1 Hidden-State 異常値置換の削除 (項目 1)
+## 検証計画
 
-#### [MODIFY] [run_phase_a.py](file:///mnt/nas/home/hiromi/src/emo2/v1/primary/run_phase_a.py)
-- **activation抽出後 (line 158付近)**:
-  `np.nan_to_num(arr, ...)` および `np.clip(arr, -1e4, 1e4)` を完全削除。
-  非有限値（NaN, Inf）が含まれている場合は `FloatingPointError(f"Non-finite hidden states detected: {bad_count}")` を送出。
-  最大絶対値をログ出力 (`logger.info("Hidden-state max abs = %.6f", max_abs)`) し、`arr = arr.astype(np.float32)` のみを行う。Primary で clip は行わない。
-- **`evaluate_cross_decoding_and_geometry()` (line 405付近)**:
-  `H_R, H_S` に対する `np.clip(np.nan_to_num(...))` を削除。
-  各表現行列に対して `np.all(np.isfinite(H))` を検証し、非有限値があれば `FloatingPointError(f"{name} hidden states contain non-finite values.")` を送出。
-  `H_R = H_R.astype(np.float32)`, `H_S = H_S.astype(np.float32)` とする。
+### 1. 新規単体テストの実装
+`tests/test_pre_production_fixes.py` を新設し、以下のテストを実装・実行：
+1. `test_v3_beta_targets_self_report`
+2. `test_response_start_is_prompt_end`
+3. `test_response_end_is_negative_control`
+4. `test_v3_num_random_controls_is_honored`
+5. `test_confirmatory_empty_effects_raise`
+6. `test_non_uniform_leverage_matches_h4`
+7. `test_phase_c_alphas_loaded_from_yaml`
+8. `test_phase_c_resume_rejected_on_manifest_mismatch`
+9. `test_phase_c_cache_invalidated_on_revision_change`
+10. `test_hidden_extraction_left_and_right_padding`
+11. `test_classification_skipped_fold_not_scored_as_zero`
+12. `test_behavioral_dry_run_never_touches_production_outputs`
+13. `test_checkpoint_without_metadata_is_not_resumed`
+14. `test_v2_geometry_manifest_changes_with_v2_config`
+15. `test_candidate_token_lengths_primary_models`
 
----
-
-### 2. Behavioral EmoBank fallback 実装ミスの修正 (項目 2)
-
-#### [MODIFY] [run_behavioral_emobank.py](file:///mnt/nas/home/hiromi/src/emo2/behavioral/primary/run_behavioral_emobank.py)
-- **fallback代入処理 (line 303付近)**:
-  ```python
-  stim_path = Path(args.stimuli_path)
-  if not stim_path.exists():
-      fallback = Path("data/processed/stimuli_vad_3way.csv")
-      if fallback.exists():
-          stim_path = fallback
-      else:
-          raise FileNotFoundError(
-              f"Stimuli dataset not found: {args.stimuli_path} or {fallback}"
-          )
-  os.makedirs(args.out_dir, exist_ok=True)
-  ```
-  `stim_path` に `fallback` を確実に代入し、どちらも存在しない場合は即座に `FileNotFoundError` を送出する。
-
----
-
-### 3. Behavioral Cache判定・Provenance の厳格化 (項目 3)
-
-#### [MODIFY] [run_behavioral_aipsy.py](file:///mnt/nas/home/hiromi/src/emo2/behavioral/primary/run_behavioral_aipsy.py)
-#### [MODIFY] [run_behavioral_emobank.py](file:///mnt/nas/home/hiromi/src/emo2/behavioral/primary/run_behavioral_emobank.py)
-- **Early skip 条件の厳格化**:
-  実行開始前に `manifest_config`（`model_id`, `model_revision`, `is_instruct`, `limit`, `dataset_hash`, `prompt_hash`, `candidate_space`, `actual_dtype`）を作成。
-  `expected_config_hash = compute_string_or_dict_hash(manifest_config)` を算出。
-  `is_manifest_matching` にて以下を完全一致照合：
-  - `expected_model_name=args.model`
-  - `expected_config_hash=expected_config_hash`
-  - `expected_dataset_hash=compute_file_hash(stim_path)`
-  - `expected_prompt_hash=prompt_hash`
-  - `expected_model_revision=args.model_revision`
-  - `expected_dry_run=args.dry_run`
-- **Checkpoint expected_meta 拡張**:
-  checkpoint 保存・読み込み時に `model_revision`, `dataset_hash`, `prompt_hash`, `candidate_hash`, `dtype` を格納し、不一致時は再開せず最初から実行する。
-
----
-
-### 4. V1 Phase A Cache Hash 生成の完全一致 (項目 4)
-
-#### [MODIFY] [run_phase_a.py](file:///mnt/nas/home/hiromi/src/emo2/v1/primary/run_phase_a.py)
-- **同一の `manifest_config` の利用**:
-  関数の冒頭で一意の `manifest_config` を定義：
-  ```python
-  manifest_config = {
-      "model_prefix": args.model_prefix,
-      "model_id": args.model_id,
-      "model_revision": args.model_revision,
-      "dataset": args.dataset,
-      "dataset_hash": compute_file_hash(dataset_file_path),
-      "limit": args.limit,
-      "seed": phase_a_seed,
-      "cv_folds": phase_a_cv,
-      "ridge_alpha": phase_a_alpha,
-  }
-  ```
-  Early skip 時の `expected_config_hash` 生成と、末尾の `create_run_manifest(..., config=manifest_config)` で全く同一の辞書を使用。
-  `is_manifest_matching` で `expected_dataset_hash` も照合。
-
----
-
-### 5. V1 Phase B Cache Provenance の強化 (項目 5)
-
-#### [MODIFY] [run_phase_b.py](file:///mnt/nas/home/hiromi/src/emo2/v1/primary/run_phase_b.py)
-- **詳細 manifest_config の照合**:
-  `manifest_config` に `model_prefix`, `model_revision`, `task_type`, `relative_depth`, `target_layer`, `seed`, `train_ratio`, `cv_folds`, `dataset_hash`, `prompt_hash` を含める。
-  単なる `is_experiment_completed` の成否だけでなく、`is_manifest_matching` で上記パラメータが完全一致しているかを検証してから skip する。
-
----
-
-### 6. モデル Revision の固定と全 Stage への適用 (項目 6)
-
-#### [MODIFY] [models.yaml](file:///mnt/nas/home/hiromi/src/emo2/configs/models.yaml)
-- `base_revision` および `instruct_revision` を固定コミットSHA（または固定スナップショットタグ）に更新。
-#### [MODIFY] 全 Primary runner スクリプト
-- CLI 引数に `--model-revision`（デフォルト: `None` の場合は `models.yaml` の定義から解決）を追加。
-- `AutoTokenizer.from_pretrained(..., revision=model_revision)`
-- `AutoModelForCausalLM.from_pretrained(..., revision=model_revision)`
-  対象:
-  - `behavioral/primary/run_behavioral_aipsy.py`
-  - `behavioral/primary/run_behavioral_emobank.py`
-  - `v1/primary/run_phase_a.py`
-  - `v1/primary/run_phase_b.py`
-  - `v1/primary/run_phase_c.py`
-  - `v1/primary/phase_c/run_e6_specialization.py`
-  - `v2/primary/run_rq1_rq2_cross_decoding.py`
-  - `v2/primary/run_rq3_causal_map.py`
-  - `v2/primary/run_rq4_recovery_patching.py`
-  - `v3/primary/run_rq1_state_induction.py`
-  - `v3/primary/run_rq2_spatiotemporal_maps.py`
-  - `v3/primary/run_rq3_path_mediation.py`
-  - `v3/primary/run_confirmatory_replication.py`
-
----
-
-### 7. Run ID 体系と結果ディレクトリ管理 (項目 7)
-
-#### [MODIFY] [io.py](file:///mnt/nas/home/hiromi/src/emo2/src/affective_empathy_eval/io.py)
-#### [MODIFY] 各 Primary runner
-- 各スクリプトに `--run-id` 引数を追加。
-- 出力先ディレクトリとして、`--run-id` が指定された場合は `results/raw/<run_id>/` および `results/derived/<run_id>/` に出力。
-- 既存ファイルの上書きを防止するため、上書きが要求された場合でも既存結果を `results/archive/<timestamp>_<old_run_id>/` へ安全に退避するヘルパー関数 `archive_existing_results()` を導入。
-- `results/latest.json` に最新の `run_id` と結果ファイルパスを記録。
-
----
-
-### 8. V2 RQ4 dry-run の sample-wise ΔEMD 計算修正 (項目 8)
-
-#### [MODIFY] [run_rq4_recovery_patching.py](file:///mnt/nas/home/hiromi/src/emo2/v2/primary/run_rq4_recovery_patching.py)
-- **dry-run ブランチの ΔEMD 計算**:
-  `initial_emd_mean * r` の近似を廃止。
-  real-model ブランチと同一のロジックとして：
-  - 各サンプル $i$、各層 $l$ について、`sample_delta_emds_plain[l][i] = sample_initial_emds[i] - sample_patched_emds_plain[l][i]` を計算。
-  - 層ごとの平均 `layer_mean_delta_emds_plain` を集計。
-  - 台形積分 `auc_delta_emd_plain = trapz(layer_mean_delta_emds_plain, depths)` を算出。
-  これにより dry-run と本番コードの出力スキーマ・集計ロジックを100%一致させる。
-
----
-
-### 9. 推論 dtype の統一 (bf16 / float32) (項目 9)
-
-#### [MODIFY] [v1/primary/run_phase_a.py](file:///mnt/nas/home/hiromi/src/emo2/v1/primary/run_phase_a.py)
-#### [MODIFY] [v1/primary/run_phase_b.py](file:///mnt/nas/home/hiromi/src/emo2/v1/primary/run_phase_b.py)
-#### [MODIFY] [v3/primary/run_rq1_state_induction.py](file:///mnt/nas/home/hiromi/src/emo2/v3/primary/run_rq1_state_induction.py)
-#### [MODIFY] [v3/primary/run_rq2_spatiotemporal_maps.py](file:///mnt/nas/home/hiromi/src/emo2/v3/primary/run_rq2_spatiotemporal_maps.py)
-#### [MODIFY] [v3/primary/run_rq3_path_mediation.py](file:///mnt/nas/home/hiromi/src/emo2/v3/primary/run_rq3_path_mediation.py)
-#### [MODIFY] [v3/primary/run_confirmatory_replication.py](file:///mnt/nas/home/hiromi/src/emo2/v3/primary/run_confirmatory_replication.py)
-- `torch.float16` ハードコードを削除。
-- `configs/models.yaml` の `inference_dtype`（bfloat16）を参照し、`torch.cuda.is_bf16_supported()` 等を確認した上で適切な dtype（`torch.bfloat16` または CPU/非対応時の `torch.float32`）を選択する共通リゾルバ `resolve_torch_dtype()` を適用。
-- manifest の `actual_dtype` に実際にロードした dtype 文字列を記録。
-
----
-
-### 10. Prompt Hash の SHA-256 完全化と推奨項目の適用 (項目 10〜13)
-
-#### [MODIFY] [extraction.py](file:///mnt/nas/home/hiromi/src/emo2/src/affective_empathy_eval/extraction.py)
-- Python の組み込み `hash()`（プロセス毎に値が変わる）を `hashlib.sha256(text.encode("utf-8")).hexdigest()` に置換。
-#### [MODIFY] 各 Primary runner
-- `reader_prompt_hash`, `self_prompt_hash`, `chat_template_hash`, `template_mode`（`system_user` vs `user_only`）を manifest に記録。
-- V3 runner (`run_rq1_state_induction.py`, `run_confirmatory_replication.py` 等) において、`n_input_pairs`, `n_matched_pairs`, `n_excluded_pairs` を manifest に保存。
-
----
-
-## 検証計画 (Verification Plan)
-
-### 自動検証
-1. **構文チェック & コンパイル**:
-   ```bash
-   python -m compileall behavioral v1 v2 v3 src scripts
-   ```
-2. **高速単体テスト (Fast tests)**:
-   ```bash
-   pytest -q
-   ```
-3. **個別重要テスト**:
-   ```bash
-   pytest -q tests/test_likelihood.py
-   pytest -q tests/test_v1_refinements.py
-   pytest -q tests/test_v1_token_and_probe_alignment.py
-   pytest -q tests/test_v3_prerun_fixes.py
-   pytest -q tests/test_confirmatory_pipeline.py
-   ```
-4. **統合 Dry-Run**:
-   ```bash
-   python -m affective_empathy_eval.run \
-     --stage all \
-     --model-set primary_small \
-     --family qwen \
-     --device cpu \
-     --dry-run \
-     --max-samples 16
-   ```
-
-### 成果物作成
-- `walkthrough.md` を作成し、各修正箇所の差分・実行結果・検証ログを報告。
-- `docs/pre_production_critical_fixes/` に保存。
+### 2. 回帰テスト・ビルド検証
+- `pytest` の全テスト実行（既存97件＋新規テスト）
+- `python -m compileall -q behavioral v1 v2 v3 src tests`
+- `ruff check` の実行確認

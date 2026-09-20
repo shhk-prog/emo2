@@ -467,6 +467,11 @@ def run_real_path_mediation(
     dirs = extract_conditional_directions(H_med, y_v_disc, y_a_disc, alpha=1.0)
     Q_sub, _ = compute_orthonormal_subspace(dirs["direction_v"], dirs["direction_a"])  # (D, 2)
 
+    # Matched-rank random 2D subspace control
+    rng_sub = np.random.RandomState(42 + mediator_layer * 10)
+    raw_rand_2d = rng_sub.standard_normal((Q_sub.shape[0], 2))
+    Q_rand_sub, _ = np.linalg.qr(raw_rand_2d)  # (D, 2)
+
 
     # matched-neutral 表現の抽出 (Discovery split)
     disc_neu_hiddens = []
@@ -557,13 +562,40 @@ def run_real_path_mediation(
             residual_v_list.append(res_v)
             residual_a_list.append(res_a)
 
+            # c. Random 2D subspace control ablation
+            proj_rand = (h_centered @ Q_rand_sub) @ Q_rand_sub.T
+            h_abl_rand = h_conf - proj_rand
+            patch_tensor_rand = torch.tensor(h_abl_rand, dtype=torch.float32, device=device)
+
+            with ActivationHookManager(adapter) as hook_mgr:
+                hook_mgr.register_patch_hook(
+                    layer_idx=mediator_layer,
+                    patch_tensor=patch_tensor_rand,
+                    token_indices=patch_pos,
+                    hook_point=HookPoint.POST_MLP_RESID,
+                )
+                log_abl_rand, _ = compute_sequence_likelihoods_for_candidates(
+                    model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device, batch_size=81
+                )
+            ev_abl_rand, ea_abl_rand = compute_expected_va(log_abl_rand, candidates)
+            res_rand_v = abs(ev_abl_rand - ev_neu)
+            res_rand_a = abs(ea_abl_rand - ea_neu)
+            residual_rand_v_list.append(res_rand_v)
+            residual_rand_a_list.append(res_rand_a)
+
     te_samples_v = np.array(te_v_list)
     te_samples_a = np.array(te_a_list)
     res_samples_v = np.array(residual_v_list)
     res_samples_a = np.array(residual_a_list)
+    res_rand_samples_v = np.array(residual_rand_v_list)
+    res_rand_samples_a = np.array(residual_rand_a_list)
 
     atten_samples_v = te_samples_v - res_samples_v
     atten_samples_a = te_samples_a - res_samples_a
+    atten_rand_samples_v = te_samples_v - res_rand_samples_v
+    atten_rand_samples_a = te_samples_a - res_rand_samples_a
+    net_atten_v = atten_samples_v - atten_rand_samples_v
+    net_atten_a = atten_samples_a - atten_rand_samples_a
 
     MIN_NATURAL_SHIFT = 0.05
     valid_v = te_samples_v > MIN_NATURAL_SHIFT
@@ -623,6 +655,16 @@ def run_real_path_mediation(
             "residual_shift_after_blocking": {"mean": res_a_mean, "ci_lower": res_a_low, "ci_upper": res_a_high},
             "mediated_attenuation": {"mean": atten_a_mean, "ci_lower": atten_a_low, "ci_upper": atten_a_high},
             "attenuation_ratio": {"mean": ratio_a_mean, "ci_lower": ratio_a_low, "ci_upper": ratio_a_high},
+        },
+        "random_subspace_control": {
+            "valence": {
+                "attenuation_random": float(np.mean(atten_rand_samples_v)),
+                "net_attenuation_vs_random": float(np.mean(net_atten_v)),
+            },
+            "arousal": {
+                "attenuation_random": float(np.mean(atten_rand_samples_a)),
+                "net_attenuation_vs_random": float(np.mean(net_atten_a)),
+            },
         },
     }
 

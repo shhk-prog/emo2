@@ -116,6 +116,14 @@ def extract_hidden_states_batched(
         range(0, len(prompts), batch_size), desc="Forward Pass Batches"
     ):
         batch_prompts = prompts[start_idx : start_idx + batch_size]
+        # Guard against silent prompt truncation
+        for b_idx, p in enumerate(batch_prompts):
+            raw_len = len(tokenizer.encode(p, add_special_tokens=False))
+            if raw_len > 1024:
+                raise RuntimeError(
+                    f"Prompt truncated by max_length=1024! Prompt index: {start_idx + b_idx}, token length: {raw_len}. "
+                    "Primary samples must not be silently truncated."
+                )
         encoded = tokenizer(
             batch_prompts,
             padding=True,
@@ -146,7 +154,8 @@ def extract_hidden_states_batched(
 
             batch_last_tokens = []
             for b_idx in range(len(batch_prompts)):
-                last_pos = seq_lengths[b_idx].item()
+                valid_pos = torch.nonzero(attention_mask[b_idx], as_tuple=False).flatten()
+                last_pos = int(valid_pos[-1]) if len(valid_pos) > 0 else int(attention_mask.shape[1] - 1)
                 vec = (
                     layer_tensor[b_idx, last_pos, :].detach().cpu().float().numpy()
                 )
@@ -342,8 +351,9 @@ def evaluate_classification_probe(
     else:
         y_probs = np.zeros((len(y_enc), num_classes), dtype=float)
 
-    # Item 36: train fold が単一 class の場合を明示処理
+    # Item 36: train fold が単一 class の場合を明示処理し、スキップされたサンプルが暗黙の 0 予測として混ざらないよう evaluated_mask で除外
     valid_folds = 0
+    evaluated_mask = np.zeros(len(y_enc), dtype=bool)
     for train_idx, val_idx in splits:
         X_train, X_val = X[train_idx], X[val_idx]
         y_train, y_val = y_enc[train_idx], y_enc[val_idx]
@@ -365,9 +375,10 @@ def evaluate_classification_probe(
         else:
             for c_idx, c in enumerate(clf.classes_):
                 y_probs[val_idx, c] = probs[:, c_idx]
+        evaluated_mask[val_idx] = True
         valid_folds += 1
 
-    if valid_folds < 2:
+    if valid_folds < 2 or not np.any(evaluated_mask):
         return {
             "roc_auc": float("nan"),
             "balanced_acc": float("nan"),
@@ -377,15 +388,19 @@ def evaluate_classification_probe(
             "n_valid_folds": valid_folds,
         }
 
-    bal_acc = float(balanced_accuracy_score(y_enc, y_preds))
-    f1_macro = float(f1_score(y_enc, y_preds, average="macro"))
+    y_true_eval = y_enc[evaluated_mask]
+    y_pred_eval = y_preds[evaluated_mask]
+    y_prob_eval = y_probs[evaluated_mask]
+
+    bal_acc = float(balanced_accuracy_score(y_true_eval, y_pred_eval))
+    f1_macro = float(f1_score(y_true_eval, y_pred_eval, average="macro"))
 
     try:
         if is_binary:
-            auc = float(roc_auc_score(y_enc, y_probs))
+            auc = float(roc_auc_score(y_true_eval, y_prob_eval))
         else:
             auc = float(
-                roc_auc_score(y_enc, y_probs, multi_class="ovr", average="macro", labels=np.arange(num_classes))
+                roc_auc_score(y_true_eval, y_prob_eval, multi_class="ovr", average="macro", labels=np.arange(num_classes))
             )
         status = "success"
         failure_reason = "none"

@@ -335,6 +335,12 @@ def main():
         default=None,
         help="Optional unique run_id for results organization",
     )
+    parser.add_argument(
+        "--data-path",
+        type=str,
+        default="v1/data/processed/aipsy_4split_all.csv",
+        help="Path to stimulus dataset CSV",
+    )
     add_model_selection_args(parser)
     args = parser.parse_args()
     args.model_id, args.model_prefix = resolve_single_model_from_args(args)

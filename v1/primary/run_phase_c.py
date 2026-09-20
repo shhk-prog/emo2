@@ -318,6 +318,23 @@ def main():
         or "it" in args.model_id.lower()
     )
 
+    # Early skip if already completed and valid
+    manifest_path = os.path.join(model_dir, "manifest.json")
+    e3_path = os.path.join(model_dir, "e3_causal_map.csv")
+    e4_path = os.path.join(model_dir, "e4_interchangeability_results.csv")
+    if not args.force and not args.dry_run and os.path.exists(manifest_path) and os.path.exists(e3_path) and os.path.exists(e4_path):
+        try:
+            df_e3 = pd.read_csv(e3_path)
+            df_e4 = pd.read_csv(e4_path)
+            if len(df_e3) > 0 and len(df_e4) > 0:
+                print(
+                    f"[SKIP] Validated Phase C results found in {model_dir}. "
+                    f"Skipping computation for {args.model_prefix}. Use --force to rerun."
+                )
+                return
+        except Exception as e:
+            print(f"Warning: Corrupt existing Phase C results in {model_dir} ({e}). Rerunning.")
+
     print(
         f"=== Starting V1 Phase C Causal Intervention (Prompt-End Normalized) ==="
     )
@@ -644,211 +661,255 @@ def main():
     e3_pair_records = []
 
     if args.mode in ["all", "e3"]:
-        print("Running E3: Shared Causal Map...")
-        for l in tqdm(target_layers, desc="E3 Target Layers"):
-            rel_d = l / (num_layers - 1) if num_layers > 1 else 0.0
-            delta_h_r = reps_r_aff[l] - reps_r_neu[l]
-            delta_h_s = reps_s_aff[l] - reps_s_neu[l]
+        skip_e3 = False
+        completed_layers = set()
+        if not args.force and os.path.exists(e3_csv_path):
+            try:
+                cached_e3_df = pd.read_csv(e3_csv_path)
+                if "layer" in cached_e3_df.columns:
+                    completed_layers = set(cached_e3_df["layer"].astype(int).tolist())
+                    e3_causal_records = cached_e3_df.to_dict("records")
+                if os.path.exists(e3_pair_csv_path):
+                    cached_pair_df = pd.read_csv(e3_pair_csv_path)
+                    e3_pair_records = cached_pair_df.to_dict("records")
 
-            shifts_v_self = []
-            shifts_a_self = []
-            shifts_v_reader = []
-            shifts_a_reader = []
-            pairwise_cosines = []
-
-            for p_idx in range(n_pairs):
-                p_id = merged.loc[p_idx, "pair_id"]
-                split_tag = merged.loc[p_idx, "eval_split"]
-
-                pos_s = get_prompt_end_position(
-                    tokenizer, prompts_s_neu[p_idx]
-                )
-                pos_r = get_prompt_end_position(
-                    tokenizer, prompts_r_neu[p_idx]
-                )
-
-                diff_s = delta_h_s[p_idx]
-                with PyTorchActivationPatcher(
-                    model,
-                    l,
-                    diff_s,
-                    patch_weight=1.0,
-                    position=pos_s,
-                    intervention_type="add",
-                ):
-                    ptc_ev_s, ptc_ea_s = evaluate_expected_va_batch(
-                        model,
-                        tokenizer,
-                        [prompts_s_neu[p_idx]],
-                        candidates,
-                        vad_triplets,
-                        device=args.device,
-                        sub_batch_size=args.sub_batch_size,
+                remaining_layers = [l for l in target_layers if l not in completed_layers]
+                if len(remaining_layers) == 0:
+                    print(
+                        f"\n==================================================================\n"
+                        f"[SKIP] Existing validated E3 Causal Map found at {e3_csv_path}\n"
+                        f"       (all {len(completed_layers)} layers completed).\n"
+                        f"       Skipping E3 computation and proceeding directly to E4.\n"
+                        f"==================================================================\n",
+                        flush=True,
                     )
-                    sv = float(ptc_ev_s[0] - clean_ev_s_neu[p_idx])
-                    sa = float(ptc_ea_s[0] - clean_ea_s_neu[p_idx])
-                    shifts_v_self.append(sv)
-                    shifts_a_self.append(sa)
-
-                diff_r = delta_h_r[p_idx]
-                with PyTorchActivationPatcher(
-                    model,
-                    l,
-                    diff_r,
-                    patch_weight=1.0,
-                    position=pos_r,
-                    intervention_type="add",
-                ):
-                    ptc_ev_r, ptc_ea_r = evaluate_expected_va_batch(
-                        model,
-                        tokenizer,
-                        [prompts_r_neu[p_idx]],
-                        candidates,
-                        vad_triplets,
-                        device=args.device,
-                        sub_batch_size=args.sub_batch_size,
+                    skip_e3 = True
+                elif len(completed_layers) > 0:
+                    print(
+                        f"\n[RESUME] Resuming E3 from layer checkpoint: {len(completed_layers)}/{len(target_layers)} layers already completed.\n"
+                        f"         Remaining: {len(remaining_layers)} layers. Skipping completed layers.\n",
+                        flush=True,
                     )
-                    rv = float(ptc_ev_r[0] - clean_ev_r_neu[p_idx])
-                    ra = float(ptc_ea_r[0] - clean_ea_r_neu[p_idx])
-                    shifts_v_reader.append(rv)
-                    shifts_a_reader.append(ra)
+            except Exception as e:
+                print(f"Warning: Failed to load cached E3 results ({e}). Recalculating E3.", flush=True)
+                skip_e3 = False
+                completed_layers = set()
+                e3_causal_records = []
+                e3_pair_records = []
 
-                mag_sp = np.sqrt(sv**2 + sa**2)
-                mag_rp = np.sqrt(rv**2 + ra**2)
-                denom_p = mag_sp * mag_rp
-                pair_cos = (
-                    float((sv * rv + sa * ra) / denom_p)
-                    if denom_p > 1e-6
-                    else np.nan
+        if not skip_e3:
+            print(f"Running E3: Shared Causal Map (total layers: {len(target_layers)}, already done: {len(completed_layers)})...")
+            for l in tqdm(target_layers, desc="E3 Target Layers"):
+                if l in completed_layers:
+                    continue
+                rel_d = l / (num_layers - 1) if num_layers > 1 else 0.0
+                delta_h_r = reps_r_aff[l] - reps_r_neu[l]
+                delta_h_s = reps_s_aff[l] - reps_s_neu[l]
+    
+                shifts_v_self = []
+                shifts_a_self = []
+                shifts_v_reader = []
+                shifts_a_reader = []
+                pairwise_cosines = []
+    
+                for p_idx in range(n_pairs):
+                    p_id = merged.loc[p_idx, "pair_id"]
+                    split_tag = merged.loc[p_idx, "eval_split"]
+    
+                    pos_s = get_prompt_end_position(
+                        tokenizer, prompts_s_neu[p_idx]
+                    )
+                    pos_r = get_prompt_end_position(
+                        tokenizer, prompts_r_neu[p_idx]
+                    )
+    
+                    diff_s = delta_h_s[p_idx]
+                    with PyTorchActivationPatcher(
+                        model,
+                        l,
+                        diff_s,
+                        patch_weight=1.0,
+                        position=pos_s,
+                        intervention_type="add",
+                    ):
+                        ptc_ev_s, ptc_ea_s = evaluate_expected_va_batch(
+                            model,
+                            tokenizer,
+                            [prompts_s_neu[p_idx]],
+                            candidates,
+                            vad_triplets,
+                            device=args.device,
+                            sub_batch_size=args.sub_batch_size,
+                        )
+                        sv = float(ptc_ev_s[0] - clean_ev_s_neu[p_idx])
+                        sa = float(ptc_ea_s[0] - clean_ea_s_neu[p_idx])
+                        shifts_v_self.append(sv)
+                        shifts_a_self.append(sa)
+    
+                    diff_r = delta_h_r[p_idx]
+                    with PyTorchActivationPatcher(
+                        model,
+                        l,
+                        diff_r,
+                        patch_weight=1.0,
+                        position=pos_r,
+                        intervention_type="add",
+                    ):
+                        ptc_ev_r, ptc_ea_r = evaluate_expected_va_batch(
+                            model,
+                            tokenizer,
+                            [prompts_r_neu[p_idx]],
+                            candidates,
+                            vad_triplets,
+                            device=args.device,
+                            sub_batch_size=args.sub_batch_size,
+                        )
+                        rv = float(ptc_ev_r[0] - clean_ev_r_neu[p_idx])
+                        ra = float(ptc_ea_r[0] - clean_ea_r_neu[p_idx])
+                        shifts_v_reader.append(rv)
+                        shifts_a_reader.append(ra)
+    
+                    mag_sp = np.sqrt(sv**2 + sa**2)
+                    mag_rp = np.sqrt(rv**2 + ra**2)
+                    denom_p = mag_sp * mag_rp
+                    pair_cos = (
+                        float((sv * rv + sa * ra) / denom_p)
+                        if denom_p > 1e-6
+                        else np.nan
+                    )
+                    pairwise_cosines.append(pair_cos)
+    
+                    e3_pair_records.append(
+                        {
+                            "layer": l,
+                            "relative_depth": rel_d,
+                            "pair_id": p_id,
+                            "eval_split": split_tag,
+                            "shift_V_self": sv,
+                            "shift_A_self": sa,
+                            "magnitude_self": mag_sp,
+                            "shift_V_reader": rv,
+                            "shift_A_reader": ra,
+                            "magnitude_reader": mag_rp,
+                            "pairwise_cos": pair_cos,
+                        }
+                    )
+    
+                mean_sv = float(np.mean(shifts_v_self))
+                mean_sa = float(np.mean(shifts_a_self))
+                mean_rv = float(np.mean(shifts_v_reader))
+                mean_ra = float(np.mean(shifts_a_reader))
+    
+                mag_s = float(np.sqrt(mean_sv**2 + mean_sa**2))
+                mag_r = float(np.sqrt(mean_rv**2 + mean_ra**2))
+                denom_mean = mag_s * mag_r
+                cos_sim_of_means = (
+                    float((mean_sv * mean_rv + mean_sa * mean_ra) / denom_mean)
+                    if denom_mean > 1e-6
+                    else 0.0
                 )
-                pairwise_cosines.append(pair_cos)
-
-                e3_pair_records.append(
+    
+                valid_cos = [c for c in pairwise_cosines if not np.isnan(c)]
+                mean_pairwise_cos = (
+                    float(np.mean(valid_cos)) if len(valid_cos) > 0 else 0.0
+                )
+    
+                disc_idx = [
+                    i
+                    for i in range(n_pairs)
+                    if merged.loc[i, "eval_split"] == "discovery"
+                ]
+                conf_idx = [
+                    i
+                    for i in range(n_pairs)
+                    if merged.loc[i, "eval_split"] == "confirmation"
+                ]
+                disc_mag_s = (
+                    float(
+                        np.mean(
+                            [
+                                np.sqrt(
+                                    shifts_v_self[i] ** 2 + shifts_a_self[i] ** 2
+                                )
+                                for i in disc_idx
+                            ]
+                        )
+                    )
+                    if disc_idx
+                    else mag_s
+                )
+                disc_mag_r = (
+                    float(
+                        np.mean(
+                            [
+                                np.sqrt(
+                                    shifts_v_reader[i] ** 2
+                                    + shifts_a_reader[i] ** 2
+                                )
+                                for i in disc_idx
+                            ]
+                        )
+                    )
+                    if disc_idx
+                    else mag_r
+                )
+                conf_mag_s = (
+                    float(
+                        np.mean(
+                            [
+                                np.sqrt(
+                                    shifts_v_self[i] ** 2 + shifts_a_self[i] ** 2
+                                )
+                                for i in conf_idx
+                            ]
+                        )
+                    )
+                    if conf_idx
+                    else mag_s
+                )
+                conf_mag_r = (
+                    float(
+                        np.mean(
+                            [
+                                np.sqrt(
+                                    shifts_v_reader[i] ** 2
+                                    + shifts_a_reader[i] ** 2
+                                )
+                                for i in conf_idx
+                            ]
+                        )
+                    )
+                    if conf_idx
+                    else mag_r
+                )
+    
+                e3_causal_records.append(
                     {
                         "layer": l,
                         "relative_depth": rel_d,
-                        "pair_id": p_id,
-                        "eval_split": split_tag,
-                        "shift_V_self": sv,
-                        "shift_A_self": sa,
-                        "magnitude_self": mag_sp,
-                        "shift_V_reader": rv,
-                        "shift_A_reader": ra,
-                        "magnitude_reader": mag_rp,
-                        "pairwise_cos": pair_cos,
+                        "magnitude_self": mag_s,
+                        "magnitude_reader": mag_r,
+                        "shift_V_self": mean_sv,
+                        "shift_A_self": mean_sa,
+                        "shift_V_reader": mean_rv,
+                        "shift_A_reader": mean_ra,
+                        "directional_cosine_similarity": cos_sim_of_means,
+                        "mean_pairwise_directional_cosine": mean_pairwise_cos,
+                        "discovery_mag_self": disc_mag_s,
+                        "discovery_mag_reader": disc_mag_r,
+                        "confirmation_mag_self": conf_mag_s,
+                        "confirmation_mag_reader": conf_mag_r,
                     }
                 )
+                completed_layers.add(l)
 
-            mean_sv = float(np.mean(shifts_v_self))
-            mean_sa = float(np.mean(shifts_a_self))
-            mean_rv = float(np.mean(shifts_v_reader))
-            mean_ra = float(np.mean(shifts_a_reader))
+                # 1層完了ごとに即座にディスクへ保存（途中で中断しても完了層から再開可能）
+                pd.DataFrame(e3_causal_records).sort_values("layer").to_csv(e3_csv_path, index=False)
+                pd.DataFrame(e3_pair_records).to_csv(e3_pair_csv_path, index=False)
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
 
-            mag_s = float(np.sqrt(mean_sv**2 + mean_sa**2))
-            mag_r = float(np.sqrt(mean_rv**2 + mean_ra**2))
-            denom_mean = mag_s * mag_r
-            cos_sim_of_means = (
-                float((mean_sv * mean_rv + mean_sa * mean_ra) / denom_mean)
-                if denom_mean > 1e-6
-                else 0.0
-            )
-
-            valid_cos = [c for c in pairwise_cosines if not np.isnan(c)]
-            mean_pairwise_cos = (
-                float(np.mean(valid_cos)) if len(valid_cos) > 0 else 0.0
-            )
-
-            disc_idx = [
-                i
-                for i in range(n_pairs)
-                if merged.loc[i, "eval_split"] == "discovery"
-            ]
-            conf_idx = [
-                i
-                for i in range(n_pairs)
-                if merged.loc[i, "eval_split"] == "confirmation"
-            ]
-            disc_mag_s = (
-                float(
-                    np.mean(
-                        [
-                            np.sqrt(
-                                shifts_v_self[i] ** 2 + shifts_a_self[i] ** 2
-                            )
-                            for i in disc_idx
-                        ]
-                    )
-                )
-                if disc_idx
-                else mag_s
-            )
-            disc_mag_r = (
-                float(
-                    np.mean(
-                        [
-                            np.sqrt(
-                                shifts_v_reader[i] ** 2
-                                + shifts_a_reader[i] ** 2
-                            )
-                            for i in disc_idx
-                        ]
-                    )
-                )
-                if disc_idx
-                else mag_r
-            )
-            conf_mag_s = (
-                float(
-                    np.mean(
-                        [
-                            np.sqrt(
-                                shifts_v_self[i] ** 2 + shifts_a_self[i] ** 2
-                            )
-                            for i in conf_idx
-                        ]
-                    )
-                )
-                if conf_idx
-                else mag_s
-            )
-            conf_mag_r = (
-                float(
-                    np.mean(
-                        [
-                            np.sqrt(
-                                shifts_v_reader[i] ** 2
-                                + shifts_a_reader[i] ** 2
-                            )
-                            for i in conf_idx
-                        ]
-                    )
-                )
-                if conf_idx
-                else mag_r
-            )
-
-            e3_causal_records.append(
-                {
-                    "layer": l,
-                    "relative_depth": rel_d,
-                    "magnitude_self": mag_s,
-                    "magnitude_reader": mag_r,
-                    "shift_V_self": mean_sv,
-                    "shift_A_self": mean_sa,
-                    "shift_V_reader": mean_rv,
-                    "shift_A_reader": mean_ra,
-                    "directional_cosine_similarity": cos_sim_of_means,
-                    "mean_pairwise_directional_cosine": mean_pairwise_cos,
-                    "discovery_mag_self": disc_mag_s,
-                    "discovery_mag_reader": disc_mag_r,
-                    "confirmation_mag_self": conf_mag_s,
-                    "confirmation_mag_reader": conf_mag_r,
-                }
-            )
-
-        pd.DataFrame(e3_causal_records).to_csv(e3_csv_path, index=False)
-        pd.DataFrame(e3_pair_records).to_csv(e3_pair_csv_path, index=False)
-        print(f"E3 results saved to {e3_csv_path}")
+            print(f"E3 all target layers completed and saved to {e3_csv_path}")
 
     # E4: Interchangeability
     if args.mode in ["all", "e4"]:
@@ -889,405 +950,481 @@ def main():
         e4_patching_records = []
         e4_pair_records = []
 
-        conf_indices = [
-            i
-            for i in range(n_pairs)
-            if merged.loc[i, "eval_split"] == "confirmation"
-        ]
-        if len(conf_indices) < 5:
-            if args.dry_run:
-                print(f"[DRY-RUN] Small confirmation sample (N={len(conf_indices)}); using available confirmation pairs or fallback.")
-                if len(conf_indices) < 2:
-                    conf_indices = list(range(n_pairs))
-            else:
-                raise ValueError(
-                    f"Insufficient confirmation pairs for E4: found {len(conf_indices)}, required >= 5. "
-                    f"Aborting to prevent data leakage between discovery and confirmation splits."
-                )
-
-        n_conf = len(conf_indices)
-        rng_derange = np.random.default_rng(args.split_seed + 100)
-        deranged_sub_indices = generate_derangement(n_conf, rng_derange)
-        random_indices_map = {
-            conf_indices[i]: conf_indices[deranged_sub_indices[i]]
-            for i in range(n_conf)
-        }
-        EXPECTED_DIRECTION = AIPSY_EXPECTED_DIRECTION
-
-        print(f"Running E4 Interchangeability on Layers {e4_layers} (with Same-Task Controls)...")
-        for l in e4_layers:
-            rel_d = l / (num_layers - 1) if num_layers > 1 else 0.0
-            delta_h_r = reps_r_aff[l] - reps_r_neu[l]
-            delta_h_s = reps_s_aff[l] - reps_s_neu[l]
-
-            for alpha in args.alphas:
-                # Raw signed shifts
-                matched_shifts_v = []
-                matched_shifts_a = []
-                random_shifts_v = []
-                random_shifts_a = []
-                self_self_shifts_v = []
-                self_self_shifts_a = []
-                reader_reader_shifts_v = []
-                reader_reader_shifts_a = []
-                self_reader_shifts_v = []
-                self_reader_shifts_a = []
-
-                # Target-direction aligned shifts (Primary to avoid sign cancellation)
-                aligned_matched_shifts_v = []
-                aligned_matched_shifts_a = []
-                aligned_random_shifts_v = []
-                aligned_random_shifts_a = []
-                aligned_self_self_shifts_v = []
-                aligned_self_self_shifts_a = []
-                aligned_reader_reader_shifts_v = []
-                aligned_reader_reader_shifts_a = []
-
-                is_zero_alpha = abs(alpha) < 1e-9
-
-                for p_idx in conf_indices:
-                    p_id = merged.loc[p_idx, "pair_id"]
-                    pos_s = get_prompt_end_position(
-                        tokenizer, prompts_s_neu[p_idx]
+        skip_e4 = False
+        completed_e4_conditions = set()
+        if not args.force and os.path.exists(e4_csv_path):
+            try:
+                cached_e4_df = pd.read_csv(e4_csv_path)
+                if not cached_e4_df.empty and {"layer", "alpha"}.issubset(cached_e4_df.columns):
+                    completed_e4_conditions = set(
+                        zip(cached_e4_df["layer"].astype(int), cached_e4_df["alpha"].astype(float))
                     )
-                    pos_r = get_prompt_end_position(
-                        tokenizer, prompts_r_neu[p_idx]
+                    e4_patching_records = cached_e4_df.to_dict("records")
+                if os.path.exists(e4_pair_csv_path):
+                    cached_e4_pair_df = pd.read_csv(e4_pair_csv_path)
+                    e4_pair_records = cached_e4_pair_df.to_dict("records")
+
+                target_e4_conditions = [
+                    (int(l), float(alpha))
+                    for l in e4_layers
+                    for alpha in args.alphas
+                ]
+                remaining_e4_conditions = [
+                    cond for cond in target_e4_conditions
+                    if cond not in completed_e4_conditions
+                ]
+                if len(remaining_e4_conditions) == 0:
+                    print(
+                        f"\n==================================================================\n"
+                        f"[SKIP] Existing validated E4 Interchangeability found at {e4_csv_path}\n"
+                        f"       (all {len(completed_e4_conditions)} conditions completed).\n"
+                        f"       Skipping E4 computation.\n"
+                        f"==================================================================\n",
+                        flush=True,
+                    )
+                    skip_e4 = True
+                elif len(completed_e4_conditions) > 0:
+                    print(
+                        f"\n[RESUME] Resuming E4 from checkpoint: {len(completed_e4_conditions)}/{len(target_e4_conditions)} conditions completed.\n"
+                        f"         Remaining: {len(remaining_e4_conditions)} conditions. Skipping completed conditions.\n",
+                        flush=True,
+                    )
+            except Exception as e:
+                print(f"Warning: Failed to load cached E4 results ({e}). Recalculating E4.", flush=True)
+                skip_e4 = False
+                completed_e4_conditions = set()
+                e4_patching_records = []
+                e4_pair_records = []
+
+        if not skip_e4:
+            conf_indices = [
+                i
+                for i in range(n_pairs)
+                if merged.loc[i, "eval_split"] == "confirmation"
+            ]
+            if len(conf_indices) < 5:
+                if args.dry_run:
+                    print(f"[DRY-RUN] Small confirmation sample (N={len(conf_indices)}); using available confirmation pairs or fallback.")
+                    if len(conf_indices) < 2:
+                        conf_indices = list(range(n_pairs))
+                else:
+                    raise ValueError(
+                        f"Insufficient confirmation pairs for E4: found {len(conf_indices)}, required >= 5. "
+                        f"Aborting to prevent data leakage between discovery and confirmation splits."
                     )
 
-                    if is_zero_alpha:
-                        m_sv, m_sa = 0.0, 0.0
-                        r_sv, r_sa = 0.0, 0.0
-                        ss_v, ss_a = 0.0, 0.0
-                        rr_v, rr_a = 0.0, 0.0
-                        sr_v, sr_a = 0.0, 0.0
-                    else:
-                        # 1. Primary: Reader -> Self (Cross-task Matched)
-                        diff_matched = delta_h_r[p_idx]
-                        with PyTorchActivationPatcher(
-                            model,
-                            l,
-                            diff_matched,
-                            patch_weight=alpha,
-                            position=pos_s,
-                            intervention_type="add",
+            n_conf = len(conf_indices)
+            rng_derange = np.random.default_rng(args.split_seed + 100)
+            deranged_sub_indices = generate_derangement(n_conf, rng_derange)
+            random_indices_map = {
+                conf_indices[i]: conf_indices[deranged_sub_indices[i]]
+                for i in range(n_conf)
+            }
+            EXPECTED_DIRECTION = AIPSY_EXPECTED_DIRECTION
+
+            total_e4_conditions = len(e4_layers) * len(args.alphas)
+            print(
+                f"Running E4 Interchangeability on Layers {e4_layers} "
+                f"(total conditions: {total_e4_conditions}, already done: {len(completed_e4_conditions)})...",
+                flush=True,
+            )
+            with tqdm(
+                total=total_e4_conditions,
+                initial=len(completed_e4_conditions),
+                desc="E4 Conditions",
+                dynamic_ncols=True,
+            ) as pbar_cond:
+                for l in e4_layers:
+                    rel_d = l / (num_layers - 1) if num_layers > 1 else 0.0
+                    delta_h_r = reps_r_aff[l] - reps_r_neu[l]
+                    delta_h_s = reps_s_aff[l] - reps_s_neu[l]
+
+                    for alpha in args.alphas:
+                        cond_key = (int(l), float(alpha))
+                        if cond_key in completed_e4_conditions:
+                            continue
+
+                        # Raw signed shifts
+                        matched_shifts_v = []
+                        matched_shifts_a = []
+                        random_shifts_v = []
+                        random_shifts_a = []
+                        self_self_shifts_v = []
+                        self_self_shifts_a = []
+                        reader_reader_shifts_v = []
+                        reader_reader_shifts_a = []
+                        self_reader_shifts_v = []
+                        self_reader_shifts_a = []
+
+                        # Target-direction aligned shifts (Primary to avoid sign cancellation)
+                        aligned_matched_shifts_v = []
+                        aligned_matched_shifts_a = []
+                        aligned_random_shifts_v = []
+                        aligned_random_shifts_a = []
+                        aligned_self_self_shifts_v = []
+                        aligned_self_self_shifts_a = []
+                        aligned_reader_reader_shifts_v = []
+                        aligned_reader_reader_shifts_a = []
+
+                        is_zero_alpha = abs(alpha) < 1e-9
+
+                        for p_idx in tqdm(
+                            conf_indices,
+                            desc=f"E4 L{l} a={alpha}",
+                            leave=False,
+                            dynamic_ncols=True,
                         ):
-                            m_ev, m_ea = evaluate_expected_va_batch(
-                                model,
-                                tokenizer,
-                                [prompts_s_neu[p_idx]],
-                                candidates,
-                                vad_triplets,
-                                device=args.device,
-                                sub_batch_size=args.sub_batch_size,
+                            p_id = merged.loc[p_idx, "pair_id"]
+                            pos_s = get_prompt_end_position(
+                                tokenizer, prompts_s_neu[p_idx]
                             )
-                            m_sv = float(m_ev[0] - clean_ev_s_neu[p_idx])
-                            m_sa = float(m_ea[0] - clean_ea_s_neu[p_idx])
-
-                        # 2. Control 1: Reader -> Self (Random Permuted)
-                        rnd_idx = random_indices_map[p_idx]
-                        diff_random = delta_h_r[rnd_idx]
-                        with PyTorchActivationPatcher(
-                            model,
-                            l,
-                            diff_random,
-                            patch_weight=alpha,
-                            position=pos_s,
-                            intervention_type="add",
-                        ):
-                            rnd_ev, rnd_ea = evaluate_expected_va_batch(
-                                model,
-                                tokenizer,
-                                [prompts_s_neu[p_idx]],
-                                candidates,
-                                vad_triplets,
-                                device=args.device,
-                                sub_batch_size=args.sub_batch_size,
+                            pos_r = get_prompt_end_position(
+                                tokenizer, prompts_r_neu[p_idx]
                             )
-                            r_sv = float(rnd_ev[0] - clean_ev_s_neu[p_idx])
-                            r_sa = float(rnd_ea[0] - clean_ea_s_neu[p_idx])
 
-                        # 3. Same-task Control: Self -> Self (Upper bound of causal influence)
-                        diff_s = delta_h_s[p_idx]
-                        with PyTorchActivationPatcher(
-                            model,
-                            l,
-                            diff_s,
-                            patch_weight=alpha,
-                            position=pos_s,
-                            intervention_type="add",
-                        ):
-                            ss_ev, ss_ea = evaluate_expected_va_batch(
-                                model,
-                                tokenizer,
-                                [prompts_s_neu[p_idx]],
-                                candidates,
-                                vad_triplets,
-                                device=args.device,
-                                sub_batch_size=args.sub_batch_size,
+                            if is_zero_alpha:
+                                m_sv, m_sa = 0.0, 0.0
+                                r_sv, r_sa = 0.0, 0.0
+                                ss_v, ss_a = 0.0, 0.0
+                                rr_v, rr_a = 0.0, 0.0
+                                sr_v, sr_a = 0.0, 0.0
+                            else:
+                                # 1. Primary: Reader -> Self (Cross-task Matched)
+                                diff_matched = delta_h_r[p_idx]
+                                with PyTorchActivationPatcher(
+                                    model,
+                                    l,
+                                    diff_matched,
+                                    patch_weight=alpha,
+                                    position=pos_s,
+                                    intervention_type="add",
+                                ):
+                                    m_ev, m_ea = evaluate_expected_va_batch(
+                                        model,
+                                        tokenizer,
+                                        [prompts_s_neu[p_idx]],
+                                        candidates,
+                                        vad_triplets,
+                                        device=args.device,
+                                        sub_batch_size=args.sub_batch_size,
+                                    )
+                                    m_sv = float(m_ev[0] - clean_ev_s_neu[p_idx])
+                                    m_sa = float(m_ea[0] - clean_ea_s_neu[p_idx])
+
+                                # 2. Control 1: Reader -> Self (Random Permuted)
+                                rnd_idx = random_indices_map[p_idx]
+                                diff_random = delta_h_r[rnd_idx]
+                                with PyTorchActivationPatcher(
+                                    model,
+                                    l,
+                                    diff_random,
+                                    patch_weight=alpha,
+                                    position=pos_s,
+                                    intervention_type="add",
+                                ):
+                                    rnd_ev, rnd_ea = evaluate_expected_va_batch(
+                                        model,
+                                        tokenizer,
+                                        [prompts_s_neu[p_idx]],
+                                        candidates,
+                                        vad_triplets,
+                                        device=args.device,
+                                        sub_batch_size=args.sub_batch_size,
+                                    )
+                                    r_sv = float(rnd_ev[0] - clean_ev_s_neu[p_idx])
+                                    r_sa = float(rnd_ea[0] - clean_ea_s_neu[p_idx])
+
+                                # 3. Same-task Control: Self -> Self (Upper bound of causal influence)
+                                diff_s = delta_h_s[p_idx]
+                                with PyTorchActivationPatcher(
+                                    model,
+                                    l,
+                                    diff_s,
+                                    patch_weight=alpha,
+                                    position=pos_s,
+                                    intervention_type="add",
+                                ):
+                                    ss_ev, ss_ea = evaluate_expected_va_batch(
+                                        model,
+                                        tokenizer,
+                                        [prompts_s_neu[p_idx]],
+                                        candidates,
+                                        vad_triplets,
+                                        device=args.device,
+                                        sub_batch_size=args.sub_batch_size,
+                                    )
+                                    ss_v = float(ss_ev[0] - clean_ev_s_neu[p_idx])
+                                    ss_a = float(ss_ea[0] - clean_ea_s_neu[p_idx])
+
+                                # 4. Same-task Control: Reader -> Reader
+                                with PyTorchActivationPatcher(
+                                    model,
+                                    l,
+                                    diff_matched,
+                                    patch_weight=alpha,
+                                    position=pos_r,
+                                    intervention_type="add",
+                                ):
+                                    rr_ev, rr_ea = evaluate_expected_va_batch(
+                                        model,
+                                        tokenizer,
+                                        [prompts_r_neu[p_idx]],
+                                        candidates,
+                                        vad_triplets,
+                                        device=args.device,
+                                        sub_batch_size=args.sub_batch_size,
+                                    )
+                                    rr_v = float(rr_ev[0] - clean_ev_r_neu[p_idx])
+                                    rr_a = float(rr_ea[0] - clean_ea_r_neu[p_idx])
+
+                                # 5. Reverse Cross-task: Self -> Reader
+                                with PyTorchActivationPatcher(
+                                    model,
+                                    l,
+                                    diff_s,
+                                    patch_weight=alpha,
+                                    position=pos_r,
+                                    intervention_type="add",
+                                ):
+                                    sr_ev, sr_ea = evaluate_expected_va_batch(
+                                        model,
+                                        tokenizer,
+                                        [prompts_r_neu[p_idx]],
+                                        candidates,
+                                        vad_triplets,
+                                        device=args.device,
+                                        sub_batch_size=args.sub_batch_size,
+                                    )
+                                    sr_v = float(sr_ev[0] - clean_ev_r_neu[p_idx])
+                                    sr_a = float(sr_ea[0] - clean_ea_r_neu[p_idx])
+
+                            matched_shifts_v.append(m_sv)
+                            matched_shifts_a.append(m_sa)
+                            random_shifts_v.append(r_sv)
+                            random_shifts_a.append(r_sa)
+                            self_self_shifts_v.append(ss_v)
+                            self_self_shifts_a.append(ss_a)
+                            reader_reader_shifts_v.append(rr_v)
+                            reader_reader_shifts_a.append(rr_a)
+                            self_reader_shifts_v.append(sr_v)
+                            self_reader_shifts_a.append(sr_a)
+
+                            # Direction alignment for this pair
+                            emo_name = str(
+                                merged.loc[p_idx, "target_emotion_aff"]
+                                if "target_emotion_aff" in merged.columns
+                                else (
+                                    merged.loc[p_idx, "target_emotion"]
+                                    if "target_emotion" in merged.columns
+                                    else merged.loc[p_idx, "emotion_aff"]
+                                )
+                            ).lower()
+                            sign_v = EXPECTED_DIRECTION.get(emo_name, {}).get("V")
+                            sign_a = EXPECTED_DIRECTION.get(emo_name, {}).get("A")
+
+                            aligned_m_sv = sign_v * m_sv if sign_v is not None else np.nan
+                            aligned_r_sv = sign_v * r_sv if sign_v is not None else np.nan
+                            aligned_ss_v = sign_v * ss_v if sign_v is not None else np.nan
+                            aligned_rr_v = sign_v * rr_v if sign_v is not None else np.nan
+
+                            aligned_m_sa = sign_a * m_sa if sign_a is not None else np.nan
+                            aligned_r_sa = sign_a * r_sa if sign_a is not None else np.nan
+                            aligned_ss_a = sign_a * ss_a if sign_a is not None else np.nan
+                            aligned_rr_a = sign_a * rr_a if sign_a is not None else np.nan
+
+                            if sign_v is not None:
+                                aligned_matched_shifts_v.append(aligned_m_sv)
+                                aligned_random_shifts_v.append(aligned_r_sv)
+                                aligned_self_self_shifts_v.append(aligned_ss_v)
+                                aligned_reader_reader_shifts_v.append(aligned_rr_v)
+
+                            if sign_a is not None:
+                                aligned_matched_shifts_a.append(aligned_m_sa)
+                                aligned_random_shifts_a.append(aligned_r_sa)
+                                aligned_self_self_shifts_a.append(aligned_ss_a)
+                                aligned_reader_reader_shifts_a.append(aligned_rr_a)
+
+                            e4_pair_records.append(
+                                {
+                                    "layer": l,
+                                    "alpha": alpha,
+                                    "pair_id": p_id,
+                                    "emotion": emo_name,
+                                    "sign_V": sign_v,
+                                    "sign_A": sign_a,
+                                    # Primary: target direction aligned
+                                    "aligned_matched_shift_V": aligned_m_sv,
+                                    "aligned_matched_shift_A": aligned_m_sa,
+                                    "aligned_random_shift_V": aligned_r_sv,
+                                    "aligned_random_shift_A": aligned_r_sa,
+                                    "aligned_self_self_shift_V": aligned_ss_v,
+                                    "aligned_self_self_shift_A": aligned_ss_a,
+                                    "aligned_reader_reader_shift_V": aligned_rr_v,
+                                    "aligned_reader_reader_shift_A": aligned_rr_a,
+                                    "aligned_specificity_V": (aligned_m_sv - aligned_r_sv) if not np.isnan(aligned_m_sv) else np.nan,
+                                    "aligned_specificity_A": (aligned_m_sa - aligned_r_sa) if not np.isnan(aligned_m_sa) else np.nan,
+                                    # Secondary: raw signed
+                                    "matched_shift_V": m_sv,
+                                    "matched_shift_A": m_sa,
+                                    "random_shift_V": r_sv,
+                                    "random_shift_A": r_sa,
+                                    "self_self_shift_V": ss_v,
+                                    "self_self_shift_A": ss_a,
+                                    "reader_reader_shift_V": rr_v,
+                                    "reader_reader_shift_A": rr_a,
+                                    "self_reader_shift_V": sr_v,
+                                    "self_reader_shift_A": sr_a,
+                                    "specificity_V": m_sv - r_sv,
+                                    "specificity_A": m_sa - r_sa,
+                                }
                             )
-                            ss_v = float(ss_ev[0] - clean_ev_s_neu[p_idx])
-                            ss_a = float(ss_ea[0] - clean_ea_s_neu[p_idx])
 
-                        # 4. Same-task Control: Reader -> Reader
-                        with PyTorchActivationPatcher(
-                            model,
-                            l,
-                            diff_matched,
-                            patch_weight=alpha,
-                            position=pos_r,
-                            intervention_type="add",
-                        ):
-                            rr_ev, rr_ea = evaluate_expected_va_batch(
-                                model,
-                                tokenizer,
-                                [prompts_r_neu[p_idx]],
-                                candidates,
-                                vad_triplets,
-                                device=args.device,
-                                sub_batch_size=args.sub_batch_size,
+                        # Primary aligned means
+                        mean_al_m_v = float(np.mean(aligned_matched_shifts_v)) if aligned_matched_shifts_v else 0.0
+                        mean_al_m_a = float(np.mean(aligned_matched_shifts_a)) if aligned_matched_shifts_a else 0.0
+                        mean_al_rnd_v = float(np.mean(aligned_random_shifts_v)) if aligned_random_shifts_v else 0.0
+                        mean_al_rnd_a = float(np.mean(aligned_random_shifts_a)) if aligned_random_shifts_a else 0.0
+                        mean_al_ss_v = float(np.mean(aligned_self_self_shifts_v)) if aligned_self_self_shifts_v else 0.0
+                        mean_al_ss_a = float(np.mean(aligned_self_self_shifts_a)) if aligned_self_self_shifts_a else 0.0
+                        mean_al_rr_v = float(np.mean(aligned_reader_reader_shifts_v)) if aligned_reader_reader_shifts_v else 0.0
+                        mean_al_rr_a = float(np.mean(aligned_reader_reader_shifts_a)) if aligned_reader_reader_shifts_a else 0.0
+
+                        al_spec_v = mean_al_m_v - mean_al_rnd_v
+                        al_spec_a = mean_al_m_a - mean_al_rnd_a
+
+                        # Transfer Ratio from aligned shifts with denominator stability guard
+                        if abs(mean_al_ss_v) >= 0.05:
+                            transfer_ratio_v = float(mean_al_m_v / (mean_al_ss_v + 1e-6))
+                        else:
+                            transfer_ratio_v = np.nan
+
+                        if abs(mean_al_ss_a) >= 0.05:
+                            transfer_ratio_a = float(mean_al_m_a / (mean_al_ss_a + 1e-6))
+                        else:
+                            transfer_ratio_a = np.nan
+
+                        # Primary stats on aligned shifts
+                        if not is_zero_alpha and len(aligned_matched_shifts_v) > 2:
+                            al_dz_v = compute_paired_cohen_dz(aligned_matched_shifts_v, aligned_random_shifts_v, ddof=1)
+                            al_ci_low_v, al_ci_high_v = compute_bivariate_bootstrap_ci(
+                                aligned_matched_shifts_v, aligned_random_shifts_v, stat_fn=lambda x, y: np.mean(x - y), n_bootstraps=1000
                             )
-                            rr_v = float(rr_ev[0] - clean_ev_r_neu[p_idx])
-                            rr_a = float(rr_ea[0] - clean_ea_r_neu[p_idx])
+                            try:
+                                _, al_p_val_v = stats.ttest_rel(aligned_matched_shifts_v, aligned_random_shifts_v)
+                            except Exception:
+                                al_p_val_v = 1.0
+                        else:
+                            al_dz_v, al_ci_low_v, al_ci_high_v, al_p_val_v = 0.0, 0.0, 0.0, 1.0
 
-                        # 5. Reverse Cross-task: Self -> Reader
-                        with PyTorchActivationPatcher(
-                            model,
-                            l,
-                            diff_s,
-                            patch_weight=alpha,
-                            position=pos_r,
-                            intervention_type="add",
-                        ):
-                            sr_ev, sr_ea = evaluate_expected_va_batch(
-                                model,
-                                tokenizer,
-                                [prompts_r_neu[p_idx]],
-                                candidates,
-                                vad_triplets,
-                                device=args.device,
-                                sub_batch_size=args.sub_batch_size,
+                        if not is_zero_alpha and len(aligned_matched_shifts_a) > 2:
+                            al_dz_a = compute_paired_cohen_dz(aligned_matched_shifts_a, aligned_random_shifts_a, ddof=1)
+                            al_ci_low_a, al_ci_high_a = compute_bivariate_bootstrap_ci(
+                                aligned_matched_shifts_a, aligned_random_shifts_a, stat_fn=lambda x, y: np.mean(x - y), n_bootstraps=1000
                             )
-                            sr_v = float(sr_ev[0] - clean_ev_r_neu[p_idx])
-                            sr_a = float(sr_ea[0] - clean_ea_r_neu[p_idx])
+                            try:
+                                _, al_p_val_a = stats.ttest_rel(aligned_matched_shifts_a, aligned_random_shifts_a)
+                            except Exception:
+                                al_p_val_a = 1.0
+                        else:
+                            al_dz_a, al_ci_low_a, al_ci_high_a, al_p_val_a = 0.0, 0.0, 0.0, 1.0
 
-                    matched_shifts_v.append(m_sv)
-                    matched_shifts_a.append(m_sa)
-                    random_shifts_v.append(r_sv)
-                    random_shifts_a.append(r_sa)
-                    self_self_shifts_v.append(ss_v)
-                    self_self_shifts_a.append(ss_a)
-                    reader_reader_shifts_v.append(rr_v)
-                    reader_reader_shifts_a.append(rr_a)
-                    self_reader_shifts_v.append(sr_v)
-                    self_reader_shifts_a.append(sr_a)
+                        # Secondary raw signed means
+                        mean_m_v = float(np.mean(matched_shifts_v))
+                        mean_m_a = float(np.mean(matched_shifts_a))
+                        mean_rnd_v = float(np.mean(random_shifts_v))
+                        mean_rnd_a = float(np.mean(random_shifts_a))
+                        mean_ss_v = float(np.mean(self_self_shifts_v))
+                        mean_ss_a = float(np.mean(self_self_shifts_a))
+                        mean_rr_v = float(np.mean(reader_reader_shifts_v))
+                        mean_rr_a = float(np.mean(reader_reader_shifts_a))
+                        mean_sr_v = float(np.mean(self_reader_shifts_v))
+                        mean_sr_a = float(np.mean(self_reader_shifts_a))
 
-                    # Direction alignment for this pair
-                    emo_name = str(
-                        merged.loc[p_idx, "target_emotion_aff"]
-                        if "target_emotion_aff" in merged.columns
-                        else (
-                            merged.loc[p_idx, "target_emotion"]
-                            if "target_emotion" in merged.columns
-                            else merged.loc[p_idx, "emotion_aff"]
+                        spec_v = mean_m_v - mean_rnd_v
+                        spec_a = mean_m_a - mean_rnd_a
+
+                        if not is_zero_alpha and len(matched_shifts_v) > 2:
+                            dz_v = compute_paired_cohen_dz(matched_shifts_v, random_shifts_v, ddof=1)
+                            dz_a = compute_paired_cohen_dz(matched_shifts_a, random_shifts_a, ddof=1)
+                            ci_low_v, ci_high_v = compute_bivariate_bootstrap_ci(
+                                matched_shifts_v, random_shifts_v, stat_fn=lambda x, y: np.mean(x - y), n_bootstraps=1000
+                            )
+                            ci_low_a, ci_high_a = compute_bivariate_bootstrap_ci(
+                                matched_shifts_a, random_shifts_a, stat_fn=lambda x, y: np.mean(x - y), n_bootstraps=1000
+                            )
+                            try:
+                                _, p_val_v = stats.ttest_rel(matched_shifts_v, random_shifts_v)
+                                _, p_val_a = stats.ttest_rel(matched_shifts_a, random_shifts_a)
+                            except Exception:
+                                p_val_v, p_val_a = 1.0, 1.0
+                        else:
+                            dz_v, dz_a = 0.0, 0.0
+                            ci_low_v, ci_high_v = 0.0, 0.0
+                            ci_low_a, ci_high_a = 0.0, 0.0
+                            p_val_v, p_val_a = 1.0, 1.0
+
+                        e4_patching_records.append(
+                            {
+                                "layer": l,
+                                "relative_depth": rel_d,
+                                "alpha": alpha,
+                                # Primary: Direction-aligned effects
+                                "aligned_matched_shift_V": mean_al_m_v,
+                                "aligned_matched_shift_A": mean_al_m_a,
+                                "aligned_random_shift_V": mean_al_rnd_v,
+                                "aligned_random_shift_A": mean_al_rnd_a,
+                                "aligned_self_self_shift_V": mean_al_ss_v,
+                                "aligned_self_self_shift_A": mean_al_ss_a,
+                                "aligned_reader_reader_shift_V": mean_al_rr_v,
+                                "aligned_reader_reader_shift_A": mean_al_rr_a,
+                                "aligned_specificity_V": al_spec_v,
+                                "aligned_specificity_A": al_spec_a,
+                                "aligned_cohen_dz_V": al_dz_v,
+                                "aligned_cohen_dz_A": al_dz_a,
+                                "aligned_ci_95_low_V": al_ci_low_v,
+                                "aligned_ci_95_high_V": al_ci_high_v,
+                                "aligned_ci_95_low_A": al_ci_low_a,
+                                "aligned_ci_95_high_A": al_ci_high_a,
+                                "aligned_p_val_V": al_p_val_v,
+                                "aligned_p_val_A": al_p_val_a,
+                                "transfer_ratio_V": transfer_ratio_v,
+                                "transfer_ratio_A": transfer_ratio_a,
+                                # Secondary: Raw signed shifts
+                                "matched_shift_V": mean_m_v,
+                                "matched_shift_A": mean_m_a,
+                                "random_shift_V": mean_rnd_v,
+                                "random_shift_A": mean_rnd_a,
+                                "self_self_shift_V": mean_ss_v,
+                                "self_self_shift_A": mean_ss_a,
+                                "reader_reader_shift_V": mean_rr_v,
+                                "reader_reader_shift_A": mean_rr_a,
+                                "self_reader_shift_V": mean_sr_v,
+                                "self_reader_shift_A": mean_sr_a,
+                                "specificity_V": spec_v,
+                                "specificity_A": spec_a,
+                                "cohen_dz_V": dz_v,
+                                "cohen_dz_A": dz_a,
+                                "ci_95_low_V": ci_low_v,
+                                "ci_95_high_V": ci_high_v,
+                                "ci_95_low_A": ci_low_a,
+                                "ci_95_high_A": ci_high_a,
+                                "p_val_V": p_val_v,
+                                "p_val_A": p_val_a,
+                            }
                         )
-                    ).lower()
-                    sign_v = EXPECTED_DIRECTION.get(emo_name, {}).get("V")
-                    sign_a = EXPECTED_DIRECTION.get(emo_name, {}).get("A")
 
-                    aligned_m_sv = sign_v * m_sv if sign_v is not None else np.nan
-                    aligned_r_sv = sign_v * r_sv if sign_v is not None else np.nan
-                    aligned_ss_v = sign_v * ss_v if sign_v is not None else np.nan
-                    aligned_rr_v = sign_v * rr_v if sign_v is not None else np.nan
+                        # Incremental disk save per condition
+                        pd.DataFrame(e4_patching_records).sort_values(["layer", "alpha"]).to_csv(e4_csv_path, index=False)
+                        pd.DataFrame(e4_pair_records).to_csv(e4_pair_csv_path, index=False)
+                        if torch.cuda.is_available():
+                            torch.cuda.empty_cache()
 
-                    aligned_m_sa = sign_a * m_sa if sign_a is not None else np.nan
-                    aligned_r_sa = sign_a * r_sa if sign_a is not None else np.nan
-                    aligned_ss_a = sign_a * ss_a if sign_a is not None else np.nan
-                    aligned_rr_a = sign_a * rr_a if sign_a is not None else np.nan
+                        pbar_cond.update(1)
+                        pbar_cond.set_postfix({"layer": l, "alpha": alpha})
 
-                    if sign_v is not None:
-                        aligned_matched_shifts_v.append(aligned_m_sv)
-                        aligned_random_shifts_v.append(aligned_r_sv)
-                        aligned_self_self_shifts_v.append(aligned_ss_v)
-                        aligned_reader_reader_shifts_v.append(aligned_rr_v)
-
-                    if sign_a is not None:
-                        aligned_matched_shifts_a.append(aligned_m_sa)
-                        aligned_random_shifts_a.append(aligned_r_sa)
-                        aligned_self_self_shifts_a.append(aligned_ss_a)
-                        aligned_reader_reader_shifts_a.append(aligned_rr_a)
-
-                    e4_pair_records.append(
-                        {
-                            "layer": l,
-                            "alpha": alpha,
-                            "pair_id": p_id,
-                            "emotion": emo_name,
-                            "sign_V": sign_v,
-                            "sign_A": sign_a,
-                            # Primary: target direction aligned
-                            "aligned_matched_shift_V": aligned_m_sv,
-                            "aligned_matched_shift_A": aligned_m_sa,
-                            "aligned_random_shift_V": aligned_r_sv,
-                            "aligned_random_shift_A": aligned_r_sa,
-                            "aligned_self_self_shift_V": aligned_ss_v,
-                            "aligned_self_self_shift_A": aligned_ss_a,
-                            "aligned_reader_reader_shift_V": aligned_rr_v,
-                            "aligned_reader_reader_shift_A": aligned_rr_a,
-                            "aligned_specificity_V": (aligned_m_sv - aligned_r_sv) if not np.isnan(aligned_m_sv) else np.nan,
-                            "aligned_specificity_A": (aligned_m_sa - aligned_r_sa) if not np.isnan(aligned_m_sa) else np.nan,
-                            # Secondary: raw signed
-                            "matched_shift_V": m_sv,
-                            "matched_shift_A": m_sa,
-                            "random_shift_V": r_sv,
-                            "random_shift_A": r_sa,
-                            "self_self_shift_V": ss_v,
-                            "self_self_shift_A": ss_a,
-                            "reader_reader_shift_V": rr_v,
-                            "reader_reader_shift_A": rr_a,
-                            "self_reader_shift_V": sr_v,
-                            "self_reader_shift_A": sr_a,
-                            "specificity_V": m_sv - r_sv,
-                            "specificity_A": m_sa - r_sa,
-                        }
-                    )
-
-                # Primary aligned means
-                mean_al_m_v = float(np.mean(aligned_matched_shifts_v)) if aligned_matched_shifts_v else 0.0
-                mean_al_m_a = float(np.mean(aligned_matched_shifts_a)) if aligned_matched_shifts_a else 0.0
-                mean_al_rnd_v = float(np.mean(aligned_random_shifts_v)) if aligned_random_shifts_v else 0.0
-                mean_al_rnd_a = float(np.mean(aligned_random_shifts_a)) if aligned_random_shifts_a else 0.0
-                mean_al_ss_v = float(np.mean(aligned_self_self_shifts_v)) if aligned_self_self_shifts_v else 0.0
-                mean_al_ss_a = float(np.mean(aligned_self_self_shifts_a)) if aligned_self_self_shifts_a else 0.0
-                mean_al_rr_v = float(np.mean(aligned_reader_reader_shifts_v)) if aligned_reader_reader_shifts_v else 0.0
-                mean_al_rr_a = float(np.mean(aligned_reader_reader_shifts_a)) if aligned_reader_reader_shifts_a else 0.0
-
-                al_spec_v = mean_al_m_v - mean_al_rnd_v
-                al_spec_a = mean_al_m_a - mean_al_rnd_a
-
-                # Transfer Ratio from aligned shifts with denominator stability guard
-                if abs(mean_al_ss_v) >= 0.05:
-                    transfer_ratio_v = float(mean_al_m_v / (mean_al_ss_v + 1e-6))
-                else:
-                    transfer_ratio_v = np.nan
-
-                if abs(mean_al_ss_a) >= 0.05:
-                    transfer_ratio_a = float(mean_al_m_a / (mean_al_ss_a + 1e-6))
-                else:
-                    transfer_ratio_a = np.nan
-
-                # Primary stats on aligned shifts
-                if not is_zero_alpha and len(aligned_matched_shifts_v) > 2:
-                    al_dz_v = compute_paired_cohen_dz(aligned_matched_shifts_v, aligned_random_shifts_v, ddof=1)
-                    al_ci_low_v, al_ci_high_v = compute_bivariate_bootstrap_ci(
-                        aligned_matched_shifts_v, aligned_random_shifts_v, stat_fn=lambda x, y: np.mean(x - y), n_bootstraps=1000
-                    )
-                    try:
-                        _, al_p_val_v = stats.ttest_rel(aligned_matched_shifts_v, aligned_random_shifts_v)
-                    except Exception:
-                        al_p_val_v = 1.0
-                else:
-                    al_dz_v, al_ci_low_v, al_ci_high_v, al_p_val_v = 0.0, 0.0, 0.0, 1.0
-
-                if not is_zero_alpha and len(aligned_matched_shifts_a) > 2:
-                    al_dz_a = compute_paired_cohen_dz(aligned_matched_shifts_a, aligned_random_shifts_a, ddof=1)
-                    al_ci_low_a, al_ci_high_a = compute_bivariate_bootstrap_ci(
-                        aligned_matched_shifts_a, aligned_random_shifts_a, stat_fn=lambda x, y: np.mean(x - y), n_bootstraps=1000
-                    )
-                    try:
-                        _, al_p_val_a = stats.ttest_rel(aligned_matched_shifts_a, aligned_random_shifts_a)
-                    except Exception:
-                        al_p_val_a = 1.0
-                else:
-                    al_dz_a, al_ci_low_a, al_ci_high_a, al_p_val_a = 0.0, 0.0, 0.0, 1.0
-
-                # Secondary raw signed means
-                mean_m_v = float(np.mean(matched_shifts_v))
-                mean_m_a = float(np.mean(matched_shifts_a))
-                mean_rnd_v = float(np.mean(random_shifts_v))
-                mean_rnd_a = float(np.mean(random_shifts_a))
-                mean_ss_v = float(np.mean(self_self_shifts_v))
-                mean_ss_a = float(np.mean(self_self_shifts_a))
-                mean_rr_v = float(np.mean(reader_reader_shifts_v))
-                mean_rr_a = float(np.mean(reader_reader_shifts_a))
-                mean_sr_v = float(np.mean(self_reader_shifts_v))
-                mean_sr_a = float(np.mean(self_reader_shifts_a))
-
-                spec_v = mean_m_v - mean_rnd_v
-                spec_a = mean_m_a - mean_rnd_a
-
-                if not is_zero_alpha and len(matched_shifts_v) > 2:
-                    dz_v = compute_paired_cohen_dz(matched_shifts_v, random_shifts_v, ddof=1)
-                    dz_a = compute_paired_cohen_dz(matched_shifts_a, random_shifts_a, ddof=1)
-                    ci_low_v, ci_high_v = compute_bivariate_bootstrap_ci(
-                        matched_shifts_v, random_shifts_v, stat_fn=lambda x, y: np.mean(x - y), n_bootstraps=1000
-                    )
-                    ci_low_a, ci_high_a = compute_bivariate_bootstrap_ci(
-                        matched_shifts_a, random_shifts_a, stat_fn=lambda x, y: np.mean(x - y), n_bootstraps=1000
-                    )
-                    try:
-                        _, p_val_v = stats.ttest_rel(matched_shifts_v, random_shifts_v)
-                        _, p_val_a = stats.ttest_rel(matched_shifts_a, random_shifts_a)
-                    except Exception:
-                        p_val_v, p_val_a = 1.0, 1.0
-                else:
-                    dz_v, dz_a = 0.0, 0.0
-                    ci_low_v, ci_high_v = 0.0, 0.0
-                    ci_low_a, ci_high_a = 0.0, 0.0
-                    p_val_v, p_val_a = 1.0, 1.0
-
-                e4_patching_records.append(
-                    {
-                        "layer": l,
-                        "relative_depth": rel_d,
-                        "alpha": alpha,
-                        # Primary: Direction-aligned effects
-                        "aligned_matched_shift_V": mean_al_m_v,
-                        "aligned_matched_shift_A": mean_al_m_a,
-                        "aligned_random_shift_V": mean_al_rnd_v,
-                        "aligned_random_shift_A": mean_al_rnd_a,
-                        "aligned_self_self_shift_V": mean_al_ss_v,
-                        "aligned_self_self_shift_A": mean_al_ss_a,
-                        "aligned_reader_reader_shift_V": mean_al_rr_v,
-                        "aligned_reader_reader_shift_A": mean_al_rr_a,
-                        "aligned_specificity_V": al_spec_v,
-                        "aligned_specificity_A": al_spec_a,
-                        "aligned_cohen_dz_V": al_dz_v,
-                        "aligned_cohen_dz_A": al_dz_a,
-                        "aligned_ci_95_low_V": al_ci_low_v,
-                        "aligned_ci_95_high_V": al_ci_high_v,
-                        "aligned_ci_95_low_A": al_ci_low_a,
-                        "aligned_ci_95_high_A": al_ci_high_a,
-                        "aligned_p_val_V": al_p_val_v,
-                        "aligned_p_val_A": al_p_val_a,
-                        "transfer_ratio_V": transfer_ratio_v,
-                        "transfer_ratio_A": transfer_ratio_a,
-                        # Secondary: Raw signed shifts
-                        "matched_shift_V": mean_m_v,
-                        "matched_shift_A": mean_m_a,
-                        "random_shift_V": mean_rnd_v,
-                        "random_shift_A": mean_rnd_a,
-                        "self_self_shift_V": mean_ss_v,
-                        "self_self_shift_A": mean_ss_a,
-                        "reader_reader_shift_V": mean_rr_v,
-                        "reader_reader_shift_A": mean_rr_a,
-                        "self_reader_shift_V": mean_sr_v,
-                        "self_reader_shift_A": mean_sr_a,
-                        "specificity_V": spec_v,
-                        "specificity_A": spec_a,
-                        "cohen_dz_V": dz_v,
-                        "cohen_dz_A": dz_a,
-                        "ci_95_low_V": ci_low_v,
-                        "ci_95_high_V": ci_high_v,
-                        "ci_95_low_A": ci_low_a,
-                        "ci_95_high_A": ci_high_a,
-                        "p_val_V": p_val_v,
-                        "p_val_A": p_val_a,
-                    }
-                )
-
-        pd.DataFrame(e4_patching_records).to_csv(e4_csv_path, index=False)
-        pd.DataFrame(e4_pair_records).to_csv(e4_pair_csv_path, index=False)
-        print(f"E4 results saved to {e4_csv_path}")
+            pd.DataFrame(e4_patching_records).sort_values(["layer", "alpha"]).to_csv(e4_csv_path, index=False)
+            pd.DataFrame(e4_pair_records).to_csv(e4_pair_csv_path, index=False)
+            print(f"E4 results saved to {e4_csv_path}", flush=True)
 
     # Save manifest
     manifest = create_run_manifest(

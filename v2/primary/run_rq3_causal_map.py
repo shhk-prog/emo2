@@ -87,6 +87,9 @@ def parse_args():
     parser.add_argument(
         "--max-samples", type=int, default=None, help="Limit number of samples"
     )
+    parser.add_argument(
+        "--force", action="store_true", help="Force recomputation even if valid cached results exist"
+    )
     add_model_selection_args(parser)
     return parser.parse_args()
 
@@ -223,10 +226,10 @@ def run_causal_patching_for_model(
             sample_pids.append(p_id)
 
             # Clean run (ベースライン出力期待値: 81候補 Joint Sequence-Likelihood Protocol)
-            _, probs_clean = compute_sequence_likelihoods_for_candidates(
+            log_clean, probs_clean = compute_sequence_likelihoods_for_candidates(
                 model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device
             )
-            ev_clean, ea_clean = compute_expected_va(probs_clean, candidates)
+            ev_clean, ea_clean = compute_expected_va(log_clean, candidates)
             clean_ev_list.append(ev_clean)
             clean_ea_list.append(ea_clean)
 
@@ -240,7 +243,7 @@ def run_causal_patching_for_model(
                         key=f"layer_{l}",
                     )
                 _ = model(**enc)
-                caps = hook_mgr.get_captured()
+                caps = hook_mgr.get_captured() if hasattr(hook_mgr, "get_captured") else getattr(hook_mgr, "captured_activations", {})
                 for l in range(actual_layers):
                     act = caps[f"layer_{l}"].squeeze(0).squeeze(0).cpu().to(torch.float32).numpy()
                     layer_activations[l].append(act)
@@ -322,10 +325,10 @@ def run_causal_patching_for_model(
                         hook_point=HookPoint.POST_MLP_RESID,
                         mode="inject",
                     )
-                    _, probs_v = compute_sequence_likelihoods_for_candidates(
+                    log_v, probs_v = compute_sequence_likelihoods_for_candidates(
                         model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device
                     )
-                    ev_v, _ = compute_expected_va(probs_v, candidates)
+                    ev_v, _ = compute_expected_va(log_v, candidates)
                     cv, _ = compute_causal_leverage(ev_v, ev_clean)
 
                 # 3-2. Primary: 情動特異的介入 (d_A 加算注入 -> C_A 測定)
@@ -339,10 +342,10 @@ def run_causal_patching_for_model(
                         hook_point=HookPoint.POST_MLP_RESID,
                         mode="inject",
                     )
-                    _, probs_a = compute_sequence_likelihoods_for_candidates(
+                    log_a, probs_a = compute_sequence_likelihoods_for_candidates(
                         model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device
                     )
-                    _, ea_a = compute_expected_va(probs_a, candidates)
+                    _, ea_a = compute_expected_va(log_a, candidates)
                     ca, _ = compute_causal_leverage(ea_a, ea_clean)
 
                 # 3-3. Secondary: 非特異的ゼロアブレーション統制
@@ -353,10 +356,10 @@ def run_causal_patching_for_model(
                         token_indices=patch_pos,
                         hook_point=HookPoint.POST_MLP_RESID,
                     )
-                    _, probs_zero = compute_sequence_likelihoods_for_candidates(
+                    log_zero, probs_zero = compute_sequence_likelihoods_for_candidates(
                         model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device
                     )
-                    ev_z, ea_z = compute_expected_va(probs_zero, candidates)
+                    ev_z, ea_z = compute_expected_va(log_zero, candidates)
                     cv_z, _ = compute_causal_leverage(ev_z, ev_clean)
                     ca_z, _ = compute_causal_leverage(ea_z, ea_clean)
 
@@ -448,7 +451,7 @@ def main():
             "seed": v2_config.get("seed", 42),
         }
 
-        if out_path.exists() and not args.dry_run:
+        if not args.force and out_path.exists() and not args.dry_run:
             try:
                 with open(out_path, "r", encoding="utf-8") as f:
                     cached = json.load(f)

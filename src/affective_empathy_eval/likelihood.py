@@ -47,19 +47,24 @@ def build_vad_candidates() -> list[dict[str, Any]]:
 
 
 def compute_expected_va(
-    log_probs: torch.Tensor | np.ndarray,
+    log_scores: torch.Tensor | np.ndarray,
     candidates: list[dict[str, Any]] | None = None,
 ) -> tuple[float, float]:
     """
-    81候補の対数確率から Softmax 確率分布を求め、Valence および Arousal の期待値を算出
+    未正規化の対数尤度（log-scores / unnormalized log-likelihood）から Softmax 確率分布を一度だけ求め、
+    Valence および Arousal の期待値を算出する（log score 専用）。
+
+    注意: すでに Softmax 適用済みの確率分布を渡してはならない（二重 Softmax により一様分布に平滑化される）。
+    確率分布から期待値を求める場合は compute_expected_va_from_probs を使用すること。
     """
     if candidates is None:
         candidates = build_va_candidates()
 
-    if isinstance(log_probs, torch.Tensor):
-        probs = F.softmax(log_probs, dim=-1).cpu().numpy()
+    if isinstance(log_scores, torch.Tensor):
+        probs = F.softmax(log_scores, dim=-1).cpu().numpy()
     else:
-        probs = np.exp(log_probs - np.max(log_probs))
+        log_scores = np.asarray(log_scores, dtype=np.float64)
+        probs = np.exp(log_scores - np.max(log_scores))
         probs = probs / np.sum(probs)
 
     v_values = np.array([c["valence"] for c in candidates], dtype=np.float64)
@@ -68,6 +73,33 @@ def compute_expected_va(
     expected_v = float(np.sum(probs * v_values))
     expected_a = float(np.sum(probs * a_values))
     return expected_v, expected_a
+
+
+def compute_expected_va_from_probs(
+    probs: torch.Tensor | np.ndarray | list[float],
+    candidates: list[dict[str, Any]] | None = None,
+) -> tuple[float, float]:
+    """
+    すでに正規化された確率分布（sum(probs) ≈ 1.0）を受け取り、Valence および Arousal の期待値を直接算出する。
+
+    確率和が 1.0 でない場合は ValueError を送出する。
+    """
+    if candidates is None:
+        candidates = build_va_candidates()
+
+    if isinstance(probs, torch.Tensor):
+        probs = probs.detach().cpu().numpy()
+    probs = np.asarray(probs, dtype=np.float64)
+
+    if not np.isclose(float(probs.sum()), 1.0, atol=1e-5):
+        raise ValueError(f"probs must sum to 1.0 (got {probs.sum():.6f}).")
+
+    vals = np.asarray(
+        [[c["valence"], c["arousal"]] for c in candidates],
+        dtype=np.float64,
+    )
+    expected = probs @ vals
+    return float(expected[0]), float(expected[1])
 
 
 def compute_marginal_distributions(

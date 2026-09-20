@@ -160,7 +160,10 @@ def extract_single_layer_hidden_states(
             )
             all_reps.append(vec)
 
-    return np.array(all_reps)
+    arr = np.array(all_reps)
+    arr = np.nan_to_num(arr, nan=0.0, posinf=1e4, neginf=-1e4)
+    arr = np.clip(arr, -1e4, 1e4)
+    return arr.astype(np.float32)
 
 
 
@@ -175,6 +178,8 @@ def evaluate_probe_accuracy(
     Pair-aware cross-validated linear probing evaluation.
     If groups (pair_id) are provided, uses StratifiedGroupKFold to strictly prevent pair leakage.
     """
+    X = np.nan_to_num(X, nan=0.0, posinf=1e4, neginf=-1e4)
+    X = np.clip(X, -1e4, 1e4).astype(np.float32)
     if groups is not None and len(np.unique(groups)) >= cv:
         splitter = StratifiedGroupKFold(n_splits=cv, shuffle=True, random_state=seed)
         split_gen = splitter.split(X, y, groups=groups)
@@ -242,6 +247,11 @@ def main():
         help="Mock dry-run mode for quick pipeline smoke testing",
     )
     parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force recomputation even if output files already exist",
+    )
+    parser.add_argument(
         "--task-type",
         type=str,
         default="reader",
@@ -271,6 +281,21 @@ def main():
         or "chat" in args.model_id.lower()
         or "it" in args.model_id.lower()
     )
+
+    # Early skip if already completed and valid
+    manifest_path = os.path.join(model_dir, "manifest.json")
+    res_path = os.path.join(model_dir, "phase_b_semantic_controls.csv")
+    if not args.force and not args.dry_run and os.path.exists(manifest_path) and os.path.exists(res_path):
+        try:
+            df_check = pd.read_csv(res_path)
+            if len(df_check) > 0:
+                print(
+                    f"[SKIP] Validated Phase B results found in {model_dir}. "
+                    f"Skipping computation for {args.model_prefix}. Use --force to rerun."
+                )
+                return
+        except Exception as e:
+            print(f"Warning: Corrupt existing Phase B results in {model_dir} ({e}). Rerunning.")
 
     data_file = Path(args.data_path)
     if not data_file.exists():

@@ -50,6 +50,13 @@ def safe_corr(x, y):
     return (float(pr), float(pp)), (float(sr), float(sp))
 
 
+TASK_PREFIX = {
+    "writer": "w",
+    "reader": "r",
+    "self": "s",
+}
+
+
 def analyze_file(csv_path):
     df = pd.read_csv(csv_path)
     model_name = Path(csv_path).stem.replace("_3way_vad", "")
@@ -58,9 +65,10 @@ def analyze_file(csv_path):
     rows = []
     # 1. Task x Dimension Evaluation
     for t_key, t_label, gt_prefix in TASKS:
+        col_prefix = TASK_PREFIX.get(t_key, t_key)
         for d_key, d_label in DIMS:
-            ev_col = f"{t_key}_e{d_key}"
-            gv_col = f"{t_key}_g{d_key}"
+            ev_col = f"{col_prefix}_e{d_key}" if f"{col_prefix}_e{d_key}" in df.columns else f"{t_key}_e{d_key}"
+            gv_col = f"{col_prefix}_g{d_key}" if f"{col_prefix}_g{d_key}" in df.columns else f"{t_key}_g{d_key}"
             gt_col = f"{gt_prefix}_{d_key}"
 
             if (
@@ -77,8 +85,13 @@ def analyze_file(csv_path):
                 df[gv_col].values, df[gt_col].values
             )
 
-            mae_cont = mean_absolute_error(df[gt_col], df[ev_col])
-            rmse_cont = root_mean_squared_error(df[gt_col], df[ev_col])
+            mask = ~np.isnan(df[ev_col].values) & ~np.isnan(df[gt_col].values)
+            if np.sum(mask) >= 1:
+                mae_cont = float(mean_absolute_error(df[gt_col].values[mask], df[ev_col].values[mask]))
+                rmse_cont = float(root_mean_squared_error(df[gt_col].values[mask], df[ev_col].values[mask]))
+            else:
+                mae_cont = np.nan
+                rmse_cont = np.nan
 
             rows.append(
                 {
@@ -95,10 +108,10 @@ def analyze_file(csv_path):
                     "p_greedy": pp_grd,
                     "mae": mae_cont,
                     "rmse": rmse_cont,
-                    "pred_mean": float(df[ev_col].mean()),
-                    "pred_std": float(df[ev_col].std()),
-                    "human_mean": float(df[gt_col].mean()),
-                    "human_std": float(df[gt_col].std()),
+                    "pred_mean": float(np.nanmean(df[ev_col].values)),
+                    "pred_std": float(np.nanstd(df[ev_col].values)),
+                    "human_mean": float(np.nanmean(df[gt_col].values)),
+                    "human_std": float(np.nanstd(df[gt_col].values)),
                 }
             )
 
@@ -109,6 +122,7 @@ def analyze_file(csv_path):
         s_col = f"s_e{d_key}"
         if r_col in df.columns and s_col in df.columns:
             (pr, pp), (sr, sp) = safe_corr(df[r_col].values, df[s_col].values)
+            diff = df[s_col].values - df[r_col].values
             coupling_rows.append(
                 {
                     "model": model_name,
@@ -117,8 +131,8 @@ def analyze_file(csv_path):
                     "r_RS": pr,
                     "p_RS": pp,
                     "rho_RS": sr,
-                    "delta_mean": float((df[s_col] - df[r_col]).mean()),
-                    "delta_std": float((df[s_col] - df[r_col]).std()),
+                    "delta_mean": float(np.nanmean(diff)),
+                    "delta_std": float(np.nanstd(diff)),
                 }
             )
 

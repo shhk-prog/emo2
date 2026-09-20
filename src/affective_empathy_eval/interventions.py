@@ -6,6 +6,60 @@ from typing import Any
 import numpy as np
 
 
+class ConditionalDirections(tuple):
+    """
+    Tuple of (d_v, d_a) that also supports dictionary-style and attribute access.
+    Enables:
+      - d_v, d_a = extract_conditional_directions(...)
+      - res["direction_v"], res["direction_a"]
+      - res["d_v"], res["d_a"]
+      - res.direction_v, res.direction_a
+    """
+    def __new__(cls, d_v: np.ndarray, d_a: np.ndarray):
+        return super().__new__(cls, (d_v, d_a))
+
+    @property
+    def direction_v(self) -> np.ndarray:
+        return self[0]
+
+    @property
+    def direction_a(self) -> np.ndarray:
+        return self[1]
+
+    @property
+    def d_v(self) -> np.ndarray:
+        return self[0]
+
+    @property
+    def d_a(self) -> np.ndarray:
+        return self[1]
+
+    def __getitem__(self, item):
+        if isinstance(item, str):
+            key = item.lower()
+            if key in ("direction_v", "d_v", "v"):
+                return self[0]
+            elif key in ("direction_a", "d_a", "a"):
+                return self[1]
+            raise KeyError(f"Invalid key '{item}'. Available keys: 'direction_v', 'direction_a'")
+        return super().__getitem__(item)
+
+    def get(self, item, default=None):
+        try:
+            return self[item]
+        except KeyError:
+            return default
+
+    def keys(self):
+        return ["direction_v", "direction_a"]
+
+    def values(self):
+        return [self[0], self[1]]
+
+    def items(self):
+        return [("direction_v", self[0]), ("direction_a", self[1])]
+
+
 def extract_conditional_directions(
     H: np.ndarray,
     V: np.ndarray,
@@ -13,7 +67,7 @@ def extract_conditional_directions(
     method: str = "lstsq",
     alpha: float = 1.0,
     **kwargs,
-) -> tuple[np.ndarray, np.ndarray]:
+) -> ConditionalDirections:
     """
     外部刺激情動ラベル (V, A) または内部予測値を用いた重回帰（最小二乗または Ridge）により、
     他軸を条件付き統制した Valence 方向 d_V と Arousal 方向 d_A を抽出
@@ -42,7 +96,7 @@ def extract_conditional_directions(
     d_v = beta_v / (norm_v + 1e-12)
     d_a = beta_a / (norm_a + 1e-12)
 
-    return d_v, d_a
+    return ConditionalDirections(d_v, d_a)
 
 
 def compute_orthonormal_subspace(

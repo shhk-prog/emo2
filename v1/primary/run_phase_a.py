@@ -150,10 +150,13 @@ def extract_hidden_states_batched(
                 batch_last_tokens.append(vec)
             all_layer_reps[block_idx].append(np.array(batch_last_tokens))
 
-    final_reps = {
-        layer: np.concatenate(batches, axis=0)
-        for layer, batches in all_layer_reps.items()
-    }
+    final_reps = {}
+    for layer, batches in all_layer_reps.items():
+        arr = np.concatenate(batches, axis=0)
+        # Sanitize non-finite/extreme values (e.g., for Gemma 3 or unaligned base models)
+        arr = np.nan_to_num(arr, nan=0.0, posinf=1e4, neginf=-1e4)
+        arr = np.clip(arr, -1e4, 1e4)
+        final_reps[layer] = arr.astype(np.float32)
     return final_reps
 
 
@@ -167,6 +170,9 @@ def evaluate_regression_probe(
     n_components: int = 50,
     seed: int = 42,
 ) -> Dict[str, float]:
+    X = np.nan_to_num(X, nan=0.0, posinf=1e4, neginf=-1e4)
+    X = np.clip(X, -1e4, 1e4).astype(np.float32)
+
     if len(X) < cv or np.isnan(y).any():
         return {"r2": 0.0, "pearson_r": 0.0, "spearman_rho": 0.0, "mse": 0.0}
 
@@ -221,6 +227,9 @@ def evaluate_classification_probe(
     cv: int = 5,
     seed: int = 42,
 ) -> Dict[str, float]:
+    X = np.nan_to_num(X, nan=0.0, posinf=1e4, neginf=-1e4)
+    X = np.clip(X, -1e4, 1e4).astype(np.float32)
+
     if group_ids is not None:
         group_ids = np.array([str(g) for g in group_ids])
         unique_groups = np.unique(group_ids)
@@ -231,21 +240,25 @@ def evaluate_classification_probe(
 
     le = LabelEncoder()
     y_enc = le.fit_transform(y)
-    unique_classes = np.unique(y_enc)
-    num_classes = len(unique_classes)
+    num_classes = len(le.classes_)
 
-    if num_classes < 2 or len(X) < cv:
-        return {"roc_auc": 0.5, "balanced_acc": 0.5, "f1_macro": 0.0}
+    if num_classes < 2:
+        return {"roc_auc": float("nan"), "balanced_acc": float("nan"), "f1_macro": float("nan")}
 
-    class_counts = [np.sum(y_enc == c) for c in unique_classes]
-    actual_cv = min(cv, min(class_counts))
-    if actual_cv < 2:
-        return {"roc_auc": 0.5, "balanced_acc": 0.5, "f1_macro": 0.0}
+    if group_ids is not None and len(unique_groups) >= cv:
+        n_splits = cv
+        actual_cv = cv
+    elif group_ids is not None and len(unique_groups) >= 2:
+        n_splits = len(unique_groups)
+        actual_cv = n_splits
+    else:
+        min_class_count = np.min(np.bincount(y_enc))
+        actual_cv = min(cv, min_class_count)
+        if actual_cv < 2:
+            return {"roc_auc": float("nan"), "balanced_acc": float("nan"), "f1_macro": float("nan")}
 
     if group_ids is not None:
-        n_splits = min(actual_cv, len(unique_groups))
-        if n_splits < 2:
-            return {"roc_auc": float("nan"), "balanced_acc": float("nan"), "f1_macro": float("nan")}
+        from sklearn.model_selection import StratifiedGroupKFold
         sgkf = StratifiedGroupKFold(
             n_splits=n_splits, shuffle=True, random_state=seed
         )
@@ -283,11 +296,7 @@ def evaluate_classification_probe(
 
         probs = clf.predict_proba(X_val_scaled)
         if is_binary:
-            if len(clf.classes_) == 2:
-                col_idx = 1 if clf.classes_[1] == 1 else 0
-                y_probs[val_idx] = probs[:, col_idx]
-            else:
-                y_probs[val_idx] = 1.0 if clf.classes_[0] == 1 else 0.0
+            y_probs[val_idx] = probs[:, 1]
         else:
             for c_idx, c in enumerate(clf.classes_):
                 y_probs[val_idx, c] = probs[:, c_idx]
@@ -320,6 +329,8 @@ def evaluate_cross_decoding_and_geometry(
     cv: int = 5,
     seed: int = 42,
 ) -> Dict[str, Any]:
+    H_R = np.clip(np.nan_to_num(H_R, nan=0.0, posinf=1e4, neginf=-1e4), -1e4, 1e4).astype(np.float32)
+    H_S = np.clip(np.nan_to_num(H_S, nan=0.0, posinf=1e4, neginf=-1e4), -1e4, 1e4).astype(np.float32)
     n_samples = len(y)
     if group_ids is not None:
         group_ids = np.array([str(g) for g in group_ids])
@@ -459,6 +470,11 @@ def main():
         action="store_true",
         help="Mock dry-run mode for quick pipeline smoke testing",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force recomputation even if output files already exist",
+    )
     add_model_selection_args(parser)
     args = parser.parse_args()
     args.model_id, args.model_prefix = resolve_single_model_from_args(args)
@@ -476,6 +492,23 @@ def main():
         or "chat" in args.model_id.lower()
         or "it" in args.model_id.lower()
     )
+
+    # Early skip if already completed and valid
+    manifest_path = os.path.join(model_dir, "manifest.json")
+    e1_path = os.path.join(model_dir, "e1_emobank_decodability.csv")
+    e2_path = os.path.join(model_dir, "e2_emobank_geometry.csv")
+    if not args.force and not args.dry_run and os.path.exists(manifest_path) and os.path.exists(e1_path) and os.path.exists(e2_path):
+        try:
+            df_check1 = pd.read_csv(e1_path)
+            df_check2 = pd.read_csv(e2_path)
+            if len(df_check1) > 0 and len(df_check2) > 0:
+                print(
+                    f"[SKIP] Validated Phase A results found in {model_dir}. "
+                    f"Skipping model loading & probing for {args.model_prefix}. Use --force to rerun."
+                )
+                return
+        except Exception as e:
+            print(f"Warning: Corrupt existing Phase A results in {model_dir} ({e}). Rerunning.")
 
     if args.dry_run:
         print(f"[DRY-RUN] V1 Phase A Probing for Model: {args.model_id} (Instruct={is_instruct})")

@@ -38,6 +38,10 @@ class ActivationHookManager:
             handle.remove()
         self.handles.clear()
 
+    def get_captured(self) -> Dict[str, torch.Tensor]:
+        """キャプチャされた活性化テンソルの辞書を返す"""
+        return self.captured_activations
+
     def register_capture_hook(
         self,
         layer_idx: int,

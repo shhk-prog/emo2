@@ -276,6 +276,11 @@ def main():
         action="store_true",
         help="Mock dry-run mode for quick pipeline smoke testing",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force recomputation even if output files already exist",
+    )
     add_model_selection_args(parser)
     args = parser.parse_args()
     args.model_id, args.model_prefix = resolve_single_model_from_args(args)
@@ -293,6 +298,22 @@ def main():
         or "chat" in args.model_id.lower()
         or "it" in args.model_id.lower()
     )
+
+    # Early skip if already completed and valid
+    manifest_path = os.path.join(model_dir, "manifest_e6.json")
+    lmm_path = os.path.join(model_dir, "e6_lmm_results.json")
+    if not args.force and not args.dry_run and os.path.exists(manifest_path) and os.path.exists(lmm_path):
+        try:
+            with open(lmm_path, "r", encoding="utf-8") as f:
+                cached_lmm = json.load(f)
+            if cached_lmm and ("p_value_interaction" in cached_lmm or "status" in cached_lmm):
+                print(
+                    f"[SKIP] Validated Phase C E6 results found in {model_dir}. "
+                    f"Skipping computation for {args.model_prefix}. Use --force to rerun."
+                )
+                return
+        except Exception as e:
+            print(f"Warning: Corrupt existing E6 results in {model_dir} ({e}). Rerunning.")
 
     try:
         num_layers, _ = resolve_architecture_dims(args.model_id)
@@ -605,11 +626,15 @@ def main():
             }
         )
 
+        # Incremental save
+        spec_csv_path = os.path.join(
+            model_dir, "e6_specialization_trials.csv"
+        )
+        pd.DataFrame(long_records).to_csv(spec_csv_path, index=False)
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
     df_long = pd.DataFrame(long_records)
-    spec_csv_path = os.path.join(
-        model_dir, "e6_specialization_trials.csv"
-    )
-    df_long.to_csv(spec_csv_path, index=False)
 
     stat_results = run_lmm_interaction_test(df_long)
     cell_means = df_long.groupby(["task", "site_type"])["impact"].mean()

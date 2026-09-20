@@ -80,7 +80,7 @@ class PyTorchActivationPatcher:
     Context manager to apply Activation Patching, Ablation, or Steering to a HuggingFace model
     during generation using forward hooks.
     """
-    def __init__(self, model, target_layer: int, source_tensor: np.ndarray, patch_weight: float = 1.0, position: int = -1, intervention_type: str = "patch"):
+    def __init__(self, model, target_layer: int, source_tensor=None, patch_weight: float = 1.0, position: int = -1, intervention_type: str = "patch"):
         self.model = model
         self.target_layer = target_layer
         self.source_tensor = source_tensor
@@ -104,26 +104,37 @@ class PyTorchActivationPatcher:
             
             if hidden_states.shape[1] > 1:
                 import torch
-                src = torch.tensor(self.source_tensor, device=hidden_states.device, dtype=hidden_states.dtype)
-                
-                if src.dim() == 1:
-                    src = src.unsqueeze(0).expand(hidden_states.shape[0], -1)
-                elif src.dim() == 2 and src.shape[0] != hidden_states.shape[0]:
-                    if src.shape[0] == 1:
-                        src = src.expand(hidden_states.shape[0], -1)
-                    else:
-                        raise ValueError(f"source_tensor batch size {src.shape[0]} does not match hidden_states batch size {hidden_states.shape[0]}")
-                        
                 original = hidden_states[:, self.position, :]
-                
-                if self.intervention_type == "patch":
-                    patched = (1.0 - self.patch_weight) * original + self.patch_weight * src
-                elif self.intervention_type == "add":
-                    patched = original + (self.patch_weight * src)
-                elif self.intervention_type == "replace":
-                    patched = src
+
+                if self.intervention_type in ("zero", "ablate_zero"):
+                    patched = torch.zeros_like(original)
+                elif self.intervention_type == "mean" and self.source_tensor is None:
+                    patched = torch.zeros_like(original)
                 else:
-                    raise ValueError(f"Unknown intervention_type: {self.intervention_type}")
+                    if self.source_tensor is None:
+                        raise ValueError(f"source_tensor cannot be None for intervention_type '{self.intervention_type}'")
+                    
+                    if isinstance(self.source_tensor, torch.Tensor):
+                        src = self.source_tensor.to(device=hidden_states.device, dtype=hidden_states.dtype)
+                    else:
+                        src = torch.tensor(self.source_tensor, device=hidden_states.device, dtype=hidden_states.dtype)
+                    
+                    if src.dim() == 1:
+                        src = src.unsqueeze(0).expand(hidden_states.shape[0], -1)
+                    elif src.dim() == 2 and src.shape[0] != hidden_states.shape[0]:
+                        if src.shape[0] == 1:
+                            src = src.expand(hidden_states.shape[0], -1)
+                        else:
+                            raise ValueError(f"source_tensor batch size {src.shape[0]} does not match hidden_states batch size {hidden_states.shape[0]}")
+                            
+                    if self.intervention_type == "patch":
+                        patched = (1.0 - self.patch_weight) * original + self.patch_weight * src
+                    elif self.intervention_type == "add":
+                        patched = original + (self.patch_weight * src)
+                    elif self.intervention_type in ("replace", "mean"):
+                        patched = src
+                    else:
+                        raise ValueError(f"Unknown intervention_type: {self.intervention_type}")
                 
                 new_hidden = hidden_states.clone()
                 new_hidden[:, self.position, :] = patched
@@ -140,6 +151,7 @@ class PyTorchActivationPatcher:
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.handle is not None:
             self.handle.remove()
+            self.handle = None
 
 
 # Backward-compatibility aliases

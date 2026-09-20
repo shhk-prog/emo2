@@ -90,6 +90,11 @@ def parse_args():
         default=None,
         help="Batch size for candidate likelihood evaluation (defaults to sub-script default)",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force recomputation in sub-stages even if valid cached results already exist",
+    )
     return parser.parse_args()
 
 
@@ -134,6 +139,8 @@ def run_v2(args, python_bin: str):
         common_flags.extend(["--instruct-model", args.instruct_model])
     if args.max_samples:
         common_flags.extend(["--max-samples", str(args.max_samples)])
+    if getattr(args, "force", False):
+        common_flags.append("--force")
 
     # 1. RQ1 & RQ2: Cross-decoding & Geometry
     run_command([python_bin, "v2/primary/run_rq1_rq2_cross_decoding.py"] + common_flags)
@@ -146,6 +153,8 @@ def run_v2(args, python_bin: str):
         conf_flags = []
         if args.dry_run:
             conf_flags.append("--dry-run")
+        if getattr(args, "force", False):
+            conf_flags.append("--force")
         run_command([python_bin, "v2/primary/run_confirmatory_analysis.py"] + conf_flags)
 
 
@@ -184,6 +193,8 @@ def run_v3(args, python_bin: str):
         common_flags.extend(["--base-model", args.base_model])
     if args.instruct_model:
         common_flags.extend(["--instruct-model", args.instruct_model])
+    if getattr(args, "force", False):
+        common_flags.append("--force")
 
     # 1. RQ1 State Induction & Go/No-Go Gate
     cmd_rq1 = [python_bin, "v3/primary/run_rq1_state_induction.py"] + common_flags
@@ -244,6 +255,8 @@ def run_v1(args, python_bin: str):
                 common_flags.append("--dry-run")
             if args.max_samples:
                 common_flags.extend(["--limit", str(args.max_samples)])
+            if getattr(args, "force", False):
+                common_flags.append("--force")
 
             # 1. Phase A: Probing & Geometry
             run_command([python_bin, "v1/primary/run_phase_a.py"] + common_flags)
@@ -291,8 +304,10 @@ def run_behavioral(args, python_bin: str):
                 cmd_emobank.append("--is_instruct")
             if args.max_samples:
                 cmd_emobank.extend(["--limit", str(args.max_samples)])
-            if args.batch_size:
+            if getattr(args, "batch_size", None):
                 cmd_emobank.extend(["--batch-size", str(args.batch_size)])
+            if getattr(args, "force", False):
+                cmd_emobank.append("--force")
 
             # 2. AIPsy-Affect 4-Split
             cmd_aipsy = [
@@ -306,8 +321,10 @@ def run_behavioral(args, python_bin: str):
                 cmd_aipsy.append("--is-instruct")
             if args.max_samples:
                 cmd_aipsy.extend(["--limit", str(args.max_samples)])
-            if args.batch_size:
+            if getattr(args, "batch_size", None):
                 cmd_aipsy.extend(["--batch-size", str(args.batch_size)])
+            if getattr(args, "force", False):
+                cmd_aipsy.append("--force")
 
             if args.dry_run:
                 logger.info(f"[Dry-run] Simulated EmoBank execution for {model_id} (tag={tag})")

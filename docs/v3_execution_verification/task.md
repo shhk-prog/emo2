@@ -1,0 +1,50 @@
+# タスク: V3 期待値計算の修正・全件監査およびRQ1完全再実行
+
+- [x] 1. リポジトリ全体のコールサイト監査 <!-- id: 1 -->
+  - `behavioral`, `v1`, `v2`, `v3`, `src`, `tests` における `compute_expected_va(` および `compute_sequence_likelihoods_for_candidates` の全コールサイトを監査完了
+  - `compute_expected_va(log_likelihoods, ...)` または `compute_expected_va_from_probs(probs, ...)` のいずれかに統一完了
+- [x] 2. `likelihood.py` の関数分離と仕様明確化 <!-- id: 2 -->
+  - `compute_expected_va(log_scores, candidates=None)` を log-score 専用として docstring・型ヒントを明記完了
+  - `compute_expected_va_from_probs(probs, candidates)` を新設（確率和 1.0 の厳格検証付き、`probs @ vals`）完了
+  - `src/affective_empathy_eval/__init__.py` にエクスポート追加完了
+- [x] 3. 回帰テスト・単体テストの追加 (`tests/test_likelihood.py`) <!-- id: 3 -->
+  - Test 1: 一様分布 ($E[V]=5.0, E[A]=5.0$)
+  - Test 2: 極端集中 ($V=9, A=9$ で $>8.9$)
+  - Test 3: log score 経由 (`compute_expected_va`) と probability 経由 (`compute_expected_va_from_probs`) の数値一致
+  - Test 4: `test_regression_double_softmax_distorts_expected_va()`（回帰テストとして命名、二重Softmaxによる歪み検出）
+  - Test 5: API 返り値バリデーションテスト
+- [x] 4. V3 プライマリスクリプトの修正 <!-- id: 4 -->
+  - `v3/primary/run_rq1_state_induction.py`
+  - `v3/primary/run_rq2_spatiotemporal_maps.py`
+  - `v3/primary/run_rq3_path_mediation.py`
+  - `v3/primary/run_confirmatory_replication.py`
+  - 変数名を `log_likelihoods, probs = compute_sequence_likelihoods_for_candidates(...)` に統一し、`compute_expected_va(log_likelihoods, candidates)` を渡すよう修正完了
+- [x] 5. 単体テスト実行と検証 <!-- id: 5 -->
+  - `pytest -q tests/test_likelihood.py` (17 passed)
+  - `pytest -q tests/test_v3*` (14 passed)
+  - `pytest -q -m "not slow"` (94 passed)
+- [x] 6. 少数サンプル (8〜16件) Sanity Check <!-- id: 6 -->
+  - Qwen で 8 サンプルを実行完了
+  - 手計算 Softmax 期待値 `manual_ev = sum(softmax(log_scores) * V)` と `compute_expected_va(log_scores)` が全 8 サンプルで `np.allclose` で完全に一致（verified: True）
+  - natural_shift 分布: Valence mean=0.1380 (min=0.0412, max=0.2207), Arousal mean=0.4891 (min=0.0974, max=0.8031)
+- [x] 7. Cache / Manifest の退避と無効化 <!-- id: 7 -->
+  - `archive/results_v3_double_softmax_bug_20260920/` へ `v3/results/raw` と `v3/results/derived` を `cp -a` 退避完了
+  - 旧結果・旧キャッシュを削除し再利用されない状態を確認完了
+- [x] 8. V3 本番パイプライン完全再実行 <!-- id: 8 -->
+  - ゲート閾値（0.05）は変更せず、元の設定のまま実行完了
+  - 修正後 Gate 判定: `NO_GO`（dose-response 傾き $0.00307$ vs 閾値 $0.05$）により安全に停止
+  - 科学的 Negative Result として記録完了
+- [x] 9. 結果検証と walkthrough.md 作成 <!-- id: 9 -->
+- [x] 10. Behavioral から V3 までの全ステージ実行状況・正常性監査 <!-- id: 10 -->
+  - Behavioral: 全8モデル測定完了（集計スクリプトの列名不一致による metrics.csv 1 byte 異常を発見・報告）
+  - V1: 一部モデルのみ完了（Qwen/OLMoの一部、Llama/Gemma未着手）
+  - V2: RQ1/RQ2 全4ファミリー正常完了、RQ3 は Qwen 完了・Llama が現在も PID 2635012 で稼働中
+  - V3: 二重 Softmax 修正後の RQ1 再実行完了、Gate 判定 NO_GO で停止
+- [x] 11. Behavioral 集計スクリプト修正と再集計 <!-- id: 11 -->
+  - `behavioral/analysis/summarize_behavioral_emobank.py` の列名マッピング（`w_` / `r_` / `s_`）および有限値マスク（NaN保護）を修正
+  - 再集計コマンドを実行し、`behavioral_emobank_metrics.csv`（72行、19.4 KB）を完全正常生成
+- [x] 12. V1 Phase A/B Gemma 3 非有限値・float32無限大バグの修正 <!-- id: 12 -->
+  - `v1/primary/run_phase_a.py` および `v1/primary/run_phase_b.py` において、Gemma 3 の隠れ層活性ベクトルに含まれる極端な値・非有限値（`inf`）による `StandardScaler` のクラッシュ（`ValueError: Input X contains infinity or a value too large for dtype('float32')`）を修正
+  - 隠れ層抽出およびプローブ関数の入口で `np.nan_to_num` と `np.clip` によるサニタイズ処理を追加
+  - pytest および dry-run により正常動作を確認完了
+

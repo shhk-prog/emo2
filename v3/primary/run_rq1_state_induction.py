@@ -76,6 +76,11 @@ def parse_args():
         default=0.5,
         help="A priori mid-depth used when --layer is omitted: l = round(d * (L - 1))",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force recomputation even if output results and gate decision already exist",
+    )
     add_model_selection_args(parser)
     return parser.parse_args()
 
@@ -266,7 +271,7 @@ def run_real_state_induction(
     seed = 42
     rng = np.random.RandomState(seed)
     if "pair_id" in df.columns and df["pair_id"].nunique() > 1:
-        unique_pairs = df["pair_id"].unique()
+        unique_pairs = list(df["pair_id"].unique())
         rng.shuffle(unique_pairs)
         half_pairs = len(unique_pairs) // 2
         train_pairs = set(unique_pairs[:half_pairs])
@@ -309,19 +314,19 @@ def run_real_state_induction(
                 )
                 _ = model(**enc_self)
                 train_hiddens.append(hook_mgr.captured_activations["train_h"].cpu().float().numpy().ravel())
-            _, tr_self_probs = compute_sequence_likelihoods_for_candidates(
+            tr_self_log_liks, tr_self_probs = compute_sequence_likelihoods_for_candidates(
                 model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=train_candidates, device=device, batch_size=batch_size
             )
-            ev_s, ea_s = compute_expected_va(tr_self_probs, train_candidates)
+            ev_s, ea_s = compute_expected_va(tr_self_log_liks, train_candidates)
             train_self_ev.append(float(ev_s))
             train_self_ea.append(float(ea_s))
 
             # b. Reader condition: evaluate model's objective perception of reader affect (Reader Prediction)
             prompt_reader = build_prompt(text, task=TaskType.READER, format_type="chat", tokenizer=tokenizer)
-            _, tr_reader_probs = compute_sequence_likelihoods_for_candidates(
+            tr_reader_log_liks, tr_reader_probs = compute_sequence_likelihoods_for_candidates(
                 model=model, tokenizer=tokenizer, prompt=prompt_reader, candidates=train_candidates, device=device, batch_size=batch_size
             )
-            ev_r, ea_r = compute_expected_va(tr_reader_probs, train_candidates)
+            ev_r, ea_r = compute_expected_va(tr_reader_log_liks, train_candidates)
             train_reader_ev.append(float(ev_r))
             train_reader_ea.append(float(ea_r))
 
@@ -436,16 +441,16 @@ def run_real_state_induction(
 
             # 1. Clean Baselines
             # Neutral baseline: clean_neu_ev, clean_neu_ea (Sufficiency の基準点)
-            _, probs_neu = compute_sequence_likelihoods_for_candidates(
+            log_neu, probs_neu = compute_sequence_likelihoods_for_candidates(
                 model=model, tokenizer=tokenizer, prompt=prompt_neu_self, candidates=candidates, device=device, batch_size=batch_size
             )
-            clean_neu_ev, clean_neu_ea = compute_expected_va(probs_neu, candidates)
+            clean_neu_ev, clean_neu_ea = compute_expected_va(log_neu, candidates)
 
             # Affective baseline: clean_aff_ev, clean_aff_ea (Necessity / Natural shift の基準点)
-            _, probs_aff = compute_sequence_likelihoods_for_candidates(
+            log_aff, probs_aff = compute_sequence_likelihoods_for_candidates(
                 model=model, tokenizer=tokenizer, prompt=prompt_aff_self, candidates=candidates, device=device, batch_size=batch_size
             )
-            clean_aff_ev, clean_aff_ea = compute_expected_va(probs_aff, candidates)
+            clean_aff_ev, clean_aff_ea = compute_expected_va(log_aff, candidates)
 
             # 2. Sufficiency / Dose-response: neutral 側へ d_V / d_A を注入 (shift = patched_neu - clean_neu)
             alpha_shifts_v = []
@@ -465,10 +470,10 @@ def run_real_state_induction(
                             hook_point=HookPoint.POST_MLP_RESID,
                             mode="inject",
                         )
-                        _, probs_patch = compute_sequence_likelihoods_for_candidates(
+                        log_patch, probs_patch = compute_sequence_likelihoods_for_candidates(
                             model=model, tokenizer=tokenizer, prompt=prompt_neu_self, candidates=candidates, device=device, batch_size=batch_size
                         )
-                    ev_p, ea_p = compute_expected_va(probs_patch, candidates)
+                    ev_p, ea_p = compute_expected_va(log_patch, candidates)
                     shift = (ev_p if axis_name == "v" else ea_p) - clean_val
                     collect.append(shift)
                     curves[alpha].append(shift)
@@ -488,10 +493,10 @@ def run_real_state_induction(
                     hook_point=HookPoint.POST_MLP_RESID,
                     mode="inject",
                 )
-                _, probs_rand_v = compute_sequence_likelihoods_for_candidates(
+                log_rand_v, probs_rand_v = compute_sequence_likelihoods_for_candidates(
                     model=model, tokenizer=tokenizer, prompt=prompt_neu_self, candidates=candidates, device=device, batch_size=batch_size
                 )
-            ev_rand_v, _ = compute_expected_va(probs_rand_v, candidates)
+            ev_rand_v, _ = compute_expected_va(log_rand_v, candidates)
 
             with ActivationHookManager(adapter) as hook_mgr:
                 hook_mgr.register_direction_intervention_hook(
@@ -503,10 +508,10 @@ def run_real_state_induction(
                     hook_point=HookPoint.POST_MLP_RESID,
                     mode="inject",
                 )
-                _, probs_perp_v = compute_sequence_likelihoods_for_candidates(
+                log_perp_v, probs_perp_v = compute_sequence_likelihoods_for_candidates(
                     model=model, tokenizer=tokenizer, prompt=prompt_neu_self, candidates=candidates, device=device, batch_size=batch_size
                 )
-            ev_perp_v, _ = compute_expected_va(probs_perp_v, candidates)
+            ev_perp_v, _ = compute_expected_va(log_perp_v, candidates)
 
             eff_affect_v = abs(alpha_shifts_v[ref_alpha_idx])  # reference alpha (default 1.0, relative to clean_neu_ev)
             eff_rand_v = abs(ev_rand_v - clean_neu_ev)
@@ -526,10 +531,10 @@ def run_real_state_induction(
                     hook_point=HookPoint.POST_MLP_RESID,
                     mode="inject",
                 )
-                _, probs_rand_a = compute_sequence_likelihoods_for_candidates(
+                log_rand_a, probs_rand_a = compute_sequence_likelihoods_for_candidates(
                     model=model, tokenizer=tokenizer, prompt=prompt_neu_self, candidates=candidates, device=device, batch_size=batch_size
                 )
-            _, ea_rand_a = compute_expected_va(probs_rand_a, candidates)
+            _, ea_rand_a = compute_expected_va(log_rand_a, candidates)
 
             with ActivationHookManager(adapter) as hook_mgr:
                 hook_mgr.register_direction_intervention_hook(
@@ -541,10 +546,10 @@ def run_real_state_induction(
                     hook_point=HookPoint.POST_MLP_RESID,
                     mode="inject",
                 )
-                _, probs_perp_a = compute_sequence_likelihoods_for_candidates(
+                log_perp_a, probs_perp_a = compute_sequence_likelihoods_for_candidates(
                     model=model, tokenizer=tokenizer, prompt=prompt_neu_self, candidates=candidates, device=device, batch_size=batch_size
                 )
-            _, ea_perp_a = compute_expected_va(probs_perp_a, candidates)
+            _, ea_perp_a = compute_expected_va(log_perp_a, candidates)
 
             eff_affect_a = abs(alpha_shifts_a[ref_alpha_idx])  # reference alpha (default 1.0)
             eff_rand_a = abs(ea_rand_a - clean_neu_ea)
@@ -576,10 +581,10 @@ def run_real_state_induction(
                     token_indices=patch_pos_aff,
                     hook_point=HookPoint.POST_MLP_RESID,
                 )
-                _, probs_abl = compute_sequence_likelihoods_for_candidates(
+                log_abl, probs_abl = compute_sequence_likelihoods_for_candidates(
                     model=model, tokenizer=tokenizer, prompt=prompt_aff_self, candidates=candidates, device=device, batch_size=batch_size
                 )
-            abl_aff_ev, abl_aff_ea = compute_expected_va(probs_abl, candidates)
+            abl_aff_ev, abl_aff_ea = compute_expected_va(log_abl, candidates)
 
             # 自然変位と残余変位 (clean_aff - clean_neu vs abl_aff - clean_neu)
             natural_shift_v = abs(clean_aff_ev - clean_neu_ev)
@@ -852,6 +857,24 @@ def main():
             f"Resolved V3-RQ1 layer={args.layer} from relative_depth={args.relative_depth} "
             f"(L={num_layers}, family={fam_key})"
         )
+
+    out_raw = raw_dir / ("v3_pilot_results.json" if args.pilot else "v3_rq1_results.json")
+    out_gate = derived_dir / "v3_gate_decision.json"
+    manifest_path = raw_dir / f"manifest_rq1_{fam_key}.json"
+
+    # Early skip if already completed and valid
+    if not args.force and not args.dry_run and out_raw.exists() and out_gate.exists() and manifest_path.exists():
+        try:
+            with open(out_gate, "r", encoding="utf-8") as f:
+                cached_gate = json.load(f)
+            if cached_gate and "decision" in cached_gate:
+                logger.info(
+                    f"[SKIP] Existing validated RQ1 results & gate found ({out_raw}, {out_gate}). "
+                    f"Decision: {cached_gate.get('decision')}. Skipping computation for {target_model_id}. Use --force to rerun."
+                )
+                return
+        except Exception as e:
+            logger.warning(f"Warning: Corrupt existing RQ1 results ({e}). Rerunning.")
 
     alpha_grid = v3_cfg["interventions"]["alpha_grid"]
 

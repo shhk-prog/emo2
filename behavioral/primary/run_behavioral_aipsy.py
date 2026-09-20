@@ -207,6 +207,11 @@ def main():
         type=str,
         default="cuda" if torch.cuda.is_available() else "cpu",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force recomputation even if output CSV already exists",
+    )
     args = parser.parse_args()
 
     stim_path = Path(args.stimuli_path)
@@ -215,64 +220,85 @@ def main():
         if fallback.exists():
             stim_path = fallback
 
-    print("=" * 60)
-    print(
-        f"Evaluating Model: {args.model} (Tag: {args.tag}, Instruct: {args.is_instruct})"
-    )
-    print(f"Stimuli Path: {stim_path} (Device: {args.device})")
-    print("=" * 60)
-
-    tokenizer = AutoTokenizer.from_pretrained(args.model, trust_remote_code=True)
-    if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
-
-    device = args.device
-    torch_dtype = torch.bfloat16 if device != "cpu" and torch.cuda.is_available() else torch.float32
-
-    if device.startswith("cuda:"):
-        model = AutoModelForCausalLM.from_pretrained(
-            args.model,
-            torch_dtype=torch_dtype,
-            device_map=device,
-            trust_remote_code=True,
-        )
-    elif device == "cuda":
-        model = AutoModelForCausalLM.from_pretrained(
-            args.model,
-            torch_dtype=torch_dtype,
-            device_map="auto",
-            trust_remote_code=True,
-        )
-    else:
-        model = AutoModelForCausalLM.from_pretrained(
-            args.model,
-            torch_dtype=torch_dtype,
-            device_map=None,
-            trust_remote_code=True,
-        ).to(device)
-    model.eval()
-
-    candidates, vad_triplets = build_candidates()
-    print(f"Generated {len(candidates)} VAD candidate triplets in {{1..9}}^3.")
-
     os.makedirs(args.out_dir, exist_ok=True)
     out_csv = os.path.join(args.out_dir, f"{args.tag}_aipsy_4split.csv")
     ckpt_csv = os.path.join(args.out_dir, f"{args.tag}_aipsy_4split_checkpoint.csv")
 
-    res_df = evaluate_aipsy_stimuli(
-        model,
-        tokenizer,
-        args.device,
-        candidates,
-        vad_triplets,
-        stimuli_path=str(stim_path),
-        is_instruct=args.is_instruct,
-        limit=args.limit,
-        batch_size=args.batch_size,
-        checkpoint_path=ckpt_csv,
-    )
+    # Early skip if already evaluated and valid
+    if not args.force and os.path.exists(out_csv):
+        try:
+            cached_df = pd.read_csv(out_csv)
+            expected_min = args.limit if (args.limit and args.limit > 0) else 1
+            if len(cached_df) >= expected_min and "s_ev" in cached_df.columns:
+                print(
+                    f"[SKIP] Existing validated results found at {out_csv} (n={len(cached_df)}). "
+                    f"Skipping model loading & evaluation for {args.tag}. Use --force to rerun."
+                )
+                res_df = cached_df
+                skip_eval = True
+            else:
+                skip_eval = False
+        except Exception as e:
+            print(f"Warning: Corrupt or unreadable output at {out_csv} ({e}). Rerunning.")
+            skip_eval = False
+    else:
+        skip_eval = False
 
-    res_df.to_csv(out_csv, index=False)
+    if not skip_eval:
+        print("=" * 60)
+        print(
+            f"Evaluating Model: {args.model} (Tag: {args.tag}, Instruct: {args.is_instruct})"
+        )
+        print(f"Stimuli Path: {stim_path} (Device: {args.device})")
+        print("=" * 60)
+
+        tokenizer = AutoTokenizer.from_pretrained(args.model, trust_remote_code=True)
+        if tokenizer.pad_token is None:
+            tokenizer.pad_token = tokenizer.eos_token
+
+        device = args.device
+        torch_dtype = torch.bfloat16 if device != "cpu" and torch.cuda.is_available() else torch.float32
+
+        if device.startswith("cuda:"):
+            model = AutoModelForCausalLM.from_pretrained(
+                args.model,
+                torch_dtype=torch_dtype,
+                device_map=device,
+                trust_remote_code=True,
+            )
+        elif device == "cuda":
+            model = AutoModelForCausalLM.from_pretrained(
+                args.model,
+                torch_dtype=torch_dtype,
+                device_map="auto",
+                trust_remote_code=True,
+            )
+        else:
+            model = AutoModelForCausalLM.from_pretrained(
+                args.model,
+                torch_dtype=torch_dtype,
+                device_map=None,
+                trust_remote_code=True,
+            ).to(device)
+        model.eval()
+
+        candidates, vad_triplets = build_candidates()
+        print(f"Generated {len(candidates)} VAD candidate triplets in {{1..9}}^3.")
+
+        res_df = evaluate_aipsy_stimuli(
+            model,
+            tokenizer,
+            args.device,
+            candidates,
+            vad_triplets,
+            stimuli_path=str(stim_path),
+            is_instruct=args.is_instruct,
+            limit=args.limit,
+            batch_size=args.batch_size,
+            checkpoint_path=ckpt_csv,
+        )
+
+        res_df.to_csv(out_csv, index=False)
     if os.path.exists(ckpt_csv):
         try:
             os.remove(ckpt_csv)

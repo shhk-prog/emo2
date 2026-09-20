@@ -74,6 +74,7 @@ def parse_args():
     parser.add_argument("--dry-run", action="store_true", help="Run in mock/dry-run mode")
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu", help="Device to use")
     parser.add_argument("--subsample", type=int, default=0, help="Number of pairs to evaluate across layers x stages (0 for full dataset)")
+    parser.add_argument("--force", action="store_true", help="Force recomputation even if valid cached results exist")
     add_model_selection_args(parser)
     return parser.parse_args()
 
@@ -294,19 +295,19 @@ def run_real_spatiotemporal_maps(
             )
 
             # a. Self condition: Clean expected report (baseline for causal shifts)
-            _, probs = compute_sequence_likelihoods_for_candidates(
+            log_liks, probs = compute_sequence_likelihoods_for_candidates(
                 model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device, batch_size=81
             )
-            ev, ea = compute_expected_va(probs, candidates)
+            ev, ea = compute_expected_va(log_liks, candidates)
             clean_ev_list.append(ev)
             clean_ea_list.append(ea)
 
             # b. Reader condition: Reader Prediction (stimulus emotion perception)
             prompt_reader = build_prompt(text, task=TaskType.READER, format_type="chat", tokenizer=tokenizer)
-            _, r_probs = compute_sequence_likelihoods_for_candidates(
+            r_log_liks, r_probs = compute_sequence_likelihoods_for_candidates(
                 model=model, tokenizer=tokenizer, prompt=prompt_reader, candidates=candidates, device=device, batch_size=81
             )
-            r_ev, r_ea = compute_expected_va(r_probs, candidates)
+            r_ev, r_ea = compute_expected_va(r_log_liks, candidates)
             reader_ev_list.append(r_ev)
             reader_ea_list.append(r_ea)
 
@@ -442,7 +443,7 @@ def run_real_spatiotemporal_maps(
                         ):
                             axis_shifts = []
                             for alpha in alpha_sweep:
-                                _, probs_p = compute_sequence_likelihoods_for_candidates(
+                                log_liks_p, probs_p = compute_sequence_likelihoods_for_candidates(
                                     model=model,
                                     tokenizer=tokenizer,
                                     prompt=prompt,
@@ -461,7 +462,7 @@ def run_real_spatiotemporal_maps(
                                     },
                                 )
 
-                                ev_p, ea_p = compute_expected_va(probs_p, candidates)
+                                ev_p, ea_p = compute_expected_va(log_liks_p, candidates)
                                 if axis_name == "v":
                                     axis_shifts.append(ev_p - clean_ev_list[idx])
                                 else:
@@ -578,7 +579,7 @@ def main():
 
     out_raw = raw_dir / f"v3_discovery_spatiotemporal_maps_{fam_key}.json"
     manifest_path = raw_dir / f"manifest_rq2_{fam_key}.json"
-    if out_raw.exists() and not args.dry_run:
+    if not args.force and out_raw.exists() and not args.dry_run:
         try:
             with open(out_raw, "r", encoding="utf-8") as f:
                 cached = json.load(f)

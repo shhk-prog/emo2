@@ -64,6 +64,7 @@ def parse_args():
     parser.add_argument("--dry-run", action="store_true", help="Run in mock/dry-run mode without loading full weights")
     parser.add_argument("--device", type=str, default="cpu", help="Device to use (cpu or cuda)")
     parser.add_argument("--max-samples", type=int, default=None, help="Limit number of samples for quick testing")
+    parser.add_argument("--force", action="store_true", help="Force recomputation even if valid cached results exist")
     add_model_selection_args(parser)
     return parser.parse_args()
 
@@ -438,7 +439,7 @@ def main():
         exp_cfg_hash = compute_string_or_dict_hash(config_payload)
         exp_ds_hash = compute_string_or_dict_hash(str(data_path))
 
-        if fam_out_path.exists() and not args.dry_run:
+        if not args.force and fam_out_path.exists() and not args.dry_run:
             try:
                 with open(fam_out_path, "r", encoding="utf-8") as f:
                     cached_res = json.load(f)

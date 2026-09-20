@@ -51,6 +51,11 @@ def test_adapter_and_hooks():
         assert captured is not None
         assert captured.shape == (2, 5, hidden_dim)
 
+        # get_captured() method test
+        caps_dict = hook_mgr.get_captured()
+        assert "layer_1_post_mlp_resid" in caps_dict
+        assert torch.equal(caps_dict["layer_1_post_mlp_resid"], captured)
+
     # 2. Patch Hook
     with ActivationHookManager(adapter) as hook_mgr:
         patch_val = torch.ones(2, 1, hidden_dim) * 99.0

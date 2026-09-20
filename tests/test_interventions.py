@@ -130,3 +130,37 @@ def test_apply_centered_projection_removal():
     c_abs2, c_dir2 = compute_causal_leverage(expected_patched=3.0, expected_baseline=5.0)
     assert pytest.approx(c_abs2, abs=1e-5) == 2.0
     assert pytest.approx(c_dir2, abs=1e-5) == -2.0
+
+
+def test_conditional_directions_hybrid_access():
+    from affective_empathy_eval.interventions import ConditionalDirections
+
+    d_v = np.array([1.0, 0.0, 0.0])
+    d_a = np.array([0.0, 1.0, 0.0])
+    res = ConditionalDirections(d_v, d_a)
+
+    # 1. Tuple unpacking
+    u_v, u_a = res
+    assert np.array_equal(u_v, d_v)
+    assert np.array_equal(u_a, d_a)
+
+    # 2. Integer indexing
+    assert np.array_equal(res[0], d_v)
+    assert np.array_equal(res[1], d_a)
+
+    # 3. String dictionary-style indexing
+    assert np.array_equal(res["direction_v"], d_v)
+    assert np.array_equal(res["direction_a"], d_a)
+    assert np.array_equal(res["d_v"], d_v)
+    assert np.array_equal(res["d_a"], d_a)
+
+    # 4. Property access
+    assert np.array_equal(res.direction_v, d_v)
+    assert np.array_equal(res.direction_a, d_a)
+
+    # 5. Dict conversion & keys
+    d_dict = dict(res.items())
+    assert "direction_v" in d_dict
+    assert "direction_a" in d_dict
+    assert res.get("direction_v") is not None
+    assert res.get("nonexistent", "default") == "default"

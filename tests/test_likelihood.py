@@ -8,6 +8,7 @@ from affective_empathy_eval.likelihood import (
     compute_distribution_metrics,
     compute_emd_va,
     compute_expected_va,
+    compute_expected_va_from_probs,
     compute_marginal_distributions,
     get_euclidean_ground_cost_matrix,
 )
@@ -23,20 +24,81 @@ def test_build_candidates():
     assert len(vad_cands) == 729
 
 
-def test_compute_expected_va():
-    # 均等分布の場合、期待値は 5.0
+def test_compute_expected_va_uniform():
+    """Test 1: 均等分布の場合、期待値は E[V]=5.0, E[A]=5.0"""
+    candidates = build_va_candidates()
     uniform_log_probs = np.zeros(81)
-    ev, ea = compute_expected_va(uniform_log_probs)
-    assert pytest.approx(ev, abs=1e-3) == 5.0
-    assert pytest.approx(ea, abs=1e-3) == 5.0
+    ev, ea = compute_expected_va(uniform_log_probs, candidates)
+    assert np.isclose(ev, 5.0, atol=1e-5)
+    assert np.isclose(ea, 5.0, atol=1e-5)
 
-    # 特定の状態 (V=7, A=3) に確率1が集中している場合
-    one_hot_log_probs = np.full(81, -100.0)
-    # V=7, A=3 のインデックス: (7-1)*9 + (3-1) = 6*9 + 2 = 56
-    one_hot_log_probs[56] = 0.0
-    ev, ea = compute_expected_va(one_hot_log_probs)
-    assert pytest.approx(ev, abs=1e-3) == 7.0
-    assert pytest.approx(ea, abs=1e-3) == 3.0
+
+def test_compute_expected_va_extreme_concentration():
+    """Test 2: 特定の状態 (V=9, A=9) に確率が極端に集中している場合"""
+    candidates = build_va_candidates()
+    # V=9, A=9 のインデックス: (9-1)*9 + (9-1) = 80
+    idx_9_9 = 80
+    assert candidates[idx_9_9]["valence"] == 9 and candidates[idx_9_9]["arousal"] == 9
+
+    log_scores = np.full(81, -100.0)
+    log_scores[idx_9_9] = 0.0
+    ev, ea = compute_expected_va(log_scores, candidates)
+    assert ev > 8.9
+    assert ea > 8.9
+
+
+def test_expected_va_log_score_vs_probability_equivalence():
+    """Test 3: 未正規化 log score 経由と正規化 probability 経由の期待値が完全に一致すること"""
+    candidates = build_va_candidates()
+    rng = np.random.default_rng(42)
+    # 任意の非一様 log scores
+    log_scores = rng.normal(loc=0.0, scale=2.0, size=81)
+
+    # 手計算 Softmax による確率分布
+    exp_scores = np.exp(log_scores - np.max(log_scores))
+    probs = exp_scores / np.sum(exp_scores)
+
+    ev_log, ea_log = compute_expected_va(log_scores, candidates)
+    ev_prob, ea_prob = compute_expected_va_from_probs(probs, candidates)
+
+    assert np.isclose(ev_log, ev_prob, atol=1e-6)
+    assert np.isclose(ea_log, ea_prob, atol=1e-6)
+
+
+def test_regression_double_softmax_distorts_expected_va():
+    """
+    Test 4 (回帰テスト): 二重 Softmax による期待値平滑化・歪みの検出
+    注意: compute_expected_va に正規化済み probs を渡すことは正しい API 利用法ではない。
+    過去に probs を誤って渡したことで期待値が 5.0 付近に潰れた事故を再発防止するための fixture 回帰テスト。
+    """
+    candidates = build_va_candidates()
+    # V=9, A=9 に強く偏った分布を作成
+    idx_9_9 = 80
+    log_scores = np.full(81, -10.0)
+    log_scores[idx_9_9] = 5.0
+    exp_scores = np.exp(log_scores - np.max(log_scores))
+    probs = exp_scores / np.sum(exp_scores)
+
+    # 正しい期待値（> 8.0）
+    correct_ev, correct_ea = compute_expected_va(log_scores, candidates)
+    assert correct_ev > 8.0
+    assert correct_ea > 8.0
+
+    # 誤って probs を再度 Softmax に通した場合（二重 Softmax）
+    # probs の最大値が高々 1.0 であるため、exp(probs - max) は全要素が ~exp(0) になり一様分布 (~5.0) に潰れる
+    wrong_ev, wrong_ea = compute_expected_va(probs, candidates)
+
+    # 正しい期待値と誤った二重 Softmax の期待値が大きく乖離することを確認
+    assert abs(correct_ev - wrong_ev) > 2.0
+    assert abs(correct_ea - wrong_ea) > 2.0
+
+
+def test_compute_expected_va_from_probs_validation():
+    """確率和が 1.0 でない不正な入力に対して ValueError を送出することの検証"""
+    candidates = build_va_candidates()
+    invalid_probs = np.ones(81)  # 和が 81.0
+    with pytest.raises(ValueError, match="probs must sum to 1.0"):
+        compute_expected_va_from_probs(invalid_probs, candidates)
 
 
 def test_marginal_distributions():

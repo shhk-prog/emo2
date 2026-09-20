@@ -266,6 +266,11 @@ def main():
     )
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--batch-size", type=int, default=81)
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force recomputation even if output CSV already exists",
+    )
     args = parser.parse_args()
 
     # Find stimuli path if relative to workspace
@@ -275,57 +280,78 @@ def main():
         if fallback.exists():
             stim_path = fallback
 
-    device = args.device
-    torch_dtype = torch.bfloat16 if args.dtype == "bfloat16" else (torch.float16 if device != "cpu" else torch.float32)
-
-    print(
-        f"Loading Model: {args.model} (tag: {args.tag}, dtype: {args.dtype}, device: {device})..."
-    )
-    tokenizer = AutoTokenizer.from_pretrained(args.model, trust_remote_code=True)
-    if device.startswith("cuda:"):
-        model = AutoModelForCausalLM.from_pretrained(
-            args.model,
-            torch_dtype=torch_dtype,
-            device_map=device,
-            trust_remote_code=True,
-        )
-    elif device == "cuda":
-        model = AutoModelForCausalLM.from_pretrained(
-            args.model,
-            torch_dtype=torch_dtype,
-            device_map="auto",
-            trust_remote_code=True,
-        )
-    else:
-        model = AutoModelForCausalLM.from_pretrained(
-            args.model,
-            torch_dtype=torch_dtype,
-            device_map=None,
-            trust_remote_code=True,
-        ).to(device)
-    model.eval()
-
-    candidates, vad_triplets = get_vad_candidates_and_triplets()
-    print(f"Generated {len(candidates)} canonical VAD candidates in {{1..9}}^3.")
-
     os.makedirs(args.out_dir, exist_ok=True)
     out_csv = os.path.join(args.out_dir, f"{args.tag}_3way_vad.csv")
     ckpt_csv = os.path.join(args.out_dir, f"{args.tag}_3way_vad_checkpoint.csv")
 
-    res_df = evaluate_model(
-        model,
-        tokenizer,
-        device,
-        candidates,
-        vad_triplets,
-        stimuli_path=str(stim_path),
-        is_instruct=args.is_instruct,
-        limit=args.limit,
-        batch_size=args.batch_size,
-        checkpoint_path=ckpt_csv,
-    )
+    # Early skip if already evaluated and valid
+    if not args.force and os.path.exists(out_csv):
+        try:
+            cached_df = pd.read_csv(out_csv)
+            expected_min = args.limit if args.limit is not None else 1
+            if len(cached_df) >= expected_min and "s_ev" in cached_df.columns:
+                print(
+                    f"[SKIP] Existing validated results found at {out_csv} (n={len(cached_df)}). "
+                    f"Skipping model loading & evaluation for {args.tag}. Use --force to rerun."
+                )
+                res_df = cached_df
+                skip_eval = True
+            else:
+                skip_eval = False
+        except Exception as e:
+            print(f"Warning: Corrupt or unreadable output at {out_csv} ({e}). Rerunning.")
+            skip_eval = False
+    else:
+        skip_eval = False
 
-    res_df.to_csv(out_csv, index=False)
+    if not skip_eval:
+        device = args.device
+        torch_dtype = torch.bfloat16 if args.dtype == "bfloat16" else (torch.float16 if device != "cpu" else torch.float32)
+
+        print(
+            f"Loading Model: {args.model} (tag: {args.tag}, dtype: {args.dtype}, device: {device})..."
+        )
+        tokenizer = AutoTokenizer.from_pretrained(args.model, trust_remote_code=True)
+        if device.startswith("cuda:"):
+            model = AutoModelForCausalLM.from_pretrained(
+                args.model,
+                torch_dtype=torch_dtype,
+                device_map=device,
+                trust_remote_code=True,
+            )
+        elif device == "cuda":
+            model = AutoModelForCausalLM.from_pretrained(
+                args.model,
+                torch_dtype=torch_dtype,
+                device_map="auto",
+                trust_remote_code=True,
+            )
+        else:
+            model = AutoModelForCausalLM.from_pretrained(
+                args.model,
+                torch_dtype=torch_dtype,
+                device_map=None,
+                trust_remote_code=True,
+            ).to(device)
+        model.eval()
+
+        candidates, vad_triplets = get_vad_candidates_and_triplets()
+        print(f"Generated {len(candidates)} canonical VAD candidates in {{1..9}}^3.")
+
+        res_df = evaluate_model(
+            model,
+            tokenizer,
+            device,
+            candidates,
+            vad_triplets,
+            stimuli_path=str(stim_path),
+            is_instruct=args.is_instruct,
+            limit=args.limit,
+            batch_size=args.batch_size,
+            checkpoint_path=ckpt_csv,
+        )
+
+        res_df.to_csv(out_csv, index=False)
     if os.path.exists(ckpt_csv):
         try:
             os.remove(ckpt_csv)

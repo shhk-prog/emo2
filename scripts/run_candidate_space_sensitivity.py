@@ -141,10 +141,10 @@ def run_sensitivity_analysis(
             prompt = build_prompt(text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
 
             # 1. 81 VA 空間での評価
-            _, probs_81 = compute_sequence_likelihoods_for_candidates(
+            log_liks_81, probs_81 = compute_sequence_likelihoods_for_candidates(
                 model=model, tokenizer=tokenizer, prompt=prompt, candidates=cands_81, device=device, batch_size=81
             )
-            ev_81, ea_81 = compute_expected_va(probs_81, cands_81)
+            ev_81, ea_81 = compute_expected_va(log_liks_81, cands_81)
 
             # 2. 729 VAD 空間での評価
             log_liks_729, _ = compute_sequence_likelihoods_for_candidates(

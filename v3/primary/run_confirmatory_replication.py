@@ -78,6 +78,7 @@ def parse_args():
     parser.add_argument("--dry-run", action="store_true", help="Run in mock/dry-run mode")
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu", help="Device to use")
     parser.add_argument("--subsample", type=int, default=0, help="Number of pairs per model for confirmatory evaluation (0 for full dataset)")
+    parser.add_argument("--force", action="store_true", help="Force recomputation even if valid cached results exist")
     add_model_selection_args(parser)
     return parser.parse_args()
 
@@ -264,19 +265,19 @@ def run_real_model_confirmatory(
             text = str(row["text"])
             # a. Self condition: Clean expected report (baseline for intervention effect)
             prompt = build_prompt(text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
-            _, probs = compute_sequence_likelihoods_for_candidates(
+            log_liks, probs = compute_sequence_likelihoods_for_candidates(
                 model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device, batch_size=81
             )
-            ev, ea = compute_expected_va(probs, candidates)
+            ev, ea = compute_expected_va(log_liks, candidates)
             clean_ev_list.append(ev)
             clean_ea_list.append(ea)
 
             # b. Reader condition: Reader Prediction (objective perception of stimulus emotion)
             prompt_reader = build_prompt(text, task=TaskType.READER, format_type="chat", tokenizer=tokenizer)
-            _, r_probs = compute_sequence_likelihoods_for_candidates(
+            r_log_liks, r_probs = compute_sequence_likelihoods_for_candidates(
                 model=model, tokenizer=tokenizer, prompt=prompt_reader, candidates=candidates, device=device, batch_size=81
             )
-            r_ev, r_ea = compute_expected_va(r_probs, candidates)
+            r_ev, r_ea = compute_expected_va(r_log_liks, candidates)
             reader_ev_list.append(r_ev)
             reader_ea_list.append(r_ea)
 
@@ -525,10 +526,10 @@ def run_real_model_confirmatory(
                 anchors_neu = find_semantic_anchors(enc_neu["input_ids"][0].tolist(), tokenizer, neu_text)
                 patch_pos_neu = anchors_neu["prompt_end"]
 
-                _, probs_neu = compute_sequence_likelihoods_for_candidates(
+                log_neu, probs_neu = compute_sequence_likelihoods_for_candidates(
                     model=model, tokenizer=tokenizer, prompt=prompt_neu_self, candidates=candidates, device=device, batch_size=81
                 )
-                clean_neu_v, clean_neu_a = compute_expected_va(probs_neu, candidates)
+                clean_neu_v, clean_neu_a = compute_expected_va(log_neu, candidates)
 
                 for axis_name, direction, h_std, store_dict, clean_neu_val in (
                     ("v", d_v, h_std_v, test_shifts_v, clean_neu_v),
@@ -545,10 +546,10 @@ def run_real_model_confirmatory(
                                 hook_point=HookPoint.POST_MLP_RESID,
                                 mode="inject",
                             )
-                            _, probs_p = compute_sequence_likelihoods_for_candidates(
+                            log_p, probs_p = compute_sequence_likelihoods_for_candidates(
                                 model=model, tokenizer=tokenizer, prompt=prompt_neu_self, candidates=candidates, device=device, batch_size=81
                             )
-                        ev_p, ea_p = compute_expected_va(probs_p, candidates)
+                        ev_p, ea_p = compute_expected_va(log_p, candidates)
                         shift = (ev_p if axis_name == "v" else ea_p) - clean_neu_val
                         store_dict[alpha].append(shift)
 
@@ -565,10 +566,10 @@ def run_real_model_confirmatory(
                             hook_point=HookPoint.POST_MLP_RESID,
                             mode="inject",
                         )
-                        _, probs_l_v = compute_sequence_likelihoods_for_candidates(
+                        log_l_v, probs_l_v = compute_sequence_likelihoods_for_candidates(
                             model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=81
                         )
-                    ev_l, _ = compute_expected_va(probs_l_v, candidates)
+                    ev_l, _ = compute_expected_va(log_l_v, candidates)
                     test_c_profile_shifts_v[l_idx].append(abs(ev_l - clean_ev_list[sample_idx]))
 
                     d_l_a, h_std_l_a = layer_dirs_a[l_idx]
@@ -582,10 +583,10 @@ def run_real_model_confirmatory(
                             hook_point=HookPoint.POST_MLP_RESID,
                             mode="inject",
                         )
-                        _, probs_l_a = compute_sequence_likelihoods_for_candidates(
+                        log_l_a, probs_l_a = compute_sequence_likelihoods_for_candidates(
                             model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=81
                         )
-                    _, ea_l = compute_expected_va(probs_l_a, candidates)
+                    _, ea_l = compute_expected_va(log_l_a, candidates)
                     test_c_profile_shifts_a[l_idx].append(abs(ea_l - clean_ea_list[sample_idx]))
 
                 # --- H3: Centered 2D Orthogonal Subspace Removal (Affective stimulus at mediation_layer) ---
@@ -602,10 +603,10 @@ def run_real_model_confirmatory(
                         token_indices=patch_pos,
                         hook_point=HookPoint.POST_MLP_RESID,
                     )
-                    _, probs_abl = compute_sequence_likelihoods_for_candidates(
+                    log_abl, probs_abl = compute_sequence_likelihoods_for_candidates(
                         model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=81
                     )
-                ev_abl, ea_abl = compute_expected_va(probs_abl, candidates)
+                ev_abl, ea_abl = compute_expected_va(log_abl, candidates)
                 att_shifts_v.append(abs(ev_abl - clean_neu_v))
                 att_shifts_a.append(abs(ea_abl - clean_neu_a))
 
@@ -631,10 +632,10 @@ def run_real_model_confirmatory(
                             hook_point=HookPoint.POST_MLP_RESID,
                             mode="inject",
                         )
-                        _, probs_stg_v = compute_sequence_likelihoods_for_candidates(
+                        log_stg_v, probs_stg_v = compute_sequence_likelihoods_for_candidates(
                             model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=81
                         )
-                    ev_stg_v, _ = compute_expected_va(probs_stg_v, candidates)
+                    ev_stg_v, _ = compute_expected_va(log_stg_v, candidates)
                     test_stage_shifts_v[stg].append(abs(ev_stg_v - clean_ev_list[sample_idx]))
 
                     # 2) Arousal steering (stage-local direction)
@@ -648,10 +649,10 @@ def run_real_model_confirmatory(
                             hook_point=HookPoint.POST_MLP_RESID,
                             mode="inject",
                         )
-                        _, probs_stg_a = compute_sequence_likelihoods_for_candidates(
+                        log_stg_a, probs_stg_a = compute_sequence_likelihoods_for_candidates(
                             model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=81
                         )
-                    _, ea_stg_a = compute_expected_va(probs_stg_a, candidates)
+                    _, ea_stg_a = compute_expected_va(log_stg_a, candidates)
                     test_stage_shifts_a[stg].append(abs(ea_stg_a - clean_ea_list[sample_idx]))
 
     # 全 Test fold からの指標集計
@@ -906,7 +907,7 @@ def main():
             "dry_run": bool(args.dry_run),
         }
 
-        if out_raw.exists() and not args.dry_run:
+        if not args.force and out_raw.exists() and not args.dry_run:
             try:
                 with open(out_raw, "r", encoding="utf-8") as f:
                     cached = json.load(f)

@@ -55,6 +55,7 @@ def parse_args():
     parser.add_argument("--dry-run", action="store_true", help="Run in mock/dry-run mode")
     parser.add_argument("--device", type=str, default="cpu", help="Device to use")
     parser.add_argument("--max-samples", type=int, default=None, help="Limit number of samples")
+    parser.add_argument("--force", action="store_true", help="Force recomputation even if valid cached results exist")
     add_model_selection_args(parser)
     return parser.parse_args()
 
@@ -688,7 +689,7 @@ def main():
             "dry_run": bool(args.dry_run),
         }
 
-        if out_path.exists() and not args.dry_run:
+        if not args.force and out_path.exists() and not args.dry_run:
             try:
                 with open(out_path, "r", encoding="utf-8") as f:
                     cached = json.load(f)

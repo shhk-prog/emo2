@@ -73,6 +73,7 @@ def parse_args():
     parser.add_argument("--dry-run", action="store_true", help="Run in mock/dry-run mode")
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu", help="Device to use")
     parser.add_argument("--subsample", type=int, default=0, help="Number of pairs per split for evaluation (0 for full split)")
+    parser.add_argument("--force", action="store_true", help="Force recomputation even if valid cached results exist")
     add_model_selection_args(parser)
     return parser.parse_args()
 
@@ -267,10 +268,10 @@ def run_real_path_mediation(
         with torch.no_grad():
             for text in disc_texts:
                 p_reader = build_prompt(text, task=TaskType.READER, format_type="chat", tokenizer=tokenizer)
-                _, probs = compute_sequence_likelihoods_for_candidates(
+                log_liks, probs = compute_sequence_likelihoods_for_candidates(
                     model=model, tokenizer=tokenizer, prompt=p_reader, candidates=candidates, device=device, batch_size=81
                 )
-                ev, ea = compute_expected_va(probs, candidates)
+                ev, ea = compute_expected_va(log_liks, candidates)
                 y_v_list.append(ev)
                 y_a_list.append(ea)
         y_v_disc = np.array(y_v_list, dtype=np.float64)
@@ -353,10 +354,10 @@ def run_real_path_mediation(
                 patch_pos_k = anch_k["prompt_end"]
 
                 # a. Clean expected report
-                _, probs_clean_k = compute_sequence_likelihoods_for_candidates(
+                log_clean_k, probs_clean_k = compute_sequence_likelihoods_for_candidates(
                     model=model, tokenizer=tokenizer, prompt=p_k, candidates=candidates, device=device, batch_size=81
                 )
-                ev_c, ea_c = compute_expected_va(probs_clean_k, candidates)
+                ev_c, ea_c = compute_expected_va(log_clean_k, candidates)
 
                 # b. Valence intervention (inject d_v_l) -> |Delta V|
                 with ActivationHookManager(adapter) as hook_mgr:
@@ -369,10 +370,10 @@ def run_real_path_mediation(
                         hook_point=HookPoint.POST_MLP_RESID,
                         mode="inject",
                     )
-                    _, probs_int_v = compute_sequence_likelihoods_for_candidates(
+                    log_int_v, probs_int_v = compute_sequence_likelihoods_for_candidates(
                         model=model, tokenizer=tokenizer, prompt=p_k, candidates=candidates, device=device, batch_size=81
                     )
-                ev_i_v, _ = compute_expected_va(probs_int_v, candidates)
+                ev_i_v, _ = compute_expected_va(log_int_v, candidates)
                 sample_c_v.append(abs(ev_i_v - ev_c))
 
                 # c. Arousal intervention (inject d_a_l) -> |Delta A|
@@ -386,10 +387,10 @@ def run_real_path_mediation(
                         hook_point=HookPoint.POST_MLP_RESID,
                         mode="inject",
                     )
-                    _, probs_int_a = compute_sequence_likelihoods_for_candidates(
+                    log_int_a, probs_int_a = compute_sequence_likelihoods_for_candidates(
                         model=model, tokenizer=tokenizer, prompt=p_k, candidates=candidates, device=device, batch_size=81
                     )
-                _, ea_i_a = compute_expected_va(probs_int_a, candidates)
+                _, ea_i_a = compute_expected_va(log_int_a, candidates)
                 sample_c_a.append(abs(ea_i_a - ea_c))
 
         c_v_score = float(np.mean(sample_c_v)) if sample_c_v else 0.0
@@ -477,19 +478,19 @@ def run_real_path_mediation(
             neutral_text = resolve_matched_neutral_text(row, df)
             if neutral_text is not None and len(neutral_text.strip()) > 0:
                 p_neu = build_prompt(neutral_text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
-                _, probs_neu = compute_sequence_likelihoods_for_candidates(
+                log_neu, probs_neu = compute_sequence_likelihoods_for_candidates(
                     model=model, tokenizer=tokenizer, prompt=p_neu, candidates=candidates, device=device, batch_size=81
                 )
-                ev_neu, ea_neu = compute_expected_va(probs_neu, candidates)
+                ev_neu, ea_neu = compute_expected_va(log_neu, candidates)
             else:
                 # neutral baseline がない場合はエラーを送出（Primaryでは固定5.0へのサイレントfallbackは禁止）
                 raise ValueError(f"Missing matched-neutral baseline for stimulus: {row.get('stimulus_id', row.get('id', 'unknown'))}")
 
             # a. Clean baseline (Total affective shift: 自己報告の情動変位 |ev_clean - ev_neu|)
-            _, probs_clean = compute_sequence_likelihoods_for_candidates(
+            log_clean, probs_clean = compute_sequence_likelihoods_for_candidates(
                 model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device, batch_size=81
             )
-            ev_clean, ea_clean = compute_expected_va(probs_clean, candidates)
+            ev_clean, ea_clean = compute_expected_va(log_clean, candidates)
             te_v = abs(ev_clean - ev_neu)
             te_a = abs(ea_clean - ea_neu)
             te_v_list.append(te_v)
@@ -519,10 +520,10 @@ def run_real_path_mediation(
                     token_indices=patch_pos,
                     hook_point=HookPoint.POST_MLP_RESID,
                 )
-                _, probs_abl = compute_sequence_likelihoods_for_candidates(
+                log_abl, probs_abl = compute_sequence_likelihoods_for_candidates(
                     model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device, batch_size=81
                 )
-            ev_abl, ea_abl = compute_expected_va(probs_abl, candidates)
+            ev_abl, ea_abl = compute_expected_va(log_abl, candidates)
             res_v = abs(ev_abl - ev_neu)
             res_a = abs(ea_abl - ea_neu)
             residual_v_list.append(res_v)
@@ -646,7 +647,7 @@ def main():
         "dry_run": bool(args.dry_run),
     }
 
-    if out_raw.exists() and not args.dry_run:
+    if not args.force and out_raw.exists() and not args.dry_run:
         try:
             with open(out_raw, "r", encoding="utf-8") as f:
                 cached = json.load(f)

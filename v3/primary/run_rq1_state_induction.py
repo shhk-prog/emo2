@@ -267,25 +267,26 @@ def run_real_state_induction(
     fam_cfg = registry.get_family_by_model_id(model_id)
     adapter = get_model_adapter(model, fam_cfg)
 
-    # 1. データを 50/50 Train / Test split に厳格分割 (pair_id に基づく Group split)
+    # 1. データを config の train_ratio に基づき厳格分割 (pair_id に基づく Group split)
+    train_ratio = float(v3_cfg.get("dataset", {}).get("train_ratio", 0.7))
     seed = 42
     rng = np.random.RandomState(seed)
     if "pair_id" in df.columns and df["pair_id"].nunique() > 1:
         unique_pairs = list(df["pair_id"].unique())
         rng.shuffle(unique_pairs)
-        half_pairs = len(unique_pairs) // 2
-        train_pairs = set(unique_pairs[:half_pairs])
+        n_train_pairs = max(1, int(round(len(unique_pairs) * train_ratio)))
+        train_pairs = set(unique_pairs[:n_train_pairs])
         train_mask = df["pair_id"].isin(train_pairs)
         train_df = df[train_mask].copy().reset_index(drop=True)
         test_df = df[~train_mask].copy().reset_index(drop=True)
-        logger.info(f"Group split on pair_id: {len(train_pairs)} pairs train ({len(train_df)} rows), {len(unique_pairs) - half_pairs} pairs test ({len(test_df)} rows)")
+        logger.info(f"Group split on pair_id (ratio={train_ratio}): {len(train_pairs)} pairs train ({len(train_df)} rows), {len(unique_pairs) - n_train_pairs} pairs test ({len(test_df)} rows)")
     else:
         indices = rng.permutation(len(df))
-        half = len(df) // 2
-        train_idx, test_idx = indices[:half], indices[half:]
+        n_train = max(1, int(round(len(df) * train_ratio)))
+        train_idx, test_idx = indices[:n_train], indices[n_train:]
         train_df = df.iloc[train_idx].copy().reset_index(drop=True)
         test_df = df.iloc[test_idx].copy().reset_index(drop=True)
-        logger.info(f"Index split: {len(train_df)} train, {len(test_df)} test")
+        logger.info(f"Index split (ratio={train_ratio}): {len(train_df)} train, {len(test_df)} test")
     logger.info(f"Split dataset: {len(train_df)} train pairs, {len(test_df)} held-out test pairs")
 
     # 2. Train split による情動方向 d_V, d_A の推定 (Reader-grounded Primary / Self-derived Secondary)
@@ -740,14 +741,15 @@ def evaluate_go_no_go_gate(
     min_spec = gate_cfg.get("min_specificity_diff", 0.05)
     min_nec = gate_cfg.get("min_necessity_attenuation", 0.05)
     max_topic_tvd = gate_cfg.get("max_topic_tvd", 0.15)
+    min_slope = float(gate_cfg.get("min_sufficiency_slope", 0.1))
 
-    # 1. Dose-response: 傾き slope の 95% CI 下限が 0.1 超
+    # 1. Dose-response: 傾き slope の 95% CI 下限が閾値超
     slope_v_ci = results.get("slope_v_ci", {})
     slope_a_ci = results.get("slope_a_ci", {})
     sv_lower = slope_v_ci.get("ci_lower", results.get("slope_v", 0.0))
     sa_lower = slope_a_ci.get("ci_lower", results.get("slope_a", 0.0))
-    dose_v_pass = bool(sv_lower > 0.1)
-    dose_a_pass = bool(sa_lower > 0.1)
+    dose_v_pass = bool(sv_lower > min_slope)
+    dose_a_pass = bool(sa_lower > min_slope)
 
     # 2. Specificity: 95% CI 下限が閾値超 (VA独立)
     spec_v_ci = results.get("specificity_v_ci", results.get("specificity_diff_ci", {}))

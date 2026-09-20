@@ -225,10 +225,10 @@ def run_real_spatiotemporal_maps(
             }
             sample_stage_indices.append(stage_map)
 
-            _, probs = compute_sequence_likelihoods_for_candidates(
+            log_liks, _ = compute_sequence_likelihoods_for_candidates(
                 model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device, batch_size=81
             )
-            ev, ea = compute_expected_va(probs, candidates)
+            ev, ea = compute_expected_va(log_liks, candidates)
             clean_ev_list.append(ev)
             clean_ea_list.append(ea)
 
@@ -321,10 +321,10 @@ def run_real_spatiotemporal_maps(
                                 token_indices=t_idx,
                                 hook_point=HookPoint.POST_MLP_RESID,
                             )
-                            _, probs_p = compute_sequence_likelihoods_for_candidates(
+                            log_liks_p, _ = compute_sequence_likelihoods_for_candidates(
                                 model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device, batch_size=81
                             )
-                        ev_p, ea_p = compute_expected_va(probs_p, candidates)
+                        ev_p, ea_p = compute_expected_va(log_liks_p, candidates)
                         shifts_v.append(ev_p - clean_ev_list[idx])
                         shifts_a.append(ea_p - clean_ea_list[idx])
 

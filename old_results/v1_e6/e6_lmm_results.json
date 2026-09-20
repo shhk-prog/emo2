@@ -1,0 +1,24 @@
+{
+  "model_type": "Linear Mixed-Effects Model (LMM)",
+  "formula": "impact ~ C(task, Treatment(reference='Reader')) * C(site_type, Treatment(reference='ReaderSite'))",
+  "p_interaction": 0.8603222557066995,
+  "coef_interaction": -0.022747350289612247,
+  "cell_means": {
+    "Reader_ReaderSite": 1.8201708726117223,
+    "Self_ReaderSite": 1.4842767335262688,
+    "Reader_SelfSite": 1.7646200441213955,
+    "Self_SelfSite": 1.4059785547463293
+  },
+  "has_crossover": false,
+  "site_selection_method": "task_selectivity_contrast",
+  "selectivity_info": {
+    "max_selectivity_reader": 0.015227658781670296,
+    "max_selectivity_self": 0.0046962060064849875,
+    "reader_selective_layer": 1,
+    "self_selective_layer": 10
+  },
+  "reader_layer": 1,
+  "self_layer": 10,
+  "split_eval": "confirmation",
+  "n_evaluation_pairs": 96
+}

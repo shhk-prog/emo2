@@ -31,8 +31,11 @@ def select_e4_candidate_layers(
         else "magnitude_self"
     )
 
-    reader_peak_l = int(df.loc[df[mag_r_col].idxmax(), "layer"])
-    self_peak_l = int(df.loc[df[mag_s_col].idxmax(), "layer"])
+    valid_r = df[mag_r_col].dropna() if mag_r_col in df.columns else pd.Series(dtype=float)
+    valid_s = df[mag_s_col].dropna() if mag_s_col in df.columns else pd.Series(dtype=float)
+
+    reader_peak_l = int(df.loc[valid_r.idxmax(), "layer"]) if not valid_r.empty else max(0, int(num_layers * 0.3))
+    self_peak_l = int(df.loc[valid_s.idxmax(), "layer"]) if not valid_s.empty else max(0, int(num_layers * 0.7))
 
     near_l1 = max(0, min(reader_peak_l - 1, num_layers - 1))
     near_l2 = max(0, min(self_peak_l + 1, num_layers - 1))

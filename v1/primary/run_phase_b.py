@@ -271,8 +271,11 @@ def main():
     if args.dry_run:
         args.out_dir = os.path.join(args.out_dir, "dry_run")
 
-    os.makedirs(args.out_dir, exist_ok=True)
-    model_dir = os.path.join(args.out_dir, args.model_prefix)
+    # Ensure task-type separation in output hierarchy
+    if not args.out_dir.endswith(args.task_type):
+        model_dir = os.path.join(args.out_dir, args.task_type, args.model_prefix)
+    else:
+        model_dir = os.path.join(args.out_dir, args.model_prefix)
     os.makedirs(model_dir, exist_ok=True)
 
     is_instruct = (
@@ -341,6 +344,7 @@ def main():
             model_name=args.model_id,
             config={
                 "model_prefix": args.model_prefix,
+                "task_type": args.task_type,
                 "target_layer": target_layer,
                 "relative_depth": args.relative_depth,
                 "num_pairs": 100,
@@ -547,6 +551,7 @@ def main():
         model_name=args.model_id,
         config={
             "model_prefix": args.model_prefix,
+            "task_type": args.task_type,
             "target_layer": target_layer,
             "relative_depth": args.relative_depth,
             "num_pairs": n_pairs,

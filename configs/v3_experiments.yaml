@@ -42,6 +42,7 @@ semantic_generation_stages:
 
 # Go/No-Go ゲート判定基準 (Bootstrap 95% CI)
 gate_criteria:
+  min_sufficiency_slope: 0.1
   min_specificity_diff: 0.05
   min_necessity_attenuation: 0.05
   max_topic_tvd: 0.15

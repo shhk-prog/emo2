@@ -1,0 +1,33 @@
+{
+  "run_type": "v1_phase_b",
+  "model_name": "Qwen/Qwen2.5-1.5B-Instruct",
+  "config": {
+    "model_prefix": "qwen_instruct",
+    "target_layer": 14,
+    "relative_depth": 0.5,
+    "num_pairs": 192
+  },
+  "metadata": {
+    "acc_original_minimal_pair": 0.890625,
+    "acc_paraphrase_invariance": 1.0,
+    "acc_transformation_sensitivity_paraphrase": 1.0,
+    "acc_pair_aware_held_out_paraphrase": 0.8879310344827587,
+    "pair_aware_held_out_reversal_drop": 0.029475867748260498,
+    "acc_word_shuffle": 0.7447916666666667,
+    "mean_affective_prob_original": 0.9918503761291504,
+    "mean_affective_prob_outcome_reversed": 0.9834875464439392,
+    "outcome_reversal_prob_drop": 0.008362829685211182
+  },
+  "timestamp_utc": "2026-09-20T09:43:23.802244+00:00",
+  "git_commit": "536f0ee",
+  "config_hash": "ae7ff547c5a03c8c",
+  "dataset_hash": "unknown",
+  "model_revision": "main",
+  "tokenizer_revision": "main",
+  "prompt_version": "1.0.0",
+  "candidate_space": "VAD_729",
+  "seed": 42,
+  "code_version": "0.3.0",
+  "intervention_version": "none",
+  "dry_run": false
+}

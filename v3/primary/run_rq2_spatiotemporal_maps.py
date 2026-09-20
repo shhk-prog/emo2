@@ -671,12 +671,10 @@ def main():
     d_peak_D = float(v_dissoc.get("d_peak_D", 0.50))
     d_peak_C = float(v_dissoc.get("d_peak_C", 0.68))
 
-    frozen_sites = {
+    rq2_sites = {
         "discovery_model": target_model_id,
         "discovery_family": fam_key,
-        "sufficiency_relative_depth": d_peak_D,
         "temporal_relative_depth": d_peak_C,
-        "mediation_relative_depth": d_peak_C,
         "target_stages": normalized_stages,
         "causal_peak_stage_v": "pre_V",
         "causal_peak_stage_a": "pre_A",
@@ -685,10 +683,10 @@ def main():
         "arousal_d_peak_D": float(a_dissoc.get("d_peak_D", 0.50)),
         "arousal_d_peak_C": float(a_dissoc.get("d_peak_C", 0.68)),
     }
-    frozen_sites_path = derived_dir / "frozen_confirmatory_sites.json"
-    with open(frozen_sites_path, "w", encoding="utf-8") as f:
-        json.dump(frozen_sites, f, indent=2)
-    logger.info(f"Saved frozen confirmatory sites to {frozen_sites_path}")
+    rq2_sites_path = derived_dir / "v3_rq2_causal_sites.json"
+    with open(rq2_sites_path, "w", encoding="utf-8") as f:
+        json.dump(rq2_sites, f, indent=2)
+    logger.info(f"Saved RQ2 causal sites artifact to {rq2_sites_path}")
 
     logger.info(f"Valence Dissociation Delta Peak: {results['dissociation_summary']['valence']['delta_d_peak']:.3f}")
     logger.info(f"Arousal Dissociation Delta Peak: {results['dissociation_summary']['arousal']['delta_d_peak']:.3f}")

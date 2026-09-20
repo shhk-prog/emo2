@@ -112,12 +112,13 @@ def evaluate_expected_va_batch(
     return np.array(exp_v_list), np.array(exp_a_list)
 
 
-def run_lmm_interaction_test(df_long: pd.DataFrame) -> Dict[str, Any]:
+def run_lmm_interaction_test(df_long: pd.DataFrame, target_metric: str = "impact_va") -> Dict[str, Any]:
+    metric = target_metric if target_metric in df_long.columns else "impact"
     try:
         import statsmodels.api as sm
         import statsmodels.formula.api as smf
 
-        formula = "impact ~ C(task, Treatment(reference='Reader')) * C(site_type, Treatment(reference='ReaderSite'))"
+        formula = f"{metric} ~ C(task, Treatment(reference='Reader')) * C(site_type, Treatment(reference='ReaderSite'))"
         md = smf.mixedlm(formula, df_long, groups=df_long["pair_id"])
         mdf = md.fit()
         interaction_term = [
@@ -128,6 +129,7 @@ def run_lmm_interaction_test(df_long: pd.DataFrame) -> Dict[str, Any]:
 
         return {
             "model_type": "Linear Mixed-Effects Model (LMM)",
+            "target_metric": metric,
             "formula": formula,
             "p_interaction": p_val,
             "coef_interaction": coef,
@@ -136,7 +138,7 @@ def run_lmm_interaction_test(df_long: pd.DataFrame) -> Dict[str, Any]:
     except Exception as ex:
         # Paired t-test fallback on double difference
         piv = df_long.pivot_table(
-            index="pair_id", columns=["task", "site_type"], values="impact"
+            index="pair_id", columns=["task", "site_type"], values=metric
         )
         double_diff = (
             piv[("Reader", "ReaderSite")]
@@ -146,6 +148,7 @@ def run_lmm_interaction_test(df_long: pd.DataFrame) -> Dict[str, Any]:
         t_stat, p_val = stats.ttest_1samp(double_diff.dropna(), 0.0)
         return {
             "model_type": f"Paired t-test on Double Difference (Fallback due to: {ex})",
+            "target_metric": metric,
             "p_interaction": float(p_val),
             "coef_interaction": float(np.mean(double_diff)),
             "summary_text": f"t={t_stat:.4f}, p={p_val:.4e}",
@@ -190,8 +193,11 @@ def select_sites_from_e3(
         )
 
     # Task selectivity contrast
-    selectivity_r = df[mag_r_col] - df[mag_s_col]
-    selectivity_s = df[mag_s_col] - df[mag_r_col]
+    selectivity_r = (df[mag_r_col] - df[mag_s_col]).dropna()
+    selectivity_s = (df[mag_s_col] - df[mag_r_col]).dropna()
+
+    if selectivity_r.empty or selectivity_s.empty:
+        return None, None, "no_distinct_sites_identified", {"error": "All selectivity values are NaN"}
 
     reader_peak_idx = selectivity_r.idxmax()
     self_peak_idx = selectivity_s.idxmax()
@@ -418,6 +424,11 @@ def main():
                     "site_type": "ReaderSite",
                     "site_layer": args.reader_layer,
                     "impact": 0.55,
+                    "impact_va": 0.55,
+                    "impact_v": 0.45,
+                    "impact_a": 0.30,
+                    "delta_v": 0.45,
+                    "delta_a": 0.30,
                 }
             ]
         )
@@ -510,11 +521,11 @@ def main():
         for t in eval_df["text_aff"]
     ]
 
-    print("Computing baseline intact predictions...")
-    base_v_r, _ = evaluate_expected_va_batch(
+    print("Computing baseline intact predictions (VA)...")
+    base_v_r, base_a_r = evaluate_expected_va_batch(
         model, tokenizer, prompts_r_aff, candidates, vad_triplets, device=args.device
     )
-    base_v_s, _ = evaluate_expected_va_batch(
+    base_v_s, base_a_s = evaluate_expected_va_batch(
         model, tokenizer, prompts_s_aff, candidates, vad_triplets, device=args.device
     )
 
@@ -533,7 +544,7 @@ def main():
             position=pos_r,
             intervention_type=args.ablation_type,
         ):
-            abl_vr_rs, _ = evaluate_expected_va_batch(
+            abl_vr_rs, abl_ar_rs = evaluate_expected_va_batch(
                 model,
                 tokenizer,
                 [prompts_r_aff[p_idx]],
@@ -548,7 +559,7 @@ def main():
             position=pos_s,
             intervention_type=args.ablation_type,
         ):
-            abl_vs_rs, _ = evaluate_expected_va_batch(
+            abl_vs_rs, abl_as_rs = evaluate_expected_va_batch(
                 model,
                 tokenizer,
                 [prompts_s_aff[p_idx]],
@@ -565,7 +576,7 @@ def main():
             position=pos_r,
             intervention_type=args.ablation_type,
         ):
-            abl_vr_ss, _ = evaluate_expected_va_batch(
+            abl_vr_ss, abl_ar_ss = evaluate_expected_va_batch(
                 model,
                 tokenizer,
                 [prompts_r_aff[p_idx]],
@@ -580,7 +591,7 @@ def main():
             position=pos_s,
             intervention_type=args.ablation_type,
         ):
-            abl_vs_ss, _ = evaluate_expected_va_batch(
+            abl_vs_ss, abl_as_ss = evaluate_expected_va_batch(
                 model,
                 tokenizer,
                 [prompts_s_aff[p_idx]],
@@ -589,13 +600,43 @@ def main():
                 device=args.device,
             )
 
+        # Compute 2D VA displacements and scalar impacts
+        dv_r_rs = float(abl_vr_rs[0] - base_v_r[p_idx])
+        da_r_rs = float(abl_ar_rs[0] - base_a_r[p_idx])
+        imp_v_r_rs = abs(dv_r_rs)
+        imp_a_r_rs = abs(da_r_rs)
+        imp_va_r_rs = float(np.sqrt(dv_r_rs**2 + da_r_rs**2))
+
+        dv_s_rs = float(abl_vs_rs[0] - base_v_s[p_idx])
+        da_s_rs = float(abl_as_rs[0] - base_a_s[p_idx])
+        imp_v_s_rs = abs(dv_s_rs)
+        imp_a_s_rs = abs(da_s_rs)
+        imp_va_s_rs = float(np.sqrt(dv_s_rs**2 + da_s_rs**2))
+
+        dv_r_ss = float(abl_vr_ss[0] - base_v_r[p_idx])
+        da_r_ss = float(abl_ar_ss[0] - base_a_r[p_idx])
+        imp_v_r_ss = abs(dv_r_ss)
+        imp_a_r_ss = abs(da_r_ss)
+        imp_va_r_ss = float(np.sqrt(dv_r_ss**2 + da_r_ss**2))
+
+        dv_s_ss = float(abl_vs_ss[0] - base_v_s[p_idx])
+        da_s_ss = float(abl_as_ss[0] - base_a_s[p_idx])
+        imp_v_s_ss = abs(dv_s_ss)
+        imp_a_s_ss = abs(da_s_ss)
+        imp_va_s_ss = float(np.sqrt(dv_s_ss**2 + da_s_ss**2))
+
         long_records.append(
             {
                 "pair_id": p_id,
                 "task": "Reader",
                 "site_type": "ReaderSite",
                 "site_layer": args.reader_layer,
-                "impact": float(abs(abl_vr_rs[0] - base_v_r[p_idx])),
+                "impact": imp_va_r_rs,
+                "impact_va": imp_va_r_rs,
+                "impact_v": imp_v_r_rs,
+                "impact_a": imp_a_r_rs,
+                "delta_v": dv_r_rs,
+                "delta_a": da_r_rs,
             }
         )
         long_records.append(
@@ -604,7 +645,12 @@ def main():
                 "task": "Self",
                 "site_type": "ReaderSite",
                 "site_layer": args.reader_layer,
-                "impact": float(abs(abl_vs_rs[0] - base_v_s[p_idx])),
+                "impact": imp_va_s_rs,
+                "impact_va": imp_va_s_rs,
+                "impact_v": imp_v_s_rs,
+                "impact_a": imp_a_s_rs,
+                "delta_v": dv_s_rs,
+                "delta_a": da_s_rs,
             }
         )
         long_records.append(
@@ -613,7 +659,12 @@ def main():
                 "task": "Reader",
                 "site_type": "SelfSite",
                 "site_layer": args.self_layer,
-                "impact": float(abs(abl_vr_ss[0] - base_v_r[p_idx])),
+                "impact": imp_va_r_ss,
+                "impact_va": imp_va_r_ss,
+                "impact_v": imp_v_r_ss,
+                "impact_a": imp_a_r_ss,
+                "delta_v": dv_r_ss,
+                "delta_a": da_r_ss,
             }
         )
         long_records.append(
@@ -622,7 +673,12 @@ def main():
                 "task": "Self",
                 "site_type": "SelfSite",
                 "site_layer": args.self_layer,
-                "impact": float(abs(abl_vs_ss[0] - base_v_s[p_idx])),
+                "impact": imp_va_s_ss,
+                "impact_va": imp_va_s_ss,
+                "impact_v": imp_v_s_ss,
+                "impact_a": imp_a_s_ss,
+                "delta_v": dv_s_ss,
+                "delta_a": da_s_ss,
             }
         )
 
@@ -636,19 +692,42 @@ def main():
 
     df_long = pd.DataFrame(long_records)
 
-    stat_results = run_lmm_interaction_test(df_long)
-    cell_means = df_long.groupby(["task", "site_type"])["impact"].mean()
-    mean_r_rs = float(cell_means.loc["Reader", "ReaderSite"])
-    mean_s_rs = float(cell_means.loc["Self", "ReaderSite"])
-    mean_r_ss = float(cell_means.loc["Reader", "SelfSite"])
-    mean_s_ss = float(cell_means.loc["Self", "SelfSite"])
+    # Primary LMM interaction test on impact_va
+    stat_results = run_lmm_interaction_test(df_long, target_metric="impact_va")
+    # Secondary tests on individual V and A axes
+    stat_results_v = run_lmm_interaction_test(df_long, target_metric="impact_v")
+    stat_results_a = run_lmm_interaction_test(df_long, target_metric="impact_a")
+    stat_results["secondary_v"] = stat_results_v
+    stat_results["secondary_a"] = stat_results_a
+
+    cell_means_va = df_long.groupby(["task", "site_type"])["impact_va"].mean()
+    cell_means_v = df_long.groupby(["task", "site_type"])["impact_v"].mean()
+    cell_means_a = df_long.groupby(["task", "site_type"])["impact_a"].mean()
+
+    mean_r_rs = float(cell_means_va.loc["Reader", "ReaderSite"])
+    mean_s_rs = float(cell_means_va.loc["Self", "ReaderSite"])
+    mean_r_ss = float(cell_means_va.loc["Reader", "SelfSite"])
+    mean_s_ss = float(cell_means_va.loc["Self", "SelfSite"])
     has_crossover = (mean_r_rs > mean_s_rs) and (mean_s_ss > mean_r_ss)
 
-    stat_results["cell_means"] = {
+    stat_results["cell_means_va"] = {
         "Reader_ReaderSite": mean_r_rs,
         "Self_ReaderSite": mean_s_rs,
         "Reader_SelfSite": mean_r_ss,
         "Self_SelfSite": mean_s_ss,
+    }
+    stat_results["cell_means"] = stat_results["cell_means_va"]
+    stat_results["cell_means_v"] = {
+        "Reader_ReaderSite": float(cell_means_v.loc["Reader", "ReaderSite"]),
+        "Self_ReaderSite": float(cell_means_v.loc["Self", "ReaderSite"]),
+        "Reader_SelfSite": float(cell_means_v.loc["Reader", "SelfSite"]),
+        "Self_SelfSite": float(cell_means_v.loc["Self", "SelfSite"]),
+    }
+    stat_results["cell_means_a"] = {
+        "Reader_ReaderSite": float(cell_means_a.loc["Reader", "ReaderSite"]),
+        "Self_ReaderSite": float(cell_means_a.loc["Self", "ReaderSite"]),
+        "Reader_SelfSite": float(cell_means_a.loc["Reader", "SelfSite"]),
+        "Self_SelfSite": float(cell_means_a.loc["Self", "SelfSite"]),
     }
     stat_results["has_crossover"] = bool(has_crossover)
     stat_results["site_selection_method"] = site_selection_method

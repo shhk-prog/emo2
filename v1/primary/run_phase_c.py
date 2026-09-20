@@ -46,6 +46,31 @@ from affective_empathy_eval.models.registry import (
     resolve_architecture_dims,
     resolve_single_model_from_args,
 )
+
+
+def apply_fdr_bh(p_values: List[float]) -> List[float]:
+    """Benjamini-Hochberg FDR correction."""
+    arr = np.array(p_values, dtype=float)
+    n = len(arr)
+    if n <= 1:
+        return list(arr)
+    valid_mask = ~np.isnan(arr)
+    if not np.any(valid_mask):
+        return list(arr)
+    valid_p = arr[valid_mask]
+    m = len(valid_p)
+    order = np.argsort(valid_p)
+    ranked = np.empty_like(order)
+    ranked[order] = np.arange(1, m + 1)
+    q_vals = valid_p * m / ranked
+    sorted_q = q_vals[order]
+    for i in range(m - 2, -1, -1):
+        sorted_q[i] = min(sorted_q[i], sorted_q[i + 1])
+    q_vals[order] = sorted_q
+    q_vals = np.clip(q_vals, 0.0, 1.0)
+    result = np.full_like(arr, np.nan)
+    result[valid_mask] = q_vals
+    return list(result)
 from affective_empathy_eval.affect_directions import AIPSY_EXPECTED_DIRECTION
 from affective_empathy_eval.geometry import get_block_hidden_state
 from affective_empathy_eval.statistics import (
@@ -387,6 +412,15 @@ def main():
                 "specificity_A": 0.23,
                 "cohen_dz_V": 1.15,
                 "cohen_dz_A": 0.95,
+                "is_confirmatory": True,
+                "aligned_p_val_V": 0.0001,
+                "aligned_p_val_A": 0.0002,
+                "aligned_p_fdr_V": 0.0001,
+                "aligned_p_fdr_A": 0.0002,
+                "p_val_V": 0.0001,
+                "p_val_A": 0.0002,
+                "p_fdr_V": 0.0001,
+                "p_fdr_A": 0.0002,
             }
         ]
         pd.DataFrame(e3_records).to_csv(
@@ -795,10 +829,16 @@ def main():
                         }
                     )
     
-                mean_sv = float(np.mean(shifts_v_self))
-                mean_sa = float(np.mean(shifts_a_self))
-                mean_rv = float(np.mean(shifts_v_reader))
-                mean_ra = float(np.mean(shifts_a_reader))
+                # 集計計算（NaN を安全に除外して平均を算出）
+                valid_sv = [v for v in shifts_v_self if not np.isnan(v)]
+                valid_sa = [a for a in shifts_a_self if not np.isnan(a)]
+                valid_rv = [v for v in shifts_v_reader if not np.isnan(v)]
+                valid_ra = [a for a in shifts_a_reader if not np.isnan(a)]
+
+                mean_sv = float(np.mean(valid_sv)) if len(valid_sv) > 0 else 0.0
+                mean_sa = float(np.mean(valid_sa)) if len(valid_sa) > 0 else 0.0
+                mean_rv = float(np.mean(valid_rv)) if len(valid_rv) > 0 else 0.0
+                mean_ra = float(np.mean(valid_ra)) if len(valid_ra) > 0 else 0.0
     
                 mag_s = float(np.sqrt(mean_sv**2 + mean_sa**2))
                 mag_r = float(np.sqrt(mean_rv**2 + mean_ra**2))
@@ -824,64 +864,34 @@ def main():
                     for i in range(n_pairs)
                     if merged.loc[i, "eval_split"] == "confirmation"
                 ]
-                disc_mag_s = (
-                    float(
-                        np.mean(
-                            [
-                                np.sqrt(
-                                    shifts_v_self[i] ** 2 + shifts_a_self[i] ** 2
-                                )
-                                for i in disc_idx
-                            ]
-                        )
-                    )
-                    if disc_idx
-                    else mag_s
-                )
-                disc_mag_r = (
-                    float(
-                        np.mean(
-                            [
-                                np.sqrt(
-                                    shifts_v_reader[i] ** 2
-                                    + shifts_a_reader[i] ** 2
-                                )
-                                for i in disc_idx
-                            ]
-                        )
-                    )
-                    if disc_idx
-                    else mag_r
-                )
-                conf_mag_s = (
-                    float(
-                        np.mean(
-                            [
-                                np.sqrt(
-                                    shifts_v_self[i] ** 2 + shifts_a_self[i] ** 2
-                                )
-                                for i in conf_idx
-                            ]
-                        )
-                    )
-                    if conf_idx
-                    else mag_s
-                )
-                conf_mag_r = (
-                    float(
-                        np.mean(
-                            [
-                                np.sqrt(
-                                    shifts_v_reader[i] ** 2
-                                    + shifts_a_reader[i] ** 2
-                                )
-                                for i in conf_idx
-                            ]
-                        )
-                    )
-                    if conf_idx
-                    else mag_r
-                )
+
+                disc_vals_s = [
+                    np.sqrt(shifts_v_self[i] ** 2 + shifts_a_self[i] ** 2)
+                    for i in disc_idx
+                    if not (np.isnan(shifts_v_self[i]) or np.isnan(shifts_a_self[i]))
+                ]
+                disc_mag_s = float(np.mean(disc_vals_s)) if disc_vals_s else mag_s
+
+                disc_vals_r = [
+                    np.sqrt(shifts_v_reader[i] ** 2 + shifts_a_reader[i] ** 2)
+                    for i in disc_idx
+                    if not (np.isnan(shifts_v_reader[i]) or np.isnan(shifts_a_reader[i]))
+                ]
+                disc_mag_r = float(np.mean(disc_vals_r)) if disc_vals_r else mag_r
+
+                conf_vals_s = [
+                    np.sqrt(shifts_v_self[i] ** 2 + shifts_a_self[i] ** 2)
+                    for i in conf_idx
+                    if not (np.isnan(shifts_v_self[i]) or np.isnan(shifts_a_self[i]))
+                ]
+                conf_mag_s = float(np.mean(conf_vals_s)) if conf_vals_s else mag_s
+
+                conf_vals_r = [
+                    np.sqrt(shifts_v_reader[i] ** 2 + shifts_a_reader[i] ** 2)
+                    for i in conf_idx
+                    if not (np.isnan(shifts_v_reader[i]) or np.isnan(shifts_a_reader[i]))
+                ]
+                conf_mag_r = float(np.mean(conf_vals_r)) if conf_vals_r else mag_r
     
                 e3_causal_records.append(
                     {
@@ -920,12 +930,13 @@ def main():
         if args.candidate_layers is not None and len(args.candidate_layers) > 0:
             e4_layers = sorted(list(set(args.candidate_layers)))
         elif not df_e3.empty:
-            reader_peak_l = int(
-                df_e3.loc[df_e3["discovery_mag_reader"].idxmax(), "layer"]
-            )
-            self_peak_l = int(
-                df_e3.loc[df_e3["discovery_mag_self"].idxmax(), "layer"]
-            )
+            mag_r_col = "discovery_mag_reader" if "discovery_mag_reader" in df_e3.columns else "magnitude_reader"
+            mag_s_col = "discovery_mag_self" if "discovery_mag_self" in df_e3.columns else "magnitude_self"
+            valid_r = df_e3[mag_r_col].dropna() if mag_r_col in df_e3.columns else pd.Series(dtype=float)
+            valid_s = df_e3[mag_s_col].dropna() if mag_s_col in df_e3.columns else pd.Series(dtype=float)
+
+            reader_peak_l = int(df_e3.loc[valid_r.idxmax(), "layer"]) if not valid_r.empty else max(0, int(num_layers * 0.3))
+            self_peak_l = int(df_e3.loc[valid_s.idxmax(), "layer"]) if not valid_s.empty else max(0, int(num_layers * 0.7))
             near_l1 = max(0, min(reader_peak_l - 1, num_layers - 1))
             near_l2 = max(0, min(self_peak_l + 1, num_layers - 1))
             late_l = int(num_layers * 0.85)
@@ -1422,9 +1433,39 @@ def main():
                         pbar_cond.update(1)
                         pbar_cond.set_postfix({"layer": l, "alpha": alpha})
 
-            pd.DataFrame(e4_patching_records).sort_values(["layer", "alpha"]).to_csv(e4_csv_path, index=False)
+            # Determine E3 peak layer for confirmatory condition fixing
+            e3_peak_layer = None
+            if e3_patching_records:
+                try:
+                    df_e3_temp = pd.DataFrame(e3_patching_records)
+                    if "magnitude_reader" in df_e3_temp.columns:
+                        e3_peak_layer = int(df_e3_temp.loc[df_e3_temp["magnitude_reader"].idxmax(), "layer"])
+                except Exception:
+                    pass
+
+            df_e4 = pd.DataFrame(e4_patching_records).sort_values(["layer", "alpha"]).copy().reset_index(drop=True)
+            if not df_e4.empty:
+                # Mark a priori Primary Confirmatory condition: E3 peak site x alpha=1.0
+                if e3_peak_layer is not None:
+                    df_e4["is_confirmatory"] = (df_e4["layer"] == e3_peak_layer) & (np.isclose(df_e4["alpha"], 1.0))
+                else:
+                    # Fallback to first layer alpha=1.0
+                    first_layer = df_e4["layer"].iloc[0]
+                    df_e4["is_confirmatory"] = (df_e4["layer"] == first_layer) & (np.isclose(df_e4["alpha"], 1.0))
+
+                # Compute FDR-adjusted p-values for all conditions
+                if "aligned_p_val_V" in df_e4.columns:
+                    df_e4["aligned_p_fdr_V"] = apply_fdr_bh(df_e4["aligned_p_val_V"].tolist())
+                if "aligned_p_val_A" in df_e4.columns:
+                    df_e4["aligned_p_fdr_A"] = apply_fdr_bh(df_e4["aligned_p_val_A"].tolist())
+                if "p_val_V" in df_e4.columns:
+                    df_e4["p_fdr_V"] = apply_fdr_bh(df_e4["p_val_V"].tolist())
+                if "p_val_A" in df_e4.columns:
+                    df_e4["p_fdr_A"] = apply_fdr_bh(df_e4["p_val_A"].tolist())
+
+            df_e4.to_csv(e4_csv_path, index=False)
             pd.DataFrame(e4_pair_records).to_csv(e4_pair_csv_path, index=False)
-            print(f"E4 results saved to {e4_csv_path}", flush=True)
+            print(f"E4 results with FDR correction saved to {e4_csv_path}", flush=True)
 
     # Save manifest
     manifest = create_run_manifest(

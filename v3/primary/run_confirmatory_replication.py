@@ -865,7 +865,7 @@ def main():
     conf_cfg = v3_cfg.get("confirmatory", {})
     selection_source = conf_cfg.get("selection_source", "qwen_discovery_frozen")
 
-    # Load frozen confirmatory sites artifact if present
+    # Load frozen confirmatory sites artifact
     frozen_sites_path = derived_dir / "frozen_confirmatory_sites.json"
     if not frozen_sites_path.exists():
         frozen_sites_path = Path(v3_cfg["output"]["derived_dir"]) / "frozen_confirmatory_sites.json"
@@ -879,11 +879,26 @@ def main():
             v3_cfg["frozen_sites"] = frozen_sites
             selection_source = f"frozen_confirmatory_sites_from_{frozen_sites.get('discovery_model', 'discovery')}"
         except Exception as e:
-            logger.warning(f"Failed to read frozen confirmatory sites from {frozen_sites_path}: {e}")
+            logger.error(f"Failed to read frozen confirmatory sites from {frozen_sites_path}: {e}")
+            if not args.dry_run:
+                raise
 
-    suff_depth_val = float(frozen_sites.get("sufficiency_relative_depth", conf_cfg.get("sufficiency_relative_depth", 0.5))) if frozen_sites else float(conf_cfg.get("sufficiency_relative_depth", 0.5))
-    temp_depth_val = float(frozen_sites.get("temporal_relative_depth", conf_cfg.get("temporal_relative_depth", 0.65))) if frozen_sites else float(conf_cfg.get("temporal_relative_depth", 0.65))
-    med_depth_val = float(frozen_sites.get("mediation_relative_depth", conf_cfg.get("mediation_relative_depth", 0.65))) if frozen_sites else float(conf_cfg.get("mediation_relative_depth", 0.65))
+    if frozen_sites is None:
+        if args.dry_run:
+            logger.warning("[DRY-RUN] frozen_confirmatory_sites.json not found. Using fallback values for mock dry-run only.")
+            suff_depth_val = float(conf_cfg.get("sufficiency_relative_depth", 0.5))
+            temp_depth_val = float(conf_cfg.get("temporal_relative_depth", 0.65))
+            med_depth_val = float(conf_cfg.get("mediation_relative_depth", 0.65))
+        else:
+            raise FileNotFoundError(
+                f"Missing required artifact: {frozen_sites_path}. "
+                "Confirmatory replication in production requires frozen_confirmatory_sites.json "
+                "generated from Discovery RQ1-RQ3. Config fallback is strictly disabled for paper results."
+            )
+    else:
+        suff_depth_val = float(frozen_sites["sufficiency_relative_depth"])
+        temp_depth_val = float(frozen_sites["temporal_relative_depth"])
+        med_depth_val = float(frozen_sites["mediation_relative_depth"])
 
     for item in conf_models:
         fam_key = item["family_key"]

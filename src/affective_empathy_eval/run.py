@@ -261,8 +261,9 @@ def run_v1(args, python_bin: str):
             # 1. Phase A: Probing & Geometry
             run_command([python_bin, "v1/primary/run_phase_a.py"] + common_flags)
 
-            # 2. Phase B: Semantic vs Lexical Controls Audit
-            run_command([python_bin, "v1/primary/run_phase_b.py"] + common_flags)
+            # 2. Phase B: Semantic vs Lexical Controls Audit (Reader & Self)
+            run_command([python_bin, "v1/primary/run_phase_b.py"] + common_flags + ["--task-type", "reader"])
+            run_command([python_bin, "v1/primary/run_phase_b.py"] + common_flags + ["--task-type", "self"])
 
             # 3. Phase C: Causal Interventions (E3/E4)
             cmd_phase_c = [python_bin, "v1/primary/run_phase_c.py"] + common_flags

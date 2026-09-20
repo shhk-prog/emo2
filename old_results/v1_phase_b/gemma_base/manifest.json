@@ -1,0 +1,33 @@
+{
+  "run_type": "v1_phase_b",
+  "model_name": "google/gemma-3-1b-pt",
+  "config": {
+    "model_prefix": "gemma_base",
+    "target_layer": 12,
+    "relative_depth": 0.5,
+    "num_pairs": 192
+  },
+  "metadata": {
+    "acc_original_minimal_pair": 0.7526041666666667,
+    "acc_paraphrase_invariance": 0.9869791666666667,
+    "acc_transformation_sensitivity_paraphrase": 0.9869791666666667,
+    "acc_pair_aware_held_out_paraphrase": 0.6896551724137931,
+    "pair_aware_held_out_reversal_drop": 0.10398906469345093,
+    "acc_word_shuffle": 0.6354166666666666,
+    "mean_affective_prob_original": 0.9907062649726868,
+    "mean_affective_prob_outcome_reversed": 0.7507004141807556,
+    "outcome_reversal_prob_drop": 0.24000585079193115
+  },
+  "timestamp_utc": "2026-09-20T10:45:17.192437+00:00",
+  "git_commit": "536f0ee",
+  "config_hash": "eee8837adb8d7131",
+  "dataset_hash": "unknown",
+  "model_revision": "main",
+  "tokenizer_revision": "main",
+  "prompt_version": "1.0.0",
+  "candidate_space": "VAD_729",
+  "seed": 42,
+  "code_version": "0.3.0",
+  "intervention_version": "none",
+  "dry_run": false
+}

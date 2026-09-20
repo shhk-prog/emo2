@@ -1,0 +1,10 @@
+{
+  "source_e3_csv": "v1/results/derived/v1_phase_c_prompt_end/gemma_base/e3_causal_map.csv",
+  "num_layers": 26,
+  "selected_candidate_layers": [
+    0,
+    1,
+    2,
+    22
+  ]
+}

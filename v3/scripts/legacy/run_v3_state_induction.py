@@ -310,10 +310,10 @@ def run_real_state_induction(
             prompt_ctrl = build_prompt(text, task=TaskType.CONTROL_TOPIC, format_type="chat", tokenizer=tokenizer)
 
             # a. Clean baseline
-            _, probs_clean = compute_sequence_likelihoods_for_candidates(
+            log_clean, _ = compute_sequence_likelihoods_for_candidates(
                 model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
             )
-            ev_clean, ea_clean = compute_expected_va(probs_clean, candidates)
+            ev_clean, ea_clean = compute_expected_va(log_clean, candidates)
 
             # b. Dose-response alpha sweep (d_V 注入)
             alpha_shifts_v = []
@@ -327,10 +327,10 @@ def run_real_state_induction(
                         token_indices=patch_pos_self,
                         hook_point=HookPoint.POST_MLP_RESID,
                     )
-                    _, probs_patch = compute_sequence_likelihoods_for_candidates(
+                    log_patch, _ = compute_sequence_likelihoods_for_candidates(
                         model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
                     )
-                ev_p, ea_p = compute_expected_va(probs_patch, candidates)
+                ev_p, ea_p = compute_expected_va(log_patch, candidates)
                 shift_v = ev_p - ev_clean
                 shift_a = ea_p - ea_clean
                 alpha_shifts_v.append(shift_v)
@@ -350,10 +350,10 @@ def run_real_state_induction(
                     token_indices=patch_pos_self,
                     hook_point=HookPoint.POST_MLP_RESID,
                 )
-                _, probs_rand = compute_sequence_likelihoods_for_candidates(
+                log_rand, _ = compute_sequence_likelihoods_for_candidates(
                     model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
                 )
-            ev_rand, _ = compute_expected_va(probs_rand, candidates)
+            ev_rand, _ = compute_expected_va(log_rand, candidates)
 
             patch_perp = torch.tensor(1.0 * h_std_v * d_perp, dtype=torch.float32, device=device)
             with ActivationHookManager(adapter) as hook_mgr:
@@ -363,10 +363,10 @@ def run_real_state_induction(
                     token_indices=patch_pos_self,
                     hook_point=HookPoint.POST_MLP_RESID,
                 )
-                _, probs_perp = compute_sequence_likelihoods_for_candidates(
+                log_perp, _ = compute_sequence_likelihoods_for_candidates(
                     model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
                 )
-            ev_perp, _ = compute_expected_va(probs_perp, candidates)
+            ev_perp, _ = compute_expected_va(log_perp, candidates)
 
             eff_affect = abs(alpha_shifts_v[-1])  # alpha = 1.0
             eff_rand = abs(ev_rand - ev_clean)
@@ -398,10 +398,10 @@ def run_real_state_induction(
                     token_indices=patch_pos_self,
                     hook_point=HookPoint.POST_MLP_RESID,
                 )
-                _, probs_abl = compute_sequence_likelihoods_for_candidates(
+                log_abl, _ = compute_sequence_likelihoods_for_candidates(
                     model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
                 )
-            ev_abl, _ = compute_expected_va(probs_abl, candidates)
+            ev_abl, _ = compute_expected_va(log_abl, candidates)
 
             # Necessity: matched-neutral baseline shift vs after projection removal
             if "neutral_expected_v" in row and not pd.isna(row["neutral_expected_v"]):

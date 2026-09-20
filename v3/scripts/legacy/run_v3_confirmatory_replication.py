@@ -250,10 +250,10 @@ def run_real_model_confirmatory(
                         token_indices=anchors["prompt_end"],
                         hook_point=HookPoint.POST_MLP_RESID,
                     )
-                    _, probs_p = compute_sequence_likelihoods_for_candidates(
+                    log_liks_p, _ = compute_sequence_likelihoods_for_candidates(
                         model=model, tokenizer=tokenizer, prompt=prompt, candidates=candidates, device=device, batch_size=81
                     )
-                ev_p, ea_p = compute_expected_va(probs_p, candidates)
+                ev_p, ea_p = compute_expected_va(log_liks_p, candidates)
                 shifts_alpha_v.append(ev_p - clean_ev_list[idx])
                 shifts_alpha_a.append(ea_p - clean_ea_list[idx])
         shifts_v.append(float(np.mean(shifts_alpha_v)))
@@ -271,7 +271,7 @@ def run_real_model_confirmatory(
     batch_size = 81
     h_std_v = float(np.std(H_mid))
     opt_layer = mid_layer
-    evaluate_candidate_likelihoods = lambda *args, **kwargs: compute_sequence_likelihoods_for_candidates(*args, **kwargs)[1]
+    evaluate_candidate_likelihoods = lambda *args, **kwargs: compute_sequence_likelihoods_for_candidates(*args, **kwargs)[0]
 
     for l_idx in range(num_layers):
         l_shifts = []
@@ -291,10 +291,10 @@ def run_real_model_confirmatory(
                     direction=dv_torch,
                     alpha=1.0,
                 )
-                probs_p = evaluate_candidate_likelihoods(
+                log_liks_p = evaluate_candidate_likelihoods(
                     model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
                 )
-            ev_p, _ = compute_expected_va(probs_p, candidates)
+            ev_p, _ = compute_expected_va(log_liks_p, candidates)
             # Use empirical clean baseline
             clean_v = float(clean_ev_list[global_idx])
             l_shifts.append(abs(ev_p - clean_v))
@@ -303,7 +303,7 @@ def run_real_model_confirmatory(
     dissoc_v = compute_layer_dissociation(relative_depths, d_profile_v, c_profile_v)
 
     # 5. Necessity via Centered 2D Orthogonal Subspace Removal (Empirical H3)
-    logger.info("Measuring empirical necessity via centered 2D orthogonal subspace removal...")
+    logger.info("Measuring empirical necessity via subspace projection removal...")
     nat_shifts = []
     att_shifts = []
 
@@ -312,11 +312,11 @@ def run_real_model_confirmatory(
     Q_np, _ = np.linalg.qr(M_sub)        # (dim, 2) orthonormal
     Q = torch.tensor(Q_np, dtype=torch.float32, device=device)
 
-    # Pre-compute neutral reference representations and baselines
+    # Estimate neutral representation mean \mu_{neu} from E1 neutral stimuli
     neutral_reps = []
     neutral_baselines = []
     for row_i, (_, row) in enumerate(causal_sub_df.iterrows()):
-        neu_text = str(row.get("text_neu", row.get("matched_neutral_text", row.get("neutral_text", ""))))
+        neu_text = str(row.get("text_neu", ""))
         if neu_text.strip():
             p_neu = build_prompt(neu_text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
             enc_neu = encode_prompt_canonical(tokenizer, p_neu, device=device)
@@ -331,10 +331,10 @@ def run_real_model_confirmatory(
                 _ = model(**enc_neu)
                 neutral_reps.append(hook_mgr.captured_activations["h_neu"].cpu().float().numpy().ravel())
             with torch.no_grad():
-                probs_neu = evaluate_candidate_likelihoods(
+                log_liks_neu = evaluate_candidate_likelihoods(
                     model=model, tokenizer=tokenizer, prompt=p_neu, candidates=candidates, device=device, batch_size=batch_size
                 )
-                neu_ev, _ = compute_expected_va(probs_neu, candidates)
+                neu_ev, _ = compute_expected_va(log_liks_neu, candidates)
                 neutral_baselines.append(neu_ev)
         else:
             global_idx = causal_sub_indices[row_i]
@@ -373,10 +373,10 @@ def run_real_model_confirmatory(
                 token_indices=p_pos,
                 patch_fn=proj_removal_hook,
             )
-            probs_abl = evaluate_candidate_likelihoods(
+            log_liks_abl = evaluate_candidate_likelihoods(
                 model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
             )
-        ev_abl, _ = compute_expected_va(probs_abl, candidates)
+        ev_abl, _ = compute_expected_va(log_liks_abl, candidates)
         a_shift = abs(ev_abl - neutral_base)
         att_shifts.append(a_shift)
 
@@ -421,10 +421,10 @@ def run_real_model_confirmatory(
                     direction=dv_torch,
                     alpha=1.0,
                 )
-                probs_stg = evaluate_candidate_likelihoods(
+                log_liks_stg = evaluate_candidate_likelihoods(
                     model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=batch_size
                 )
-            ev_stg, _ = compute_expected_va(probs_stg, candidates)
+            ev_stg, _ = compute_expected_va(log_liks_stg, candidates)
             stg_shifts.append(abs(ev_stg - clean_v))
         temp_effects[stg] = float(np.mean(stg_shifts)) if stg_shifts else 0.0
 

@@ -358,6 +358,8 @@ def evaluate_cross_decoding_and_geometry(
 
     pred_r_to_s = np.zeros(n_samples, dtype=float)
     pred_s_to_r = np.zeros(n_samples, dtype=float)
+    pred_r_to_s_task_scaled = np.zeros(n_samples, dtype=float)
+    pred_s_to_r_task_scaled = np.zeros(n_samples, dtype=float)
     pred_within_r = np.zeros(n_samples, dtype=float)
     pred_within_s = np.zeros(n_samples, dtype=float)
     pred_aligned_s_to_r = np.zeros(n_samples, dtype=float)
@@ -378,12 +380,18 @@ def evaluate_cross_decoding_and_geometry(
         clf_r = Ridge(alpha=1.0, random_state=seed)
         clf_r.fit(HR_tr_s, y_tr)
         pred_within_r[test_idx] = clf_r.predict(HR_te_s)
-        pred_r_to_s[test_idx] = clf_r.predict(HS_te_s)
+        # Primary: Reader-fit scaler applied across both tasks (Reader and Self)
+        pred_r_to_s[test_idx] = clf_r.predict(scaler_r.transform(HS_te))
+        # Secondary: task-specific scaler
+        pred_r_to_s_task_scaled[test_idx] = clf_r.predict(HS_te_s)
 
         clf_s = Ridge(alpha=1.0, random_state=seed)
         clf_s.fit(HS_tr_s, y_tr)
         pred_within_s[test_idx] = clf_s.predict(HS_te_s)
-        pred_s_to_r[test_idx] = clf_s.predict(HR_te_s)
+        # Primary: Self-fit scaler applied across both tasks (Self and Reader)
+        pred_s_to_r[test_idx] = clf_s.predict(scaler_s.transform(HR_te))
+        # Secondary: task-specific scaler
+        pred_s_to_r_task_scaled[test_idx] = clf_s.predict(HR_te_s)
 
         try:
             M = np.dot(HS_tr_s.T, HR_tr_s)
@@ -407,6 +415,8 @@ def evaluate_cross_decoding_and_geometry(
     r2_within_s = float(r2_score(y, pred_within_s))
     r2_r_to_s = float(r2_score(y, pred_r_to_s))
     r2_s_to_r = float(r2_score(y, pred_s_to_r))
+    r2_r_to_s_task_scaled = float(r2_score(y, pred_r_to_s_task_scaled))
+    r2_s_to_r_task_scaled = float(r2_score(y, pred_s_to_r_task_scaled))
     r2_aligned_transfer = float(r2_score(y, pred_aligned_s_to_r))
     rsa_score = float(np.mean(rsa_scores)) if rsa_scores else 0.0
 
@@ -424,6 +434,8 @@ def evaluate_cross_decoding_and_geometry(
         "r2_within_s": r2_within_s,
         "r2_cross_r_to_s": r2_r_to_s,
         "r2_cross_s_to_r": r2_s_to_r,
+        "r2_cross_r_to_s_task_scaled": r2_r_to_s_task_scaled,
+        "r2_cross_s_to_r_task_scaled": r2_s_to_r_task_scaled,
         "direct_transfer_score": direct_transfer_score,
         "rsa_correlation": rsa_score,
         "r2_aligned_transfer": r2_aligned_transfer,
@@ -553,16 +565,54 @@ def main():
                 "layer": l,
                 "relative_depth": l / (dummy_layers - 1),
                 "dataset": "AIPsy",
-                "target": "emotion_category",
-                "reader_balanced_acc": 0.75,
-                "self_balanced_acc": 0.72,
-                "reader_f1_macro": 0.70,
-                "self_f1_macro": 0.68,
+                "target": "clinical_vs_matched_neutral",
+                "reader_balanced_acc": 0.85,
+                "self_balanced_acc": 0.82,
+                "reader_f1_macro": 0.84,
+                "self_f1_macro": 0.81,
+                "reader_roc_auc": 0.92,
+                "self_roc_auc": 0.89,
             }
             for l in range(dummy_layers)
         ]
         pd.DataFrame(aipsy_records).to_csv(
             os.path.join(model_dir, "e1_aipsy_classification.csv"), index=False
+        )
+        aipsy_intensity_records = [
+            {
+                "layer": l,
+                "relative_depth": l / (dummy_layers - 1),
+                "dataset": "AIPsy",
+                "target": "intensity_none_moderate_peak",
+                "reader_spearman_rho": 0.70,
+                "self_spearman_rho": 0.65,
+                "reader_pearson_r": 0.68,
+                "self_pearson_r": 0.62,
+                "reader_r2": 0.45,
+                "self_r2": 0.38,
+            }
+            for l in range(dummy_layers)
+        ]
+        pd.DataFrame(aipsy_intensity_records).to_csv(
+            os.path.join(model_dir, "e1_aipsy_intensity.csv"), index=False
+        )
+        aipsy_sec_records = [
+            {
+                "layer": l,
+                "relative_depth": l / (dummy_layers - 1),
+                "dataset": "AIPsy",
+                "target": "emotion_category_secondary",
+                "reader_balanced_acc": 0.65,
+                "self_balanced_acc": 0.60,
+                "reader_f1_macro": 0.62,
+                "self_f1_macro": 0.58,
+                "reader_roc_auc": 0.80,
+                "self_roc_auc": 0.76,
+            }
+            for l in range(dummy_layers)
+        ]
+        pd.DataFrame(aipsy_sec_records).to_csv(
+            os.path.join(model_dir, "e1_aipsy_emotion_secondary.csv"), index=False
         )
         manifest = create_run_manifest(
             run_type="v1_phase_a",
@@ -701,7 +751,7 @@ def main():
             os.path.join(model_dir, "e2_emobank_geometry.csv"), index=False
         )
 
-    # Part 2: AIPsy Classification Probing
+    # Part 2: AIPsy Probing (Primary: Clinical vs Neutral; Intensity; Secondary: Emotion Category)
     if args.dataset in ["aipsy", "both"]:
         aipsy_path = Path("v1/data/processed/aipsy_4split_all.csv")
         if not aipsy_path.exists():
@@ -710,55 +760,154 @@ def main():
             aipsy_path = Path("data/raw/aipsy/aipsy_split.csv")
 
         if aipsy_path.exists():
-            print(f"Loading AIPsy stimuli for classification probing from {aipsy_path}...")
+            print(f"Loading AIPsy stimuli for probing from {aipsy_path}...")
             df_aipsy = pd.read_csv(aipsy_path)
             if args.limit > 0:
                 df_aipsy = df_aipsy.head(args.limit)
 
-            target_col = "emotion" if "emotion" in df_aipsy.columns else ("split" if "split" in df_aipsy.columns else None)
-            if target_col is not None:
-                prompts_r_aip = [
-                    format_prompt(tokenizer, t, "reader", is_instruct)
-                    for t in df_aipsy["text"]
-                ]
-                prompts_s_aip = [
-                    format_prompt(tokenizer, t, "self", is_instruct)
-                    for t in df_aipsy["text"]
-                ]
-                reps_r_aip = extract_hidden_states_batched(
-                    model, tokenizer, prompts_r_aip, device=args.device, batch_size=args.batch_size
-                )
-                reps_s_aip = extract_hidden_states_batched(
-                    model, tokenizer, prompts_s_aip, device=args.device, batch_size=args.batch_size
-                )
+            # Extract representations for all loaded AIPsy texts once
+            prompts_r_aip = [
+                format_prompt(tokenizer, t, "reader", is_instruct)
+                for t in df_aipsy["text"]
+            ]
+            prompts_s_aip = [
+                format_prompt(tokenizer, t, "self", is_instruct)
+                for t in df_aipsy["text"]
+            ]
+            reps_r_aip = extract_hidden_states_batched(
+                model, tokenizer, prompts_r_aip, device=args.device, batch_size=args.batch_size
+            )
+            reps_s_aip = extract_hidden_states_batched(
+                model, tokenizer, prompts_s_aip, device=args.device, batch_size=args.batch_size
+            )
+            num_aip_layers = len(reps_r_aip)
 
-                y_labels = df_aipsy[target_col].values
-                grp_aip = df_aipsy["pair_id"].values if "pair_id" in df_aipsy.columns else None
+            # 2.1 Primary Analysis: Clinical vs Matched Neutral (Group on pair_id)
+            if "split" in df_aipsy.columns and "pair_id" in df_aipsy.columns:
+                mask_prim = df_aipsy["split"].isin(["clinical", "neutral"])
+                df_prim = df_aipsy[mask_prim].copy().reset_index()
+                if len(df_prim) >= 4 and df_prim["split"].nunique() >= 2:
+                    print(f"Running Primary AIPsy Analysis (clinical vs matched neutral, n={len(df_prim)})...")
+                    y_prim = (df_prim["split"] == "clinical").astype(int).values
+                    grp_prim = df_prim["pair_id"].values
+                    idx_prim = df_prim["index"].values
 
-                e1_aipsy_records = []
-                for l in range(len(reps_r_aip)):
-                    rel_d = l / (len(reps_r_aip) - 1) if len(reps_r_aip) > 1 else 0.0
-                    res_r_cls = evaluate_classification_probe(reps_r_aip[l], y_labels, group_ids=grp_aip)
-                    res_s_cls = evaluate_classification_probe(reps_s_aip[l], y_labels, group_ids=grp_aip)
-                    e1_aipsy_records.append(
-                        {
-                            "layer": l,
-                            "relative_depth": rel_d,
-                            "dataset": "AIPsy",
-                            "target": target_col,
-                            "reader_balanced_acc": res_r_cls["balanced_acc"],
-                            "self_balanced_acc": res_s_cls["balanced_acc"],
-                            "reader_f1_macro": res_r_cls["f1_macro"],
-                            "self_f1_macro": res_s_cls["f1_macro"],
-                            "reader_roc_auc": res_r_cls["roc_auc"],
-                            "self_roc_auc": res_s_cls["roc_auc"],
-                        }
+                    e1_aipsy_records = []
+                    for l in range(num_aip_layers):
+                        rel_d = l / (num_aip_layers - 1) if num_aip_layers > 1 else 0.0
+                        res_r_cls = evaluate_classification_probe(
+                            reps_r_aip[l][idx_prim], y_prim, group_ids=grp_prim
+                        )
+                        res_s_cls = evaluate_classification_probe(
+                            reps_s_aip[l][idx_prim], y_prim, group_ids=grp_prim
+                        )
+                        e1_aipsy_records.append(
+                            {
+                                "layer": l,
+                                "relative_depth": rel_d,
+                                "dataset": "AIPsy",
+                                "target": "clinical_vs_matched_neutral",
+                                "reader_balanced_acc": res_r_cls["balanced_acc"],
+                                "self_balanced_acc": res_s_cls["balanced_acc"],
+                                "reader_f1_macro": res_r_cls["f1_macro"],
+                                "self_f1_macro": res_s_cls["f1_macro"],
+                                "reader_roc_auc": res_r_cls["roc_auc"],
+                                "self_roc_auc": res_s_cls["roc_auc"],
+                            }
+                        )
+                    df_e1_aipsy = pd.DataFrame(e1_aipsy_records)
+                    df_e1_aipsy.to_csv(
+                        os.path.join(model_dir, "e1_aipsy_classification.csv"), index=False
                     )
-                df_e1_aipsy = pd.DataFrame(e1_aipsy_records)
-                df_e1_aipsy.to_csv(
-                    os.path.join(model_dir, "e1_aipsy_classification.csv"), index=False
-                )
-                print(f"Saved AIPsy classification probing to {os.path.join(model_dir, 'e1_aipsy_classification.csv')}")
+                    print(f"Saved Primary AIPsy probing to {os.path.join(model_dir, 'e1_aipsy_classification.csv')}")
+
+            # 2.2 Intensity Analysis: none < moderate < peak (samples with triplet_id)
+            if "triplet_id" in df_aipsy.columns:
+                mask_int = df_aipsy["triplet_id"].notna() & (df_aipsy["triplet_id"].astype(str).str.strip() != "")
+                df_int = df_aipsy[mask_int].copy().reset_index()
+                if len(df_int) >= 6:
+                    print(f"Running AIPsy Intensity Analysis (none < moderate < peak, n={len(df_int)})...")
+                    # Map intensity: none/neutral -> 0, moderate -> 1, peak/clinical -> 2
+                    intensity_map = {
+                        "none": 0.0, "neutral": 0.0,
+                        "moderate": 1.0,
+                        "peak": 2.0, "clinical": 2.0
+                    }
+                    if "intensity" in df_int.columns:
+                        y_int = df_int["intensity"].astype(str).str.lower().map(intensity_map).fillna(0.0).values
+                    else:
+                        y_int = df_int["split"].astype(str).str.lower().map(intensity_map).fillna(0.0).values
+
+                    grp_int = df_int["triplet_id"].values
+                    idx_int = df_int["index"].values
+
+                    e1_intensity_records = []
+                    for l in range(num_aip_layers):
+                        rel_d = l / (num_aip_layers - 1) if num_aip_layers > 1 else 0.0
+                        res_r_int = evaluate_regression_probe(
+                            reps_r_aip[l][idx_int], y_int, group_ids=grp_int
+                        )
+                        res_s_int = evaluate_regression_probe(
+                            reps_s_aip[l][idx_int], y_int, group_ids=grp_int
+                        )
+                        e1_intensity_records.append(
+                            {
+                                "layer": l,
+                                "relative_depth": rel_d,
+                                "dataset": "AIPsy",
+                                "target": "intensity_none_moderate_peak",
+                                "reader_spearman_rho": res_r_int["spearman_rho"],
+                                "self_spearman_rho": res_s_int["spearman_rho"],
+                                "reader_pearson_r": res_r_int["pearson_r"],
+                                "self_pearson_r": res_s_int["pearson_r"],
+                                "reader_r2": res_r_int["r2"],
+                                "self_r2": res_s_int["r2"],
+                            }
+                        )
+                    df_e1_int = pd.DataFrame(e1_intensity_records)
+                    df_e1_int.to_csv(
+                        os.path.join(model_dir, "e1_aipsy_intensity.csv"), index=False
+                    )
+                    print(f"Saved AIPsy Intensity analysis to {os.path.join(model_dir, 'e1_aipsy_intensity.csv')}")
+
+            # 2.3 Secondary Analysis: 8 Emotion Category Decoding (Clinical only)
+            if "emotion" in df_aipsy.columns and "pair_id" in df_aipsy.columns:
+                mask_sec = df_aipsy["emotion"].notna() & (df_aipsy["split"] == "clinical")
+                df_sec = df_aipsy[mask_sec].copy().reset_index()
+                if len(df_sec) >= 8 and df_sec["emotion"].nunique() >= 2:
+                    print(f"Running Secondary Emotion-Category Probing (n={len(df_sec)}, {df_sec['emotion'].nunique()} categories)...")
+                    y_sec = df_sec["emotion"].values
+                    grp_sec = df_sec["pair_id"].values
+                    idx_sec = df_sec["index"].values
+
+                    e1_sec_records = []
+                    for l in range(num_aip_layers):
+                        rel_d = l / (num_aip_layers - 1) if num_aip_layers > 1 else 0.0
+                        res_r_sec = evaluate_classification_probe(
+                            reps_r_aip[l][idx_sec], y_sec, group_ids=grp_sec
+                        )
+                        res_s_sec = evaluate_classification_probe(
+                            reps_s_aip[l][idx_sec], y_sec, group_ids=grp_sec
+                        )
+                        e1_sec_records.append(
+                            {
+                                "layer": l,
+                                "relative_depth": rel_d,
+                                "dataset": "AIPsy",
+                                "target": "emotion_category_secondary",
+                                "reader_balanced_acc": res_r_sec["balanced_acc"],
+                                "self_balanced_acc": res_s_sec["balanced_acc"],
+                                "reader_f1_macro": res_r_sec["f1_macro"],
+                                "self_f1_macro": res_s_sec["f1_macro"],
+                                "reader_roc_auc": res_r_sec["roc_auc"],
+                                "self_roc_auc": res_s_sec["roc_auc"],
+                            }
+                        )
+                    df_e1_sec = pd.DataFrame(e1_sec_records)
+                    df_e1_sec.to_csv(
+                        os.path.join(model_dir, "e1_aipsy_emotion_secondary.csv"), index=False
+                    )
+                    print(f"Saved Secondary AIPsy Emotion Decoding to {os.path.join(model_dir, 'e1_aipsy_emotion_secondary.csv')}")
 
     # Save manifest
     manifest = create_run_manifest(

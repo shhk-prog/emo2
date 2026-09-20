@@ -1,0 +1,54 @@
+{
+  "families": [
+    "olmo"
+  ],
+  "per_family_summary": {
+    "olmo": {
+      "com_distortion_reader": 0.5308425958843291,
+      "com_distortion_self": 0.5201268459323586,
+      "peak_depth_base_cross": 0.6,
+      "peak_depth_inst_cross": 0.6666666666666666,
+      "peak_depth_delta_share": 0.06666666666666667,
+      "mean_delta_sharing": -1.3333823718794848,
+      "mean_delta_sharing_matched": -0.37041495877973496,
+      "mean_delta_sharing_format": -0.9629674130997499
+    }
+  },
+  "bootstrap_ci_95": {
+    "com_distortion_reader": {
+      "mean": 0.5308425958843291,
+      "ci_lower": 0.5308425958843291,
+      "ci_upper": 0.5308425958843291
+    },
+    "com_distortion_self": {
+      "mean": 0.5201268459323586,
+      "ci_lower": 0.5201268459323586,
+      "ci_upper": 0.5201268459323586
+    },
+    "peak_depth_base_cross": {
+      "mean": 0.6,
+      "ci_lower": 0.6,
+      "ci_upper": 0.6
+    },
+    "peak_depth_inst_cross": {
+      "mean": 0.6666666666666666,
+      "ci_lower": 0.6666666666666666,
+      "ci_upper": 0.6666666666666666
+    },
+    "mean_delta_sharing": {
+      "mean": -1.3333823718794848,
+      "ci_lower": -1.3333823718794848,
+      "ci_upper": -1.3333823718794848
+    }
+  },
+  "paired_peak_depth_comparison": {
+    "mean_diff": 0.06666666666666665,
+    "median_diff": 0.06666666666666665,
+    "diffs": [
+      0.06666666666666665
+    ],
+    "p_value": 1.0,
+    "all_positive": true,
+    "all_negative": false
+  }
+}

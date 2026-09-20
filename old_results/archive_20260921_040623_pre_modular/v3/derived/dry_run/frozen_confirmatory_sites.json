@@ -1,0 +1,23 @@
+{
+  "discovery_model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "discovery_family": "qwen",
+  "generation_stage": "post_rq3_canonical",
+  "sufficiency_relative_depth": 0.5185185185185185,
+  "temporal_relative_depth_v": 0.6666666666666666,
+  "temporal_stage_v": "pre_V",
+  "temporal_relative_depth_a": 0.7037037037037037,
+  "temporal_stage_a": "pre_A",
+  "a_priori_test_stage_v": "pre_V",
+  "a_priori_test_stage_a": "pre_A",
+  "mediation_relative_depth": 0.6666666666666666,
+  "target_stages": [
+    "candidate_start",
+    "pre_V",
+    "V_value",
+    "pre_A",
+    "A_value",
+    "response_end"
+  ],
+  "causal_peak_stage_v": "pre_V",
+  "causal_peak_stage_a": "pre_A"
+}

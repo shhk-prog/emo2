@@ -860,23 +860,29 @@ def main():
             f"(L={num_layers}, family={fam_key})"
         )
 
+    from affective_empathy_eval.io import save_experiment_result, is_experiment_completed
+
     out_raw = raw_dir / ("v3_pilot_results.json" if args.pilot else "v3_rq1_results.json")
+    out_modular = raw_dir / f"v3_rq1_gate_{fam_key}.json"
     out_gate = derived_dir / "v3_gate_decision.json"
     manifest_path = raw_dir / f"manifest_rq1_{fam_key}.json"
 
     # Early skip if already completed and valid
-    if not args.force and not args.dry_run and out_raw.exists() and out_gate.exists() and manifest_path.exists():
-        try:
-            with open(out_gate, "r", encoding="utf-8") as f:
-                cached_gate = json.load(f)
-            if cached_gate and "decision" in cached_gate:
-                logger.info(
-                    f"[SKIP] Existing validated RQ1 results & gate found ({out_raw}, {out_gate}). "
-                    f"Decision: {cached_gate.get('decision')}. Skipping computation for {target_model_id}. Use --force to rerun."
-                )
-                return
-        except Exception as e:
-            logger.warning(f"Warning: Corrupt existing RQ1 results ({e}). Rerunning.")
+    if not args.force and not args.dry_run:
+        target_check = out_modular if out_modular.exists() else out_raw
+        man_p = str(manifest_path) if manifest_path.exists() else None
+        if is_experiment_completed(str(target_check), manifest_path=man_p) and out_gate.exists():
+            try:
+                with open(out_gate, "r", encoding="utf-8") as f:
+                    cached_gate = json.load(f)
+                if cached_gate and "decision" in cached_gate:
+                    logger.info(
+                        f"[SKIP] Existing validated RQ1 results & gate found ({target_check}, {out_gate}). "
+                        f"Decision: {cached_gate.get('decision')}. Skipping computation for {target_model_id}. Use --force to rerun."
+                    )
+                    return
+            except Exception as e:
+                logger.warning(f"Warning: Corrupt existing RQ1 results ({e}). Rerunning.")
 
     alpha_grid = v3_cfg["interventions"]["alpha_grid"]
 
@@ -930,7 +936,17 @@ def main():
     out_raw = raw_dir / ("v3_pilot_results.json" if args.pilot else "v3_rq1_results.json")
     with open(out_raw, "w", encoding="utf-8") as f:
         json.dump(out_results, f, indent=2, default=_json_serial)
-    logger.info(f"Saved RQ1 results to {out_raw}")
+
+    save_experiment_result(
+        output_path=str(out_modular),
+        payload=out_results,
+        stage="v3",
+        experiment_id="v3_rq1_gate",
+        status="success",
+        success=True,
+        metadata={"family_id": fam_key, "model_id": target_model_id, "gate_decision": gate_decision["decision"], "dry_run": bool(args.dry_run)},
+    )
+    logger.info(f"Saved RQ1 results to {out_raw} and {out_modular}")
 
     out_gate = derived_dir / "v3_gate_decision.json"
     with open(out_gate, "w", encoding="utf-8") as f:

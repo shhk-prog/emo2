@@ -20,6 +20,7 @@ from pathlib import Path
 import sys
 from typing import Any, Dict, List, Optional
 import warnings
+import yaml
 import numpy as np
 import pandas as pd
 from scipy.spatial.distance import pdist
@@ -169,18 +170,39 @@ def evaluate_regression_probe(
     alpha: float = 1.0,
     n_components: int = 50,
     seed: int = 42,
-) -> Dict[str, float]:
-    X = np.nan_to_num(X, nan=0.0, posinf=1e4, neginf=-1e4)
-    X = np.clip(X, -1e4, 1e4).astype(np.float32)
+) -> Dict[str, Any]:
+    # Item 4: 非有限 hidden state を暗黙置換せず例外化
+    if not np.all(np.isfinite(X)):
+        bad_count = int(np.size(X) - np.isfinite(X).sum())
+        raise FloatingPointError(f"Non-finite hidden states detected in regression probe: {bad_count}")
 
+    X = X.astype(np.float32)
+
+    # Item 2: 測定不能を 0 ではなく NaN で保持
     if len(X) < cv or np.isnan(y).any():
-        return {"r2": 0.0, "pearson_r": 0.0, "spearman_rho": 0.0, "mse": 0.0}
+        return {
+            "r2": float("nan"),
+            "pearson_r": float("nan"),
+            "spearman_rho": float("nan"),
+            "mse": float("nan"),
+            "status": "failed",
+            "failure_reason": "Insufficient samples or NaN in y",
+            "n_valid_folds": 0,
+        }
 
     group_ids = np.array([str(g) for g in group_ids])
     unique_groups = np.unique(group_ids)
     n_splits = min(cv, len(unique_groups))
     if n_splits < 2:
-        return {"r2": float("nan"), "pearson_r": float("nan"), "spearman_rho": float("nan"), "mse": float("nan")}
+        return {
+            "r2": float("nan"),
+            "pearson_r": float("nan"),
+            "spearman_rho": float("nan"),
+            "mse": float("nan"),
+            "status": "failed",
+            "failure_reason": f"Insufficient unique groups (n={len(unique_groups)})",
+            "n_valid_folds": 0,
+        }
     gkf = GroupKFold(n_splits=n_splits)
     splits = list(gkf.split(X, y, groups=group_ids))
 
@@ -209,14 +231,17 @@ def evaluate_regression_probe(
 
     r2 = float(r2_score(y, y_preds))
     mse = float(mean_squared_error(y, y_preds))
-    pr, _ = pearsonr(y, y_preds)
-    sr, _ = spearmanr(y, y_preds)
+    pr, _ = pearsonr(y, y_preds) if np.std(y_preds) > 0 else (float("nan"), float("nan"))
+    sr, _ = spearmanr(y, y_preds) if np.std(y_preds) > 0 else (float("nan"), float("nan"))
 
     return {
-        "r2": r2 if not np.isnan(r2) else 0.0,
-        "pearson_r": float(pr) if not np.isnan(pr) else 0.0,
-        "spearman_rho": float(sr) if not np.isnan(sr) else 0.0,
-        "mse": mse if not np.isnan(mse) else 0.0,
+        "r2": r2,
+        "pearson_r": float(pr),
+        "spearman_rho": float(sr),
+        "mse": mse,
+        "status": "success",
+        "failure_reason": "none",
+        "n_valid_folds": len(splits),
     }
 
 
@@ -226,15 +251,26 @@ def evaluate_classification_probe(
     group_ids: Optional[np.ndarray] = None,
     cv: int = 5,
     seed: int = 42,
-) -> Dict[str, float]:
-    X = np.nan_to_num(X, nan=0.0, posinf=1e4, neginf=-1e4)
-    X = np.clip(X, -1e4, 1e4).astype(np.float32)
+) -> Dict[str, Any]:
+    # Item 4: 非有限 hidden state を暗黙置換せず例外化
+    if not np.all(np.isfinite(X)):
+        bad_count = int(np.size(X) - np.isfinite(X).sum())
+        raise FloatingPointError(f"Non-finite hidden states detected in classification probe: {bad_count}")
+
+    X = X.astype(np.float32)
 
     if group_ids is not None:
         group_ids = np.array([str(g) for g in group_ids])
         unique_groups = np.unique(group_ids)
         if len(unique_groups) < 2:
-            return {"roc_auc": float("nan"), "balanced_acc": float("nan"), "f1_macro": float("nan")}
+            return {
+                "roc_auc": float("nan"),
+                "balanced_acc": float("nan"),
+                "f1_macro": float("nan"),
+                "status": "failed",
+                "failure_reason": "insufficient_unique_groups",
+                "n_valid_folds": 0,
+            }
 
     from sklearn.preprocessing import LabelEncoder
 
@@ -243,7 +279,14 @@ def evaluate_classification_probe(
     num_classes = len(le.classes_)
 
     if num_classes < 2:
-        return {"roc_auc": float("nan"), "balanced_acc": float("nan"), "f1_macro": float("nan")}
+        return {
+            "roc_auc": float("nan"),
+            "balanced_acc": float("nan"),
+            "f1_macro": float("nan"),
+            "status": "failed",
+            "failure_reason": "single_class_only",
+            "n_valid_folds": 0,
+        }
 
     if group_ids is not None and len(unique_groups) >= cv:
         n_splits = cv
@@ -289,9 +332,14 @@ def evaluate_classification_probe(
     else:
         y_probs = np.zeros((len(y_enc), num_classes), dtype=float)
 
+    # Item 36: train fold が単一 class の場合を明示処理
+    valid_folds = 0
     for train_idx, val_idx in splits:
         X_train, X_val = X[train_idx], X[val_idx]
         y_train, y_val = y_enc[train_idx], y_enc[val_idx]
+
+        if np.unique(y_train).size < 2:
+            continue
 
         scaler = StandardScaler()
         X_train_scaled = scaler.fit_transform(X_train)
@@ -307,6 +355,17 @@ def evaluate_classification_probe(
         else:
             for c_idx, c in enumerate(clf.classes_):
                 y_probs[val_idx, c] = probs[:, c_idx]
+        valid_folds += 1
+
+    if valid_folds < 2:
+        return {
+            "roc_auc": float("nan"),
+            "balanced_acc": float("nan"),
+            "f1_macro": float("nan"),
+            "status": "failed",
+            "failure_reason": f"insufficient_valid_folds_with_multiple_classes (valid={valid_folds})",
+            "n_valid_folds": valid_folds,
+        }
 
     bal_acc = float(balanced_accuracy_score(y_enc, y_preds))
     f1_macro = float(f1_score(y_enc, y_preds, average="macro"))
@@ -319,7 +378,7 @@ def evaluate_classification_probe(
                 roc_auc_score(y_enc, y_probs, multi_class="ovr", average="macro", labels=np.arange(num_classes))
             )
         status = "success"
-        failure_reason = ""
+        failure_reason = "none"
     except Exception as e:
         auc = float("nan")
         status = "partial_failure"
@@ -331,7 +390,7 @@ def evaluate_classification_probe(
         "f1_macro": f1_macro,
         "status": status,
         "failure_reason": failure_reason,
-        "n_valid_folds": len(splits),
+        "n_valid_folds": valid_folds,
     }
 
 
@@ -466,6 +525,12 @@ def main():
         description="V1 Primary Phase A: Probing and Geometry"
     )
     parser.add_argument(
+        "--config",
+        type=str,
+        default="configs/v1_experiments.yaml",
+        help="Path to V1 experiments config file",
+    )
+    parser.add_argument(
         "--model-id",
         type=str,
         default=None,
@@ -508,6 +573,18 @@ def main():
     args = parser.parse_args()
     args.model_id, args.model_prefix = resolve_single_model_from_args(args)
 
+    # Item 29: configs/v1_experiments.yaml の Phase A 設定読み込み
+    cfg_path = Path(args.config)
+    phase_a_cfg = {}
+    if cfg_path.exists():
+        with open(cfg_path, "r", encoding="utf-8") as f:
+            v1_full_cfg = yaml.safe_load(f) or {}
+            phase_a_cfg = v1_full_cfg.get("phase_a", {})
+
+    phase_a_seed = int(phase_a_cfg.get("seed", 42))
+    phase_a_cv = int(phase_a_cfg.get("cv_folds", 5))
+    phase_a_alpha = float(phase_a_cfg.get("ridge_alpha", 1.0))
+
     if args.dry_run:
         args.out_dir = os.path.join(args.out_dir, "dry_run")
 
@@ -522,7 +599,6 @@ def main():
         or "it" in args.model_id.lower()
     )
 
-    # Early skip if already completed and valid (Item 1: dataset-aware verification)
     manifest_path = os.path.join(model_dir, "manifest.json")
     required_outputs = []
     if args.dataset in {"emobank", "both"}:
@@ -537,11 +613,16 @@ def main():
             os.path.join(model_dir, "e1_aipsy_emotion_secondary.csv"),
         ])
 
-    from affective_empathy_eval.manifests import is_manifest_matching
+    from affective_empathy_eval.manifests import is_manifest_matching, compute_string_or_dict_hash
+    from affective_empathy_eval.io import is_experiment_completed
+    expected_cfg_hash = compute_string_or_dict_hash(phase_a_cfg) if phase_a_cfg else None
+
+    e1_json_path = os.path.join(model_dir, f"v1_e1_decodability_{args.model_prefix}.json")
     if not args.force and not args.dry_run and os.path.exists(manifest_path) and all(os.path.exists(p) for p in required_outputs):
         if is_manifest_matching(
             manifest_path=manifest_path,
             expected_model_name=args.model_id,
+            expected_config_hash=expected_cfg_hash,
             expected_dry_run=False,
         ):
             try:
@@ -551,6 +632,9 @@ def main():
                     if len(df_check) == 0:
                         valid_all = False
                         break
+                if os.path.exists(e1_json_path) and not is_experiment_completed(e1_json_path, force=args.force):
+                    valid_all = False
+
                 if valid_all:
                     print(
                         f"[SKIP] Validated Phase A results matching manifest found in {model_dir} for dataset '{args.dataset}'. "
@@ -580,26 +664,62 @@ def main():
             }
             for l in range(dummy_layers)
         ]
+        from affective_empathy_eval.io import save_experiment_result
+        pd.DataFrame(e1_records).to_csv(
+            os.path.join(model_dir, "v1_e1_emobank_decodability.csv"), index=False
+        )
         pd.DataFrame(e1_records).to_csv(
             os.path.join(model_dir, "e1_emobank_decodability.csv"), index=False
         )
-        e2_records = [
-            {
-                "layer": l,
-                "relative_depth": l / (dummy_layers - 1),
-                "target": "Valence_human",
-                "direct_transfer_score": 0.5,
-                "direct_transfer_score_raw": 0.5,
-                "direct_transfer_score_clipped": 0.5,
-                "rsa_correlation": 0.7,
-                "r2_aligned_transfer": 0.55,
-                "geometry_pattern": "Operational: Shared Geometry",
-            }
+        save_experiment_result(
+            os.path.join(model_dir, f"v1_e1_decodability_{args.model_prefix}.json"),
+            {"emobank": e1_records},
+            stage="v1",
+            experiment_id="v1_e1_decodability",
+            success=True,
+            metadata={"model_id": args.model_id, "model_prefix": args.model_prefix, "is_instruct": is_instruct},
+        )
+
+        e2_cd_records = [
+            {"layer": l, "relative_depth": l / (dummy_layers - 1), "target": "Valence_human", "direct_transfer_score": 0.5, "direct_transfer_score_raw": 0.5, "direct_transfer_score_clipped": 0.5}
+            for l in range(dummy_layers)
+        ]
+        e2_rsa_records = [
+            {"layer": l, "relative_depth": l / (dummy_layers - 1), "target": "Valence_human", "rsa_correlation": 0.7}
+            for l in range(dummy_layers)
+        ]
+        e2_align_records = [
+            {"layer": l, "relative_depth": l / (dummy_layers - 1), "target": "Valence_human", "r2_aligned_transfer": 0.55, "geometry_pattern": "Operational: Shared Geometry"}
             for l in range(dummy_layers)
         ]
         pd.DataFrame(e2_records).to_csv(
             os.path.join(model_dir, "e2_emobank_geometry.csv"), index=False
         )
+        save_experiment_result(
+            os.path.join(model_dir, f"v1_e2_cross_decoding_{args.model_prefix}.json"),
+            {"cross_decoding": e2_cd_records},
+            stage="v1",
+            experiment_id="v1_e2_cross_decoding",
+            success=True,
+            metadata={"model_id": args.model_id, "model_prefix": args.model_prefix},
+        )
+        save_experiment_result(
+            os.path.join(model_dir, f"v1_e2_rsa_{args.model_prefix}.json"),
+            {"rsa": e2_rsa_records},
+            stage="v1",
+            experiment_id="v1_e2_rsa",
+            success=True,
+            metadata={"model_id": args.model_id, "model_prefix": args.model_prefix},
+        )
+        save_experiment_result(
+            os.path.join(model_dir, f"v1_e2_alignment_{args.model_prefix}.json"),
+            {"alignment": e2_align_records},
+            stage="v1",
+            experiment_id="v1_e2_alignment",
+            success=True,
+            metadata={"model_id": args.model_id, "model_prefix": args.model_prefix},
+        )
+
         aipsy_records = [
             {
                 "layer": l,
@@ -615,6 +735,9 @@ def main():
             }
             for l in range(dummy_layers)
         ]
+        pd.DataFrame(aipsy_records).to_csv(
+            os.path.join(model_dir, "v1_e1_aipsy_classification.csv"), index=False
+        )
         pd.DataFrame(aipsy_records).to_csv(
             os.path.join(model_dir, "e1_aipsy_classification.csv"), index=False
         )
@@ -634,6 +757,9 @@ def main():
             for l in range(dummy_layers)
         ]
         pd.DataFrame(aipsy_intensity_records).to_csv(
+            os.path.join(model_dir, "v1_e1_aipsy_intensity.csv"), index=False
+        )
+        pd.DataFrame(aipsy_intensity_records).to_csv(
             os.path.join(model_dir, "e1_aipsy_intensity.csv"), index=False
         )
         aipsy_sec_records = [
@@ -651,6 +777,9 @@ def main():
             }
             for l in range(dummy_layers)
         ]
+        pd.DataFrame(aipsy_sec_records).to_csv(
+            os.path.join(model_dir, "v1_e1_aipsy_emotion_secondary.csv"), index=False
+        )
         pd.DataFrame(aipsy_sec_records).to_csv(
             os.path.join(model_dir, "e1_aipsy_emotion_secondary.csv"), index=False
         )
@@ -776,19 +905,60 @@ def main():
 
             # 逐次保存 (レイヤー完了ごと)
             pd.DataFrame(e1_emobank_records).to_csv(
+                os.path.join(model_dir, "v1_e1_emobank_decodability.csv"), index=False
+            )
+            pd.DataFrame(e1_emobank_records).to_csv(
                 os.path.join(model_dir, "e1_emobank_decodability.csv"), index=False
             )
             pd.DataFrame(e2_emobank_records).to_csv(
                 os.path.join(model_dir, "e2_emobank_geometry.csv"), index=False
             )
 
-        df_e1_emo = pd.DataFrame(e1_emobank_records)
-        df_e2_emo = pd.DataFrame(e2_emobank_records)
-        df_e1_emo.to_csv(
-            os.path.join(model_dir, "e1_emobank_decodability.csv"), index=False
+        from affective_empathy_eval.io import save_experiment_result
+        save_experiment_result(
+            os.path.join(model_dir, f"v1_e1_decodability_{args.model_prefix}.json"),
+            {"emobank": e1_emobank_records},
+            stage="v1",
+            experiment_id="v1_e1_decodability",
+            success=True,
+            metadata={"model_id": args.model_id, "model_prefix": args.model_prefix, "is_instruct": is_instruct},
         )
-        df_e2_emo.to_csv(
-            os.path.join(model_dir, "e2_emobank_geometry.csv"), index=False
+
+        e2_cd_records = [
+            {"layer": r["layer"], "relative_depth": r["relative_depth"], "target": r["target"], "direct_transfer_score": r.get("direct_transfer_score"), "direct_transfer_score_raw": r.get("direct_transfer_score_raw"), "direct_transfer_score_clipped": r.get("direct_transfer_score_clipped")}
+            for r in e2_emobank_records
+        ]
+        e2_rsa_records = [
+            {"layer": r["layer"], "relative_depth": r["relative_depth"], "target": r["target"], "rsa_correlation": r.get("rsa_correlation")}
+            for r in e2_emobank_records
+        ]
+        e2_align_records = [
+            {"layer": r["layer"], "relative_depth": r["relative_depth"], "target": r["target"], "r2_aligned_transfer": r.get("r2_aligned_transfer"), "geometry_pattern": r.get("geometry_pattern")}
+            for r in e2_emobank_records
+        ]
+        save_experiment_result(
+            os.path.join(model_dir, f"v1_e2_cross_decoding_{args.model_prefix}.json"),
+            {"cross_decoding": e2_cd_records},
+            stage="v1",
+            experiment_id="v1_e2_cross_decoding",
+            success=True,
+            metadata={"model_id": args.model_id, "model_prefix": args.model_prefix},
+        )
+        save_experiment_result(
+            os.path.join(model_dir, f"v1_e2_rsa_{args.model_prefix}.json"),
+            {"rsa": e2_rsa_records},
+            stage="v1",
+            experiment_id="v1_e2_rsa",
+            success=True,
+            metadata={"model_id": args.model_id, "model_prefix": args.model_prefix},
+        )
+        save_experiment_result(
+            os.path.join(model_dir, f"v1_e2_alignment_{args.model_prefix}.json"),
+            {"alignment": e2_align_records},
+            stage="v1",
+            experiment_id="v1_e2_alignment",
+            success=True,
+            metadata={"model_id": args.model_id, "model_prefix": args.model_prefix},
         )
 
     # Part 2: AIPsy Probing (Primary: Clinical vs Neutral; Intensity; Secondary: Emotion Category)
@@ -857,9 +1027,12 @@ def main():
                         )
                     df_e1_aipsy = pd.DataFrame(e1_aipsy_records)
                     df_e1_aipsy.to_csv(
+                        os.path.join(model_dir, "v1_e1_aipsy_classification.csv"), index=False
+                    )
+                    df_e1_aipsy.to_csv(
                         os.path.join(model_dir, "e1_aipsy_classification.csv"), index=False
                     )
-                    print(f"Saved Primary AIPsy probing to {os.path.join(model_dir, 'e1_aipsy_classification.csv')}")
+                    print(f"Saved Primary AIPsy probing to {os.path.join(model_dir, 'v1_e1_aipsy_classification.csv')}")
 
             # 2.2 Intensity Analysis: none < moderate < peak (samples with triplet_id)
             if "triplet_id" in df_aipsy.columns:
@@ -873,10 +1046,14 @@ def main():
                         "moderate": 1.0,
                         "peak": 2.0, "clinical": 2.0
                     }
-                    if "intensity" in df_int.columns:
-                        y_int = df_int["intensity"].astype(str).str.lower().map(intensity_map).fillna(0.0).values
-                    else:
-                        y_int = df_int["split"].astype(str).str.lower().map(intensity_map).fillna(0.0).values
+                    target_series = df_int["intensity"] if "intensity" in df_int.columns else df_int["split"]
+                    mapped = target_series.astype(str).str.lower().map(intensity_map)
+                    bad = mapped.isna()
+                    if bad.any():
+                        bad_values = sorted(target_series[bad].astype(str).unique())
+                        if not args.dry_run:
+                            raise ValueError(f"Unknown intensity labels: {bad_values}")
+                    y_int = mapped.fillna(0.0).to_numpy(dtype=float)
 
                     grp_int = df_int["triplet_id"].values
                     idx_int = df_int["index"].values
@@ -885,10 +1062,12 @@ def main():
                     for l in range(num_aip_layers):
                         rel_d = l / (num_aip_layers - 1) if num_aip_layers > 1 else 0.0
                         res_r_int = evaluate_regression_probe(
-                            reps_r_aip[l][idx_int], y_int, group_ids=grp_int
+                            reps_r_aip[l][idx_int], y_int, group_ids=grp_int,
+                            cv=phase_a_cv, alpha=phase_a_alpha, seed=phase_a_seed,
                         )
                         res_s_int = evaluate_regression_probe(
-                            reps_s_aip[l][idx_int], y_int, group_ids=grp_int
+                            reps_s_aip[l][idx_int], y_int, group_ids=grp_int,
+                            cv=phase_a_cv, alpha=phase_a_alpha, seed=phase_a_seed,
                         )
                         e1_intensity_records.append(
                             {
@@ -906,9 +1085,12 @@ def main():
                         )
                     df_e1_int = pd.DataFrame(e1_intensity_records)
                     df_e1_int.to_csv(
+                        os.path.join(model_dir, "v1_e1_aipsy_intensity.csv"), index=False
+                    )
+                    df_e1_int.to_csv(
                         os.path.join(model_dir, "e1_aipsy_intensity.csv"), index=False
                     )
-                    print(f"Saved AIPsy Intensity analysis to {os.path.join(model_dir, 'e1_aipsy_intensity.csv')}")
+                    print(f"Saved AIPsy Intensity analysis to {os.path.join(model_dir, 'v1_e1_aipsy_intensity.csv')}")
 
             # 2.3 Secondary Analysis: 8 Emotion Category Decoding (Clinical only)
             if "emotion" in df_aipsy.columns and "pair_id" in df_aipsy.columns:
@@ -924,10 +1106,12 @@ def main():
                     for l in range(num_aip_layers):
                         rel_d = l / (num_aip_layers - 1) if num_aip_layers > 1 else 0.0
                         res_r_sec = evaluate_classification_probe(
-                            reps_r_aip[l][idx_sec], y_sec, group_ids=grp_sec
+                            reps_r_aip[l][idx_sec], y_sec, group_ids=grp_sec,
+                            cv=phase_a_cv, seed=phase_a_seed,
                         )
                         res_s_sec = evaluate_classification_probe(
-                            reps_s_aip[l][idx_sec], y_sec, group_ids=grp_sec
+                            reps_s_aip[l][idx_sec], y_sec, group_ids=grp_sec,
+                            cv=phase_a_cv, seed=phase_a_seed,
                         )
                         e1_sec_records.append(
                             {
@@ -945,11 +1129,30 @@ def main():
                         )
                     df_e1_sec = pd.DataFrame(e1_sec_records)
                     df_e1_sec.to_csv(
+                        os.path.join(model_dir, "v1_e1_aipsy_emotion_secondary.csv"), index=False
+                    )
+                    df_e1_sec.to_csv(
                         os.path.join(model_dir, "e1_aipsy_emotion_secondary.csv"), index=False
                     )
-                    print(f"Saved Secondary AIPsy Emotion Decoding to {os.path.join(model_dir, 'e1_aipsy_emotion_secondary.csv')}")
+                    print(f"Saved Secondary AIPsy Emotion Decoding to {os.path.join(model_dir, 'v1_e1_aipsy_emotion_secondary.csv')}")
+
+        from affective_empathy_eval.io import save_experiment_result
+        save_experiment_result(
+            os.path.join(model_dir, f"v1_e1_decodability_{args.model_prefix}.json"),
+            {
+                "aipsy_primary": e1_aipsy_records if "e1_aipsy_records" in locals() else [],
+                "aipsy_intensity": e1_intensity_records if "e1_intensity_records" in locals() else [],
+                "aipsy_secondary": e1_sec_records if "e1_sec_records" in locals() else [],
+            },
+            stage="v1",
+            experiment_id="v1_e1_decodability",
+            success=True,
+            metadata={"model_id": args.model_id, "model_prefix": args.model_prefix, "dataset": args.dataset},
+        )
 
     # Save manifest
+    # Item 32: Phase A/B は内部表現抽出のため candidate_space="N/A", measurement_space="prompt_end_hidden_state"
+    manifest_path = os.path.join(model_dir, "manifest.json")
     manifest = create_run_manifest(
         run_type="v1_phase_a",
         model_name=args.model_id,
@@ -958,12 +1161,17 @@ def main():
             "dataset": args.dataset,
             "limit": args.limit,
             "num_layers": num_layers,
+            "seed": phase_a_seed,
+            "cv_folds": phase_a_cv,
+            "ridge_alpha": phase_a_alpha,
         },
-        candidate_space="VAD_729",
-        intervention_version="none",
+        candidate_space="N/A",
+        measurement_space="prompt_end_hidden_state",
+        seed=phase_a_seed,
+        dry_run=args.dry_run,
     )
-    manifest.save(os.path.join(model_dir, "manifest.json"))
-    print(f"Phase A completed. Results saved to {model_dir}")
+    manifest.save(manifest_path)
+    print(f"Saved Phase A run manifest to {manifest_path}")
 
 
 if __name__ == "__main__":

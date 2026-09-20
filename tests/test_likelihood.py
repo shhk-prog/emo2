@@ -153,7 +153,7 @@ def test_compute_sequence_likelihoods_mock():
             self.pad_token_id = 0
             self.eos_token_id = 1
         def encode(self, text, add_special_tokens=False):
-            return [hash(c) % 50 + 2 for c in text.split() if c] or [2]
+            return [ord(c) for c in text]
 
     class MockModel(torch.nn.Module):
         def __init__(self):
@@ -161,7 +161,7 @@ def test_compute_sequence_likelihoods_mock():
             self.dummy_param = torch.nn.Parameter(torch.zeros(1))
         def forward(self, input_ids, attention_mask=None):
             bsz, seq_len = input_ids.shape
-            logits = torch.randn(bsz, seq_len, 100)
+            logits = torch.randn(bsz, seq_len, 256)
             from collections import namedtuple
             Outputs = namedtuple("Outputs", ["logits"])
             return Outputs(logits=logits)
@@ -508,14 +508,15 @@ def test_prepare_joint_sequence_boundary_and_bpe_merge():
     prompt_b = "a"
     cand_b = "{"
     full_ids_b, cand_start_b = prepare_joint_sequence_with_boundary(
-        prompt_b, cand_b, tok, delimiter="x", require_strict_prefix=False
+        prompt_b, cand_b, tok, delimiter="", require_strict_prefix=False
     )
     # 結合後は最長共通プレフィックス長から開始位置が同定される
+    assert full_ids_b == [9]
     assert cand_start_b == 0
 
     # Case C: require_strict_prefix=True で境界マージが起きた場合は ValueError が送出されること
     with pytest.raises(ValueError, match="Strict prefix property violated"):
-        prepare_joint_sequence_with_boundary(prompt_b, cand_b, tok, delimiter="x", require_strict_prefix=True)
+        prepare_joint_sequence_with_boundary(prompt_b, cand_b, tok, delimiter="", require_strict_prefix=True)
 
 
 

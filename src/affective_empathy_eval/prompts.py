@@ -25,6 +25,18 @@ INSTRUCTION_SELF = (
     '{"valence": <int 1-9>, "arousal": <int 1-9>}'
 )
 
+INSTRUCTION_READER_VAD = (
+    "Rate the emotional state of the reader when reading the following text on a scale of 1 to 9 for Valence (1=extremely negative, 9=extremely positive), Arousal (1=extremely calm, 9=extremely excited), and Dominance (1=extremely submissive, 9=extremely in control).\n"
+    "Respond strictly in JSON format:\n"
+    '{"valence": <int 1-9>, "arousal": <int 1-9>, "dominance": <int 1-9>}'
+)
+
+INSTRUCTION_SELF_VAD = (
+    "Rate your own emotional state after reading the following text on a scale of 1 to 9 for Valence (1=extremely negative, 9=extremely positive), Arousal (1=extremely calm, 9=extremely excited), and Dominance (1=extremely submissive, 9=extremely in control).\n"
+    "Respond strictly in JSON format:\n"
+    '{"valence": <int 1-9>, "arousal": <int 1-9>, "dominance": <int 1-9>}'
+)
+
 INSTRUCTION_CONTROL_TOPIC = (
     "Classify the primary topic of the following text into one of: 'medical', 'family', 'work', 'daily_life'.\n"
     "Respond strictly in JSON format:\n"
@@ -32,6 +44,14 @@ INSTRUCTION_CONTROL_TOPIC = (
 )
 
 TOPIC_OPTIONS = ["medical", "family", "work", "daily_life"]
+
+
+import hashlib
+
+
+def compute_prompt_hash(prompt_text: str) -> str:
+    """AGENTS.md / Item 22: プロンプト文字列の SHA-256 ハッシュを算出（プロセス不変）"""
+    return hashlib.sha256(prompt_text.encode("utf-8")).hexdigest()
 
 
 def build_prompt(
@@ -53,11 +73,51 @@ def build_prompt(
         raise ValueError(f"Unknown task type: {task}")
 
     if format_type == "plain":
-        # Plain text completion 形式
         return f"Text: {text}\n\n{inst}\n\nResponse: "
     elif format_type == "chat":
         if tokenizer is None or not hasattr(tokenizer, "apply_chat_template"):
-            # フォールバック
+            return f"<|im_start|>user\nText: {text}\n\n{inst}<|im_end|>\n<|im_start|>assistant\n"
+        messages = [
+            {"role": "user", "content": f"Text: {text}\n\n{inst}"},
+        ]
+        return tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+    else:
+        raise ValueError(f"Unknown format_type: {format_type}")
+
+
+def build_reader_prompt_va(text: str, format_type: str = "plain", tokenizer: Any | None = None) -> str:
+    """Item 23: 共通 Reader VA プロンプト生成"""
+    return build_prompt(text, task=TaskType.READER, format_type=format_type, tokenizer=tokenizer)
+
+
+def build_self_prompt_va(text: str, format_type: str = "plain", tokenizer: Any | None = None) -> str:
+    """Item 23: 共通 Self VA プロンプト生成"""
+    return build_prompt(text, task=TaskType.SELF, format_type=format_type, tokenizer=tokenizer)
+
+
+def build_reader_prompt_vad(text: str, format_type: str = "plain", tokenizer: Any | None = None) -> str:
+    """Item 23: 共通 Reader VAD プロンプト生成"""
+    inst = INSTRUCTION_READER_VAD
+    if format_type == "plain":
+        return f"Text: {text}\n\n{inst}\n\nResponse: "
+    elif format_type == "chat":
+        if tokenizer is None or not hasattr(tokenizer, "apply_chat_template"):
+            return f"<|im_start|>user\nText: {text}\n\n{inst}<|im_end|>\n<|im_start|>assistant\n"
+        messages = [
+            {"role": "user", "content": f"Text: {text}\n\n{inst}"},
+        ]
+        return tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+    else:
+        raise ValueError(f"Unknown format_type: {format_type}")
+
+
+def build_self_prompt_vad(text: str, format_type: str = "plain", tokenizer: Any | None = None) -> str:
+    """Item 23: 共通 Self VAD プロンプト生成"""
+    inst = INSTRUCTION_SELF_VAD
+    if format_type == "plain":
+        return f"Text: {text}\n\n{inst}\n\nResponse: "
+    elif format_type == "chat":
+        if tokenizer is None or not hasattr(tokenizer, "apply_chat_template"):
             return f"<|im_start|>user\nText: {text}\n\n{inst}<|im_end|>\n<|im_start|>assistant\n"
         messages = [
             {"role": "user", "content": f"Text: {text}\n\n{inst}"},
@@ -230,26 +290,34 @@ def validate_stage_index_invariance(
     def get_cand_str(c: Any) -> str:
         return c["json_str"] if isinstance(c, dict) and "json_str" in c else str(c)
 
-    ref_cand = get_cand_str(candidates[0])
-    full_ids_ref, cand_start_ref = prepare_joint_sequence_with_boundary(prompt, ref_cand, tokenizer)
-    cand_tokens_ref = tokenizer.encode(ref_cand, add_special_tokens=False)
-    offsets_ref = get_generation_stage_tokens(cand_tokens_ref, tokenizer, candidate_str=ref_cand)
+    try:
+        ref_cand = get_cand_str(candidates[0])
+        full_ids_ref, cand_start_ref = prepare_joint_sequence_with_boundary(prompt, ref_cand, tokenizer)
+        cand_tokens_ref = tokenizer.encode(ref_cand, add_special_tokens=False)
+        offsets_ref = get_generation_stage_tokens(cand_tokens_ref, tokenizer, candidate_str=ref_cand)
 
-    ref_indices: dict[str, int] = {}
-    for stg in stage_names:
-        ref_indices[stg] = resolve_joint_stage_index(cand_start_ref, stg, offsets_ref, len(full_ids_ref))
+        ref_indices: dict[str, int] = {}
+        for stg in stage_names:
+            ref_indices[stg] = resolve_joint_stage_index(cand_start_ref, stg, offsets_ref, len(full_ids_ref))
+    except Exception as e:
+        raise AssertionError(f"Stage index or boundary invariance failed for reference candidate: {e}") from e
 
     for cand in candidates[1:]:
         cand_str = get_cand_str(cand)
-        full_ids, cand_start = prepare_joint_sequence_with_boundary(prompt, cand_str, tokenizer)
-        cand_tokens = tokenizer.encode(cand_str, add_special_tokens=False)
-        offsets = get_generation_stage_tokens(cand_tokens, tokenizer, candidate_str=cand_str)
-        for stg in stage_names:
-            idx = resolve_joint_stage_index(cand_start, stg, offsets, len(full_ids))
-            if idx != ref_indices[stg]:
-                raise AssertionError(
-                    f"Stage index variance detected for stage '{stg}': candidate '{cand_str}' has index {idx}, "
-                    f"while reference candidate '{ref_cand}' has index {ref_indices[stg]}."
-                )
+        try:
+            full_ids, cand_start = prepare_joint_sequence_with_boundary(prompt, cand_str, tokenizer)
+            cand_tokens = tokenizer.encode(cand_str, add_special_tokens=False)
+            offsets = get_generation_stage_tokens(cand_tokens, tokenizer, candidate_str=cand_str)
+            for stg in stage_names:
+                idx = resolve_joint_stage_index(cand_start, stg, offsets, len(full_ids))
+                if idx != ref_indices[stg]:
+                    raise AssertionError(
+                        f"Stage index variance detected for stage '{stg}': candidate '{cand_str}' has index {idx}, "
+                        f"while reference candidate '{ref_cand}' has index {ref_indices[stg]}."
+                    )
+        except Exception as e:
+            if isinstance(e, AssertionError):
+                raise
+            raise AssertionError(f"Stage index or boundary invariance failed for candidate '{cand_str}': {e}") from e
     return ref_indices
 

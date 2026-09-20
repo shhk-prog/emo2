@@ -106,6 +106,7 @@ def run_causal_patching_for_model(
     device: str = "cpu",
     is_dry_run: bool = False,
     num_layers: int = 24,
+    seed: int = 42,
 ) -> dict[str, Any]:
     """
     指定モデルに対する因果パッチング実験の実行
@@ -260,7 +261,7 @@ def run_causal_patching_for_model(
     hidden_dim = model.config.hidden_size
     zero_patch = torch.zeros(1, 1, hidden_dim, device=device)
 
-    seed = 42
+    # Item 8: 引数 seed (config由来) を使用
     n_samples = len(sample_prompts)
     n_splits = min(5, n_samples) if n_samples >= 2 else 1
     if n_splits > 1:
@@ -437,6 +438,7 @@ def main():
         out_path = raw_dir / f"v2_causal_map_{fam_id}.json"
         manifest_path = raw_dir / f"manifest_causal_map_{fam_id}.json"
         fam_pair_path = pair_dir / f"v2_causal_pair_level_{fam_id}.csv"
+        modular_rq3_path = raw_dir / f"v2_rq3_causal_relocation_{fam_id}.json"
 
         manifest_config = {
             "v2_config": v2_config,
@@ -451,31 +453,26 @@ def main():
             "seed": v2_config.get("seed", 42),
         }
 
-        if not args.force and out_path.exists() and not args.dry_run:
-            try:
-                with open(out_path, "r", encoding="utf-8") as f:
-                    cached = json.load(f)
-                if cached and "causal_maps" in cached:
-                    expected_config_hash = compute_string_or_dict_hash(manifest_config)
-                    expected_dataset_hash = compute_string_or_dict_hash(str(v2_config["dataset"]["path"]))
-                    if not cached.get("dry_run", False) and is_manifest_matching(
-                        str(manifest_path),
-                        expected_model_name=fam_cfg.family_name,
-                        expected_config_hash=expected_config_hash,
-                        expected_dataset_hash=expected_dataset_hash,
-                        expected_code_version=DEFAULT_CODE_VERSION,
-                        expected_dry_run=False,
-                    ):
-                        if fam_pair_path.exists():
-                            logger.info(f"Loaded existing results and pair-level CSV for {fam_id}. Skipping computation.")
-                            all_causal_results[fam_id] = cached
-                            cached_pairs_df = pd.read_csv(fam_pair_path)
-                            all_pair_level_records.extend(cached_pairs_df.to_dict("records"))
-                            continue
-                        else:
-                            logger.warning(f"Pair-level artifact missing for {fam_id} ({fam_pair_path}) => cache invalid, recomputing.")
-            except Exception as e:
-                logger.warning(f"Cache check failed for {fam_id}: {e}")
+        from affective_empathy_eval.io import save_experiment_result, is_experiment_completed
+
+        if not args.force and not args.dry_run:
+            target_check = modular_rq3_path if modular_rq3_path.exists() else out_path
+            man_p = str(manifest_path) if manifest_path.exists() else None
+            if is_experiment_completed(str(target_check), manifest_path=man_p):
+                try:
+                    read_p = modular_rq3_path if modular_rq3_path.exists() else out_path
+                    with open(read_p, "r", encoding="utf-8") as f:
+                        cached = json.load(f)
+                    if fam_pair_path.exists():
+                        logger.info(f"Loaded existing results and pair-level CSV for {fam_id}. Skipping computation.")
+                        all_causal_results[fam_id] = cached
+                        cached_pairs_df = pd.read_csv(fam_pair_path)
+                        all_pair_level_records.extend(cached_pairs_df.to_dict("records"))
+                        continue
+                    else:
+                        logger.warning(f"Pair-level artifact missing for {fam_id} ({fam_pair_path}) => cache invalid, recomputing.")
+                except Exception as e:
+                    logger.warning(f"Cache check failed for {fam_id}: {e}")
 
 
         eff_num_layers = min(fam_cfg.num_layers, 4) if args.dry_run else fam_cfg.num_layers
@@ -508,6 +505,7 @@ def main():
                     device_map=args.device if "cuda" in args.device else None,
                 )
 
+            v2_seed = int(v2_config.get("seed", 42))
             for task_str, task_type, fmt in task_configs:
                 cond_key = f"{align_prefix}_{format_cond}_{task_str}"
                 logger.info(f"Causal patching for {cond_key}...")
@@ -520,6 +518,7 @@ def main():
                     num_layers=eff_num_layers,
                     device=args.device,
                     is_dry_run=args.dry_run,
+                    seed=v2_seed,
                 )
                 causal_entry = {
                     "c_v": res["c_v"],
@@ -679,7 +678,17 @@ def main():
         out_path.parent.mkdir(parents=True, exist_ok=True)
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(fam_output, f, indent=2)
-        logger.info(f"Saved causal map to {out_path}")
+
+        save_experiment_result(
+            output_path=str(modular_rq3_path),
+            payload=fam_output,
+            stage="v2",
+            experiment_id="v2_rq3_causal_relocation",
+            status="success",
+            success=True,
+            metadata={"family_id": fam_id, "dry_run": bool(args.dry_run)},
+        )
+        logger.info(f"Saved causal map to {out_path} and {modular_rq3_path}")
 
         # Save per-family pair-level CSV to prevent data loss on cache hit
         fam_records = [r for r in all_pair_level_records if r["family"] == fam_id]

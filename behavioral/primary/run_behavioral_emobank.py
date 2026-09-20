@@ -120,6 +120,8 @@ def evaluate_model(
     limit=None,
     batch_size=81,
     checkpoint_path: Optional[str] = None,
+    checkpoint_meta_path: Optional[str] = None,
+    expected_meta: Optional[dict] = None,
 ):
     df = pd.read_csv(stimuli_path)
     if limit:
@@ -128,15 +130,34 @@ def evaluate_model(
     print(f"Loaded {len(df)} 3-way VAD stimuli from {stimuli_path}.")
     results = []
     processed_ids = set()
+    checkpoint_used = False
 
     if checkpoint_path and os.path.exists(checkpoint_path):
-        try:
-            ckpt_df = pd.read_csv(checkpoint_path)
-            results = ckpt_df.to_dict("records")
-            processed_ids = set(ckpt_df["id"].tolist())
-            print(f"Resuming from checkpoint: {len(processed_ids)} samples already completed.")
-        except Exception as e:
-            print(f"Warning: Failed to load checkpoint {checkpoint_path}: {e}")
+        can_resume = True
+        if checkpoint_meta_path and os.path.exists(checkpoint_meta_path) and expected_meta:
+            try:
+                with open(checkpoint_meta_path, "r", encoding="utf-8") as f:
+                    saved_meta = json.load(f)
+                for k, v in expected_meta.items():
+                    if saved_meta.get(k) != v:
+                        print(f"Checkpoint meta mismatch ({k}: saved={saved_meta.get(k)} vs exp={v}). Discarding old checkpoint.")
+                        can_resume = False
+                        break
+            except Exception as e:
+                print(f"Failed to read checkpoint meta: {e}. Starting fresh.")
+                can_resume = False
+
+        if can_resume:
+            try:
+                ckpt_df = pd.read_csv(checkpoint_path)
+                results = ckpt_df.to_dict("records")
+                processed_ids = set(ckpt_df["id"].tolist())
+                checkpoint_used = True
+                print(f"Resuming from checkpoint: {len(processed_ids)} samples already completed.")
+            except Exception as e:
+                print(f"Warning: Failed to load checkpoint {checkpoint_path}: {e}")
+                results = []
+                processed_ids = set()
 
     for idx, row in tqdm(df.iterrows(), total=len(df), desc="3-Way VAD Eval"):
         s_id = row["id"]
@@ -277,34 +298,52 @@ def main():
     stim_path = Path(args.stimuli_path)
     if not stim_path.exists():
         fallback = Path("data/processed/stimuli_vad_3way.csv")
-        if fallback.exists():
-            stim_path = fallback
+        os.makedirs(args.out_dir, exist_ok=True)
+    out_csv = os.path.join(args.out_dir, f"behavioral_emobank_{args.tag}_3way_vad.csv")
+    out_csv_compat = os.path.join(args.out_dir, f"{args.tag}_3way_vad.csv")
+    out_json = os.path.join(args.out_dir, f"behavioral_emobank_{args.tag}_summary.json")
+    manifest_path = os.path.join(args.out_dir, f"behavioral_emobank_{args.tag}_manifest.json")
+    ckpt_dir = os.path.join(args.out_dir, "checkpoints")
+    os.makedirs(ckpt_dir, exist_ok=True)
+    ckpt_csv = os.path.join(ckpt_dir, f"{args.tag}_checkpoint.csv")
+    ckpt_meta = os.path.join(ckpt_dir, f"{args.tag}_checkpoint_meta.json")
 
-    os.makedirs(args.out_dir, exist_ok=True)
-    out_csv = os.path.join(args.out_dir, f"{args.tag}_3way_vad.csv")
-    ckpt_csv = os.path.join(args.out_dir, f"{args.tag}_3way_vad_checkpoint.csv")
+    from affective_empathy_eval.manifests import compute_file_hash, is_manifest_matching
+    from affective_empathy_eval.io import save_experiment_result, is_experiment_completed
 
-    # Early skip if already evaluated and valid
-    if not args.force and os.path.exists(out_csv):
+    expected_meta = {
+        "model": args.model,
+        "limit": args.limit,
+        "is_instruct": args.is_instruct,
+        "stimuli_hash": compute_file_hash(stim_path) if stim_path.exists() else "unknown",
+    }
+
+    # Early skip if already evaluated and valid (Resume support)
+    skip_eval = False
+    if not args.force and (os.path.exists(out_csv) or os.path.exists(out_csv_compat)):
+        check_path = out_csv if os.path.exists(out_csv) else out_csv_compat
         try:
-            cached_df = pd.read_csv(out_csv)
+            cached_df = pd.read_csv(check_path)
             expected_min = args.limit if args.limit is not None else 1
             if len(cached_df) >= expected_min and "s_ev" in cached_df.columns:
-                print(
-                    f"[SKIP] Existing validated results found at {out_csv} (n={len(cached_df)}). "
-                    f"Skipping model loading & evaluation for {args.tag}. Use --force to rerun."
-                )
-                res_df = cached_df
-                skip_eval = True
-            else:
-                skip_eval = False
+                if os.path.exists(out_json) and is_experiment_completed(out_json, manifest_path=manifest_path, force=args.force):
+                    print(
+                        f"[SKIP] Existing validated results found at {check_path} (n={len(cached_df)}). "
+                        f"Skipping model loading & evaluation for {args.tag}. Use --force to rerun."
+                    )
+                    res_df = cached_df
+                    skip_eval = True
         except Exception as e:
-            print(f"Warning: Corrupt or unreadable output at {out_csv} ({e}). Rerunning.")
+            print(f"Warning: Corrupt or unreadable output at {check_path} ({e}). Rerunning.")
             skip_eval = False
     else:
         skip_eval = False
 
     if not skip_eval:
+        # Save checkpoint meta
+        with open(ckpt_meta, "w", encoding="utf-8") as f:
+            json.dump(expected_meta, f, indent=2)
+
         device = args.device
         torch_dtype = torch.bfloat16 if args.dtype == "bfloat16" else (torch.float16 if device != "cpu" else torch.float32)
 
@@ -349,9 +388,15 @@ def main():
             limit=args.limit,
             batch_size=args.batch_size,
             checkpoint_path=ckpt_csv,
+            checkpoint_meta_path=ckpt_meta,
+            expected_meta=expected_meta,
         )
 
         res_df.to_csv(out_csv, index=False)
+        try:
+            res_df.to_csv(out_csv_compat, index=False)
+        except Exception:
+            pass
     if os.path.exists(ckpt_csv):
         try:
             os.remove(ckpt_csv)
@@ -413,9 +458,20 @@ def main():
         "exact_555_pct": exact_555_pct,
     }
 
-    out_json = os.path.join(args.out_dir, f"{args.tag}_3way_vad_summary.json")
-    with open(out_json, "w", encoding="utf-8") as f:
-        json.dump(summary, f, indent=2)
+    save_experiment_result(
+        output_path=out_json,
+        payload=summary,
+        stage="behavioral",
+        experiment_id="behavioral_emobank_3way",
+        success=True,
+        metadata={"tag": args.tag, "model": args.model, "is_instruct": args.is_instruct},
+    )
+    compat_json = os.path.join(args.out_dir, f"{args.tag}_3way_vad_summary.json")
+    try:
+        with open(compat_json, "w", encoding="utf-8") as f:
+            json.dump(summary, f, indent=2)
+    except Exception:
+        pass
 
     # Save manifest
     manifest = create_run_manifest(
@@ -432,7 +488,11 @@ def main():
         candidate_space="VAD_729",
         intervention_version="none",
     )
-    manifest.save(os.path.join(args.out_dir, f"{args.tag}_manifest.json"))
+    manifest.save(manifest_path)
+    try:
+        manifest.save(os.path.join(args.out_dir, f"{args.tag}_manifest.json"))
+    except Exception:
+        pass
 
     print("\n=======================================================")
     print(f"--- 3-Way VAD Results Summary for {args.tag} ---")

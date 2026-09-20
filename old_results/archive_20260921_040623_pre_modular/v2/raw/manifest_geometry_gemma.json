@@ -1,0 +1,29 @@
+{
+  "run_type": "v2_geometry",
+  "model_name": "Gemma 3",
+  "config": {
+    "family_id": "gemma",
+    "base_model": "google/gemma-3-1b-pt",
+    "instruct_model": "google/gemma-3-1b-it",
+    "seed": 42,
+    "max_samples": null,
+    "dry_run": false,
+    "dtype": "bfloat16"
+  },
+  "metadata": {
+    "num_layers": 26,
+    "hidden_dim": 1152
+  },
+  "timestamp_utc": "2026-09-19T09:30:52.197244+00:00",
+  "git_commit": "3af11de",
+  "config_hash": "e969c6df6842dc8a",
+  "dataset_hash": "110d14a871220379",
+  "model_revision": "main",
+  "tokenizer_revision": "main",
+  "prompt_version": "1.0.0",
+  "candidate_space": "VA_81",
+  "seed": 42,
+  "code_version": "0.3.0",
+  "intervention_version": "none",
+  "dry_run": false
+}

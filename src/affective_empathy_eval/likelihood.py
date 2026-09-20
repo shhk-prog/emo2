@@ -323,16 +323,6 @@ def prepare_joint_sequence_with_boundary(
         # 厳密な prefix 一致が成立
         return full_ids, p_len
 
-    # 境界でマージが発生し strict prefix が成立しない場合、delimiter 未指定なら安定区切りを試行
-    if delimiter == "":
-        for alt_delim in ["\n", " "]:
-            p_alt = prompt + alt_delim
-            f_alt = p_alt + candidate
-            p_ids_alt = tokenizer.encode(p_alt, add_special_tokens=False)
-            f_ids_alt = tokenizer.encode(f_alt, add_special_tokens=False)
-            if len(f_ids_alt) >= len(p_ids_alt) and f_ids_alt[:len(p_ids_alt)] == p_ids_alt:
-                return f_ids_alt, len(p_ids_alt)
-
     if require_strict_prefix:
         raise ValueError(
             f"Strict prefix property violated across boundary for candidate: {candidate[:20]}... "

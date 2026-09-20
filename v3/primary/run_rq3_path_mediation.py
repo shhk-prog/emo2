@@ -325,7 +325,10 @@ def run_real_path_mediation(
 
             r2_joint = float(0.5 * (r2_v + r2_a))
         else:
-            r2_v, r2_a, r2_joint = 0.0, 0.0, 0.0
+            raise ValueError(
+                f"Cannot perform GroupKFold cross-validation on Discovery set: n_unique_groups={n_unique_groups} (< 2). "
+                "Ensure sufficient paired samples are provided for Discovery split."
+            )
 
         d_stim_v_profile.append(r2_v)
         d_stim_a_profile.append(r2_a)
@@ -333,7 +336,7 @@ def run_real_path_mediation(
 
         # 実 activation intervention による因果的変位 C_joint(l) = (C_V(l) + C_A(l)) / 2 の実測 (探索的スクリーニング)
         from affective_empathy_eval.data import stratified_causal_subset
-        selected_disc_idx = stratified_causal_subset(disc_df, n_samples=16, seed=42, stratify_col="target_emotion")
+        selected_disc_idx = stratified_causal_subset(disc_df, n_samples=16, seed=seed, stratify_col="target_emotion")
 
         # Layer l の内部表現から方向 d_v_l, d_a_l を推定
         ridge_dir_v = Ridge(alpha=10.0).fit(H_s, y_v_disc)
@@ -637,7 +640,10 @@ def main():
     full_output = None
     cache_hit = False
 
+    from affective_empathy_eval.io import save_experiment_result, is_experiment_completed
+
     out_raw = raw_dir / f"v3_path_mediation_{fam_key}.json"
+    modular_rq3_path = raw_dir / f"v3_rq3_path_mediation_{fam_key}.json"
     manifest_path = raw_dir / f"manifest_rq3_{fam_key}.json"
 
     manifest_config = {
@@ -651,28 +657,22 @@ def main():
         "dry_run": bool(args.dry_run),
     }
 
-    if not args.force and out_raw.exists() and not args.dry_run:
-        try:
-            with open(out_raw, "r", encoding="utf-8") as f:
-                cached = json.load(f)
-            if cached and "confirmation" in cached:
-                expected_config_hash = compute_string_or_dict_hash(manifest_config)
-                expected_dataset_hash = compute_string_or_dict_hash(str(v3_cfg["dataset"]["path"]))
-                if not cached.get("dry_run", False) and is_manifest_matching(
-                    str(manifest_path),
-                    expected_model_name=target_model_id,
-                    expected_config_hash=expected_config_hash,
-                    expected_dataset_hash=expected_dataset_hash,
-                    expected_code_version=DEFAULT_CODE_VERSION,
-                    expected_dry_run=False,
-                ):
-                    logger.info(f"Loaded existing results from {out_raw}. Skipping computation.")
+    if not args.force and not args.dry_run:
+        target_check = modular_rq3_path if modular_rq3_path.exists() else out_raw
+        man_p = str(manifest_path) if manifest_path.exists() else None
+        if is_experiment_completed(str(target_check), manifest_path=man_p):
+            try:
+                read_p = modular_rq3_path if modular_rq3_path.exists() else out_raw
+                with open(read_p, "r", encoding="utf-8") as f:
+                    cached = json.load(f)
+                if cached and "confirmation" in cached:
+                    logger.info(f"Loaded existing results from {read_p}. Skipping computation.")
                     full_output = cached
                     discovery_res = cached["discovery"]
                     confirmation_res = cached["confirmation"]
                     cache_hit = True
-        except Exception as e:
-            logger.warning(f"Cache check failed for {out_raw}: {e}")
+            except Exception as e:
+                logger.warning(f"Cache check failed for {target_check}: {e}")
 
     if full_output is None or discovery_res is None or confirmation_res is None:
         if args.dry_run:
@@ -710,7 +710,17 @@ def main():
         }
         with open(out_raw, "w", encoding="utf-8") as f:
             json.dump(full_output, f, indent=2)
-        logger.info(f"Saved path mediation raw results to {out_raw}")
+
+        save_experiment_result(
+            output_path=str(modular_rq3_path),
+            payload=full_output,
+            stage="v3",
+            experiment_id="v3_rq3_path_mediation",
+            status="success",
+            success=True,
+            metadata={"family_id": fam_key, "model_id": target_model_id, "dry_run": bool(args.dry_run)},
+        )
+        logger.info(f"Saved path mediation raw results to {out_raw} and {modular_rq3_path}")
 
     # Save manifest only on fresh computation to prevent washing old artifacts
     if not cache_hit:
@@ -801,8 +811,11 @@ def main():
         try:
             with open(rq2_sites_path, "r", encoding="utf-8") as f:
                 rq2_data = json.load(f)
-            temp_rel_depth_v = float(rq2_data.get("temporal_relative_depth_v", rq2_data.get("temporal_relative_depth", 0.65)))
-            temp_rel_depth_a = float(rq2_data.get("temporal_relative_depth_a", rq2_data.get("temporal_relative_depth", 0.65)))
+            if "temporal_relative_depth_v" not in rq2_data or "temporal_relative_depth_a" not in rq2_data:
+                if not args.dry_run:
+                    raise KeyError(f"RQ2 sites artifact at {rq2_sites_path} must contain both 'temporal_relative_depth_v' and 'temporal_relative_depth_a'.")
+            temp_rel_depth_v = float(rq2_data.get("temporal_relative_depth_v", 0.65))
+            temp_rel_depth_a = float(rq2_data.get("temporal_relative_depth_a", 0.65))
             target_stages = rq2_data.get("target_stages", target_stages)
             stage_v = str(rq2_data.get("temporal_stage_v", rq2_data.get("causal_peak_stage_v", "pre_V")))
             stage_a = str(rq2_data.get("temporal_stage_a", rq2_data.get("causal_peak_stage_a", "pre_A")))
@@ -823,7 +836,6 @@ def main():
         "temporal_stage_v": stage_v,
         "temporal_relative_depth_a": temp_rel_depth_a,
         "temporal_stage_a": stage_a,
-        "temporal_relative_depth": temp_rel_depth_v,  # 互換用
         "a_priori_test_stage_v": rq2_data.get("a_priori_test_stage_v", "pre_V") if rq2_sites_path.exists() else "pre_V",
         "a_priori_test_stage_a": rq2_data.get("a_priori_test_stage_a", "pre_A") if rq2_sites_path.exists() else "pre_A",
         "mediation_relative_depth": med_rel_depth,

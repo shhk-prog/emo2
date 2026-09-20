@@ -328,7 +328,7 @@ def run_real_spatiotemporal_maps(
 
     # 固定シードによる再現可能な感情層化因果介入サンプル選択 (全層・全ステージで共通の一貫したサブセット)
     from affective_empathy_eval.data import stratified_causal_subset
-    sub_eval_idx = stratified_causal_subset(eval_df, n_samples=n_causal_samples, seed=42, stratify_col="target_emotion")
+    sub_eval_idx = stratified_causal_subset(eval_df, n_samples=n_causal_samples, seed=seed, stratify_col="target_emotion")
     logger.info(f"Selected {len(sub_eval_idx)} emotion-stratified samples for causal intervention evaluation.")
 
     # 層 × ステージ グリッド解析
@@ -617,29 +617,26 @@ def main():
         "dry_run": bool(args.dry_run),
     }
 
+    from affective_empathy_eval.io import save_experiment_result, is_experiment_completed
+
     out_raw = raw_dir / f"v3_discovery_spatiotemporal_maps_{fam_key}.json"
+    modular_rq2_path = raw_dir / f"v3_rq2_spatiotemporal_maps_{fam_key}.json"
     manifest_path = raw_dir / f"manifest_rq2_{fam_key}.json"
-    if not args.force and out_raw.exists() and not args.dry_run:
-        try:
-            with open(out_raw, "r", encoding="utf-8") as f:
-                cached = json.load(f)
-            if cached and "maps" in cached:
-                expected_config_hash = compute_string_or_dict_hash(manifest_config)
-                expected_dataset_hash = compute_string_or_dict_hash(str(v3_cfg["dataset"]["path"]))
-                if not cached.get("dry_run", False) and is_manifest_matching(
-                    str(manifest_path),
-                    expected_model_name=target_model_id,
-                    expected_config_hash=expected_config_hash,
-                    expected_dataset_hash=expected_dataset_hash,
-                    expected_code_version=DEFAULT_CODE_VERSION,
-                    expected_dry_run=False,
-                ):
-                    logger.info(f"Loaded existing discovery 4-maps from {out_raw}. Skipping computation.")
+
+    if not args.force and not args.dry_run:
+        target_check = modular_rq2_path if modular_rq2_path.exists() else out_raw
+        man_p = str(manifest_path) if manifest_path.exists() else None
+        if is_experiment_completed(str(target_check), manifest_path=man_p):
+            try:
+                read_p = modular_rq2_path if modular_rq2_path.exists() else out_raw
+                with open(read_p, "r", encoding="utf-8") as f:
+                    cached = json.load(f)
+                if cached and "maps" in cached:
+                    logger.info(f"Loaded existing discovery 4-maps from {read_p}. Skipping computation.")
                     results = cached
                     cache_hit = True
-        except Exception as e:
-            logger.warning(f"Cache check failed for {out_raw}: {e}")
-
+            except Exception as e:
+                logger.warning(f"Cache check failed for {target_check}: {e}")
 
     if results is None:
         if args.dry_run:
@@ -675,7 +672,17 @@ def main():
 
         with open(out_raw, "w", encoding="utf-8") as f:
             json.dump(results, f, indent=2)
-        logger.info(f"Saved discovery spatiotemporal 4-maps to {out_raw}")
+
+        save_experiment_result(
+            output_path=str(modular_rq2_path),
+            payload=results,
+            stage="v3",
+            experiment_id="v3_rq2_spatiotemporal_maps",
+            status="success",
+            success=True,
+            metadata={"family_id": fam_key, "model_id": target_model_id, "dry_run": bool(args.dry_run)},
+        )
+        logger.info(f"Saved discovery spatiotemporal 4-maps to {out_raw} and {modular_rq2_path}")
 
     # Save manifest with explicit intervention sample count only on fresh computation
     if not cache_hit:
@@ -732,9 +739,6 @@ def main():
         "valence_d_peak_C": d_peak_C,
         "arousal_d_peak_D": float(a_dissoc.get("d_peak_D", 0.50)),
         "arousal_d_peak_C": float(a_dissoc.get("d_peak_C", 0.68)),
-        # 互換用キー
-        "temporal_relative_depth": emp_peak_depth_v,
-        "temporal_stage": emp_peak_stage_v,
         "empirical_peak_stage_v": emp_peak_stage_v,
         "empirical_peak_stage_a": emp_peak_stage_a,
     }

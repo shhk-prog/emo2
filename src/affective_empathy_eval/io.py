@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+"""
+src/affective_empathy_eval/io.py
+
+実験結果の逐次保存（Incremental Save）、成否判定（execution_success: true/false）、
+および途中再開（Resume）判定のための共通 I/O ヘルパー。
+"""
+
+from datetime import datetime, timezone
+import json
+import logging
+import os
+from pathlib import Path
+import tempfile
+from typing import Any, Dict, Optional
+
+logger = logging.getLogger(__name__)
+
+
+def save_experiment_result(
+    output_path: Path | str,
+    payload: Dict[str, Any],
+    stage: str,
+    experiment_id: str,
+    status: str = "success",
+    success: bool = True,
+    metadata: Optional[Dict[str, Any]] = None,
+    indent: int = 2,
+) -> Path:
+    """
+    実験結果を指定パスにアトミック（一時ファイル書き込み後置換）かつ逐次に保存する。
+    トップレベルに成否フラグ、ステージ、実験ID、タイムスタンプを付与。
+    """
+    path = Path(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    envelope = {
+        "execution_status": status,
+        "execution_success": bool(success),
+        "stage": stage,
+        "experiment_id": experiment_id,
+        "completed_at": datetime.now(timezone.utc).isoformat(),
+        "metadata": metadata or {},
+        **(metadata or {}),
+        "results": payload,
+    }
+
+    # 一時ファイルへ書き込み後に置換（書き込み途中クラッシュによる破損防止）
+    tmp_dir = path.parent
+    with tempfile.NamedTemporaryFile("w", dir=tmp_dir, delete=False, encoding="utf-8") as tf:
+        json.dump(envelope, tf, indent=indent, ensure_ascii=False)
+        temp_name = tf.name
+
+    os.replace(temp_name, path)
+    logger.info(f"[{stage}:{experiment_id}] Sequentially saved result to {path} (success={success})")
+    return path
+
+
+def is_experiment_completed(
+    output_path: Path | str,
+    manifest_path: Optional[Path | str] = None,
+    force: bool = False,
+    expected_model_name: Optional[str] = None,
+    expected_config_hash: Optional[str] = None,
+) -> bool:
+    """
+    指定された実験結果が正常に完了しており、スキップ（途中再開）可能かを判定。
+    1. force が True ならスキップ不可 (False)
+    2. ファイルが存在しないならスキップ不可 (False)
+    3. execution_success が True でなければスキップ不可 (False)
+    4. manifest が指定されていれば整合性を照合
+    """
+    if force:
+        return False
+
+    path = Path(output_path)
+    if not path.exists():
+        return False
+
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        # 明示的な成否判定フラグの検証
+        if not data.get("execution_success", False):
+            logger.info(f"Result at {path} exists but execution_success is False. Will re-run.")
+            return False
+
+        # manifest の照合
+        if manifest_path is not None:
+            m_path = Path(manifest_path)
+            if m_path.exists():
+                from affective_empathy_eval.manifests import is_manifest_matching
+                if not is_manifest_matching(
+                    str(m_path),
+                    expected_model_name=expected_model_name,
+                    expected_config_hash=expected_config_hash,
+                ):
+                    logger.info(f"Manifest mismatch for {path}. Will re-run.")
+                    return False
+
+        logger.info(f"Verified valid completed result at {path}. Skipping.")
+        return True
+    except Exception as e:
+        logger.warning(f"Failed to inspect existing result at {path}: {e}. Will re-run.")
+        return False

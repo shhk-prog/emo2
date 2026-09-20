@@ -349,32 +349,30 @@ def main():
         or "it" in args.model_id.lower()
     )
 
-    # Early skip if already completed and valid with matching manifest
+    # Modular output paths
+    from affective_empathy_eval.io import save_experiment_result, is_experiment_completed
+
+    modular_e3_json = os.path.join(model_dir, f"v1_e3_causal_map_{args.model_prefix}.json")
+    modular_e3_csv = os.path.join(model_dir, f"v1_e3_causal_map_{args.model_prefix}.csv")
+    modular_e4_json = os.path.join(model_dir, f"v1_e4_interchangeability_{args.model_prefix}.json")
+    modular_e4_csv = os.path.join(model_dir, f"v1_e4_interchangeability_{args.model_prefix}.csv")
+
     manifest_path = os.path.join(model_dir, "manifest.json")
     e3_path = os.path.join(model_dir, "e3_causal_map.csv")
     e4_path = os.path.join(model_dir, "e4_interchangeability_results.csv")
-    if not args.force and not args.dry_run and os.path.exists(manifest_path) and os.path.exists(e3_path) and os.path.exists(e4_path):
-        try:
-            if is_manifest_matching(
-                manifest_path,
-                expected_model_name=args.model_id,
-                expected_candidate_space="VAD_729",
-                expected_dry_run=False,
-            ):
-                df_e3 = pd.read_csv(e3_path)
-                df_e4 = pd.read_csv(e4_path)
-                if len(df_e3) > 0 and len(df_e4) > 0:
-                    print(
-                        f"[SKIP] Validated Phase C results and matching manifest found in {model_dir}. "
-                        f"Skipping computation for {args.model_prefix}. Use --force to rerun."
-                    )
-                    return
-                else:
-                    print(f"Warning: Empty Phase C results in {model_dir}. Rerunning.")
-            else:
-                print(f"Manifest mismatch or dry_run cache found in {model_dir}. Rerunning.")
-        except Exception as e:
-            print(f"Warning: Corrupt existing Phase C results in {model_dir} ({e}). Rerunning.")
+
+    if not args.force and not args.dry_run:
+        e3_done = is_experiment_completed(modular_e3_json if os.path.exists(modular_e3_json) else e3_path, manifest_path=manifest_path if os.path.exists(manifest_path) else None)
+        e4_done = is_experiment_completed(modular_e4_json if os.path.exists(modular_e4_json) else e4_path, manifest_path=manifest_path if os.path.exists(manifest_path) else None)
+        if args.mode == "e3" and e3_done:
+            print(f"[SKIP] Validated Phase C E3 results found in {model_dir}. Skipping computation for {args.model_prefix}. Use --force to rerun.")
+            return
+        elif args.mode == "e4" and e4_done:
+            print(f"[SKIP] Validated Phase C E4 results found in {model_dir}. Skipping computation for {args.model_prefix}. Use --force to rerun.")
+            return
+        elif args.mode == "all" and e3_done and e4_done:
+            print(f"[SKIP] Validated Phase C (E3 & E4) results found in {model_dir}. Skipping computation for {args.model_prefix}. Use --force to rerun.")
+            return
 
     print(
         f"=== Starting V1 Phase C Causal Intervention (Prompt-End Normalized) ==="
@@ -439,12 +437,32 @@ def main():
                 "p_fdr_A": 0.0002,
             }
         ]
-        pd.DataFrame(e3_records).to_csv(
-            os.path.join(model_dir, "e3_causal_map.csv"), index=False
+        # Save E3
+        save_experiment_result(
+            output_path=modular_e3_json,
+            payload={"causal_map": e3_records},
+            stage="v1",
+            experiment_id="v1_e3_causal_map",
+            status="success",
+            success=True,
+            metadata={"model_id": args.model_id, "model_prefix": args.model_prefix, "dry_run": True},
         )
-        pd.DataFrame(e4_records).to_csv(
-            os.path.join(model_dir, "e4_interchangeability_results.csv"), index=False
+        pd.DataFrame(e3_records).to_csv(modular_e3_csv, index=False)
+        pd.DataFrame(e3_records).to_csv(os.path.join(model_dir, "e3_causal_map.csv"), index=False)
+
+        # Save E4
+        save_experiment_result(
+            output_path=modular_e4_json,
+            payload={"interchangeability": e4_records},
+            stage="v1",
+            experiment_id="v1_e4_interchangeability",
+            status="success",
+            success=True,
+            metadata={"model_id": args.model_id, "model_prefix": args.model_prefix, "dry_run": True},
         )
+        pd.DataFrame(e4_records).to_csv(modular_e4_csv, index=False)
+        pd.DataFrame(e4_records).to_csv(os.path.join(model_dir, "e4_interchangeability_results.csv"), index=False)
+
         manifest = create_run_manifest(
             run_type="v1_phase_c",
             model_name=args.model_id,
@@ -940,12 +958,23 @@ def main():
                 completed_layers.add(l)
 
                 # 1層完了ごとに即座にディスクへ保存（途中で中断しても完了層から再開可能）
-                pd.DataFrame(e3_causal_records).sort_values("layer").to_csv(e3_csv_path, index=False)
+                df_e3_curr = pd.DataFrame(e3_causal_records).sort_values("layer")
+                df_e3_curr.to_csv(e3_csv_path, index=False)
+                df_e3_curr.to_csv(modular_e3_csv, index=False)
+                save_experiment_result(
+                    output_path=modular_e3_json,
+                    payload={"causal_map": e3_causal_records},
+                    stage="v1",
+                    experiment_id="v1_e3_causal_map",
+                    status="success" if len(completed_layers) == len(target_layers) else "in_progress",
+                    success=bool(len(completed_layers) == len(target_layers)),
+                    metadata={"model_id": args.model_id, "model_prefix": args.model_prefix, "completed_layers": list(completed_layers)},
+                )
                 pd.DataFrame(e3_pair_records).to_csv(e3_pair_csv_path, index=False)
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()
 
-            print(f"E3 all target layers completed and saved to {e3_csv_path}")
+            print(f"E3 all target layers completed and saved to {e3_csv_path} and {modular_e3_json}")
 
     # E4: Interchangeability
     if args.mode in ["all", "e4"]:
@@ -956,10 +985,15 @@ def main():
         if args.candidate_layers is not None and len(args.candidate_layers) > 0:
             e4_layers = sorted(list(set(args.candidate_layers)))
         elif not df_e3.empty:
+            if "discovery_mag_reader" not in df_e3.columns and not args.dry_run:
+                raise RuntimeError("E4 requires valid E3 discovery results with discovery_mag_reader.")
             mag_r_col = "discovery_mag_reader" if "discovery_mag_reader" in df_e3.columns else "magnitude_reader"
             mag_s_col = "discovery_mag_self" if "discovery_mag_self" in df_e3.columns else "magnitude_self"
             valid_r = df_e3[mag_r_col].dropna() if mag_r_col in df_e3.columns else pd.Series(dtype=float)
             valid_s = df_e3[mag_s_col].dropna() if mag_s_col in df_e3.columns else pd.Series(dtype=float)
+
+            if valid_r.empty and not args.dry_run:
+                raise RuntimeError("E4 requires non-empty E3 discovery magnitude.")
 
             reader_peak_l = int(df_e3.loc[valid_r.idxmax(), "layer"]) if not valid_r.empty else max(0, int(num_layers * 0.3))
             self_peak_l = int(df_e3.loc[valid_s.idxmax(), "layer"]) if not valid_s.empty else max(0, int(num_layers * 0.7))
@@ -972,6 +1006,8 @@ def main():
                 )
             )
         else:
+            if not args.dry_run:
+                raise RuntimeError("E4 requires valid E3 discovery results. Cannot fallback to heuristic layers in production.")
             e4_layers = sorted(
                 list(
                     set([int(num_layers * d) for d in [0.45, 0.60, 0.75, 0.85]])
@@ -1459,15 +1495,19 @@ def main():
                         pbar_cond.update(1)
                         pbar_cond.set_postfix({"layer": l, "alpha": alpha})
 
-            # Determine E3 peak layer for confirmatory condition fixing
+            # Determine E3 peak layer for confirmatory condition fixing (Item 1: discovery_mag_reader only)
             e3_peak_layer = None
             if e3_patching_records:
-                try:
-                    df_e3_temp = pd.DataFrame(e3_patching_records)
-                    if "magnitude_reader" in df_e3_temp.columns:
-                        e3_peak_layer = int(df_e3_temp.loc[df_e3_temp["magnitude_reader"].idxmax(), "layer"])
-                except Exception:
-                    pass
+                df_e3_temp = pd.DataFrame(e3_patching_records)
+                peak_col = "discovery_mag_reader"
+                if peak_col not in df_e3_temp.columns:
+                    if not args.dry_run:
+                        raise ValueError(
+                            "Discovery magnitude (discovery_mag_reader) is required to define the confirmatory E4 layer."
+                        )
+                    peak_col = "magnitude_reader" if "magnitude_reader" in df_e3_temp.columns else None
+                if peak_col and peak_col in df_e3_temp.columns:
+                    e3_peak_layer = int(df_e3_temp.loc[df_e3_temp[peak_col].idxmax(), "layer"])
 
             df_e4 = pd.DataFrame(e4_patching_records).sort_values(["layer", "alpha"]).copy().reset_index(drop=True)
             if not df_e4.empty:
@@ -1475,7 +1515,8 @@ def main():
                 if e3_peak_layer is not None:
                     df_e4["is_confirmatory"] = (df_e4["layer"] == e3_peak_layer) & (np.isclose(df_e4["alpha"], 1.0))
                 else:
-                    # Fallback to first layer alpha=1.0
+                    if not args.dry_run:
+                        raise RuntimeError("Cannot determine confirmatory E4 condition without discovery peak layer.")
                     first_layer = df_e4["layer"].iloc[0]
                     df_e4["is_confirmatory"] = (df_e4["layer"] == first_layer) & (np.isclose(df_e4["alpha"], 1.0))
 
@@ -1490,8 +1531,22 @@ def main():
                     df_e4["p_fdr_A"] = apply_fdr_bh(df_e4["p_val_A"].tolist())
 
             df_e4.to_csv(e4_csv_path, index=False)
+            df_e4.to_csv(modular_e4_csv, index=False)
             pd.DataFrame(e4_pair_records).to_csv(e4_pair_csv_path, index=False)
-            print(f"E4 results with FDR correction saved to {e4_csv_path}", flush=True)
+            save_experiment_result(
+                output_path=modular_e4_json,
+                payload={"interchangeability": df_e4.to_dict("records")},
+                stage="v1",
+                experiment_id="v1_e4_interchangeability",
+                status="success",
+                success=True,
+                metadata={
+                    "model_id": args.model_id,
+                    "model_prefix": args.model_prefix,
+                    "confirmatory_layer": e3_peak_layer,
+                },
+            )
+            print(f"E4 results with FDR correction saved to {e4_csv_path} and {modular_e4_json}", flush=True)
 
     # Save manifest
     manifest = create_run_manifest(

@@ -89,6 +89,8 @@ def split_dataset(df: pd.DataFrame, train_ratio: float = 0.7, seed: int = 42) ->
         train_mask = df["pair_id"].isin(train_pairs)
         train_df = df[train_mask].copy().reset_index(drop=True)
         test_df = df[~train_mask].copy().reset_index(drop=True)
+        if len(train_df) == 0 or len(test_df) == 0:
+            raise ValueError(f"Train ({len(train_df)}) or test ({len(test_df)}) split is empty in pair-aware split.")
         return train_df, test_df
     else:
         n = len(df)
@@ -97,7 +99,11 @@ def split_dataset(df: pd.DataFrame, train_ratio: float = 0.7, seed: int = 42) ->
         n_train = int(n * train_ratio)
         train_indices = indices[:n_train]
         test_indices = indices[n_train:]
-        return df.iloc[train_indices].copy().reset_index(drop=True), df.iloc[test_indices].copy().reset_index(drop=True)
+        train_df = df.iloc[train_indices].copy().reset_index(drop=True)
+        test_df = df.iloc[test_indices].copy().reset_index(drop=True)
+        if len(train_df) == 0 or len(test_df) == 0:
+            raise ValueError(f"Train ({len(train_df)}) or test ({len(test_df)}) split is empty in permutation split.")
+        return train_df, test_df
 
 
 def extract_activations_for_model(
@@ -458,8 +464,12 @@ def main():
 
     all_family_results = {}
 
+    from affective_empathy_eval.io import save_experiment_result, is_experiment_completed
+
     for fam_id, fam_cfg in target_models.items():
         fam_out_path = raw_dir / f"v2_geometry_{fam_id}.json"
+        rq1_out_path = raw_dir / f"v2_rq1_decodability_preservation_{fam_id}.json"
+        rq2_out_path = raw_dir / f"v2_rq2_geometry_transformation_{fam_id}.json"
         manifest_path = raw_dir / f"manifest_geometry_{fam_id}.json"
         config_payload = {
             "family_id": fam_id,
@@ -473,24 +483,23 @@ def main():
         exp_cfg_hash = compute_string_or_dict_hash(config_payload)
         exp_ds_hash = compute_string_or_dict_hash(str(data_path))
 
-        if not args.force and fam_out_path.exists() and not args.dry_run:
-            try:
-                with open(fam_out_path, "r", encoding="utf-8") as f:
-                    cached_res = json.load(f)
-                if cached_res and "relative_depths" in cached_res:
-                    if not cached_res.get("dry_run", False) and is_manifest_matching(
-                        str(manifest_path),
-                        expected_model_name=fam_cfg.family_name,
-                        expected_dry_run=False,
-                        expected_config_hash=exp_cfg_hash,
-                        expected_dataset_hash=exp_ds_hash,
-                        expected_code_version=DEFAULT_CODE_VERSION,
-                    ):
-                        logger.info(f"Loaded existing validated results for {fam_id} from {fam_out_path}. Skipping computation.")
-                        all_family_results[fam_id] = cached_res
-                        continue
-            except Exception as e:
-                logger.warning(f"Cache check failed for {fam_id}: {e}")
+        if not args.force and not args.dry_run:
+            check_rq1 = rq1_out_path if rq1_out_path.exists() else fam_out_path
+            check_rq2 = rq2_out_path if rq2_out_path.exists() else fam_out_path
+            man_p = str(manifest_path) if manifest_path.exists() else None
+            if is_experiment_completed(str(check_rq1), manifest_path=man_p) and is_experiment_completed(str(check_rq2), manifest_path=man_p):
+                try:
+                    if fam_out_path.exists():
+                        with open(fam_out_path, "r", encoding="utf-8") as f:
+                            cached_res = json.load(f)
+                    else:
+                        with open(rq1_out_path, "r", encoding="utf-8") as f1, open(rq2_out_path, "r", encoding="utf-8") as f2:
+                            cached_res = {**json.load(f1), **json.load(f2)}
+                    logger.info(f"Loaded existing validated results for {fam_id}. Skipping computation.")
+                    all_family_results[fam_id] = cached_res
+                    continue
+                except Exception as e:
+                    logger.warning(f"Cache check failed for {fam_id}: {e}")
 
 
         eff_num_layers = min(fam_cfg.num_layers, 4) if args.dry_run else fam_cfg.num_layers
@@ -573,12 +582,52 @@ def main():
         fam_res["dry_run"] = bool(args.dry_run)
         all_family_results[fam_id] = fam_res
 
-        # 各ファミリーごとの結果保存
+        # 各ファミリーごとの結果保存 (モジュラー分離)
+        rq1_payload = {
+            "family_id": fam_id,
+            "relative_depths": fam_res["relative_depths"],
+            "num_layers": fam_res["num_layers"],
+            "rq1_geometry": fam_res.get("rq1_geometry", {}),
+            "summary_metrics": {
+                "primary_matched_plain": {
+                    "com_distortion_reader": fam_res["summary_metrics"]["primary_matched_plain"]["com_distortion_reader"],
+                    "com_distortion_self": fam_res["summary_metrics"]["primary_matched_plain"]["com_distortion_self"],
+                }
+            },
+        }
+        rq2_payload = {
+            "family_id": fam_id,
+            "relative_depths": fam_res["relative_depths"],
+            "num_layers": fam_res["num_layers"],
+            "rq2_sharing": fam_res.get("rq2_sharing", {}),
+            "summary_metrics": fam_res["summary_metrics"],
+        }
+
+        save_experiment_result(
+            output_path=str(rq1_out_path),
+            payload=rq1_payload,
+            stage="v2",
+            experiment_id="v2_rq1_decodability_preservation",
+            status="success",
+            success=True,
+            metadata={"family_id": fam_id, "dry_run": bool(args.dry_run)},
+        )
+        save_experiment_result(
+            output_path=str(rq2_out_path),
+            payload=rq2_payload,
+            stage="v2",
+            experiment_id="v2_rq2_geometry_transformation",
+            status="success",
+            success=True,
+            metadata={"family_id": fam_id, "dry_run": bool(args.dry_run)},
+        )
+
+        # 互換用 combined 保存
         fam_out_path = raw_dir / f"v2_geometry_{fam_id}.json"
         fam_out_path.parent.mkdir(parents=True, exist_ok=True)
         with open(fam_out_path, "w", encoding="utf-8") as f:
             json.dump(fam_res, f, indent=2)
-        logger.info(f"Saved family results to {fam_out_path}")
+        logger.info(f"Saved family results to {fam_out_path}, {rq1_out_path}, and {rq2_out_path}")
 
         # Manifest 保存
         manifest = create_run_manifest(

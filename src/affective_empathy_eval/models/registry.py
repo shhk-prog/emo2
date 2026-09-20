@@ -39,18 +39,25 @@ KNOWN_MODEL_DIMS: Dict[str, Tuple[int, int]] = {
 _DIMS_CACHE: Dict[str, Tuple[int, int]] = {}
 
 
-def resolve_architecture_dims(model_id: str) -> Tuple[int, int]:
+def resolve_architecture_dims(
+    model_id: str,
+    revision: Optional[str] = None,
+) -> Tuple[int, int]:
     """
-    モデルIDからトランスフォーマー層数 (num_layers) と隠れ層次元 (hidden_dim) を自動取得する。
-    HuggingFaceのAutoConfigから取得を試み、失敗した場合はローカルキャッシュまたは既知のフォールバックテーブルを参照する。
+    HuggingFace AutoConfig または既知のモデルレジストリから
+    (num_layers, hidden_dim) を解決して返す。
+    Item 20: revision を渡して特定バージョンから解決。
     """
+    cache_key = f"{model_id}@{revision}" if revision else model_id
+    if cache_key in _DIMS_CACHE:
+        return _DIMS_CACHE[cache_key]
     if model_id in _DIMS_CACHE:
         return _DIMS_CACHE[model_id]
 
     # 1. HuggingFace AutoConfig から動的取得を試みる
     try:
         from transformers import AutoConfig
-        config = AutoConfig.from_pretrained(model_id, trust_remote_code=True)
+        config = AutoConfig.from_pretrained(model_id, revision=revision, trust_remote_code=True)
         # 層数属性の探索
         num_layers = None
         for attr in ("num_hidden_layers", "n_layer", "num_layers", "n_layers"):
@@ -66,7 +73,7 @@ def resolve_architecture_dims(model_id: str) -> Tuple[int, int]:
                 break
 
         if num_layers is not None and hidden_dim is not None:
-            _DIMS_CACHE[model_id] = (num_layers, hidden_dim)
+            _DIMS_CACHE[cache_key] = (num_layers, hidden_dim)
             return (num_layers, hidden_dim)
     except Exception as e:
         logger.debug(f"Could not load AutoConfig for {model_id} dynamically: {e}")
@@ -74,13 +81,13 @@ def resolve_architecture_dims(model_id: str) -> Tuple[int, int]:
     # 2. 既知のモデルフォールバック辞書を参照
     if model_id in KNOWN_MODEL_DIMS:
         dims = KNOWN_MODEL_DIMS[model_id]
-        _DIMS_CACHE[model_id] = dims
+        _DIMS_CACHE[cache_key] = dims
         return dims
 
     # 3. プレフィックス一致でのフォールバック
     for known_id, dims in KNOWN_MODEL_DIMS.items():
         if known_id.lower() in model_id.lower() or model_id.lower() in known_id.lower():
-            _DIMS_CACHE[model_id] = dims
+            _DIMS_CACHE[cache_key] = dims
             return dims
 
     # 4. 未知モデルの場合は安全のため例外を送出
@@ -111,6 +118,7 @@ class ModelFamilyConfig:
         num_layers: Optional[int] = None,
         hidden_dim: Optional[int] = None,
         architecture: Optional[str] = None,
+        inference_dtype: str = "bfloat16",
     ):
         self.family_id = family_id
         self.family_name = family_name
@@ -121,6 +129,7 @@ class ModelFamilyConfig:
         self.role = role
         self.enabled = enabled
         self.architecture = architecture or adapter
+        self.inference_dtype = inference_dtype
         self._num_layers = num_layers
         self._hidden_dim = hidden_dim
 
@@ -128,7 +137,8 @@ class ModelFamilyConfig:
         if self._num_layers is None or self._hidden_dim is None:
             # instruct または base のいずれかから次元を解決
             target_id = self.instruct_model.model_id or self.base_model.model_id
-            layers, dim = resolve_architecture_dims(target_id)
+            target_rev = self.instruct_model.revision or self.base_model.revision
+            layers, dim = resolve_architecture_dims(target_id, revision=target_rev)
             if self._num_layers is None:
                 self._num_layers = layers
             if self._hidden_dim is None:
@@ -206,6 +216,7 @@ def load_model_set(
 
             base_rev = finfo.get("base_revision", None)
             inst_rev = finfo.get("instruct_revision", None)
+            inf_dtype = finfo.get("inference_dtype", set_cfg.get("inference_dtype", "bfloat16"))
 
             fam_config = ModelFamilyConfig(
                 family_id=fid,
@@ -216,6 +227,7 @@ def load_model_set(
                 adapter=adapter_name,
                 role=role,
                 enabled=True,
+                inference_dtype=inf_dtype,
             )
             families[fid] = fam_config
             # 大文字小文字両方でアクセスできるように登録

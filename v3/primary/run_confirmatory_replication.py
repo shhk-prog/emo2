@@ -5,7 +5,7 @@ Step 7: 他3モデル (Llama 3.2, Gemma 3, OLMo 2) における主要 V3 因果�
   1. Hypothesis 1 (Dissociation): デコードピークと因果ピークの解離 (Δd_peak > 0, Δd_center > 0)
   2. Hypothesis 2 (Sufficiency): 内部情動方向 d_V, d_A への介入による単調誘導 (gamma > 0)
   3. Hypothesis 3 (Necessity): 直交化 2D 部分空間除去による自己報告変位の有意な減衰
-  4. Hypothesis 4 (Temporal Emergence): 生成時意味的アンカー pre_V での因果ピーク集中
+  4. Hypothesis 4 (Temporal Emergence): Discovery で同定された frozen site (Valence: pre_V, Arousal: pre_A) での因果ピーク集中を検証
 """
 
 import argparse
@@ -352,16 +352,16 @@ def run_real_model_confirmatory(
     stage_v = "pre_V"
     stage_a = "pre_A"
     if frozen_sites:
-        suff_rel_depth = float(frozen_sites.get("sufficiency_relative_depth", 0.5))
-        temp_rel_depth_v = float(frozen_sites.get("temporal_relative_depth_v", frozen_sites.get("temporal_relative_depth", 0.65)))
-        temp_rel_depth_a = float(frozen_sites.get("temporal_relative_depth_a", frozen_sites.get("temporal_relative_depth", 0.65)))
-        med_rel_depth = float(frozen_sites.get("mediation_relative_depth", 0.65))
-        stage_v = str(frozen_sites.get("temporal_stage_v", frozen_sites.get("causal_peak_stage_v", "pre_V")))
-        stage_a = str(frozen_sites.get("temporal_stage_a", frozen_sites.get("causal_peak_stage_a", "pre_A")))
+        suff_rel_depth = float(frozen_sites["sufficiency_relative_depth"])
+        temp_rel_depth_v = float(frozen_sites["temporal_relative_depth_v"])
+        temp_rel_depth_a = float(frozen_sites["temporal_relative_depth_a"])
+        med_rel_depth = float(frozen_sites["mediation_relative_depth"])
+        stage_v = str(frozen_sites.get("temporal_stage_v", "pre_V"))
+        stage_a = str(frozen_sites.get("temporal_stage_a", "pre_A"))
     else:
         suff_rel_depth = float(v3_cfg.get("confirmatory", {}).get("sufficiency_relative_depth", 0.5)) if v3_cfg else 0.5
-        temp_rel_depth_v = float(v3_cfg.get("confirmatory", {}).get("temporal_relative_depth_v", v3_cfg.get("confirmatory", {}).get("temporal_relative_depth", 0.65))) if v3_cfg else 0.65
-        temp_rel_depth_a = float(v3_cfg.get("confirmatory", {}).get("temporal_relative_depth_a", v3_cfg.get("confirmatory", {}).get("temporal_relative_depth", 0.65))) if v3_cfg else 0.65
+        temp_rel_depth_v = float(v3_cfg.get("confirmatory", {}).get("temporal_relative_depth_v", 0.65)) if v3_cfg else 0.65
+        temp_rel_depth_a = float(v3_cfg.get("confirmatory", {}).get("temporal_relative_depth_a", 0.65)) if v3_cfg else 0.65
         med_rel_depth = float(v3_cfg.get("confirmatory", {}).get("mediation_relative_depth", 0.65)) if v3_cfg else 0.65
     sufficiency_layer = round(suff_rel_depth * (num_layers - 1))
     temporal_layer_v = round(temp_rel_depth_v * (num_layers - 1))
@@ -911,8 +911,12 @@ def main():
         if args.dry_run:
             logger.warning("[DRY-RUN] frozen_confirmatory_sites.json not found. Using fallback values for mock dry-run only.")
             suff_depth_val = float(conf_cfg.get("sufficiency_relative_depth", 0.5))
-            temp_depth_val = float(conf_cfg.get("temporal_relative_depth", 0.65))
+            temp_depth_v_val = float(conf_cfg.get("temporal_relative_depth_v", 0.65))
+            temp_depth_a_val = float(conf_cfg.get("temporal_relative_depth_a", 0.65))
+            stage_v_val = str(conf_cfg.get("temporal_stage_v", "pre_V"))
+            stage_a_val = str(conf_cfg.get("temporal_stage_a", "pre_A"))
             med_depth_val = float(conf_cfg.get("mediation_relative_depth", 0.65))
+            frozen_sites_hash = "mock_hash"
         else:
             raise FileNotFoundError(
                 f"Missing required artifact: {frozen_sites_path}. "
@@ -921,8 +925,12 @@ def main():
             )
     else:
         suff_depth_val = float(frozen_sites["sufficiency_relative_depth"])
-        temp_depth_val = float(frozen_sites["temporal_relative_depth"])
+        temp_depth_v_val = float(frozen_sites["temporal_relative_depth_v"])
+        temp_depth_a_val = float(frozen_sites["temporal_relative_depth_a"])
+        stage_v_val = str(frozen_sites.get("temporal_stage_v", "pre_V"))
+        stage_a_val = str(frozen_sites.get("temporal_stage_a", "pre_A"))
         med_depth_val = float(frozen_sites["mediation_relative_depth"])
+        frozen_sites_hash = compute_string_or_dict_hash(frozen_sites)
 
     for item in conf_models:
         fam_key = item["family_key"]
@@ -939,33 +947,35 @@ def main():
             "dataset_path": str(v3_cfg["dataset"]["path"]),
             "confirmatory_site_selection_source": selection_source,
             "sufficiency_relative_depth": suff_depth_val,
-            "temporal_relative_depth": temp_depth_val,
+            "temporal_relative_depth_v": temp_depth_v_val,
+            "temporal_relative_depth_a": temp_depth_a_val,
+            "temporal_stage_v": stage_v_val,
+            "temporal_stage_a": stage_a_val,
             "mediation_relative_depth": med_depth_val,
+            "frozen_sites_hash": frozen_sites_hash,
             "seed": seeds.get(fam_key, base_seed + 99),
             "subsample": args.subsample,
             "dry_run": bool(args.dry_run),
         }
 
-        if not args.force and out_raw.exists() and not args.dry_run:
-            try:
-                with open(out_raw, "r", encoding="utf-8") as f:
-                    cached = json.load(f)
-                if cached and ("auxiliary_qc_all_pass" in cached or "all_confirmed" in cached):
-                    expected_config_hash = compute_string_or_dict_hash(manifest_config)
-                    expected_dataset_hash = compute_string_or_dict_hash(str(v3_cfg["dataset"]["path"]))
-                    if not cached.get("dry_run", False) and is_manifest_matching(
-                        str(manifest_path),
-                        expected_model_name=model_id,
-                        expected_config_hash=expected_config_hash,
-                        expected_dataset_hash=expected_dataset_hash,
-                        expected_code_version=DEFAULT_CODE_VERSION,
-                        expected_dry_run=False,
-                    ):
-                        logger.info(f"Loaded existing valid confirmatory results for {fam_name} from {out_raw}. Skipping.")
+        from affective_empathy_eval.io import save_experiment_result, is_experiment_completed
+
+        modular_conf_path = raw_dir / f"v3_confirmatory_replication_{fam_key}.json"
+
+        if not args.force and not args.dry_run:
+            target_check = modular_conf_path if modular_conf_path.exists() else out_raw
+            man_p = str(manifest_path) if manifest_path.exists() else None
+            if is_experiment_completed(str(target_check), manifest_path=man_p):
+                try:
+                    read_p = modular_conf_path if modular_conf_path.exists() else out_raw
+                    with open(read_p, "r", encoding="utf-8") as f:
+                        cached = json.load(f)
+                    if cached and ("auxiliary_qc_all_pass" in cached or "all_confirmed" in cached or "h1_dissociation" in cached):
+                        logger.info(f"Loaded existing valid confirmatory results for {fam_name} from {read_p}. Skipping.")
                         family_results[fam_name] = cached
                         continue
-            except Exception as e:
-                logger.warning(f"Cache check failed for {fam_name}: {e}")
+                except Exception as e:
+                    logger.warning(f"Cache check failed for {fam_name}: {e}")
 
         num_layers = resolve_architecture_dims(model_id)[0]
 
@@ -985,10 +995,19 @@ def main():
 
         family_results[fam_name] = res
 
-        res["dry_run"] = bool(args.dry_run)
         with open(out_raw, "w", encoding="utf-8") as f:
             json.dump(res, f, indent=2)
-        logger.info(f"Saved {fam_name} confirmatory results to {out_raw}")
+
+        save_experiment_result(
+            output_path=str(modular_conf_path),
+            payload=res,
+            stage="v3",
+            experiment_id="v3_confirmatory_replication",
+            status="success",
+            success=True,
+            metadata={"family_id": fam_key, "model_id": model_id, "dry_run": bool(args.dry_run)},
+        )
+        logger.info(f"Saved {fam_name} confirmatory results to {out_raw} and {modular_conf_path}")
 
         # Manifest 保存
         manifest = create_run_manifest(

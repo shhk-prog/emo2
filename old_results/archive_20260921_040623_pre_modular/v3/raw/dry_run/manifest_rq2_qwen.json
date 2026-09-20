@@ -1,0 +1,86 @@
+{
+  "run_type": "v3_rq2_discovery_spatiotemporal_maps",
+  "model_name": "Qwen/Qwen2.5-1.5B-Instruct",
+  "config": {
+    "analysis_role": "discovery",
+    "family": "qwen",
+    "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
+    "dataset_path": "v1/data/processed/aipsy_4split_all.csv",
+    "semantic_stages": [
+      "candidate_start",
+      "pre_V",
+      "V_value",
+      "pre_A",
+      "A_value",
+      "response_end"
+    ],
+    "alpha_sweep": [
+      -2.0,
+      -1.0,
+      -0.5,
+      0.0,
+      0.5,
+      1.0,
+      2.0
+    ],
+    "causal_reference_alpha": 1.0,
+    "n_causal_samples": 15,
+    "seed": 42,
+    "subsample": 16,
+    "dry_run": true
+  },
+  "metadata": {
+    "analysis_role": "discovery",
+    "n_dataset_total": 192,
+    "n_map_samples": 32,
+    "n_intervene_samples": 15,
+    "n_causal_intervention_samples": 15,
+    "dissociation_summary": {
+      "valence": {
+        "d_d_star": 0.48148148148148145,
+        "d_c_star": 0.6666666666666666,
+        "delta_d_star": 0.18518518518518517,
+        "bar_d_d": 0.47862428562483716,
+        "bar_d_c": 0.6753702187703433,
+        "delta_bar_d": 0.19674593314550615,
+        "d_peak_D": 0.48148148148148145,
+        "d_peak_C": 0.6666666666666666,
+        "delta_d_peak": 0.18518518518518517,
+        "d_center_D": 0.47862428562483716,
+        "d_center_C": 0.6753702187703433,
+        "delta_d_center": 0.19674593314550615
+      },
+      "arousal": {
+        "d_d_star": 0.48148148148148145,
+        "d_c_star": 0.7037037037037037,
+        "delta_d_star": 0.22222222222222227,
+        "bar_d_d": 0.5005938386767949,
+        "bar_d_c": 0.6738223879163089,
+        "delta_bar_d": 0.17322854923951403,
+        "d_peak_D": 0.48148148148148145,
+        "d_peak_C": 0.7037037037037037,
+        "delta_d_peak": 0.22222222222222227,
+        "d_center_D": 0.5005938386767949,
+        "d_center_C": 0.6738223879163089,
+        "delta_d_center": 0.17322854923951403
+      }
+    }
+  },
+  "timestamp_utc": "2026-09-20T19:00:20.270115+00:00",
+  "git_commit": "1135f99",
+  "run_id": "20260920T190020270072Z_1135f99_ace5d085_018ce62c",
+  "config_hash": "ace5d085efdf52ac",
+  "dataset_hash": "192b57bbb0dc27e5",
+  "model_revision": "main",
+  "tokenizer_revision": "main",
+  "prompt_version": "1.0.0",
+  "prompt_hash": "unknown",
+  "candidate_space": "VA_81",
+  "measurement_space": "VA_81",
+  "actual_dtype": "bfloat16",
+  "template_mode": "system_user",
+  "seed": 42,
+  "code_version": "0.3.0",
+  "intervention_version": "none",
+  "dry_run": true
+}

@@ -1,0 +1,2 @@
+layer,relative_depth,alpha,aligned_matched_shift_V,aligned_matched_shift_A,aligned_random_shift_V,aligned_random_shift_A,aligned_specificity_V,aligned_specificity_A,aligned_cohen_dz_V,aligned_cohen_dz_A,transfer_ratio_V,transfer_ratio_A,matched_shift_V,matched_shift_A,random_shift_V,random_shift_A,specificity_V,specificity_A,cohen_dz_V,cohen_dz_A
+14,0.5,1.0,0.35,0.25,0.05,0.02,0.3,0.23,1.15,0.95,0.7,0.65,0.35,0.25,0.05,0.02,0.3,0.23,1.15,0.95

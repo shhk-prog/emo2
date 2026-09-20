@@ -73,15 +73,14 @@ bash scripts/archive_targets_for_rerun.sh
 
 ---
 
+---
+
 ## 4. 本番再実行コマンド
 
 退避完了後、以下のコマンドで修正後のパイプラインを順次実行できます：
 
 ```bash
-# 1. 退避対象の移動
-bash scripts/archive_targets_for_rerun.sh
-
-# 2. 一括本番再実行 (V1 Phase B, V3 RQ2〜Confirmatory, V2 RQ4)
+# 1. 一括本番再実行 (V1 Phase B, V3 RQ2〜Confirmatory, V2 RQ4)
 bash scripts/run_production_reruns.sh cuda:0
 
 # または個別の公式ステージスクリプト:
@@ -92,5 +91,27 @@ bash scripts/run_production_v1.sh cuda:0
 bash scripts/run_production_v2.sh cuda:0
 
 # V3 (RQ1〜Confirmatory が再実行されます)
+# ※ Gate NO_GO での停止を防ぐ場合は --force-after-no-go を付与
 bash scripts/run_production_v3.sh cuda:0 --force-after-no-go
 ```
+
+---
+
+## 5. 再実行対象ファイルの移動確認結果 (2026-09-21 確認完了)
+
+スクリプト `scripts/archive_targets_for_rerun.sh` の実行により、以下の通り対象ファイルがすべて確実に移動・退避され、本番ディレクトリがクリーンになっていることを確認しました。
+
+| ステージ / 実験 | 移動前の状態 | 現在の本番ディレクトリ状態 | 移動先 (退避先) | 再実行時の動作 |
+|---|---|---|---|---|
+| **Behavioral** (全8モデル) | 保持 | 変更なし (全8モデルの CSV が存在) | なし (退避対象外) | **[SKIP]** (再実行不要) |
+| **V1 Phase A** (4モデル) | 存在 | `.gitkeep` のみ (空) | `old_results/archive_20260921_audit/v1_phase_a/` | **[再実行]** (クリーン実行) |
+| **V1 Phase B** (4モデル) | 存在 | `.gitkeep` のみ (空) | `old_results/archive_20260921/v1_phase_b/` | **[再実行]** (Base & Instruct, Reader & Self) |
+| **V1 Phase C (E3/E4)** | 保持 | `v1_phase_c_prompt_end` 保持 | なし (退避対象外) | **[SKIP]** |
+| **V1 Phase C (E6)** | 存在 | クリーン (存在しない) | なし (既存なし) | **[再実行]** |
+| **V2 RQ1 / RQ2** | 保持 | `v2_geometry_*.json` 保持 | なし (退避対象外) | **[SKIP]** |
+| **V2 RQ3** | 保持 | `v2_causal_map_*.json` 保持 | なし (退避対象外) | **[SKIP]** |
+| **V2 RQ4** | 存在 | `v2_recovery_*.json` なし | `old_results/archive_20260921/v2/` | **[再実行]** (クリーン実行) |
+| **V3 RQ1** | 存在 | `.gitkeep` のみ (空) | `old_results/archive_20260921_audit/v3/` | **[再実行]** |
+| **V3 RQ2 / RQ3 / Conf.** | 存在 | `.gitkeep` のみ (空) | `old_results/archive_20260921_audit/v3/` | **[再実行]** |
+
+本番の再実行に必要な準備はすべて完了しています。

@@ -1,0 +1,22 @@
+{
+  "tag": "gemma_base",
+  "model": "google/gemma-3-1b-pt",
+  "is_instruct": false,
+  "num_samples": 1000,
+  "w_corr_v": NaN,
+  "w_corr_a": NaN,
+  "w_corr_d": NaN,
+  "r_corr_v": NaN,
+  "r_corr_a": NaN,
+  "r_corr_d": NaN,
+  "s_corr_v": NaN,
+  "s_corr_a": NaN,
+  "s_corr_d": NaN,
+  "internal_rs_corr_v": NaN,
+  "internal_rs_corr_a": NaN,
+  "internal_rs_corr_d": NaN,
+  "s_mean_ev": 3.7665926336199553,
+  "s_mean_ea": 3.9620731104731184,
+  "s_mean_ed": 3.9562130331147296,
+  "exact_555_pct": 1.3
+}

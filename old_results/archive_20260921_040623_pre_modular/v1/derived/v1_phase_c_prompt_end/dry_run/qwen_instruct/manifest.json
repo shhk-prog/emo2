@@ -1,0 +1,28 @@
+{
+  "run_type": "v1_phase_c",
+  "model_name": "Qwen/Qwen2.5-1.5B-Instruct",
+  "config": {
+    "model_prefix": "qwen_instruct",
+    "mode": "all",
+    "limit": 16,
+    "dry_run": true
+  },
+  "metadata": {},
+  "timestamp_utc": "2026-09-20T18:59:41.861652+00:00",
+  "git_commit": "1135f99",
+  "run_id": "20260920T185941861598Z_1135f99_512ac7ba_d3698cf3",
+  "config_hash": "512ac7ba02e5f85e",
+  "dataset_hash": "unknown",
+  "model_revision": "main",
+  "tokenizer_revision": "main",
+  "prompt_version": "1.0.0",
+  "prompt_hash": "unknown",
+  "candidate_space": "VAD_729",
+  "measurement_space": "VA_81",
+  "actual_dtype": "bfloat16",
+  "template_mode": "system_user",
+  "seed": 42,
+  "code_version": "0.3.0",
+  "intervention_version": "none",
+  "dry_run": true
+}

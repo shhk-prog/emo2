@@ -1,0 +1,9 @@
+{
+  "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
+  "git_commit": "536f0ee",
+  "dataset_hash": "3d4075170eee5945",
+  "prompt_hash": "fe3e9ff6e309d3d1",
+  "candidate_schema": "vad_triplets_729",
+  "intervention_position": "prompt_end",
+  "tokenizer": "Qwen2Tokenizer_v151643"
+}

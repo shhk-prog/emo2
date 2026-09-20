@@ -97,13 +97,14 @@ def compute_string_or_dict_hash(obj: Any) -> str:
 
 def generate_run_id(git_sha: Optional[str] = None, config_hash: Optional[str] = None) -> str:
     """
-    AGENTS.md 5.3 準拠の一意の run_id 生成関数:
-    YYYYMMDDTHHMMSSZ_<git-short-sha>_<config-short-hash>
+    AGENTS.md 5.3 / Item 25, 26 準拠の衝突防止一意 run_id 生成関数:
+    YYYYMMDDTHHMMSSffffffZ_<git-short-sha>_<config-short-hash>_<uuid8>
     """
     from datetime import datetime, timezone
     import subprocess
+    import uuid
 
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
     if git_sha is None:
         try:
             git_sha = (
@@ -115,7 +116,8 @@ def generate_run_id(git_sha: Optional[str] = None, config_hash: Optional[str] = 
             git_sha = "unknown"
     if config_hash is None:
         config_hash = "00000000"
-    return f"{timestamp}_{git_sha}_{config_hash[:8]}"
+    uid = uuid.uuid4().hex[:8]
+    return f"{timestamp}_{git_sha}_{config_hash[:8]}_{uid}"
 
 
 @dataclass
@@ -135,6 +137,9 @@ class RunManifest:
     prompt_version: str = DEFAULT_PROMPT_VERSION
     prompt_hash: str = "unknown"
     candidate_space: str = DEFAULT_CANDIDATE_SPACE
+    measurement_space: str = "VA_81"
+    actual_dtype: str = "bfloat16"
+    template_mode: str = "system_user"
     seed: int = 42
     code_version: str = DEFAULT_CODE_VERSION
     intervention_version: str = DEFAULT_INTERVENTION_VERSION
@@ -163,9 +168,13 @@ def create_run_manifest(
     prompt_version: str = DEFAULT_PROMPT_VERSION,
     prompt_hash: Optional[str] = None,
     candidate_space: str = DEFAULT_CANDIDATE_SPACE,
+    measurement_space: str = "VA_81",
+    actual_dtype: str = "bfloat16",
+    template_mode: str = "system_user",
     seed: int = 42,
     intervention_version: str = DEFAULT_INTERVENTION_VERSION,
     model_revision: str = "main",
+    tokenizer_revision: str = "main",
     run_id: Optional[str] = None,
     dry_run: bool = False,
 ) -> RunManifest:
@@ -197,6 +206,16 @@ def create_run_manifest(
 
     if model_revision == "main" and "model_revision" in cfg:
         model_revision = str(cfg["model_revision"])
+    if tokenizer_revision == "main" and "tokenizer_revision" in cfg:
+        tokenizer_revision = str(cfg["tokenizer_revision"])
+    if candidate_space == DEFAULT_CANDIDATE_SPACE and "candidate_space" in cfg:
+        candidate_space = str(cfg["candidate_space"])
+    if measurement_space == "VA_81" and "measurement_space" in cfg:
+        measurement_space = str(cfg["measurement_space"])
+    if actual_dtype == "bfloat16" and "actual_dtype" in cfg:
+        actual_dtype = str(cfg["actual_dtype"])
+    if template_mode == "system_user" and "template_mode" in cfg:
+        template_mode = str(cfg["template_mode"])
 
     cfg_hash = compute_string_or_dict_hash(cfg)
     ds_hash = compute_string_or_dict_hash(dataset_path) if dataset_path else "unknown"
@@ -223,10 +242,13 @@ def create_run_manifest(
         config_hash=cfg_hash,
         dataset_hash=ds_hash,
         model_revision=model_revision,
-        tokenizer_revision="main",
+        tokenizer_revision=tokenizer_revision,
         prompt_version=prompt_version,
         prompt_hash=prompt_hash,
         candidate_space=candidate_space,
+        measurement_space=measurement_space,
+        actual_dtype=actual_dtype,
+        template_mode=template_mode,
         seed=seed,
         code_version=DEFAULT_CODE_VERSION,
         intervention_version=intervention_version,
@@ -239,12 +261,14 @@ def is_manifest_matching(
     expected_model_name: Optional[str] = None,
     expected_intervention_version: Optional[str] = DEFAULT_INTERVENTION_VERSION,
     expected_candidate_space: Optional[str] = None,
+    expected_measurement_space: Optional[str] = None,
     expected_prompt_version: Optional[str] = None,
     expected_prompt_hash: Optional[str] = None,
     expected_config_hash: Optional[str] = None,
     expected_dataset_hash: Optional[str] = None,
     expected_code_version: Optional[str] = None,
     expected_model_revision: Optional[str] = None,
+    expected_tokenizer_revision: Optional[str] = None,
     expected_git_commit: Optional[str] = None,
     expected_dry_run: Optional[bool] = None,
 ) -> bool:
@@ -271,6 +295,9 @@ def is_manifest_matching(
         if expected_candidate_space and data.get("candidate_space") != expected_candidate_space:
             return False
 
+        if expected_measurement_space and data.get("measurement_space") != expected_measurement_space:
+            return False
+
         if expected_prompt_version and data.get("prompt_version") != expected_prompt_version:
             return False
 
@@ -287,6 +314,9 @@ def is_manifest_matching(
             return False
 
         if expected_model_revision and data.get("model_revision") != expected_model_revision:
+            return False
+
+        if expected_tokenizer_revision and data.get("tokenizer_revision") != expected_tokenizer_revision:
             return False
 
         if expected_git_commit and data.get("git_commit") != expected_git_commit:

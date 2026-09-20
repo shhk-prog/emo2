@@ -1,0 +1,32 @@
+{
+  "run_type": "v1_phase_c",
+  "model_name": "Qwen/Qwen2.5-1.5B",
+  "config": {
+    "model_prefix": "qwen_base",
+    "mode": "all",
+    "limit": 0,
+    "alphas": [
+      -1.0,
+      0.0,
+      0.5,
+      1.0,
+      1.5
+    ],
+    "num_layers": 28,
+    "split_seed": 42,
+    "zero_forward_optimized": true
+  },
+  "metadata": {},
+  "timestamp_utc": "2026-09-19T21:51:15.874658+00:00",
+  "git_commit": "536f0ee",
+  "config_hash": "1245f9fe1b4f96f6",
+  "dataset_hash": "unknown",
+  "model_revision": "main",
+  "tokenizer_revision": "main",
+  "prompt_version": "1.0.0",
+  "candidate_space": "VAD_729",
+  "seed": 42,
+  "code_version": "0.3.0",
+  "intervention_version": "none",
+  "dry_run": false
+}

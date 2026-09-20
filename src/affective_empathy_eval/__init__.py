@@ -102,6 +102,12 @@ from affective_empathy_eval.likelihood import (
     resolve_joint_stage_index,
 )
 
+# IO
+from affective_empathy_eval.io import (
+    is_experiment_completed,
+    save_experiment_result,
+)
+
 # Manifests
 from affective_empathy_eval.manifests import (
     ExtractionManifest,
@@ -291,4 +297,7 @@ __all__ = [
     "compute_d_z",
     "generate_derangement",
     "compute_correlation_with_ci",
+    # IO
+    "save_experiment_result",
+    "is_experiment_completed",
 ]

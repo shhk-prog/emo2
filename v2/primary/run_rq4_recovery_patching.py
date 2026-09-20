@@ -193,6 +193,20 @@ def run_recovery_patching_for_task(
             "auc_recovery_matched_plain": auc_recovery_plain,
             "auc_recovery_aligned": auc_recovery_aligned,
             "delta_emd_matched_plain_by_layer": [float(initial_emd_mean * r) for r in layer_mean_ratios_plain],
+            "auc_delta_emd_matched_plain": float(initial_emd_mean * auc_recovery_plain),
+            "primary_matched_plain": {
+                "auc_recovery": auc_recovery_plain,
+                "delta_emd_auc": float(initial_emd_mean * auc_recovery_plain),
+                "delta_emd_by_layer": [float(initial_emd_mean * r) for r in layer_mean_ratios_plain],
+                "layer_recovery_ratios": layer_mean_ratios_plain,
+            },
+            "secondary_peak_localization": {
+                "best_recovery_layer": best_l_matched,
+                "best_recovery_depth": depths[best_l_matched],
+                "max_recovery_ratio": max(layer_mean_ratios_plain),
+                "best_recovery_layer_native": best_l_native,
+                "best_recovery_layer_aligned": best_l_aligned,
+            },
             "sample_records": sample_records,
             "summary_by_control_type": {
                 "direct_native": {
@@ -310,6 +324,7 @@ def run_recovery_patching_for_task(
     sample_ratios_by_layer = {l: {} for l in range(num_layers)}
     sample_ratios_plain_by_layer = {l: {} for l in range(num_layers)}
     sample_ratios_aligned_by_layer = {l: {} for l in range(num_layers)}
+    sample_delta_emds_plain_by_layer = {l: {} for l in range(num_layers)}
 
     # Train / Eval 分割 (Procrustes alignment 学習に評価サンプルを含めない: seeded group/permutation split)
     if train_indices is None or eval_indices is None:
@@ -423,6 +438,8 @@ def run_recovery_patching_for_task(
             ratio_plain = compute_emd_recovery_ratio(sample_initial_emds_plain[i], p_emd_plain)
             sample_ratios_plain.append(ratio_plain)
             sample_ratios_plain_by_layer[l][i] = ratio_plain
+            # Item 9: サンプル単位の真の Delta EMD = initial_emd_i - patched_emd_i
+            sample_delta_emds_plain_by_layer[l][i] = float(sample_initial_emds_plain[i] - p_emd_plain)
 
         mean_emd = float(np.mean(sample_patched_emds))
         mean_ratio = float(np.mean(sample_ratios))
@@ -442,15 +459,24 @@ def run_recovery_patching_for_task(
     auc_recovery_plain = float(trapz_func(layer_mean_ratios_plain, depths))
     auc_recovery_aligned = float(trapz_func(layer_mean_ratios_aligned, depths))
 
+    # Item 9: サンプル単位 Delta EMD の層平均および台形積分 AUC
+    layer_mean_delta_emds_plain = [
+        float(np.mean([sample_delta_emds_plain_by_layer[l][idx] for idx in eval_indices]))
+        for l in range(num_layers)
+    ]
+    auc_delta_emd_plain = float(trapz_func(layer_mean_delta_emds_plain, depths))
+
     # サンプルごとのレコード構築
     sample_records = []
     for i in eval_indices:
         sample_r_direct = [sample_ratios_by_layer[l][i] for l in range(num_layers)]
         sample_r_plain = [sample_ratios_plain_by_layer[l][i] for l in range(num_layers)]
         sample_r_aligned = [sample_ratios_aligned_by_layer[l][i] for l in range(num_layers)]
+        sample_d_plain = [sample_delta_emds_plain_by_layer[l][i] for l in range(num_layers)]
         s_auc = float(trapz_func(sample_r_direct, depths))
         s_auc_plain = float(trapz_func(sample_r_plain, depths))
         s_auc_aligned = float(trapz_func(sample_r_aligned, depths))
+        s_auc_delta_plain = float(trapz_func(sample_d_plain, depths))
         pair_id = str(df.iloc[i].get("pair_id", f"pair_{i}")) if "pair_id" in df.columns else f"pair_{i}"
         item_id = str(df.iloc[i].get("item_id", f"item_{i}")) if "item_id" in df.columns else f"item_{i}"
         sample_records.append({
@@ -471,7 +497,8 @@ def run_recovery_patching_for_task(
             "auc_recovery": s_auc,
             "auc_recovery_matched_plain": s_auc_plain,
             "auc_recovery_aligned": s_auc_aligned,
-            "delta_emd_matched_plain": float(sample_initial_emds[i] * sample_r_plain[best_l_matched]),
+            "delta_emd_matched_plain": sample_d_plain[best_l_matched],
+            "auc_delta_emd_matched_plain": s_auc_delta_plain,
         })
 
     return {
@@ -479,10 +506,29 @@ def run_recovery_patching_for_task(
         "initial_emd_mean": initial_emd_mean,
         "sample_initial_emds": sample_initial_emds,
         "recovery_emd_va": layer_mean_emds,
-        "recovery_ratios": layer_mean_ratios,  # Condition A: Direct Base -> Instruct
+        "recovery_ratios": layer_mean_ratios,
         "recovery_ratios_bootstrap_ci": layer_ratios_ci,
         "recovery_ratios_matched_plain": layer_mean_ratios_plain,
-        "recovery_ratios_aligned": layer_mean_ratios_aligned,  # Condition B: Aligned Base -> Instruct
+        "recovery_ratios_aligned": layer_mean_ratios_aligned,
+        "auc_recovery": auc_recovery,
+        "auc_recovery_matched_plain": auc_recovery_plain,
+        "auc_recovery_aligned": auc_recovery_aligned,
+        "delta_emd_matched_plain_by_layer": layer_mean_delta_emds_plain,
+        "auc_delta_emd_matched_plain": auc_delta_emd_plain,
+        # Item 10: Primary (Matched-Plain AUC) と Secondary (Peak localization) の明確な分離
+        "primary_matched_plain": {
+            "auc_recovery": auc_recovery_plain,
+            "delta_emd_auc": auc_delta_emd_plain,
+            "delta_emd_by_layer": layer_mean_delta_emds_plain,
+            "layer_recovery_ratios": layer_mean_ratios_plain,
+        },
+        "secondary_peak_localization": {
+            "best_recovery_layer": best_l_matched,
+            "best_recovery_depth": depths[best_l_matched],
+            "max_recovery_ratio": max(layer_mean_ratios_plain),
+            "best_recovery_layer_native": best_l_native,
+            "best_recovery_layer_aligned": best_l_aligned,
+        },
         "best_recovery_layer": best_l_matched,
         "best_recovery_depth": depths[best_l_matched],
         "best_recovery_layer_native": best_l_native,
@@ -491,10 +537,6 @@ def run_recovery_patching_for_task(
         "max_recovery_ratio": layer_mean_ratios[best_l_native],
         "max_recovery_ratio_matched_plain": max(layer_mean_ratios_plain),
         "max_recovery_ratio_aligned": max(layer_mean_ratios_aligned),
-        "auc_recovery": auc_recovery,
-        "auc_recovery_matched_plain": auc_recovery_plain,
-        "auc_recovery_aligned": auc_recovery_aligned,
-        "delta_emd_matched_plain_by_layer": [float(initial_emd_mean * r) for r in layer_mean_ratios_plain],
         "sample_records": sample_records,
         "summary_by_control_type": {
             "direct_native": {
@@ -506,6 +548,8 @@ def run_recovery_patching_for_task(
                 "max_recovery_ratio": max(layer_mean_ratios_plain),
                 "auc_recovery": auc_recovery_plain,
                 "layer_recovery_ratios": layer_mean_ratios_plain,
+                "delta_emd_by_layer": layer_mean_delta_emds_plain,
+                "auc_delta_emd": auc_delta_emd_plain,
             },
             "aligned_procrustes": {
                 "max_recovery_ratio": max(layer_mean_ratios_aligned),
@@ -707,6 +751,7 @@ def main():
 
     for fam_id, fam_cfg in target_models.items():
         out_path = raw_dir / f"v2_recovery_{fam_id}.json"
+        modular_rq4_path = raw_dir / f"v2_rq4_recovery_patching_{fam_id}.json"
         manifest_path = raw_dir / f"manifest_recovery_{fam_id}.json"
 
         spec_base = fam_cfg.get_model_spec("base")
@@ -724,30 +769,25 @@ def main():
             "dry_run": bool(args.dry_run),
         }
 
-        if not args.force and out_path.exists() and not args.dry_run:
-            try:
-                with open(out_path, "r", encoding="utf-8") as f:
-                    cached = json.load(f)
-                if cached and "self" in cached and "reader" in cached:
-                    expected_config_hash = compute_string_or_dict_hash(manifest_config)
-                    expected_dataset_hash = compute_string_or_dict_hash(str(v2_config["dataset"]["path"]))
-                    if not cached.get("dry_run", False) and is_manifest_matching(
-                        str(manifest_path),
-                        expected_model_name=fam_cfg.family_name,
-                        expected_config_hash=expected_config_hash,
-                        expected_dataset_hash=expected_dataset_hash,
-                        expected_code_version=DEFAULT_CODE_VERSION,
-                        expected_dry_run=False,
-                    ):
-                        logger.info(f"Loaded existing results for {fam_id} from {out_path}. Skipping computation.")
-                        all_recovery_results[fam_id] = cached
-                        fam_csv = raw_dir / f"v2_recovery_samples_{fam_id}.csv"
-                        if fam_csv.exists():
-                            df_cached_samples = pd.read_csv(fam_csv)
-                            all_sample_records.extend(df_cached_samples.to_dict(orient="records"))
-                        continue
-            except Exception as e:
-                logger.warning(f"Cache check failed for {fam_id}: {e}")
+        from affective_empathy_eval.io import save_experiment_result, is_experiment_completed
+
+        if not args.force and not args.dry_run:
+            target_check = modular_rq4_path if modular_rq4_path.exists() else out_path
+            man_p = str(manifest_path) if manifest_path.exists() else None
+            if is_experiment_completed(str(target_check), manifest_path=man_p):
+                try:
+                    read_p = modular_rq4_path if modular_rq4_path.exists() else out_path
+                    with open(read_p, "r", encoding="utf-8") as f:
+                        cached = json.load(f)
+                    logger.info(f"Loaded existing results for {fam_id} from {read_p}. Skipping computation.")
+                    all_recovery_results[fam_id] = cached
+                    fam_csv = raw_dir / f"v2_recovery_samples_{fam_id}.csv"
+                    if fam_csv.exists():
+                        df_cached_samples = pd.read_csv(fam_csv)
+                        all_sample_records.extend(df_cached_samples.to_dict(orient="records"))
+                    continue
+                except Exception as e:
+                    logger.warning(f"Cache check failed for {fam_id}: {e}")
 
         train_ratio = float(v2_config.get("dataset", {}).get("train_ratio", 0.7))
         logger.info(f"--- Running Recovery Patching for Family: {fam_id} (train_ratio={train_ratio}) ---")
@@ -775,7 +815,17 @@ def main():
         out_path.parent.mkdir(parents=True, exist_ok=True)
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(res, f, indent=2)
-        logger.info(f"Saved family recovery result to {out_path}")
+
+        save_experiment_result(
+            output_path=str(modular_rq4_path),
+            payload=res,
+            stage="v2",
+            experiment_id="v2_rq4_recovery_patching",
+            status="success",
+            success=True,
+            metadata={"family_id": fam_id, "dry_run": bool(args.dry_run)},
+        )
+        logger.info(f"Saved family recovery result to {out_path} and {modular_rq4_path}")
 
         # Manifest 保存
         manifest = create_run_manifest(

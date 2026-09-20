@@ -71,12 +71,9 @@ echo ""
 echo "================================================================="
 echo "=== Step 4: V3 Confirmatory Replication across Hold-out Models =="
 echo "================================================================="
-# Pre-registered Confirmatory Models: Llama 3.2, Gemma 3, OLMo 2
-CONF_FAMILIES=("llama" "gemma" "olmo")
-for fam in "${CONF_FAMILIES[@]}"; do
-    echo "--- V3 Confirmatory: Family=${fam} ---"
-    ${PYTHON} v3/primary/run_confirmatory_replication.py --family "${fam}" --device "${DEVICE}" --force
-done
+# Pre-registered Confirmatory Models: Llama 3.2, Gemma 3, OLMo 2 (batch-processed in one run)
+echo "--- V3 Confirmatory: Replication across Llama, Gemma, OLMo ---"
+${PYTHON} v3/primary/run_confirmatory_replication.py --device "${DEVICE}" --force
 
 echo ""
 echo "================================================================="

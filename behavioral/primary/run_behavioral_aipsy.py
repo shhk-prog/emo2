@@ -92,6 +92,8 @@ def evaluate_aipsy_stimuli(
     limit=0,
     batch_size=81,
     checkpoint_path: Optional[str] = None,
+    checkpoint_meta_path: Optional[str] = None,
+    expected_meta: Optional[dict] = None,
 ):
     df = pd.read_csv(stimuli_path)
     if limit > 0:
@@ -104,14 +106,31 @@ def evaluate_aipsy_stimuli(
     processed_ids = set()
 
     if checkpoint_path and os.path.exists(checkpoint_path):
-        try:
-            ckpt_df = pd.read_csv(checkpoint_path)
-            results = ckpt_df.to_dict("records")
-            if "id" in ckpt_df.columns:
-                processed_ids = set(ckpt_df["id"].tolist())
-            print(f"Resuming from checkpoint: {len(processed_ids)} samples already completed.")
-        except Exception as e:
-            print(f"Warning: Failed to load checkpoint {checkpoint_path}: {e}")
+        can_resume = True
+        if checkpoint_meta_path and os.path.exists(checkpoint_meta_path) and expected_meta:
+            try:
+                with open(checkpoint_meta_path, "r", encoding="utf-8") as f:
+                    saved_meta = json.load(f)
+                for k, v in expected_meta.items():
+                    if saved_meta.get(k) != v:
+                        print(f"Checkpoint meta mismatch ({k}: saved={saved_meta.get(k)} vs exp={v}). Discarding old checkpoint.")
+                        can_resume = False
+                        break
+            except Exception as e:
+                print(f"Failed to read checkpoint meta: {e}. Starting fresh.")
+                can_resume = False
+
+        if can_resume:
+            try:
+                ckpt_df = pd.read_csv(checkpoint_path)
+                results = ckpt_df.to_dict("records")
+                if "id" in ckpt_df.columns:
+                    processed_ids = set(ckpt_df["id"].tolist())
+                print(f"Resuming from checkpoint: {len(processed_ids)} samples already completed.")
+            except Exception as e:
+                print(f"Warning: Failed to load checkpoint {checkpoint_path}: {e}")
+                results = []
+                processed_ids = set()
 
     for idx, row in tqdm(df.iterrows(), total=len(df), desc="AIPsy Evaluation"):
         s_id = row["id"] if "id" in row else idx
@@ -221,30 +240,51 @@ def main():
             stim_path = fallback
 
     os.makedirs(args.out_dir, exist_ok=True)
-    out_csv = os.path.join(args.out_dir, f"{args.tag}_aipsy_4split.csv")
-    ckpt_csv = os.path.join(args.out_dir, f"{args.tag}_aipsy_4split_checkpoint.csv")
+    out_csv = os.path.join(args.out_dir, f"behavioral_aipsy_{args.tag}_4split.csv")
+    out_csv_compat = os.path.join(args.out_dir, f"{args.tag}_aipsy_4split.csv")
+    out_json = os.path.join(args.out_dir, f"behavioral_aipsy_{args.tag}_summary.json")
+    manifest_path = os.path.join(args.out_dir, f"behavioral_aipsy_{args.tag}_manifest.json")
+    ckpt_dir = os.path.join(args.out_dir, "checkpoints")
+    os.makedirs(ckpt_dir, exist_ok=True)
+    ckpt_csv = os.path.join(ckpt_dir, f"{args.tag}_aipsy_4split_checkpoint.csv")
+    ckpt_meta = os.path.join(ckpt_dir, f"{args.tag}_aipsy_4split_meta.json")
 
-    # Early skip if already evaluated and valid
-    if not args.force and os.path.exists(out_csv):
+    from affective_empathy_eval.manifests import compute_file_hash, is_manifest_matching
+    from affective_empathy_eval.io import save_experiment_result, is_experiment_completed
+
+    expected_meta = {
+        "model": args.model,
+        "limit": args.limit,
+        "is_instruct": args.is_instruct,
+        "stimuli_hash": compute_file_hash(stim_path) if stim_path.exists() else "unknown",
+    }
+
+    # Early skip if already evaluated and valid (Resume support)
+    skip_eval = False
+    if not args.force and (os.path.exists(out_csv) or os.path.exists(out_csv_compat)):
+        check_path = out_csv if os.path.exists(out_csv) else out_csv_compat
         try:
-            cached_df = pd.read_csv(out_csv)
+            cached_df = pd.read_csv(check_path)
             expected_min = args.limit if (args.limit and args.limit > 0) else 1
             if len(cached_df) >= expected_min and "s_ev" in cached_df.columns:
-                print(
-                    f"[SKIP] Existing validated results found at {out_csv} (n={len(cached_df)}). "
-                    f"Skipping model loading & evaluation for {args.tag}. Use --force to rerun."
-                )
-                res_df = cached_df
-                skip_eval = True
-            else:
-                skip_eval = False
+                if os.path.exists(out_json) and is_experiment_completed(out_json, manifest_path=manifest_path, force=args.force):
+                    print(
+                        f"[SKIP] Existing validated results found at {check_path} (n={len(cached_df)}). "
+                        f"Skipping model loading & evaluation for {args.tag}. Use --force to rerun."
+                    )
+                    res_df = cached_df
+                    skip_eval = True
         except Exception as e:
-            print(f"Warning: Corrupt or unreadable output at {out_csv} ({e}). Rerunning.")
+            print(f"Warning: Corrupt or unreadable output at {check_path} ({e}). Rerunning.")
             skip_eval = False
     else:
         skip_eval = False
 
     if not skip_eval:
+        # Save checkpoint meta
+        with open(ckpt_meta, "w", encoding="utf-8") as f:
+            json.dump(expected_meta, f, indent=2)
+
         print("=" * 60)
         print(
             f"Evaluating Model: {args.model} (Tag: {args.tag}, Instruct: {args.is_instruct})"
@@ -296,14 +336,43 @@ def main():
             limit=args.limit,
             batch_size=args.batch_size,
             checkpoint_path=ckpt_csv,
+            checkpoint_meta_path=ckpt_meta,
+            expected_meta=expected_meta,
         )
 
         res_df.to_csv(out_csv, index=False)
+        try:
+            res_df.to_csv(out_csv_compat, index=False)
+        except Exception:
+            pass
     if os.path.exists(ckpt_csv):
         try:
             os.remove(ckpt_csv)
         except Exception:
             pass
+    if os.path.exists(ckpt_meta):
+        try:
+            os.remove(ckpt_meta)
+        except Exception:
+            pass
+
+    # Save summary with execution_success: true
+    summary = {
+        "tag": args.tag,
+        "model": args.model,
+        "is_instruct": args.is_instruct,
+        "num_samples": len(res_df),
+        "mean_s_ev": float(res_df["s_ev"].mean()) if "s_ev" in res_df.columns else None,
+        "mean_s_ea": float(res_df["s_ea"].mean()) if "s_ea" in res_df.columns else None,
+    }
+    save_experiment_result(
+        output_path=out_json,
+        payload=summary,
+        stage="behavioral",
+        experiment_id="behavioral_aipsy_4split",
+        success=True,
+        metadata={"tag": args.tag, "model": args.model, "is_instruct": args.is_instruct},
+    )
 
     # Save manifest
     manifest = create_run_manifest(
@@ -315,12 +384,16 @@ def main():
             "stimuli_path": str(stim_path),
             "limit": args.limit,
         },
-        metadata={"num_samples": len(res_df)},
+        metadata=summary,
         dataset_path=str(stim_path),
         candidate_space="VAD_729",
         intervention_version="none",
     )
-    manifest.save(os.path.join(args.out_dir, f"{args.tag}_manifest.json"))
+    manifest.save(manifest_path)
+    try:
+        manifest.save(os.path.join(args.out_dir, f"{args.tag}_manifest.json"))
+    except Exception:
+        pass
 
     print("\n" + "=" * 60)
     print(f"SUCCESS: Saved {len(res_df)} evaluation results to {out_csv}")

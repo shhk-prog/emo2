@@ -1,0 +1,27 @@
+{
+  "run_type": "behavioral_aipsy_4split",
+  "model_name": "allenai/OLMo-2-0425-1B-Instruct",
+  "config": {
+    "tag": "olmo_instruct",
+    "is_instruct": true,
+    "stimuli_path": "v1/data/processed/aipsy_4split_all.csv",
+    "limit": 0
+  },
+  "metadata": {
+    "num_samples": 480
+  },
+  "timestamp_utc": "2026-09-20T18:05:49.916698+00:00",
+  "git_commit": "247bb37",
+  "run_id": "20260920T180549Z_247bb37_e32c1a36",
+  "config_hash": "e32c1a364fbfbb3b",
+  "dataset_hash": "192b57bbb0dc27e5",
+  "model_revision": "main",
+  "tokenizer_revision": "main",
+  "prompt_version": "1.0.0",
+  "prompt_hash": "unknown",
+  "candidate_space": "VAD_729",
+  "seed": 42,
+  "code_version": "0.3.0",
+  "intervention_version": "none",
+  "dry_run": false
+}

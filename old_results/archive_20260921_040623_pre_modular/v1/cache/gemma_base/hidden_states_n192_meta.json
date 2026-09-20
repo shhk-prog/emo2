@@ -1,0 +1,9 @@
+{
+  "model_id": "google/gemma-3-1b-pt",
+  "git_commit": "536f0ee",
+  "dataset_hash": "3d4075170eee5945",
+  "prompt_hash": "bf818e41c126e752",
+  "candidate_schema": "vad_triplets_729",
+  "intervention_position": "prompt_end",
+  "tokenizer": "GemmaTokenizer_v262144"
+}

@@ -97,7 +97,9 @@ def main():
     )
 
     # 5. tar.gz アーカイブの作成 (NAS等への保存用)
-    tar_path = root / "archive" / "results_pre_rerun_20260918.tar.gz"
+    tar_path = root / "archive" / f"results_archive_{timestamp}.tar.gz"
+    if tar_path.exists():
+        raise FileExistsError(f"Target archive already exists: {tar_path}. Overwrite is forbidden.")
     print(f"\n[圧縮] tar.gz アーカイブを作成中: {tar_path}...")
     with tarfile.open(tar_path, "w:gz") as tar:
         tar.add(str(archive_dir), arcname=archive_dir.name)
@@ -106,8 +108,8 @@ def main():
     print("\n" + "=" * 70)
     print("SUCCESS: 旧結果のアーカイブ退避と results の完全初期化が完了しました。")
     print("状態:")
-    print("  - archive/results_pre_rerun_20260918/ (旧結果原本)")
-    print("  - archive/results_pre_rerun_20260918.tar.gz (バックアップ圧縮ファイル)")
+    print(f"  - {archive_dir} (旧結果原本)")
+    print(f"  - {tar_path} (バックアップ圧縮ファイル)")
     print("  - behavioral/results/ (クリーン・空)")
     print("  - v1/results/         (クリーン・空)")
     print("  - v2/results/         (クリーン・空)")

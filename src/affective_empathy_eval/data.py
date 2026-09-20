@@ -235,6 +235,7 @@ def load_v3_matched_pair_table(
         return out.reset_index(drop=True)
 
     cond = raw[cond_col].astype(str).str.lower()
+    aff = raw[cond.isin(V3_AFFECTIVE_CONDITIONS) & raw["pair_id"].notna()].copy()
     records = []
     skipped = 0
     skipped_records = []
@@ -255,13 +256,14 @@ def load_v3_matched_pair_table(
         records.append(rec)
 
     if skipped_records:
-        # AGENTS.md 1.2 / Audit Item 20: 除外理由を明示的に exclusions_v3.csv に保存
-        ex_path = Path("v3/results/derived/exclusions_v3.csv")
-        try:
-            ex_path.parent.mkdir(parents=True, exist_ok=True)
-            pd.DataFrame(skipped_records).to_csv(ex_path, index=False)
-        except Exception:
-            pass
+        # AGENTS.md 1.2 / Audit Item 38: 除外理由を明示的に exclusions_v3.csv / v3_exclusions.csv に保存
+        for ex_fname in ["exclusions_v3.csv", "v3_exclusions.csv"]:
+            ex_path = Path("v3/results/derived") / ex_fname
+            try:
+                ex_path.parent.mkdir(parents=True, exist_ok=True)
+                pd.DataFrame(skipped_records).to_csv(ex_path, index=False)
+            except Exception:
+                pass
 
     if not records:
         raise ValueError(

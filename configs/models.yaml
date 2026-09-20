@@ -5,6 +5,7 @@
 model_sets:
   primary_small:
     description: "Primary 1-1.5B cross-family cohort"
+    inference_dtype: "bfloat16"
     qwen:
       family: "qwen"
       family_name: "Qwen 2.5"
@@ -15,6 +16,7 @@ model_sets:
       instruct_revision: "main"
       adapter: "qwen"
       role: "primary_exploration"
+      inference_dtype: "bfloat16"
       enabled: true
     llama:
       family: "llama"
@@ -26,6 +28,7 @@ model_sets:
       instruct_revision: "main"
       adapter: "llama"
       role: "replication"
+      inference_dtype: "bfloat16"
       enabled: true
     gemma:
       family: "gemma"
@@ -37,6 +40,7 @@ model_sets:
       instruct_revision: "main"
       adapter: "gemma3"
       role: "replication"
+      inference_dtype: "bfloat16"
       enabled: true
     olmo:
       family: "olmo"
@@ -48,10 +52,12 @@ model_sets:
       instruct_revision: "main"
       adapter: "olmo2"
       role: "replication"
+      inference_dtype: "bfloat16"
       enabled: true
 
   scale_validation:
     description: "Larger-scale robustness replication (Supplementary)"
+    inference_dtype: "bfloat16"
     mistral:
       family: "mistral"
       family_name: "Mistral"
@@ -62,4 +68,5 @@ model_sets:
       instruct_revision: "main"
       adapter: "mistral"
       role: "scale_validation"
+      inference_dtype: "bfloat16"
       enabled: true

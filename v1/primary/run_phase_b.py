@@ -162,8 +162,9 @@ def extract_single_layer_hidden_states(
             all_reps.append(vec)
 
     arr = np.array(all_reps)
-    arr = np.nan_to_num(arr, nan=0.0, posinf=1e4, neginf=-1e4)
-    arr = np.clip(arr, -1e4, 1e4)
+    if not np.all(np.isfinite(arr)):
+        bad_count = int(np.size(arr) - np.isfinite(arr).sum())
+        raise FloatingPointError(f"Non-finite hidden states detected in Phase B representations: {bad_count}")
     return arr.astype(np.float32)
 
 
@@ -179,8 +180,10 @@ def evaluate_probe_accuracy(
     Pair-aware cross-validated linear probing evaluation.
     If groups (pair_id) are provided, uses StratifiedGroupKFold to strictly prevent pair leakage.
     """
-    X = np.nan_to_num(X, nan=0.0, posinf=1e4, neginf=-1e4)
-    X = np.clip(X, -1e4, 1e4).astype(np.float32)
+    if not np.all(np.isfinite(X)):
+        bad_count = int(np.size(X) - np.isfinite(X).sum())
+        raise FloatingPointError(f"Non-finite hidden states detected in probe accuracy evaluation: {bad_count}")
+    X = X.astype(np.float32)
     if groups is not None:
         n_groups = len(np.unique(groups))
         if n_groups < 2:
@@ -273,6 +276,12 @@ def main():
         default="configs/v1_experiments.yaml",
         help="Path to experiment configuration YAML",
     )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=0,
+        help="Sample limit (0 for full dataset)",
+    )
     add_model_selection_args(parser)
     args = parser.parse_args()
     args.model_id, args.model_prefix = resolve_single_model_from_args(args)
@@ -305,25 +314,22 @@ def main():
     )
 
     # Early skip if already completed and valid
+    from affective_empathy_eval.io import save_experiment_result, is_experiment_completed
     from affective_empathy_eval.manifests import is_manifest_matching
-    manifest_path = os.path.join(model_dir, "manifest.json")
+
+    modular_json_path = os.path.join(model_dir, f"v1_e5_semantic_controls_{args.model_prefix}_{args.task_type}.json")
+    modular_csv_path = os.path.join(model_dir, f"v1_e5_semantic_controls_{args.model_prefix}_{args.task_type}.csv")
     res_path = os.path.join(model_dir, "phase_b_semantic_controls.csv")
-    if not args.force and not args.dry_run and os.path.exists(manifest_path) and os.path.exists(res_path):
-        if is_manifest_matching(
-            manifest_path=manifest_path,
-            expected_model_name=args.model_id,
-            expected_dry_run=False,
-        ):
-            try:
-                df_check = pd.read_csv(res_path)
-                if len(df_check) > 0:
-                    print(
-                        f"[SKIP] Validated Phase B results matching manifest found in {model_dir}. "
-                        f"Skipping computation for {args.model_prefix}. Use --force to rerun."
-                    )
-                    return
-            except Exception as e:
-                print(f"Warning: Corrupt existing Phase B results in {model_dir} ({e}). Rerunning.")
+    manifest_path = os.path.join(model_dir, "manifest.json")
+
+    if not args.force and not args.dry_run:
+        target_check = modular_json_path if os.path.exists(modular_json_path) else res_path
+        if is_experiment_completed(target_check, manifest_path=manifest_path if os.path.exists(manifest_path) else None):
+            print(
+                f"[SKIP] Validated Phase B (V1 E5) results found in {model_dir}. "
+                f"Skipping computation for {args.model_prefix}. Use --force to rerun."
+            )
+            return
 
     data_file = Path(args.data_path)
     if not data_file.exists():
@@ -368,9 +374,25 @@ def main():
             "mean_affective_prob_outcome_reversed": 0.20,
             "outcome_reversal_prob_drop": 0.60,
         }
-        pd.DataFrame([results]).to_csv(
-            os.path.join(model_dir, "phase_b_semantic_controls.csv"), index=False
+        # Modular save
+        save_experiment_result(
+            output_path=modular_json_path,
+            payload=results,
+            stage="v1",
+            experiment_id="v1_e5_semantic_controls",
+            status="success",
+            success=True,
+            metadata={
+                "model_id": args.model_id,
+                "model_prefix": args.model_prefix,
+                "task_type": args.task_type,
+                "target_layer": target_layer,
+                "relative_depth": args.relative_depth,
+                "dry_run": True,
+            },
         )
+        pd.DataFrame([results]).to_csv(modular_csv_path, index=False)
+        pd.DataFrame([results]).to_csv(res_path, index=False)
         manifest = create_run_manifest(
             run_type="v1_phase_b",
             model_name=args.model_id,
@@ -594,12 +616,12 @@ def main():
         "acc_original_minimal_pair": acc_orig,
         "acc_pair_aware_held_out_paraphrase": acc_held_out_paraphrase_primary,
         "pair_aware_held_out_reversal_drop": held_out_reversal_drop_primary,
+        "n_train_pairs": int(len(train_pair_ids)),
+        "n_test_pairs": int(len(test_pair_ids)),
         "n_nonfallback_paraphrase_pairs": int(np.sum(valid_para_pair_mask)),
         "n_nonfallback_reversal_pairs": int(np.sum(valid_rev_pair_mask)),
-        "n_primary_test_paraphrase_pairs": int(np.sum(valid_para_pair_mask)),
-        "n_primary_test_reversal_pairs": int(np.sum(valid_rev_pair_mask)),
-        "n_validated_paraphrase_pairs": int(np.sum(valid_para_pair_mask)),
-        "n_validated_reversal_pairs": int(np.sum(valid_rev_pair_mask)),
+        "n_primary_test_paraphrase_pairs": int(np.sum(test_para_valid_mask)),
+        "n_primary_test_reversal_pairs": int(np.sum(test_rev_valid_mask)),
         # Sensitivity indicators (All pairs including fallbacks)
         "sensitivity_held_out_paraphrase": acc_held_out_paraphrase_all,
         "sensitivity_held_out_reversal_drop": held_out_reversal_drop_all,
@@ -612,8 +634,44 @@ def main():
 
     df_res = pd.DataFrame([results])
     res_path = os.path.join(model_dir, "phase_b_semantic_controls.csv")
-
     df_res.to_csv(res_path, index=False)
+    df_res.to_csv(modular_csv_path, index=False)
+
+    save_experiment_result(
+        output_path=modular_json_path,
+        payload=results,
+        stage="v1",
+        experiment_id="v1_e5_semantic_controls",
+        status="success",
+        success=True,
+        metadata={
+            "model_id": args.model_id,
+            "model_prefix": args.model_prefix,
+            "task_type": args.task_type,
+            "target_layer": target_layer,
+            "relative_depth": args.relative_depth,
+            "num_pairs": n_pairs,
+            "dry_run": args.dry_run,
+        },
+    )
+
+    # Item 7: 個別ペアの品質監査テーブルの保存 (transformation_method, quality_status)
+    pairs_audit_records = []
+    for idx_p, pid in enumerate(pair_ids):
+        is_tr = pid in train_pair_ids
+        is_te = pid in test_pair_ids
+        is_para_valid = bool(valid_para_pair_mask[idx_p])
+        is_rev_valid = bool(valid_rev_pair_mask[idx_p])
+        pairs_audit_records.append({
+            "pair_id": pid,
+            "split": "train" if is_tr else ("test" if is_te else "none"),
+            "paraphrase_transformation_method": "rule_based_substitution" if is_para_valid else "identity_fallback",
+            "paraphrase_quality_status": "nonfallback_valid" if is_para_valid else "fallback_excluded_from_primary",
+            "reversal_transformation_method": "antonym_negation_switch" if is_rev_valid else "identity_fallback",
+            "reversal_quality_status": "nonfallback_valid" if is_rev_valid else "fallback_excluded_from_primary",
+        })
+    df_audit = pd.DataFrame(pairs_audit_records)
+    df_audit.to_csv(os.path.join(model_dir, "phase_b_pairs_quality_audit.csv"), index=False)
 
     # Save manifest
     manifest = create_run_manifest(
@@ -627,12 +685,15 @@ def main():
             "num_pairs": n_pairs,
         },
         metadata=results,
-        candidate_space="VAD_729",
+        candidate_space="N/A",
+        measurement_space="prompt_end_hidden_state",
         intervention_version="none",
+        dry_run=args.dry_run,
     )
     manifest.save(os.path.join(model_dir, "manifest.json"))
-    print(f"Phase B completed. Results saved to {res_path}")
+    print(f"Phase B (V1 E5) completed. Modular result saved to {modular_json_path}")
 
 
 if __name__ == "__main__":
     main()
+

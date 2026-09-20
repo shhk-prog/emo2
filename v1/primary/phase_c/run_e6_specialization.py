@@ -313,20 +313,20 @@ def main():
     )
 
     # Early skip if already completed and valid
+    from affective_empathy_eval.io import save_experiment_result, is_experiment_completed
+
+    modular_e6_json = os.path.join(model_dir, f"v1_e6_double_dissociation_{args.model_prefix}.json")
     manifest_path = os.path.join(model_dir, "manifest_e6.json")
     lmm_path = os.path.join(model_dir, "e6_lmm_results.json")
-    if not args.force and not args.dry_run and os.path.exists(manifest_path) and os.path.exists(lmm_path):
-        try:
-            with open(lmm_path, "r", encoding="utf-8") as f:
-                cached_lmm = json.load(f)
-            if cached_lmm and ("p_value_interaction" in cached_lmm or "status" in cached_lmm):
-                print(
-                    f"[SKIP] Validated Phase C E6 results found in {model_dir}. "
-                    f"Skipping computation for {args.model_prefix}. Use --force to rerun."
-                )
-                return
-        except Exception as e:
-            print(f"Warning: Corrupt existing E6 results in {model_dir} ({e}). Rerunning.")
+
+    if not args.force and not args.dry_run:
+        target_check = modular_e6_json if os.path.exists(modular_e6_json) else lmm_path
+        if is_experiment_completed(target_check, manifest_path=manifest_path if os.path.exists(manifest_path) else None):
+            print(
+                f"[SKIP] Validated Phase C E6 results found in {model_dir}. "
+                f"Skipping computation for {args.model_prefix}. Use --force to rerun."
+            )
+            return
 
     try:
         num_layers, _ = resolve_architecture_dims(args.model_id)
@@ -368,6 +368,15 @@ def main():
                 "coef_interaction": None,
                 "has_crossover": False,
             }
+            save_experiment_result(
+                output_path=modular_e6_json,
+                payload=negative_result,
+                stage="v1",
+                experiment_id="v1_e6_double_dissociation",
+                status="success",
+                success=True,
+                metadata={"model_id": args.model_id, "model_prefix": args.model_prefix, "result": "negative_no_distinct_sites"},
+            )
             with open(os.path.join(model_dir, "e6_lmm_results.json"), "w") as f:
                 json.dump(negative_result, f, indent=2)
             manifest = create_run_manifest(
@@ -382,7 +391,7 @@ def main():
                 metadata=negative_result,
             )
             manifest.save(os.path.join(model_dir, "manifest_e6.json"))
-            print(f"Recorded negative result to {model_dir}/e6_lmm_results.json and manifest_e6.json")
+            print(f"Recorded negative result to {model_dir}/e6_lmm_results.json and {modular_e6_json}")
             return
 
         if args.reader_layer is None:
@@ -420,6 +429,15 @@ def main():
             "self_layer": args.self_layer,
             "split_eval": args.split_eval,
         }
+        save_experiment_result(
+            output_path=modular_e6_json,
+            payload=stat_results,
+            stage="v1",
+            experiment_id="v1_e6_double_dissociation",
+            status="success",
+            success=True,
+            metadata={"model_id": args.model_id, "model_prefix": args.model_prefix, "dry_run": True},
+        )
         with open(os.path.join(model_dir, "e6_lmm_results.json"), "w") as f:
             json.dump(stat_results, f, indent=2)
         dry_df = pd.DataFrame(
@@ -761,6 +779,23 @@ def main():
             f,
             indent=2,
         )
+
+    save_experiment_result(
+        output_path=modular_e6_json,
+        payload={k: v for k, v in stat_results.items() if k != "summary_text"},
+        stage="v1",
+        experiment_id="v1_e6_double_dissociation",
+        status="success",
+        success=True,
+        metadata={
+            "model_id": args.model_id,
+            "model_prefix": args.model_prefix,
+            "reader_layer": args.reader_layer,
+            "self_layer": args.self_layer,
+            "site_selection_method": site_selection_method,
+            "has_crossover": bool(has_crossover),
+        },
+    )
 
     # Save manifest
     manifest = create_run_manifest(

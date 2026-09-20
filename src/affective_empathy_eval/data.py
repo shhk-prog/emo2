@@ -235,19 +235,33 @@ def load_v3_matched_pair_table(
         return out.reset_index(drop=True)
 
     cond = raw[cond_col].astype(str).str.lower()
-    aff = raw[cond.isin(V3_AFFECTIVE_CONDITIONS) & raw["pair_id"].notna()].copy()
     records = []
     skipped = 0
+    skipped_records = []
     for _, row in aff.iterrows():
         try:
             neu = resolve_matched_neutral_text(row, raw)
-        except ValueError:
+        except ValueError as e:
             skipped += 1
+            skipped_records.append({
+                "pair_id": row.get("pair_id", "unknown"),
+                "reason": str(e),
+                "text": str(row.get("text", ""))[:100],
+            })
             continue
         rec = row.to_dict()
         rec["condition"] = "affective"
         rec["neutral_text"] = neu
         records.append(rec)
+
+    if skipped_records:
+        # AGENTS.md 1.2 / Audit Item 20: 除外理由を明示的に exclusions_v3.csv に保存
+        ex_path = Path("v3/results/derived/exclusions_v3.csv")
+        try:
+            ex_path.parent.mkdir(parents=True, exist_ok=True)
+            pd.DataFrame(skipped_records).to_csv(ex_path, index=False)
+        except Exception:
+            pass
 
     if not records:
         raise ValueError(
@@ -255,7 +269,6 @@ def load_v3_matched_pair_table(
         )
     out = pd.DataFrame(records).reset_index(drop=True)
     if skipped:
-        # 対が欠けた行は落とすが、件数は呼び出し側ログで追える
         out.attrs["n_skipped_unmatched"] = int(skipped)
     return out
 

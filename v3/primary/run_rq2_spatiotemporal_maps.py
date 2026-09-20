@@ -365,14 +365,18 @@ def run_real_spatiotemporal_maps(
                 from sklearn.model_selection import GroupKFold
                 groups = eval_df["pair_id"].values
                 n_groups = len(np.unique(groups))
-                n_splits = min(3, n_groups)
-                if n_splits > 1:
-                    cv = GroupKFold(n_splits=n_splits)
-                    cv_splits = list(cv.split(H, y_v, groups=groups))
-                else:
+                if n_groups < 2:
+                    if not dry_run:
+                        raise ValueError("At least two independent pair groups are required for GroupKFold in V3 Primary.")
                     from sklearn.model_selection import KFold
                     cv_splits = list(KFold(n_splits=min(3, N), shuffle=True, random_state=seed).split(H))
+                else:
+                    n_splits = min(3, n_groups)
+                    cv = GroupKFold(n_splits=n_splits)
+                    cv_splits = list(cv.split(H, y_v, groups=groups))
             else:
+                if not dry_run:
+                    raise ValueError("V3 Primary requires pair_id for evaluation.")
                 from sklearn.model_selection import KFold
                 cv_splits = list(KFold(n_splits=min(3, N), shuffle=True, random_state=seed).split(H))
 
@@ -390,13 +394,13 @@ def run_real_spatiotemporal_maps(
                 preds_v_self[te] = ridge_v_s.predict(H[te])
                 preds_a_self[te] = ridge_a_s.predict(H[te])
 
-            r2_v = max(0.0, float(1.0 - np.sum((y_v - preds_v)**2) / (np.sum((y_v - np.mean(y_v))**2) + 1e-6)))
-            r2_a = max(0.0, float(1.0 - np.sum((y_a - preds_a)**2) / (np.sum((y_a - np.mean(y_a))**2) + 1e-6)))
+            r2_v = float(1.0 - np.sum((y_v - preds_v)**2) / (np.sum((y_v - np.mean(y_v))**2) + 1e-6))
+            r2_a = float(1.0 - np.sum((y_a - preds_a)**2) / (np.sum((y_a - np.mean(y_a))**2) + 1e-6))
             D_V[l, s_idx] = r2_v
             D_A[l, s_idx] = r2_a
 
-            r2_v_s = max(0.0, float(1.0 - np.sum((y_v_self - preds_v_self)**2) / (np.sum((y_v_self - np.mean(y_v_self))**2) + 1e-6)))
-            r2_a_s = max(0.0, float(1.0 - np.sum((y_a_self - preds_a_self)**2) / (np.sum((y_a_self - np.mean(y_a_self))**2) + 1e-6)))
+            r2_v_s = float(1.0 - np.sum((y_v_self - preds_v_self)**2) / (np.sum((y_v_self - np.mean(y_v_self))**2) + 1e-6))
+            r2_a_s = float(1.0 - np.sum((y_a_self - preds_a_self)**2) / (np.sum((y_a_self - np.mean(y_a_self))**2) + 1e-6))
             secondary_D_V[l, s_idx] = r2_v_s
             secondary_D_A[l, s_idx] = r2_a_s
 
@@ -707,21 +711,32 @@ def main():
     d_peak_D = float(v_dissoc.get("d_peak_D", 0.50))
     d_peak_C = float(v_dissoc.get("d_peak_C", 0.68))
 
+    emp_peak_depth_v = float(v_dissoc.get("empirical_peak_depth", d_peak_C))
+    emp_peak_depth_a = float(a_dissoc.get("empirical_peak_depth", float(a_dissoc.get("d_peak_C", 0.68))))
+    emp_peak_stage_v = str(v_dissoc.get("empirical_peak_stage", "pre_V"))
+    emp_peak_stage_a = str(a_dissoc.get("empirical_peak_stage", "pre_A"))
+
     rq2_sites = {
         "discovery_model": target_model_id,
         "discovery_family": fam_key,
-        "temporal_relative_depth": d_peak_C,
-        "target_stages": normalized_stages,
+        "temporal_relative_depth_v": emp_peak_depth_v,
+        "temporal_stage_v": emp_peak_stage_v,
+        "temporal_relative_depth_a": emp_peak_depth_a,
+        "temporal_stage_a": emp_peak_stage_a,
         "a_priori_test_stage_v": "pre_V",
         "a_priori_test_stage_a": "pre_A",
-        "empirical_peak_stage_v": v_dissoc.get("empirical_peak_stage", "pre_V"),
-        "empirical_peak_stage_a": a_dissoc.get("empirical_peak_stage", "pre_A"),
-        "temporal_stage_v": v_dissoc.get("empirical_peak_stage", "pre_V"),
-        "temporal_stage_a": a_dissoc.get("empirical_peak_stage", "pre_A"),
+        "a_priori_primary_stage_v": "pre_V",
+        "a_priori_primary_stage_a": "pre_A",
+        "target_stages": normalized_stages,
         "valence_d_peak_D": d_peak_D,
         "valence_d_peak_C": d_peak_C,
         "arousal_d_peak_D": float(a_dissoc.get("d_peak_D", 0.50)),
         "arousal_d_peak_C": float(a_dissoc.get("d_peak_C", 0.68)),
+        # 互換用キー
+        "temporal_relative_depth": emp_peak_depth_v,
+        "temporal_stage": emp_peak_stage_v,
+        "empirical_peak_stage_v": emp_peak_stage_v,
+        "empirical_peak_stage_a": emp_peak_stage_a,
     }
     rq2_sites_path = derived_dir / "v3_rq2_causal_sites.json"
     with open(rq2_sites_path, "w", encoding="utf-8") as f:

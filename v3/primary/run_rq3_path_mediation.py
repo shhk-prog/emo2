@@ -317,11 +317,11 @@ def run_real_path_mediation(
 
             ss_res_v = np.sum((y_v_disc - preds_v)**2)
             ss_tot_v = np.sum((y_v_disc - np.mean(y_v_disc))**2) + 1e-6
-            r2_v = max(0.0, float(1.0 - ss_res_v / ss_tot_v))
+            r2_v = float(1.0 - ss_res_v / ss_tot_v)
 
             ss_res_a = np.sum((y_a_disc - preds_a)**2)
             ss_tot_a = np.sum((y_a_disc - np.mean(y_a_disc))**2) + 1e-6
-            r2_a = max(0.0, float(1.0 - ss_res_a / ss_tot_a))
+            r2_a = float(1.0 - ss_res_a / ss_tot_a)
 
             r2_joint = float(0.5 * (r2_v + r2_a))
         else:
@@ -778,34 +778,52 @@ def main():
         try:
             with open(rq1_results_path, "r", encoding="utf-8") as f:
                 rq1_data = json.load(f)
-            suff_rel_depth = float(rq1_data.get("relative_depth", rq1_data.get("config", {}).get("relative_depth", 0.50)))
-        except Exception:
-            pass
+            if "resolved_relative_depth" in rq1_data:
+                suff_rel_depth = float(rq1_data["resolved_relative_depth"])
+            elif "relative_depth" in rq1_data:
+                suff_rel_depth = float(rq1_data["relative_depth"])
+            elif "config" in rq1_data and "relative_depth" in rq1_data["config"]:
+                suff_rel_depth = float(rq1_data["config"]["relative_depth"])
+            elif not args.dry_run:
+                raise ValueError(f"RQ1 results at {rq1_results_path} lack resolved_relative_depth.")
+        except Exception as e:
+            if not args.dry_run:
+                raise ValueError(f"Failed to load resolved_relative_depth from RQ1 results: {e}")
+    elif not args.dry_run:
+        raise FileNotFoundError(f"RQ1 results artifact required at {rq1_results_path} for canonical confirmatory sites.")
 
-    temp_rel_depth = 0.65
+    temp_rel_depth_v = 0.65
+    temp_rel_depth_a = 0.65
     target_stages = ["pre_V", "pre_A"]
+    stage_v = "pre_V"
+    stage_a = "pre_A"
     if rq2_sites_path.exists():
         try:
             with open(rq2_sites_path, "r", encoding="utf-8") as f:
                 rq2_data = json.load(f)
-            temp_rel_depth = float(rq2_data.get("temporal_relative_depth", 0.65))
+            temp_rel_depth_v = float(rq2_data.get("temporal_relative_depth_v", rq2_data.get("temporal_relative_depth", 0.65)))
+            temp_rel_depth_a = float(rq2_data.get("temporal_relative_depth_a", rq2_data.get("temporal_relative_depth", 0.65)))
             target_stages = rq2_data.get("target_stages", target_stages)
-        except Exception:
-            pass
+            stage_v = str(rq2_data.get("temporal_stage_v", rq2_data.get("causal_peak_stage_v", "pre_V")))
+            stage_a = str(rq2_data.get("temporal_stage_a", rq2_data.get("causal_peak_stage_a", "pre_A")))
+        except Exception as e:
+            if not args.dry_run:
+                raise ValueError(f"Failed to load RQ2 sites from {rq2_sites_path}: {e}")
+    elif not args.dry_run:
+        raise FileNotFoundError(f"RQ2 sites artifact required at {rq2_sites_path} for canonical confirmatory sites.")
 
     med_rel_depth = float(confirmation_res.get("mediator_relative_depth", float(confirmation_res["mediator_layer"] / (num_layers - 1)) if num_layers > 1 else 0.65))
-
-    stage_v = rq2_data.get("temporal_stage_v", rq2_data.get("causal_peak_stage_v", "pre_V")) if rq2_sites_path.exists() else "pre_V"
-    stage_a = rq2_data.get("temporal_stage_a", rq2_data.get("causal_peak_stage_a", "pre_A")) if rq2_sites_path.exists() else "pre_A"
 
     frozen_sites = {
         "discovery_model": target_model_id,
         "discovery_family": fam_key,
         "generation_stage": "post_rq3_canonical",
         "sufficiency_relative_depth": suff_rel_depth,
-        "temporal_relative_depth": temp_rel_depth,
+        "temporal_relative_depth_v": temp_rel_depth_v,
         "temporal_stage_v": stage_v,
+        "temporal_relative_depth_a": temp_rel_depth_a,
         "temporal_stage_a": stage_a,
+        "temporal_relative_depth": temp_rel_depth_v,  # 互換用
         "a_priori_test_stage_v": rq2_data.get("a_priori_test_stage_v", "pre_V") if rq2_sites_path.exists() else "pre_V",
         "a_priori_test_stage_a": rq2_data.get("a_priori_test_stage_a", "pre_A") if rq2_sites_path.exists() else "pre_A",
         "mediation_relative_depth": med_rel_depth,

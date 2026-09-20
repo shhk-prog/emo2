@@ -70,14 +70,25 @@ DEFAULT_PROMPT_VERSION = "1.0.0"
 DEFAULT_CANDIDATE_SPACE = "VA_81"
 
 
+def compute_file_hash(path: str | Path) -> str:
+    """AGENTS.md 1.2 / Item 11: ファイルの実内容に基づく SHA256 ハッシュを算出"""
+    p = Path(path)
+    if not p.is_file():
+        return hashlib.sha256(str(path).encode("utf-8")).hexdigest()[:16]
+    h = hashlib.sha256()
+    with open(p, "rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()[:16]
+
+
 def compute_string_or_dict_hash(obj: Any) -> str:
-    """オブジェクト（辞書、文字列、パス等）の SHA256 ハッシュを算出"""
+    """オブジェクト（辞書、文字列、パス等）の SHA256 ハッシュを算出。パスの場合はファイル内容から算出。"""
     if isinstance(obj, dict):
         s = json.dumps(obj, sort_keys=True)
     elif isinstance(obj, (str, Path)):
         if os.path.isfile(str(obj)):
-            with open(str(obj), "rb") as f:
-                return hashlib.sha256(f.read()).hexdigest()[:16]
+            return compute_file_hash(obj)
         s = str(obj)
     else:
         s = str(obj)
@@ -234,6 +245,7 @@ def is_manifest_matching(
     expected_dataset_hash: Optional[str] = None,
     expected_code_version: Optional[str] = None,
     expected_model_revision: Optional[str] = None,
+    expected_git_commit: Optional[str] = None,
     expected_dry_run: Optional[bool] = None,
 ) -> bool:
     """
@@ -275,6 +287,9 @@ def is_manifest_matching(
             return False
 
         if expected_model_revision and data.get("model_revision") != expected_model_revision:
+            return False
+
+        if expected_git_commit and data.get("git_commit") != expected_git_commit:
             return False
 
         return True

@@ -305,19 +305,25 @@ def main():
     )
 
     # Early skip if already completed and valid
+    from affective_empathy_eval.manifests import is_manifest_matching
     manifest_path = os.path.join(model_dir, "manifest.json")
     res_path = os.path.join(model_dir, "phase_b_semantic_controls.csv")
     if not args.force and not args.dry_run and os.path.exists(manifest_path) and os.path.exists(res_path):
-        try:
-            df_check = pd.read_csv(res_path)
-            if len(df_check) > 0:
-                print(
-                    f"[SKIP] Validated Phase B results found in {model_dir}. "
-                    f"Skipping computation for {args.model_prefix}. Use --force to rerun."
-                )
-                return
-        except Exception as e:
-            print(f"Warning: Corrupt existing Phase B results in {model_dir} ({e}). Rerunning.")
+        if is_manifest_matching(
+            manifest_path=manifest_path,
+            expected_model_name=args.model_id,
+            expected_dry_run=False,
+        ):
+            try:
+                df_check = pd.read_csv(res_path)
+                if len(df_check) > 0:
+                    print(
+                        f"[SKIP] Validated Phase B results matching manifest found in {model_dir}. "
+                        f"Skipping computation for {args.model_prefix}. Use --force to rerun."
+                    )
+                    return
+            except Exception as e:
+                print(f"Warning: Corrupt existing Phase B results in {model_dir} ({e}). Rerunning.")
 
     data_file = Path(args.data_path)
     if not data_file.exists():
@@ -348,6 +354,10 @@ def main():
             "acc_original_minimal_pair": 0.85,
             "acc_pair_aware_held_out_paraphrase": 0.82,
             "pair_aware_held_out_reversal_drop": 0.58,
+            "n_nonfallback_paraphrase_pairs": 80,
+            "n_nonfallback_reversal_pairs": 80,
+            "n_primary_test_paraphrase_pairs": 80,
+            "n_primary_test_reversal_pairs": 80,
             "n_validated_paraphrase_pairs": 80,
             "n_validated_reversal_pairs": 80,
             "sensitivity_held_out_paraphrase": 0.80,
@@ -580,10 +590,14 @@ def main():
         held_out_reversal_drop_primary = float("nan")
 
     results = {
-        # Primary indicators (Validated semantic controls)
+        # Primary indicators (Non-fallback rule-based semantic controls)
         "acc_original_minimal_pair": acc_orig,
         "acc_pair_aware_held_out_paraphrase": acc_held_out_paraphrase_primary,
         "pair_aware_held_out_reversal_drop": held_out_reversal_drop_primary,
+        "n_nonfallback_paraphrase_pairs": int(np.sum(valid_para_pair_mask)),
+        "n_nonfallback_reversal_pairs": int(np.sum(valid_rev_pair_mask)),
+        "n_primary_test_paraphrase_pairs": int(np.sum(valid_para_pair_mask)),
+        "n_primary_test_reversal_pairs": int(np.sum(valid_rev_pair_mask)),
         "n_validated_paraphrase_pairs": int(np.sum(valid_para_pair_mask)),
         "n_validated_reversal_pairs": int(np.sum(valid_rev_pair_mask)),
         # Sensitivity indicators (All pairs including fallbacks)

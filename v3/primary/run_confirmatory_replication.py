@@ -333,11 +333,17 @@ def run_real_model_confirmatory(
 
         ss_tot_v = np.sum((y_v - np.mean(y_v))**2)
         ss_res_v = np.sum((y_v - oof_preds_v)**2)
-        r2_v = max(0.0, float(1.0 - ss_res_v / (ss_tot_v + 1e-6)))
+        r2_v = float(1.0 - ss_res_v / (ss_tot_v + 1e-6))
         d_profile_v.append(r2_v)
 
         ss_tot_a = np.sum((y_a - np.mean(y_a))**2)
         ss_res_a = np.sum((y_a - oof_preds_a)**2)
+        r2_a = float(1.0 - ss_res_a / (ss_tot_a + 1e-6))
+        d_profile_a.append(r2_a)
+
+    assert len(d_profile_v) == num_layers, f"d_profile_v length {len(d_profile_v)} != num_layers {num_layers}"
+    assert len(d_profile_a) == num_layers, f"d_profile_a length {len(d_profile_a)} != num_layers {num_layers}"
+
     # 3. 統合 Cross-Fitting: H2 (Sufficiency), H3 (Necessity), H4 (Temporal Emergence)
     # NOTE: Confirmatory data reuse 完全排除のため、direction / Q / mu_neu の推定を train fold のみで行い、
     # 評価を独立な test fold のみで実行する。
@@ -347,16 +353,19 @@ def run_real_model_confirmatory(
     stage_a = "pre_A"
     if frozen_sites:
         suff_rel_depth = float(frozen_sites.get("sufficiency_relative_depth", 0.5))
-        temp_rel_depth = float(frozen_sites.get("temporal_relative_depth", 0.65))
+        temp_rel_depth_v = float(frozen_sites.get("temporal_relative_depth_v", frozen_sites.get("temporal_relative_depth", 0.65)))
+        temp_rel_depth_a = float(frozen_sites.get("temporal_relative_depth_a", frozen_sites.get("temporal_relative_depth", 0.65)))
         med_rel_depth = float(frozen_sites.get("mediation_relative_depth", 0.65))
         stage_v = str(frozen_sites.get("temporal_stage_v", frozen_sites.get("causal_peak_stage_v", "pre_V")))
         stage_a = str(frozen_sites.get("temporal_stage_a", frozen_sites.get("causal_peak_stage_a", "pre_A")))
     else:
         suff_rel_depth = float(v3_cfg.get("confirmatory", {}).get("sufficiency_relative_depth", 0.5)) if v3_cfg else 0.5
-        temp_rel_depth = float(v3_cfg.get("confirmatory", {}).get("temporal_relative_depth", 0.65)) if v3_cfg else 0.65
+        temp_rel_depth_v = float(v3_cfg.get("confirmatory", {}).get("temporal_relative_depth_v", v3_cfg.get("confirmatory", {}).get("temporal_relative_depth", 0.65))) if v3_cfg else 0.65
+        temp_rel_depth_a = float(v3_cfg.get("confirmatory", {}).get("temporal_relative_depth_a", v3_cfg.get("confirmatory", {}).get("temporal_relative_depth", 0.65))) if v3_cfg else 0.65
         med_rel_depth = float(v3_cfg.get("confirmatory", {}).get("mediation_relative_depth", 0.65)) if v3_cfg else 0.65
     sufficiency_layer = round(suff_rel_depth * (num_layers - 1))
-    temporal_map_layer = round(temp_rel_depth * (num_layers - 1))
+    temporal_layer_v = round(temp_rel_depth_v * (num_layers - 1))
+    temporal_layer_a = round(temp_rel_depth_a * (num_layers - 1))
     mediation_layer = round(med_rel_depth * (num_layers - 1))
     alphas = [-1.0, -0.5, 0.0, 0.5, 1.0]
 
@@ -375,12 +384,13 @@ def run_real_model_confirmatory(
     test_stage_shifts_a = {stg: [] for stg in stage_keys}
 
     # H4: Discovery RQ2 準拠の stage-local direction 学習のため、
-    # temporal_map_layer における全サンプルの各 generation stage 表現を抽出
+    # temporal_layer_v, temporal_layer_a それぞれにおける全サンプルの各 generation stage 表現を抽出
     template_cand = candidates[40]["json_str"]  # {"valence": 5, "arousal": 5}
     cand_tokens = tokenizer.encode(template_cand, add_special_tokens=False)
     stage_offsets = get_generation_stage_tokens(cand_tokens, tokenizer, candidate_str=template_cand)
 
-    all_H_stage = {stg: [] for stg in stage_keys}
+    all_H_stage_v = {stg: [] for stg in stage_keys}
+    all_H_stage_a = {stg: [] for stg in stage_keys}
     with torch.no_grad():
         for _, row in eval_df.iterrows():
             text = str(row["text"])
@@ -397,16 +407,25 @@ def run_real_model_confirmatory(
                 t_idx = resolve_joint_stage_index(cand_start, stg, stage_offsets, seq_len)
                 with ActivationHookManager(adapter) as hook_mgr:
                     hook_mgr.register_capture_hook(
-                        layer_idx=temporal_map_layer,
+                        layer_idx=temporal_layer_v,
                         hook_point=HookPoint.POST_MLP_RESID,
                         token_indices=t_idx,
-                        key="h_stg",
+                        key="h_stg_v",
+                    )
+                    hook_mgr.register_capture_hook(
+                        layer_idx=temporal_layer_a,
+                        hook_point=HookPoint.POST_MLP_RESID,
+                        token_indices=t_idx,
+                        key="h_stg_a",
                     )
                     _ = model(**enc_full)
-                    h_vec = hook_mgr.captured_activations["h_stg"].cpu().float().numpy().ravel()
-                    all_H_stage[stg].append(h_vec)
+                    h_vec_v = hook_mgr.captured_activations["h_stg_v"].cpu().float().numpy().ravel()
+                    h_vec_a = hook_mgr.captured_activations["h_stg_a"].cpu().float().numpy().ravel()
+                    all_H_stage_v[stg].append(h_vec_v)
+                    all_H_stage_a[stg].append(h_vec_a)
     for stg in stage_keys:
-        all_H_stage[stg] = np.array(all_H_stage[stg])
+        all_H_stage_v[stg] = np.array(all_H_stage_v[stg])
+        all_H_stage_a[stg] = np.array(all_H_stage_a[stg])
 
     H_suff = all_H[sufficiency_layer]
     H_med = all_H[mediation_layer]
@@ -489,19 +508,20 @@ def run_real_model_confirmatory(
         stage_dirs_v = {}
         stage_dirs_a = {}
         for stg in stage_keys:
-            H_stg_tr = all_H_stage[stg][train_idx]
-            ridge_stg_v = Ridge(alpha=10.0).fit(H_stg_tr, y_v[train_idx])
+            H_stg_tr_v = all_H_stage_v[stg][train_idx]
+            ridge_stg_v = Ridge(alpha=10.0).fit(H_stg_tr_v, y_v[train_idx])
             norm_sv = np.linalg.norm(ridge_stg_v.coef_)
             d_sv = ridge_stg_v.coef_ / (norm_sv + 1e-6) if norm_sv > 0 else np.zeros_like(ridge_stg_v.coef_)
-            std_sv = float(np.std(H_stg_tr @ d_sv))
-            h_std_sv = std_sv if std_sv > 1e-6 else float(np.std(H_stg_tr))
+            std_sv = float(np.std(H_stg_tr_v @ d_sv))
+            h_std_sv = std_sv if std_sv > 1e-6 else float(np.std(H_stg_tr_v))
             stage_dirs_v[stg] = (d_sv, h_std_sv)
 
-            ridge_stg_a = Ridge(alpha=10.0).fit(H_stg_tr, y_a[train_idx])
+            H_stg_tr_a = all_H_stage_a[stg][train_idx]
+            ridge_stg_a = Ridge(alpha=10.0).fit(H_stg_tr_a, y_a[train_idx])
             norm_sa = np.linalg.norm(ridge_stg_a.coef_)
             d_sa = ridge_stg_a.coef_ / (norm_sa + 1e-6) if norm_sa > 0 else np.zeros_like(ridge_stg_a.coef_)
-            std_sa = float(np.std(H_stg_tr @ d_sa))
-            h_std_sa = std_sa if std_sa > 1e-6 else float(np.std(H_stg_tr))
+            std_sa = float(np.std(H_stg_tr_a @ d_sa))
+            h_std_sa = std_sa if std_sa > 1e-6 else float(np.std(H_stg_tr_a))
             stage_dirs_a[stg] = (d_sa, h_std_sa)
 
         # ----------------------------------------------------
@@ -614,7 +634,7 @@ def run_real_model_confirmatory(
                 att_shifts_v.append(abs(ev_abl - clean_neu_v))
                 att_shifts_a.append(abs(ea_abl - clean_neu_a))
 
-                # --- H4: Temporal Emergence across Generation Stages (at temporal_map_layer) ---
+                # --- H4: Temporal Emergence across Generation Stages (at temporal_layer_v and temporal_layer_a) ---
                 # Discovery RQ2 準拠: 各 generation stage 固有の表現から推定した局所方向を用いて介入
                 stage_target_indices = validate_stage_index_invariance(
                     tokenizer, prompt_self, candidates, stage_keys
@@ -625,10 +645,10 @@ def run_real_model_confirmatory(
                     d_stg_v, h_std_stg_v = stage_dirs_v[stg]
                     d_stg_a, h_std_stg_a = stage_dirs_a[stg]
 
-                    # 1) Valence steering (stage-local direction)
+                    # 1) Valence steering (stage-local direction at temporal_layer_v)
                     with ActivationHookManager(adapter) as hook_mgr:
                         hook_mgr.register_direction_intervention_hook(
-                            layer_idx=temporal_map_layer,
+                            layer_idx=temporal_layer_v,
                             direction=d_stg_v,
                             alpha=1.0,
                             hidden_std=h_std_stg_v,
@@ -642,10 +662,10 @@ def run_real_model_confirmatory(
                     ev_stg_v, _ = compute_expected_va(log_stg_v, candidates)
                     test_stage_shifts_v[stg].append(abs(ev_stg_v - clean_ev_list[sample_idx]))
 
-                    # 2) Arousal steering (stage-local direction)
+                    # 2) Arousal steering (stage-local direction at temporal_layer_a)
                     with ActivationHookManager(adapter) as hook_mgr:
                         hook_mgr.register_direction_intervention_hook(
-                            layer_idx=temporal_map_layer,
+                            layer_idx=temporal_layer_a,
                             direction=d_stg_a,
                             alpha=1.0,
                             hidden_std=h_std_stg_a,

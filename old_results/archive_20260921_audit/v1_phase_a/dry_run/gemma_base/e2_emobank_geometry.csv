@@ -1,0 +1,5 @@
+layer,relative_depth,target,direct_transfer_score,rsa_correlation,r2_aligned_transfer,geometry_pattern
+0,0.0,Valence_human,0.5,0.7,0.55,Operational: Shared Geometry
+1,0.3333333333333333,Valence_human,0.5,0.7,0.55,Operational: Shared Geometry
+2,0.6666666666666666,Valence_human,0.5,0.7,0.55,Operational: Shared Geometry
+3,1.0,Valence_human,0.5,0.7,0.55,Operational: Shared Geometry

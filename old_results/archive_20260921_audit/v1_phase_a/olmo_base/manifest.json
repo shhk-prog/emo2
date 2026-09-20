@@ -1,0 +1,23 @@
+{
+  "run_type": "v1_phase_a",
+  "model_name": "allenai/OLMo-2-0425-1B",
+  "config": {
+    "model_prefix": "olmo_base",
+    "dataset": "both",
+    "limit": 0,
+    "num_layers": 16
+  },
+  "metadata": {},
+  "timestamp_utc": "2026-09-20T09:28:40.022088+00:00",
+  "git_commit": "536f0ee",
+  "config_hash": "948f0c4e52883d54",
+  "dataset_hash": "unknown",
+  "model_revision": "main",
+  "tokenizer_revision": "main",
+  "prompt_version": "1.0.0",
+  "candidate_space": "VAD_729",
+  "seed": 42,
+  "code_version": "0.3.0",
+  "intervention_version": "none",
+  "dry_run": false
+}

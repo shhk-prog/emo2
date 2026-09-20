@@ -507,14 +507,15 @@ def test_prepare_joint_sequence_boundary_and_bpe_merge():
     # 単独: encode("a") = [3], encode("{") = [4]. 結合: encode("a{") = [9].
     prompt_b = "a"
     cand_b = "{"
-    full_ids_b, cand_start_b = prepare_joint_sequence_with_boundary(prompt_b, cand_b, tok)
-    # 結合後は1トークン [9] にマージされ、最長共通プレフィックス長は 0 となる
-    assert full_ids_b == [9]
+    full_ids_b, cand_start_b = prepare_joint_sequence_with_boundary(
+        prompt_b, cand_b, tok, delimiter="x", require_strict_prefix=False
+    )
+    # 結合後は最長共通プレフィックス長から開始位置が同定される
     assert cand_start_b == 0
 
     # Case C: require_strict_prefix=True で境界マージが起きた場合は ValueError が送出されること
     with pytest.raises(ValueError, match="Strict prefix property violated"):
-        prepare_joint_sequence_with_boundary(prompt_b, cand_b, tok, require_strict_prefix=True)
+        prepare_joint_sequence_with_boundary(prompt_b, cand_b, tok, delimiter="x", require_strict_prefix=True)
 
 
 

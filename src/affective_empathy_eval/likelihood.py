@@ -302,7 +302,7 @@ def prepare_joint_sequence_with_boundary(
     candidate: str,
     tokenizer: Any,
     delimiter: str = "",
-    require_strict_prefix: bool = False,
+    require_strict_prefix: bool = True,
 ) -> tuple[list[int], int]:
     """
     プロンプトと候補文字列の結合（Joint Sequence）をトークナイズし、
@@ -322,6 +322,16 @@ def prepare_joint_sequence_with_boundary(
     if len(full_ids) >= p_len and full_ids[:p_len] == prompt_ids:
         # 厳密な prefix 一致が成立
         return full_ids, p_len
+
+    # 境界でマージが発生し strict prefix が成立しない場合、delimiter 未指定なら安定区切りを試行
+    if delimiter == "":
+        for alt_delim in ["\n", " "]:
+            p_alt = prompt + alt_delim
+            f_alt = p_alt + candidate
+            p_ids_alt = tokenizer.encode(p_alt, add_special_tokens=False)
+            f_ids_alt = tokenizer.encode(f_alt, add_special_tokens=False)
+            if len(f_ids_alt) >= len(p_ids_alt) and f_ids_alt[:len(p_ids_alt)] == p_ids_alt:
+                return f_ids_alt, len(p_ids_alt)
 
     if require_strict_prefix:
         raise ValueError(
@@ -412,7 +422,7 @@ def compute_sequence_likelihoods_for_candidates(
             candidate=c,
             tokenizer=tokenizer,
             delimiter=delimiter,
-            require_strict_prefix=False,
+            require_strict_prefix=True,
         )
         joint_token_ids_list.append(full_ids)
         cand_start_indices.append(c_start)

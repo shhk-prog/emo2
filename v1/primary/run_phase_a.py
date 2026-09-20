@@ -537,22 +537,28 @@ def main():
             os.path.join(model_dir, "e1_aipsy_emotion_secondary.csv"),
         ])
 
+    from affective_empathy_eval.manifests import is_manifest_matching
     if not args.force and not args.dry_run and os.path.exists(manifest_path) and all(os.path.exists(p) for p in required_outputs):
-        try:
-            valid_all = True
-            for p in required_outputs:
-                df_check = pd.read_csv(p)
-                if len(df_check) == 0:
-                    valid_all = False
-                    break
-            if valid_all:
-                print(
-                    f"[SKIP] Validated Phase A results found in {model_dir} for dataset '{args.dataset}'. "
-                    f"Skipping model loading & probing for {args.model_prefix}. Use --force to rerun."
-                )
-                return
-        except Exception as e:
-            print(f"Warning: Corrupt existing Phase A results in {model_dir} ({e}). Rerunning.")
+        if is_manifest_matching(
+            manifest_path=manifest_path,
+            expected_model_name=args.model_id,
+            expected_dry_run=False,
+        ):
+            try:
+                valid_all = True
+                for p in required_outputs:
+                    df_check = pd.read_csv(p)
+                    if len(df_check) == 0:
+                        valid_all = False
+                        break
+                if valid_all:
+                    print(
+                        f"[SKIP] Validated Phase A results matching manifest found in {model_dir} for dataset '{args.dataset}'. "
+                        f"Skipping model loading & probing for {args.model_prefix}. Use --force to rerun."
+                    )
+                    return
+            except Exception as e:
+                print(f"Warning: Corrupt existing Phase A results in {model_dir} ({e}). Rerunning.")
 
     if args.dry_run:
         print(f"[DRY-RUN] V1 Phase A Probing for Model: {args.model_id} (Instruct={is_instruct})")

@@ -32,10 +32,11 @@ from pathlib import Path
 
 def main():
     root = Path(__file__).resolve().parents[1]
-    archive_dir = root / "archive" / "results_pre_rerun_20260918"
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    archive_dir = root / "archive" / f"results_archive_{timestamp}"
 
     print("=" * 70)
-    print("旧実験結果アーカイブ & クリーン初期化プロセス")
+    print("旧実験結果アーカイブ & クリーン初期化プロセス (安全アーカイブ版)")
     print(f"プロジェクトルート: {root}")
     print(f"アーカイブ退避先:   {archive_dir}")
     print("=" * 70)

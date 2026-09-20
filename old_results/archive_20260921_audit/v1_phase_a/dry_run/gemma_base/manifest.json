@@ -1,0 +1,23 @@
+{
+  "run_type": "v1_phase_a",
+  "model_name": "google/gemma-3-1b-pt",
+  "config": {
+    "model_prefix": "gemma_base",
+    "dataset": "both",
+    "limit": 0,
+    "dry_run": true
+  },
+  "metadata": {},
+  "timestamp_utc": "2026-09-20T10:24:34.888165+00:00",
+  "git_commit": "536f0ee",
+  "config_hash": "653e47c89bce5a41",
+  "dataset_hash": "unknown",
+  "model_revision": "main",
+  "tokenizer_revision": "main",
+  "prompt_version": "1.0.0",
+  "candidate_space": "VAD_729",
+  "seed": 42,
+  "code_version": "0.3.0",
+  "intervention_version": "none",
+  "dry_run": true
+}

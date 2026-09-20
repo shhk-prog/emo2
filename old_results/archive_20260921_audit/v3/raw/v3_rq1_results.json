@@ -1,0 +1,151 @@
+{
+  "pilot": false,
+  "dry_run": false,
+  "sample_size": 192,
+  "target_layer": 14,
+  "results": {
+    "affect_direction_grounding": "reader_prediction",
+    "alignment_reader_vs_self_directions": {
+      "valence": 0.7997196924065311,
+      "arousal": 0.9076677651830566
+    },
+    "alpha_grid": [
+      -1.0,
+      -0.5,
+      0.0,
+      0.5,
+      1.0
+    ],
+    "dose_response_v": [
+      -0.003012362532421773,
+      -0.0016697652582531215,
+      0.0,
+      0.0014155988313050611,
+      0.0031107477632908906
+    ],
+    "dose_response_a": [
+      -0.0016209336828012326,
+      -0.0002916491613880097,
+      0.0,
+      0.0011241332630246386,
+      0.002200974840714215
+    ],
+    "slope_v": 0.0030663169361967017,
+    "slope_a": 0.0018119198942887088,
+    "slope_v_ci": {
+      "point": 0.0030663169361967017,
+      "ci_lower": 0.002758326003852433,
+      "ci_upper": 0.00338769192166484
+    },
+    "slope_a_ci": {
+      "point": 0.0018119198942887088,
+      "ci_lower": 0.001484840966592719,
+      "ci_upper": 0.0021231714100482363
+    },
+    "specificity_v": 0.00045514736633218517,
+    "specificity_a": -0.00027362552731426587,
+    "specificity_v_ci": {
+      "point": 0.00045514736633218517,
+      "ci_lower": -0.00010020080912450387,
+      "ci_upper": 0.0009849488084864091
+    },
+    "specificity_a_ci": {
+      "point": -0.00027362552731426587,
+      "ci_lower": -0.0007776897864240481,
+      "ci_upper": 0.0002205370472865328
+    },
+    "specificity_diff": 0.00045514736633218517,
+    "specificity_diff_ci": {
+      "point": 0.00045514736633218517,
+      "ci_lower": -0.00010020080912450387,
+      "ci_upper": 0.0009849488084864091
+    },
+    "specificity_vs_random_ci": {
+      "point": 0.0011630541296728618,
+      "ci_lower": 0.000542882102960821,
+      "ci_upper": 0.0017334091984824891
+    },
+    "specificity_vs_orthogonal_ci": {
+      "point": 0.0012761825522412118,
+      "ci_lower": 0.0007745545431437456,
+      "ci_upper": 0.0017438121376603625
+    },
+    "attenuation_ratio_v": 0.01069063073433105,
+    "attenuation_ratio_a": 0.001323565538266758,
+    "attenuation_ratio_v_ci": {
+      "point": 0.01069063073433105,
+      "ci_lower": -0.005732062716014666,
+      "ci_upper": 0.026006018657388365
+    },
+    "attenuation_ratio_a_ci": {
+      "point": 0.001323565538266758,
+      "ci_lower": -0.008700977353394057,
+      "ci_upper": 0.011111488550863467
+    },
+    "attenuation_ratio": 0.01069063073433105,
+    "attenuation_ratio_ci": {
+      "point": 0.01069063073433105,
+      "ci_lower": -0.005732062716014666,
+      "ci_upper": 0.026006018657388365
+    },
+    "topic_tvd_v": 0.0006770441123917577,
+    "topic_tvd_a": 0.0007512601950776781,
+    "topic_tvd_v_ci": {
+      "point": 0.0006770441123917577,
+      "ci_lower": 0.00045790896632936465,
+      "ci_upper": 0.0009206878232204954
+    },
+    "topic_tvd_a_ci": {
+      "point": 0.0007512601950776781,
+      "ci_lower": 0.000533901788865247,
+      "ci_upper": 0.0009861834695796305
+    },
+    "task_selectivity": {
+      "effect_self": 0.0008314219067617363,
+      "effect_control": 0.0006770441123917577,
+      "topic_tvd": 0.0006770441123917577,
+      "topic_tvd_ci": {
+        "point": 0.0006770441123917577,
+        "ci_lower": 0.00045790896632936465,
+        "ci_upper": 0.0009206878232204954
+      },
+      "self_minus_control_ci": {
+        "point": 0.00015437779436997865,
+        "ci_lower": -0.00013020260152002178,
+        "ci_upper": 0.00040633924116791894
+      },
+      "note": "Topic TVD is a non-specific perturbation control, not a same-construct effect size comparable to Self VA shift.",
+      "pattern": "nonspecific_perturbation_small"
+    }
+  },
+  "gate_decision": {
+    "dose_response_v_pass": false,
+    "dose_response_a_pass": false,
+    "dose_response_pass": false,
+    "slope_v_ci_lower": 0.002758326003852433,
+    "slope_a_ci_lower": 0.001484840966592719,
+    "specificity_v_pass": false,
+    "specificity_a_pass": false,
+    "specificity_pass": false,
+    "specificity_v_ci_lower": -0.00010020080912450387,
+    "specificity_a_ci_lower": -0.0007776897864240481,
+    "endogenous_relevance_v_pass": false,
+    "endogenous_relevance_a_pass": false,
+    "endogenous_relevance_pass": false,
+    "endogenous_relevance_v_ci_lower": -0.005732062716014666,
+    "endogenous_relevance_a_ci_lower": -0.008700977353394057,
+    "necessity_v_pass": false,
+    "necessity_a_pass": false,
+    "necessity_pass": false,
+    "necessity_v_ci_lower": -0.005732062716014666,
+    "necessity_a_ci_lower": -0.008700977353394057,
+    "topic_v_pass": true,
+    "topic_a_pass": true,
+    "topic_control_pass": true,
+    "topic_tvd_v_ci_upper": 0.0009206878232204954,
+    "topic_tvd_a_ci_upper": 0.0009861834695796305,
+    "decision_valence": "NO_GO",
+    "decision_arousal": "NO_GO",
+    "decision": "NO_GO"
+  }
+}

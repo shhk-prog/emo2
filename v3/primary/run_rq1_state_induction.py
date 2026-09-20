@@ -902,11 +902,16 @@ def main():
     logger.info(f"  Checklist: {gate_decision}")
 
     # 結果の保存
+    resolved_rel_depth = float(args.layer / (num_layers - 1)) if num_layers > 1 else 0.5
+    requested_rel_depth = float(args.relative_depth) if hasattr(args, "relative_depth") and args.relative_depth is not None else resolved_rel_depth
     out_results = {
         "pilot": args.pilot,
         "dry_run": args.dry_run,
         "sample_size": len(df),
         "target_layer": args.layer,
+        "requested_relative_depth": requested_rel_depth,
+        "resolved_relative_depth": resolved_rel_depth,
+        "relative_depth": resolved_rel_depth,
         "results": results,
         "gate_decision": gate_decision,
     }

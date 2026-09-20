@@ -120,14 +120,16 @@ def run_recovery_patching_for_task(
             layer_mean_ratios.append(mean_ratio)
             layer_ratios_ci.append({"mean": pt_r, "ci_lower": r_low, "ci_upper": r_up})
 
-        best_layer = int(np.argmax(layer_mean_ratios))
-
         # Prompt-format control (Base plain -> Instruct matched-plain)
         layer_mean_ratios_plain = [float(np.clip(r * 1.05 + rng.normal(0, 0.02), 0.0, 1.0)) for r in layer_mean_ratios]
 
         # Aligned activation patch control (Procrustes aligned Base -> Instruct)
         # 幾何整列を行っても内部表現と出力写像の再編により完全回復しないことを検証
         layer_mean_ratios_aligned = [float(np.clip(r * 0.95 + rng.normal(0, 0.02), 0.0, 1.0)) for r in layer_mean_ratios]
+
+        best_l_native = int(np.argmax(layer_mean_ratios))
+        best_l_matched = int(np.argmax(layer_mean_ratios_plain))
+        best_l_aligned = int(np.argmax(layer_mean_ratios_aligned))
 
         auc_recovery = float(trapz_func(layer_mean_ratios, depths))
         auc_recovery_plain = float(trapz_func(layer_mean_ratios_plain, depths))
@@ -154,14 +156,18 @@ def run_recovery_patching_for_task(
                 "pair_id": pair_id,
                 "item_id": item_id,
                 "initial_emd": sample_initial_emds[i],
-                "best_layer": best_layer,
-                "best_depth": depths[best_layer],
-                "recovery_ratio": sample_ratios_i[best_layer],
-                "recovery_ratio_matched_plain": sample_r_plain_i[best_layer],
-                "recovery_ratio_aligned": sample_r_aligned_i[best_layer],
+                "best_layer": best_l_matched,  # Matched-Plain が Primary
+                "best_depth": depths[best_l_matched],
+                "best_layer_native": best_l_native,
+                "best_layer_matched_plain": best_l_matched,
+                "best_layer_aligned": best_l_aligned,
+                "recovery_ratio": sample_ratios_i[best_l_native],
+                "recovery_ratio_matched_plain": sample_r_plain_i[best_l_matched],
+                "recovery_ratio_aligned": sample_r_aligned_i[best_l_aligned],
                 "auc_recovery": s_auc,
                 "auc_recovery_matched_plain": s_auc_plain,
                 "auc_recovery_aligned": s_auc_aligned,
+                "delta_emd_matched_plain": float(sample_initial_emds[i] * sample_r_plain_i[best_l_matched]),
             })
 
         return {
@@ -175,14 +181,18 @@ def run_recovery_patching_for_task(
             "recovery_ratios_aligned": layer_mean_ratios_aligned,  # Condition B: Aligned Base -> Instruct
             "ci_lower": [max(0.0, r - 0.05) for r in layer_mean_ratios],
             "ci_upper": [min(1.0, r + 0.05) for r in layer_mean_ratios],
-            "best_recovery_layer": best_layer,
-            "best_recovery_depth": depths[best_layer],
+            "best_recovery_layer": best_l_matched,
+            "best_recovery_depth": depths[best_l_matched],
+            "best_recovery_layer_native": best_l_native,
+            "best_recovery_layer_matched_plain": best_l_matched,
+            "best_recovery_layer_aligned": best_l_aligned,
             "max_recovery_ratio": max(layer_mean_ratios),
             "max_recovery_ratio_matched_plain": max(layer_mean_ratios_plain),
             "max_recovery_ratio_aligned": max(layer_mean_ratios_aligned),
             "auc_recovery": auc_recovery,
             "auc_recovery_matched_plain": auc_recovery_plain,
             "auc_recovery_aligned": auc_recovery_aligned,
+            "delta_emd_matched_plain_by_layer": [float(initial_emd_mean * r) for r in layer_mean_ratios_plain],
             "sample_records": sample_records,
             "summary_by_control_type": {
                 "direct_native": {
@@ -424,7 +434,10 @@ def run_recovery_patching_for_task(
         layer_mean_ratios_plain.append(float(np.mean(sample_ratios_plain)))
         layer_mean_ratios_aligned.append(float(np.mean(sample_ratios_aligned)))
 
-    best_l = int(np.argmax(layer_mean_ratios))
+    best_l_native = int(np.argmax(layer_mean_ratios))
+    best_l_matched = int(np.argmax(layer_mean_ratios_plain))
+    best_l_aligned = int(np.argmax(layer_mean_ratios_aligned))
+
     auc_recovery = float(trapz_func(layer_mean_ratios, depths))
     auc_recovery_plain = float(trapz_func(layer_mean_ratios_plain, depths))
     auc_recovery_aligned = float(trapz_func(layer_mean_ratios_aligned, depths))
@@ -447,14 +460,18 @@ def run_recovery_patching_for_task(
             "pair_id": pair_id,
             "item_id": item_id,
             "initial_emd": sample_initial_emds[i],
-            "best_layer": best_l,
-            "best_depth": depths[best_l],
-            "recovery_ratio": sample_r_direct[best_l],
-            "recovery_ratio_matched_plain": sample_r_plain[best_l],
-            "recovery_ratio_aligned": sample_r_aligned[best_l],
+            "best_layer": best_l_matched,  # Matched-Plain が Primary
+            "best_depth": depths[best_l_matched],
+            "best_layer_native": best_l_native,
+            "best_layer_matched_plain": best_l_matched,
+            "best_layer_aligned": best_l_aligned,
+            "recovery_ratio": sample_r_direct[best_l_native],
+            "recovery_ratio_matched_plain": sample_r_plain[best_l_matched],
+            "recovery_ratio_aligned": sample_r_aligned[best_l_aligned],
             "auc_recovery": s_auc,
             "auc_recovery_matched_plain": s_auc_plain,
             "auc_recovery_aligned": s_auc_aligned,
+            "delta_emd_matched_plain": float(sample_initial_emds[i] * sample_r_plain[best_l_matched]),
         })
 
     return {
@@ -466,14 +483,18 @@ def run_recovery_patching_for_task(
         "recovery_ratios_bootstrap_ci": layer_ratios_ci,
         "recovery_ratios_matched_plain": layer_mean_ratios_plain,
         "recovery_ratios_aligned": layer_mean_ratios_aligned,  # Condition B: Aligned Base -> Instruct
-        "best_recovery_layer": best_l,
-        "best_recovery_depth": depths[best_l],
-        "max_recovery_ratio": layer_mean_ratios[best_l],
+        "best_recovery_layer": best_l_matched,
+        "best_recovery_depth": depths[best_l_matched],
+        "best_recovery_layer_native": best_l_native,
+        "best_recovery_layer_matched_plain": best_l_matched,
+        "best_recovery_layer_aligned": best_l_aligned,
+        "max_recovery_ratio": layer_mean_ratios[best_l_native],
         "max_recovery_ratio_matched_plain": max(layer_mean_ratios_plain),
         "max_recovery_ratio_aligned": max(layer_mean_ratios_aligned),
         "auc_recovery": auc_recovery,
         "auc_recovery_matched_plain": auc_recovery_plain,
         "auc_recovery_aligned": auc_recovery_aligned,
+        "delta_emd_matched_plain_by_layer": [float(initial_emd_mean * r) for r in layer_mean_ratios_plain],
         "sample_records": sample_records,
         "summary_by_control_type": {
             "direct_native": {

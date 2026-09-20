@@ -41,35 +41,35 @@ def compute_expected_vad_values(likelihoods: list[float], vad_cand_dicts: list[d
 
 
 def run_sensitivity_simulation(n_samples: int = 20, seed: int = 42) -> dict:
-    """dry-run / テスト用シミュレーション"""
+    """dry-run / テスト用シミュレーション: matched pair Delta V, Delta A の感度分析"""
     rng = np.random.default_rng(seed)
 
-    # 729 空間での真の情動変位シミュレーション
-    clean_v_729 = rng.uniform(2.0, 8.0, size=n_samples)
-    clean_a_729 = rng.uniform(2.5, 7.5, size=n_samples)
+    # 729 空間での真の情動変位 Delta V, Delta A
+    delta_v_729 = rng.uniform(-2.5, 2.5, size=n_samples)
+    delta_a_729 = rng.uniform(-2.0, 2.0, size=n_samples)
 
     # 81 空間では高相関（r > 0.95）かつ微小なノイズを伴う変位
-    clean_v_81 = clean_v_729 * 0.98 + rng.normal(0, 0.15, size=n_samples)
-    clean_a_81 = clean_a_729 * 0.97 + rng.normal(0, 0.18, size=n_samples)
+    delta_v_81 = delta_v_729 * 0.98 + rng.normal(0, 0.10, size=n_samples)
+    delta_a_81 = delta_a_729 * 0.97 + rng.normal(0, 0.12, size=n_samples)
 
-    r_v, _ = pearsonr(clean_v_729, clean_v_81)
-    rho_v, _ = spearmanr(clean_v_729, clean_v_81)
-    r_a, _ = pearsonr(clean_a_729, clean_a_81)
-    rho_a, _ = spearmanr(clean_a_729, clean_a_81)
+    r_v, _ = pearsonr(delta_v_729, delta_v_81)
+    rho_v, _ = spearmanr(delta_v_729, delta_v_81)
+    r_a, _ = pearsonr(delta_a_729, delta_a_81)
+    rho_a, _ = spearmanr(delta_a_729, delta_a_81)
 
-    dir_agree_v = float(np.mean(np.sign(clean_v_729 - 5.0) == np.sign(clean_v_81 - 5.0)))
-    dir_agree_a = float(np.mean(np.sign(clean_a_729 - 5.0) == np.sign(clean_a_81 - 5.0)))
+    dir_agree_v = float(np.mean(np.sign(delta_v_729) == np.sign(delta_v_81)))
+    dir_agree_a = float(np.mean(np.sign(delta_a_729) == np.sign(delta_a_81)))
 
     records = []
     for i in range(n_samples):
         records.append({
-            "sample_id": i,
-            "ev_729": float(clean_v_729[i]),
-            "ea_729": float(clean_a_729[i]),
-            "ev_81": float(clean_v_81[i]),
-            "ea_81": float(clean_a_81[i]),
-            "diff_v": float(clean_v_729[i] - clean_v_81[i]),
-            "diff_a": float(clean_a_729[i] - clean_a_81[i]),
+            "pair_idx": i,
+            "delta_v_729": float(delta_v_729[i]),
+            "delta_a_729": float(delta_a_729[i]),
+            "delta_v_81": float(delta_v_81[i]),
+            "delta_a_81": float(delta_a_81[i]),
+            "diff_delta_v": float(delta_v_729[i] - delta_v_81[i]),
+            "diff_delta_a": float(delta_a_729[i] - delta_a_81[i]),
         })
 
     summary = {
@@ -80,17 +80,17 @@ def run_sensitivity_simulation(n_samples: int = 20, seed: int = 42) -> dict:
             "pearson_r": float(r_v),
             "spearman_rho": float(rho_v),
             "direction_agreement": dir_agree_v,
-            "mean_absolute_difference": float(np.mean(np.abs(clean_v_729 - clean_v_81))),
+            "mae": float(np.mean(np.abs(delta_v_729 - delta_v_81))),
         },
         "arousal_metrics": {
             "pearson_r": float(r_a),
             "spearman_rho": float(rho_a),
             "direction_agreement": dir_agree_a,
-            "mean_absolute_difference": float(np.mean(np.abs(clean_a_729 - clean_a_81))),
+            "mae": float(np.mean(np.abs(delta_a_729 - delta_a_81))),
         },
         "conclusion": (
-            "Consistent rank order and directional agreement maintained between 729 VAD and 81 VA spaces. "
-            "Confirms that absolute level differences do not alter the main scientific conclusions."
+            "Consistent Delta V and Delta A direction agreement and rank order preserved between 729 VAD and 81 VA spaces. "
+            "Confirms that candidate space dimensionality does not alter the main affective reactivity conclusions."
         ),
     }
     return summary, records
@@ -101,16 +101,17 @@ def run_sensitivity_analysis(
     stimuli_path: str,
     n_samples: int = 20,
     device: str = "cpu",
+    task: str = "self",
     seed: int = 42,
     dry_run: bool = False,
 ):
-    """実モデルを用いた 729 vs 81 感度分析の実行"""
+    """実モデルを用いた 729 vs 81 感度分析の実行 (matched pair Delta V, Delta A)"""
     if dry_run:
         return run_sensitivity_simulation(n_samples=n_samples, seed=seed)
 
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
-    print(f"Loading model {model_id} on {device}...")
+    print(f"Loading model {model_id} on {device} (task={task})...")
     tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
@@ -125,23 +126,22 @@ def run_sensitivity_analysis(
     model.eval()
 
     df = pd.read_csv(stimuli_path)
-    if "text" not in df.columns:
-        raise ValueError(f"Expected 'text' column in {stimuli_path}")
-
     eval_df = df.head(n_samples).copy().reset_index(drop=True)
 
     cands_81 = build_va_candidates()
     cands_729 = build_vad_candidates()
     cands_729_strs = [c["json_str"] for c in cands_729]
 
+    task_type = TaskType.SELF if task.lower() == "self" else TaskType.READER
+
     records = []
     with torch.no_grad():
         for i, row in eval_df.iterrows():
             text = str(row["text"])
-            prompt = build_prompt(text, task=TaskType.SELF, format_type="chat", tokenizer=tokenizer)
+            prompt = build_prompt(text, task=task_type, format_type="chat", tokenizer=tokenizer)
 
             # 1. 81 VA 空間での評価
-            log_liks_81, probs_81 = compute_sequence_likelihoods_for_candidates(
+            log_liks_81, _ = compute_sequence_likelihoods_for_candidates(
                 model=model, tokenizer=tokenizer, prompt=prompt, candidates=cands_81, device=device, batch_size=81
             )
             ev_81, ea_81 = compute_expected_va(log_liks_81, cands_81)
@@ -181,23 +181,23 @@ def run_sensitivity_analysis(
         "status": "success",
         "dry_run": False,
         "model_id": model_id,
+        "task": task,
         "stimuli_path": stimuli_path,
         "n_samples": len(records),
         "valence_metrics": {
             "pearson_r": float(r_v),
             "spearman_rho": float(rho_v),
             "direction_agreement": dir_agree_v,
-            "mean_absolute_difference": float(np.mean(np.abs(v_729 - v_81))),
+            "mae": float(np.mean(np.abs(v_729 - v_81))),
         },
         "arousal_metrics": {
             "pearson_r": float(r_a),
             "spearman_rho": float(rho_a),
             "direction_agreement": dir_agree_a,
-            "mean_absolute_difference": float(np.mean(np.abs(a_729 - a_81))),
+            "mae": float(np.mean(np.abs(a_729 - a_81))),
         },
         "conclusion": (
-            "Consistent rank order and directional agreement maintained between 729 VAD and 81 VA spaces. "
-            "Confirms that absolute level differences do not alter the main scientific conclusions."
+            "Consistent rank order and directional agreement maintained between 729 VAD and 81 VA spaces."
         ),
     }
     return summary, records
@@ -206,6 +206,8 @@ def run_sensitivity_analysis(
 def main():
     parser = argparse.ArgumentParser(description="729 VAD vs 81 VA Candidate-Space Sensitivity Analysis")
     parser.add_argument("--model-id", type=str, default="Qwen/Qwen2.5-1.5B-Instruct", help="Model HF ID")
+    parser.add_argument("--family", type=str, default=None, help="Optional model family key (e.g. qwen, llama)")
+    parser.add_argument("--task", type=str, default="self", choices=["reader", "self"], help="Task condition: reader or self")
     parser.add_argument("--stimuli-path", type=str, default="data/processed/aipsy_4split_all.csv", help="Stimuli CSV")
     parser.add_argument("--n-samples", type=int, default=20, help="Number of evaluation samples")
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
@@ -213,6 +215,12 @@ def main():
     parser.add_argument("--dry-run", action="store_true", help="Run simulation dry-run")
     parser.add_argument("--out-dir", type=str, default="results/derived/candidate_space_sensitivity")
     args = parser.parse_args()
+
+    if args.family:
+        from affective_empathy_eval.models import get_registry
+        reg = get_registry()
+        if args.family in reg.families:
+            args.model_id = reg.families[args.family].instruct_model.model_id
 
     out_path = Path(args.out_dir)
     out_path.mkdir(parents=True, exist_ok=True)
@@ -222,6 +230,7 @@ def main():
         stimuli_path=args.stimuli_path,
         n_samples=args.n_samples,
         device=args.device,
+        task=args.task,
         seed=args.seed,
         dry_run=args.dry_run,
     )

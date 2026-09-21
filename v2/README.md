@@ -99,7 +99,7 @@ $$
 実発効条件と解釈の境界:
 1. **Matched-Plain Raw 条件**: Base の活性化テンソルを Instruct の同一位置へ直接注入（*direct interchangeability*）。
 2. **Procrustes Aligned 条件**: Base と Instruct の表現空間の直交回転を補正した上で注入（*coordinate-remapping-adjusted recovery*）。
-※ **解釈上の重要点**: Raw 条件で分布が十分に回復しない場合でも、それは情動情報自体の消失を意味せず、事後学習に伴う表現座標系の変化（*off-manifold* 化）に起因する可能性がある。Aligned 条件との対比により、座標系の幾何的再編と情報保持を厳密に切り分ける。
+※ **解釈上の重要点**: Raw 条件で分布が十分に回復しない場合でも、それは情動情報自体の消失を意味せず、事後学習に伴う表現座標系の変化（*off-manifold* 化）に起因する可能性がある。Aligned 条件との対比は、coordinate remappingと整合するかを検証するmechanistic controlとして評価する。
 
 実装（`v2/primary/run_rq4_recovery_patching.py` / `compute_emd_recovery_ratio`）:
 

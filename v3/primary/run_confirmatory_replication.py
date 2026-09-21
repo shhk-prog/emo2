@@ -189,6 +189,24 @@ def simulate_model_confirmatory(
                 "mediated_attenuation": float(natural_shift_a - attenuated_shift_a),
                 "attenuation_ratio": float(attenuation_ratio_a),
             },
+            "random_subspace_control": {
+                "valence": {
+                    "attenuation_random": float((natural_shift_v - attenuated_shift_v) * 0.2),
+                    "net_attenuation_vs_random": {
+                        "mean": float((natural_shift_v - attenuated_shift_v) * 0.8),
+                        "ci_lower": float((natural_shift_v - attenuated_shift_v) * 0.6),
+                        "ci_upper": float((natural_shift_v - attenuated_shift_v) * 1.0),
+                    },
+                },
+                "arousal": {
+                    "attenuation_random": float((natural_shift_a - attenuated_shift_a) * 0.2),
+                    "net_attenuation_vs_random": {
+                        "mean": float((natural_shift_a - attenuated_shift_a) * 0.8),
+                        "ci_lower": float((natural_shift_a - attenuated_shift_a) * 0.6),
+                        "ci_upper": float((natural_shift_a - attenuated_shift_a) * 1.0),
+                    },
+                },
+            },
             "natural_shift": float(natural_shift_v),  # 互換用
             "attenuated_shift": float(attenuated_shift_v),
             "mediated_attenuation": float(natural_shift_v - attenuated_shift_v),
@@ -404,6 +422,9 @@ def run_real_model_confirmatory(
     nat_shifts_a = []
     att_shifts_v = []
     att_shifts_a = []
+    rand_shifts_v = []
+    rand_shifts_a = []
+    intervention_sample_indices = []
 
     stage_keys = ["candidate_start", "pre_V", "V_value", "pre_A", "A_value", "response_end"]
     test_stage_shifts_v = {stg: [] for stg in stage_keys}
@@ -486,6 +507,10 @@ def run_real_model_confirmatory(
 
         Q_sub, _ = compute_orthonormal_subspace(d_med_v, d_med_a)
         Q = torch.tensor(Q_sub, dtype=torch.float32, device=device)
+        rng_rand = np.random.default_rng(base_seed + 1000 + fold_idx)
+        raw = rng_rand.standard_normal((Q_sub.shape[0], 2))
+        Q_rand_np, _ = np.linalg.qr(raw)
+        Q_rand = torch.tensor(Q_rand_np, dtype=torch.float32, device=device)
 
         # H3: 中立平均ベクトル mu_neu (mediation_layer, Train samples only)
         train_neutral_reps = []
@@ -508,8 +533,9 @@ def run_real_model_confirmatory(
                         train_neutral_reps.append(hook_mgr.captured_activations["h_neu"].cpu().float().numpy().ravel())
 
         if not train_neutral_reps:
-            raise ValueError(f"No matched-neutral representations available for training fold in {family}")
-        mu_neu = torch.tensor(np.mean(train_neutral_reps, axis=0), dtype=torch.float32, device=device)
+            raise ValueError(f"No valid neutral samples found in train split for fold {fold_idx}")
+        mu_neu_np = np.mean(train_neutral_reps, axis=0)
+        mu_neu = torch.tensor(mu_neu_np, dtype=torch.float32, device=device)
 
         # 各層の因果効果 C(l) 推定用方向 (Train fold only: VA両軸)
         layer_dirs_v = {}
@@ -555,8 +581,11 @@ def run_real_model_confirmatory(
         # 指示18: 乱数シードに基づく再現可能なサブサンプリング (pair順バイアス排除)
         # ----------------------------------------------------
         rng_fold = np.random.default_rng(base_seed + fold_idx)
-        n_per_fold = min(5, len(test_idx))
+        conf_cfg = v3_cfg.get("confirmatory", {}) if v3_cfg else {}
+        n_samples_cfg = int(conf_cfg.get("n_intervention_samples_per_fold", 5))
+        n_per_fold = min(n_samples_cfg, len(test_idx))
         eval_sub_test_idx = rng_fold.choice(test_idx, size=n_per_fold, replace=False)
+        intervention_sample_indices.extend(eval_sub_test_idx.tolist())
 
         with torch.no_grad():
             for sample_idx in eval_sub_test_idx:
@@ -645,6 +674,7 @@ def run_real_model_confirmatory(
                 nat_shifts_v.append(abs(ev_clean - clean_neu_v))
                 nat_shifts_a.append(abs(ea_clean - clean_neu_a))
 
+                # 1) Affective Subspace Removal (P_A = I - Q Q^T)
                 with ActivationHookManager(adapter) as hook_mgr:
                     hook_mgr.register_subspace_removal_hook(
                         layer_idx=mediation_layer,
@@ -659,6 +689,22 @@ def run_real_model_confirmatory(
                 ev_abl, ea_abl = compute_expected_va(log_abl, candidates)
                 att_shifts_v.append(abs(ev_abl - clean_neu_v))
                 att_shifts_a.append(abs(ea_abl - clean_neu_a))
+
+                # 2) Matched-rank Random 2D Subspace Removal (P_rand = I - Q_rand Q_rand^T)
+                with ActivationHookManager(adapter) as hook_mgr_rand:
+                    hook_mgr_rand.register_subspace_removal_hook(
+                        layer_idx=mediation_layer,
+                        orth_basis_q=Q_rand,
+                        mean_vector=mu_neu,
+                        token_indices=patch_pos,
+                        hook_point=HookPoint.POST_MLP_RESID,
+                    )
+                    log_rand, probs_rand = compute_sequence_likelihoods_for_candidates(
+                        model=model, tokenizer=tokenizer, prompt=prompt_self, candidates=candidates, device=device, batch_size=81
+                    )
+                ev_rand, ea_rand = compute_expected_va(log_rand, candidates)
+                rand_shifts_v.append(abs(ev_rand - clean_neu_v))
+                rand_shifts_a.append(abs(ea_rand - clean_neu_a))
 
                 # --- H4: Temporal Emergence across Generation Stages (at temporal_layer_v and temporal_layer_a) ---
                 # Discovery RQ2 準拠: 各 generation stage 固有の表現から推定した局所方向を用いて介入
@@ -813,6 +859,22 @@ def run_real_model_confirmatory(
         else (mediated_attenuation_a, mediated_attenuation_a, mediated_attenuation_a)
     )
 
+    # Random subspace control & Net attenuation vs random 2D
+    sample_atten_rand_v = [n - r for n, r in zip(nat_shifts_v, rand_shifts_v)]
+    sample_atten_rand_a = [n - r for n, r in zip(nat_shifts_a, rand_shifts_a)]
+    sample_net_atten_v = [av - rv for av, rv in zip(sample_atten_v, sample_atten_rand_v)]
+    sample_net_atten_a = [aa - ra for aa, ra in zip(sample_atten_a, sample_atten_rand_a)]
+    pt_net_v, net_v_low, net_v_high = (
+        compute_bootstrap_ci(sample_net_atten_v)
+        if len(sample_net_atten_v) >= 2
+        else (float(np.mean(sample_net_atten_v)) if sample_net_atten_v else 0.0, 0.0, 0.0)
+    )
+    pt_net_a, net_a_low, net_a_high = (
+        compute_bootstrap_ci(sample_net_atten_a)
+        if len(sample_net_atten_a) >= 2
+        else (float(np.mean(sample_net_atten_a)) if sample_net_atten_a else 0.0, 0.0, 0.0)
+    )
+
     # Secondary: Attenuation ratio (filtered to natural_shift > MIN_NATURAL_SHIFT=0.05 to avoid division by near-zero)
     MIN_NATURAL_SHIFT = 0.05
     valid_ratios_v = [(n - a) / n for n, a in zip(nat_shifts_v, att_shifts_v) if n > MIN_NATURAL_SHIFT]
@@ -873,9 +935,9 @@ def run_real_model_confirmatory(
     h2_pass_a = bool(slope_a_ci[0] > min_slope)
     h2_pass = bool(h2_pass_v and h2_pass_a)
 
-    # Primary: Absolute mediated attenuation CI lower > min_atten_ci_low
-    h3_pass_v = bool(atten_v_low > min_atten_ci_low)
-    h3_pass_a = bool(atten_a_low > min_atten_ci_low)
+    # Primary: Absolute mediated attenuation CI lower > min_atten_ci_low AND net attenuation vs random CI lower > 0
+    h3_pass_v = bool(atten_v_low > min_atten_ci_low and net_v_low > 0.0)
+    h3_pass_a = bool(atten_a_low > min_atten_ci_low and net_a_low > 0.0)
     h3_pass = bool(h3_pass_v and h3_pass_a)
 
     # Temporal emergence = decodability != uniform causal leverage (CI lower > min_contrast)
@@ -891,6 +953,9 @@ def run_real_model_confirmatory(
         "primary_grounding": "reader_prediction",
         "model_id": model_id,
         "num_layers": num_layers,
+        "n_total_pairs": len(eval_df["pair_id"].unique()) if "pair_id" in eval_df.columns else len(eval_df),
+        "n_intervention_samples": len(intervention_sample_indices),
+        "sample_ids": [str(eval_df.iloc[i].get("id", i)) for i in intervention_sample_indices],
         "h1_dissociation": {
             "valence": dissoc_v,
             "arousal": dissoc_a,
@@ -931,6 +996,24 @@ def run_real_model_confirmatory(
                 "attenuation_ratio_ci": [float(att_a_low), float(att_a_high)],
                 "attenuation_ratio_display": float(np.clip(attenuation_ratio_a, 0.0, 1.0)),
                 "n_valid_ratio": len(valid_ratios_a),
+            },
+            "random_subspace_control": {
+                "valence": {
+                    "attenuation_random": float(np.mean(sample_atten_rand_v)) if sample_atten_rand_v else 0.0,
+                    "net_attenuation_vs_random": {
+                        "mean": float(pt_net_v),
+                        "ci_lower": float(net_v_low),
+                        "ci_upper": float(net_v_high),
+                    },
+                },
+                "arousal": {
+                    "attenuation_random": float(np.mean(sample_atten_rand_a)) if sample_atten_rand_a else 0.0,
+                    "net_attenuation_vs_random": {
+                        "mean": float(pt_net_a),
+                        "ci_lower": float(net_a_low),
+                        "ci_upper": float(net_a_high),
+                    },
+                },
             },
             "natural_shift": float(natural_shift_v),  # 互換用
             "attenuated_shift": float(attenuated_shift_v),

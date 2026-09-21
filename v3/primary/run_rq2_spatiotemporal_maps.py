@@ -209,6 +209,13 @@ def run_real_spatiotemporal_maps(
        Primary Grounding: Reader Prediction (感情認知予測値) に基づくデコード能および情動方向
        Secondary Grounding: Self-Report (自己報告値) に基づくデコード能
     """
+    if causal_reference_alpha not in alpha_sweep:
+        raise ValueError(
+            f"causal_reference_alpha={causal_reference_alpha} "
+            f"must be present in alpha_sweep={alpha_sweep}"
+        )
+    ref_alpha_idx = alpha_sweep.index(causal_reference_alpha)
+
     registry = get_registry()
     fam_cfg = registry.get_family_by_model_id(model_id)
     model_spec = None
@@ -377,25 +384,17 @@ def run_real_spatiotemporal_maps(
 
             H = np.array(h_stage)  # (N, D)
 
-            # 2. デコード能 D: Held-out Ridge R^2 (GroupKFold CV by pair_id if available)
-            if "pair_id" in eval_df.columns:
-                from sklearn.model_selection import GroupKFold
-                groups = eval_df["pair_id"].values
-                n_groups = len(np.unique(groups))
-                if n_groups < 2:
-                    if not dry_run:
-                        raise ValueError("At least two independent pair groups are required for GroupKFold in V3 Primary.")
-                    from sklearn.model_selection import KFold
-                    cv_splits = list(KFold(n_splits=min(3, N), shuffle=True, random_state=seed).split(H))
-                else:
-                    n_splits = min(3, n_groups)
-                    cv = GroupKFold(n_splits=n_splits)
-                    cv_splits = list(cv.split(H, y_v, groups=groups))
-            else:
-                if not dry_run:
-                    raise ValueError("V3 Primary requires pair_id for evaluation.")
-                from sklearn.model_selection import KFold
-                cv_splits = list(KFold(n_splits=min(3, N), shuffle=True, random_state=seed).split(H))
+            # 2. デコード能 D: Held-out Ridge R^2 (GroupKFold CV by pair_id)
+            if "pair_id" not in eval_df.columns:
+                raise ValueError("V3 Primary requires pair_id for evaluation.")
+            from sklearn.model_selection import GroupKFold
+            groups = eval_df["pair_id"].values
+            n_groups = len(np.unique(groups))
+            if n_groups < 2:
+                raise ValueError("At least two independent pair groups are required.")
+            n_splits = min(3, n_groups)
+            cv = GroupKFold(n_splits=n_splits)
+            cv_splits = list(cv.split(H, y_v, groups=groups))
 
             preds_v, preds_a = np.zeros(N), np.zeros(N)
             preds_v_self, preds_a_self = np.zeros(N), np.zeros(N)

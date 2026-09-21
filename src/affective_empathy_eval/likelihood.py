@@ -49,6 +49,7 @@ def build_vad_candidates() -> list[dict[str, Any]]:
 def compute_expected_va(
     log_scores: torch.Tensor | np.ndarray,
     candidates: list[dict[str, Any]] | None = None,
+    temperature: float = 1.0,
 ) -> tuple[float, float]:
     """
     未正規化の対数尤度（log-scores / unnormalized log-likelihood）から Softmax 確率分布を一度だけ求め、
@@ -60,11 +61,12 @@ def compute_expected_va(
     if candidates is None:
         candidates = build_va_candidates()
 
+    temp = max(float(temperature), 1e-6)
     if isinstance(log_scores, torch.Tensor):
-        probs = F.softmax(log_scores, dim=-1).cpu().numpy()
+        probs = F.softmax(log_scores / temp, dim=-1).cpu().numpy()
     else:
         log_scores = np.asarray(log_scores, dtype=np.float64)
-        probs = np.exp(log_scores - np.max(log_scores))
+        probs = np.exp((log_scores - np.max(log_scores)) / temp)
         probs = probs / np.sum(probs)
 
     v_values = np.array([c["valence"] for c in candidates], dtype=np.float64)
@@ -387,18 +389,20 @@ def compute_sequence_likelihoods_for_candidates(
     device: str | torch.device = "cuda",
     batch_size: int = 81,
     normalize_length: bool = True,
+    temperature: float = 1.0,
     delimiter: str = "",
     generation_patch: dict[str, Any] | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     プロンプトに続く各候補文字列（81通りのVA JSON、729通りのVAD JSON等）について、
-    完全な条件付き対数尤度 sum_t log P(token_t | prompt + cand_{<t}) をバッチ計算する。
+    条件付き対数尤度（Primary: normalize_length=True の場合 token mean log likelihood
+    (1/|T_cand|) * sum_t log P(token_t | prompt + cand_{<t})）をバッチ計算する。
     BPE境界の不一致を防ぐため、full_text = prompt + delimiter + candidate を結合した
     Joint Tokenization を行い、prompt 終端以降の候補トークンのみを厳密にスコアリングする。
 
     戻り値:
-        log_likelihoods: (num_candidates,) - 各候補の対数尤度配列
-        probs: (num_candidates,) - Softmax により正規化された確率分布
+        log_likelihoods: (num_candidates,) - 各候補の対数尤度配列（token mean または raw sum）
+        probs: (num_candidates,) - Softmax(log_likelihoods / temperature) により正規化された確率分布
     """
     if candidates is None:
         cand_dicts = build_va_candidates()
@@ -535,7 +539,7 @@ def compute_sequence_likelihoods_for_candidates(
 
     # Softmax により正規化された確率分布を計算
     l_max = np.max(log_likelihoods)
-    exp_ll = np.exp(log_likelihoods - l_max)
+    exp_ll = np.exp((log_likelihoods - l_max) / max(float(temperature), 1e-6))
     probs = exp_ll / np.sum(exp_ll)
 
     return log_likelihoods, probs

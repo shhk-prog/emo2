@@ -387,6 +387,13 @@ def main():
         "candidate_hash": candidate_hash,
         "prompt_hash": prompt_hash,
         "actual_dtype": actual_dtype_str,
+        "sequence_likelihood": {
+            "normalization": "token_mean",
+            "normalize_length": True,
+            "temperature": 1.0,
+            "candidate_schema": "VAD_729",
+            "prompt_format": "v1_emobank_3way_vad_json",
+        },
     }
     expected_config_hash = compute_string_or_dict_hash(manifest_config)
 

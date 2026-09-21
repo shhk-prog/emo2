@@ -43,6 +43,10 @@ from affective_empathy_eval.manifests import (
     DEFAULT_CODE_VERSION,
 )
 from affective_empathy_eval.models.adapters import get_model_adapter
+from affective_empathy_eval.models.hooks import (
+    ActivationHookManager,
+    HookPoint,
+)
 from affective_empathy_eval.data import (
     describe_loaded_frame,
     load_v3_matched_pair_table,
@@ -174,8 +178,8 @@ def simulate_path_mediation_confirmation(
         "mediator_layer": mediator_layer,
         "mediator_relative_depth": med_depth,
         "n_total": n,
-        "n_valid_ratio_v": n,
-        "n_valid_ratio_a": n,
+        "n_valid_ratio_v": n_valid_v,
+        "n_valid_ratio_a": n_valid_a,
         "min_natural_shift_threshold": 0.05,
         "valence": {
             "total_affective_shift": {"mean": te_v_mean, "ci_lower": te_v_low, "ci_upper": te_v_high},
@@ -188,6 +192,24 @@ def simulate_path_mediation_confirmation(
             "residual_shift_after_blocking": {"mean": res_a_mean, "ci_lower": res_a_low, "ci_upper": res_a_high},
             "mediated_attenuation": {"mean": atten_a_mean, "ci_lower": atten_a_low, "ci_upper": atten_a_high},
             "attenuation_ratio": {"mean": ratio_a_mean, "ci_lower": ratio_a_low, "ci_upper": ratio_a_high},
+        },
+        "random_subspace_control": {
+            "valence": {
+                "attenuation_random": float(atten_v_mean * 0.2),
+                "net_attenuation_vs_random": {
+                    "mean": float(atten_v_mean * 0.8),
+                    "ci_lower": float(atten_v_low * 0.8),
+                    "ci_upper": float(atten_v_high * 0.8),
+                },
+            },
+            "arousal": {
+                "attenuation_random": float(atten_a_mean * 0.2),
+                "net_attenuation_vs_random": {
+                    "mean": float(atten_a_mean * 0.8),
+                    "ci_lower": float(atten_a_low * 0.8),
+                    "ci_upper": float(atten_a_high * 0.8),
+                },
+            },
         },
         "dry_run": True,
     }
@@ -498,6 +520,7 @@ def run_real_path_mediation(
     # Confirmation セットで自然な情動変位 (Total affective shift) と Mediator 遮断後の残差変位 (Residual shift) を実測
     te_v_list, te_a_list = [], []
     residual_v_list, residual_a_list = [], []
+    residual_rand_v_list, residual_rand_a_list = [], []
 
     with torch.no_grad():
         for _, row in conf_df.iterrows():
@@ -636,6 +659,20 @@ def run_real_path_mediation(
     else:
         ratio_a_mean, ratio_a_low, ratio_a_high = np.nan, np.nan, np.nan
 
+    if len(net_atten_v) >= 2:
+        net_v_mean, net_v_low, net_v_high = compute_bootstrap_ci(net_atten_v, n_boot=bootstrap_n)
+    elif len(net_atten_v) == 1:
+        net_v_mean, net_v_low, net_v_high = float(net_atten_v[0]), float(net_atten_v[0]), float(net_atten_v[0])
+    else:
+        net_v_mean, net_v_low, net_v_high = 0.0, 0.0, 0.0
+
+    if len(net_atten_a) >= 2:
+        net_a_mean, net_a_low, net_a_high = compute_bootstrap_ci(net_atten_a, n_boot=bootstrap_n)
+    elif len(net_atten_a) == 1:
+        net_a_mean, net_a_low, net_a_high = float(net_atten_a[0]), float(net_atten_a[0]), float(net_atten_a[0])
+    else:
+        net_a_mean, net_a_low, net_a_high = 0.0, 0.0, 0.0
+
     confirmation_res = {
         "primary_grounding": "reader_prediction",
         "mediator_layer": mediator_layer,
@@ -658,17 +695,25 @@ def run_real_path_mediation(
         },
         "random_subspace_control": {
             "valence": {
-                "attenuation_random": float(np.mean(atten_rand_samples_v)),
-                "net_attenuation_vs_random": float(np.mean(net_atten_v)),
+                "attenuation_random": float(np.mean(atten_rand_samples_v)) if len(atten_rand_samples_v) > 0 else 0.0,
+                "net_attenuation_vs_random": {
+                    "mean": net_v_mean,
+                    "ci_lower": net_v_low,
+                    "ci_upper": net_v_high,
+                },
             },
             "arousal": {
-                "attenuation_random": float(np.mean(atten_rand_samples_a)),
-                "net_attenuation_vs_random": float(np.mean(net_atten_a)),
+                "attenuation_random": float(np.mean(atten_rand_samples_a)) if len(atten_rand_samples_a) > 0 else 0.0,
+                "net_attenuation_vs_random": {
+                    "mean": net_a_mean,
+                    "ci_lower": net_a_low,
+                    "ci_upper": net_a_high,
+                },
             },
         },
     }
 
-    return discovery_res, confirmation_res
+    return discovery_summary, confirmation_res
 
 
 def main():

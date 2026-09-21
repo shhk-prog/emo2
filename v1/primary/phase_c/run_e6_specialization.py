@@ -10,6 +10,7 @@ through Targeted Ablation and Linear Mixed-Effects Model (LMM) interaction testi
 
 import argparse
 import json
+import logging
 import os
 from pathlib import Path
 import re
@@ -20,6 +21,12 @@ from scipy import stats
 import torch
 from tqdm import tqdm
 import yaml
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+)
+logger = logging.getLogger(__name__)
 try:
     from transformers import AutoModelForCausalLM, AutoTokenizer
 except ImportError:  # --dry-run は transformers 未導入環境でも起動できるようにする

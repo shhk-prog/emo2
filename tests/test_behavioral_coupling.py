@@ -136,3 +136,68 @@ def test_analyze_model_aipsy_coupling_and_dose_response(tmp_path):
     v_rq1 = df_rq1[(df_rq1["task"] == "r") & (df_rq1["dimension"] == "V")].iloc[0]
     assert v_rq1["mean_diff_ci_low"] <= v_rq1["mean_diff"] <= v_rq1["mean_diff_ci_high"]
     assert v_rq1["dz_ci_low"] <= v_rq1["d_z"] <= v_rq1["dz_ci_high"]
+
+
+def test_summarize_behavioral_aipsy_artifacts_exist(tmp_path):
+    """
+    behavioral_aipsy_*_4split.csv を配置し、summarize_behavioral_aipsy.py のメイン関数を実行して
+    4つの導出CSV（Sensitivity, Dose-Response, Specificity, Coupling）が実ファイルとして
+    生成されることを厳密に検証する。
+    """
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    input_dir = tmp_path / "raw_aipsy"
+    input_dir.mkdir(parents=True, exist_ok=True)
+    output_dir = tmp_path / "derived_summary"
+
+    # canonical 形式のファイル名でモックCSVを作成
+    n_pairs = 10
+    rows = []
+    for i in range(n_pairs):
+        rows.append({
+            "split": "neutral", "pair_id": f"p_{i}", "triplet_id": f"t_{i}", "emotion": "grief",
+            "r_ev": 5.0, "s_ev": 5.0, "w_ev": 5.0, "r_ea": 5.0, "s_ea": 5.0, "w_ea": 5.0, "r_ed": 5.0, "s_ed": 5.0, "w_ed": 5.0,
+        })
+        rows.append({
+            "split": "clinical", "pair_id": f"p_{i}", "triplet_id": f"t_{i}", "emotion": "grief",
+            "r_ev": 3.0, "s_ev": 3.5, "w_ev": 3.0, "r_ea": 4.0, "s_ea": 4.5, "w_ea": 4.0, "r_ed": 4.0, "s_ed": 4.0, "w_ed": 4.0,
+        })
+        rows.append({
+            "split": "moderate", "pair_id": f"p_{i}", "triplet_id": f"t_{i}", "emotion": "grief",
+            "r_ev": 4.0, "s_ev": 4.2, "w_ev": 4.0, "r_ea": 4.5, "s_ea": 4.8, "w_ea": 4.5, "r_ed": 4.5, "s_ed": 4.5, "w_ed": 4.5,
+        })
+        rows.append({
+            "split": "complex_neutral", "pair_id": f"p_{i}", "triplet_id": f"t_{i}", "emotion": "complex_neutral",
+            "r_ev": 5.1, "s_ev": 4.9, "w_ev": 5.0, "r_ea": 5.1, "s_ea": 5.0, "w_ea": 5.0, "r_ed": 5.0, "s_ed": 5.0, "w_ed": 5.0,
+        })
+
+    df = pd.DataFrame(rows)
+    csv_file = input_dir / "behavioral_aipsy_qwen_base_4split.csv"
+    df.to_csv(csv_file, index=False)
+
+    cmd = [
+        sys.executable,
+        "behavioral/analysis/summarize_behavioral_aipsy.py",
+        "--input-dir", str(input_dir),
+        "--out-dir", str(output_dir),
+    ]
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    assert res.returncode == 0, f"summarize script failed: {res.stderr}"
+
+    sensitivity_file = output_dir / "behavioral_aipsy_sensitivity_rq1.csv"
+    dose_response_file = output_dir / "behavioral_aipsy_dose_response_rq2.csv"
+    specificity_file = output_dir / "behavioral_aipsy_specificity_rq3.csv"
+    coupling_file = output_dir / "behavioral_aipsy_coupling_rq4.csv"
+
+    assert sensitivity_file.exists(), "RQ1 Sensitivity file not found"
+    assert dose_response_file.exists(), "RQ2 Dose-Response file not found"
+    assert specificity_file.exists(), "RQ3 Specificity file not found"
+    assert coupling_file.exists(), "RQ4 Coupling file not found"
+
+    # 空ファイルでないことも検証
+    assert pd.read_csv(sensitivity_file).shape[0] > 0
+    assert pd.read_csv(dose_response_file).shape[0] > 0
+    assert pd.read_csv(specificity_file).shape[0] > 0
+    assert pd.read_csv(coupling_file).shape[0] > 0

@@ -176,6 +176,7 @@ from affective_empathy_eval.statistics import (
     compute_correlation_with_ci,
     compute_d_z,
     compute_paired_cohen_dz,
+    compute_paired_permutation_p_value,
     fit_sample_level_lmm,
     generate_derangement,
     paired_family_comparison,
@@ -295,6 +296,7 @@ __all__ = [
     "cluster_based_permutation_test",
     "compute_paired_cohen_dz",
     "compute_d_z",
+    "compute_paired_permutation_p_value",
     "generate_derangement",
     "compute_correlation_with_ci",
     # IO

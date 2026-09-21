@@ -402,3 +402,25 @@ def compute_correlation_with_ci(
 # Backward-compatibility alias
 compute_d_z = compute_paired_cohen_dz
 
+
+def compute_paired_permutation_p_value(
+    diffs: list[float] | np.ndarray,
+    n_permutations: int = 10000,
+    seed: int = 42,
+) -> float:
+    """
+    対応のある差分 diff = x - y に対する両側 Paired Sign-Flip Permutation Test。
+    帰無仮説: E[diff] = 0 (差分の符号がランダム反転可能)。
+    """
+    d_arr = np.asarray(diffs, dtype=np.float64)
+    n = len(d_arr)
+    if n < 2:
+        return 1.0
+
+    obs_stat = abs(float(np.mean(d_arr)))
+    rng = np.random.default_rng(seed)
+    signs = rng.choice([-1.0, 1.0], size=(n_permutations, n))
+    perm_means = np.abs(np.mean(signs * d_arr, axis=1))
+    p_val = float((np.sum(perm_means >= obs_stat) + 1) / (n_permutations + 1))
+    return p_val
+

@@ -42,6 +42,10 @@ sequence_likelihood:
   normalize_length: true
   temperature: 1.0
 
+# RQ4 回復パッチング設定
+rq4:
+  procrustes_pca_dim: 64
+
 # 出力設定
 output:
   raw_dir: "v2/results/raw"

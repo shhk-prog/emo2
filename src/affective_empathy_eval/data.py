@@ -1,7 +1,11 @@
+import logging
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 V3_AFFECTIVE_CONDITIONS = frozenset({"clinical", "affective"})
 V3_NEUTRAL_CONDITIONS = frozenset({"neutral"})
@@ -262,8 +266,8 @@ def load_v3_matched_pair_table(
             try:
                 ex_path.parent.mkdir(parents=True, exist_ok=True)
                 pd.DataFrame(skipped_records).to_csv(ex_path, index=False)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(f"Failed to save V3 exclusions to {ex_path}: {e}")
 
     if not records:
         raise ValueError(

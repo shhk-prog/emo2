@@ -76,6 +76,7 @@ def run_recovery_patching_for_task(
     train_ratio: float = 0.7,
     train_indices: Optional[list[int]] = None,
     eval_indices: Optional[list[int]] = None,
+    procrustes_pca_dim: int = 64,
 ) -> dict[str, Any]:
     """
     指定タスク（Reader または Self）において、Base 活性化の Instruct への層別パッチングを実施。
@@ -369,7 +370,7 @@ def run_recovery_patching_for_task(
             assert set(train_indices).isdisjoint(set(eval_indices)), "Train and eval indices must be disjoint!"
 
     for l in range(num_layers):
-        # SVD による直交 Procrustes 行列 R の学習 (Train split のみ)
+        # Train-only PCA -> Procrustes (Rank-deficiency 防止: k = min(procrustes_pca_dim, n_train - 1, hidden_dim))
         H_b_train = torch.cat([base_activations[l][idx].squeeze() for idx in train_indices], dim=0).view(len(train_indices), -1).cpu().float().numpy()
         H_i_train = torch.cat([inst_activations[l][idx].squeeze() for idx in train_indices], dim=0).view(len(train_indices), -1).cpu().float().numpy()
 
@@ -377,10 +378,25 @@ def run_recovery_patching_for_task(
         mu_i = np.mean(H_i_train, axis=0, keepdims=True)
         X_b = H_b_train - mu_b
         X_i = H_i_train - mu_i
-        M = X_b.T @ X_i
-        U, _, Vh = np.linalg.svd(M, full_matrices=False)
-        R_l = U @ Vh  # (D, D)
-        R_l_torch = torch.tensor(R_l, dtype=torch.float32, device=device)
+
+        hidden_dim = H_b_train.shape[1]
+        n_train_pts = len(train_indices)
+        k = min(int(procrustes_pca_dim), max(1, n_train_pts - 1), hidden_dim)
+
+        # 共通 PCA: 結合データ X_joint = [X_b; X_i] から共通主成分基底 V_k (D, k) を抽出
+        X_joint = np.vstack([X_b, X_i])
+        _, _, Vh_joint = np.linalg.svd(X_joint, full_matrices=False)
+        V_k = Vh_joint[:k, :].T  # (D, k)
+
+        # k 次元部分空間に射影して直交 Procrustes を学習
+        Z_b = X_b @ V_k  # (n_train, k)
+        Z_i = X_i @ V_k  # (n_train, k)
+        M_k = Z_b.T @ Z_i  # (k, k)
+        U_k, _, Vh_k = np.linalg.svd(M_k, full_matrices=False)
+        R_k = U_k @ Vh_k  # (k, k)
+
+        V_k_torch = torch.tensor(V_k, dtype=torch.float32, device=device)
+        R_k_torch = torch.tensor(R_k, dtype=torch.float32, device=device)
         mu_b_torch = torch.tensor(mu_b, dtype=torch.float32, device=device)
         mu_i_torch = torch.tensor(mu_i, dtype=torch.float32, device=device)
 
@@ -418,9 +434,14 @@ def run_recovery_patching_for_task(
             sample_ratios.append(ratio)
             sample_ratios_by_layer[l][i] = ratio
 
-            # Condition B: Aligned Base -> Instruct patch (Procrustes aligned)
+            # Condition B: Aligned Base -> Instruct patch (PCA-Procrustes on subspace, identity on residual)
             base_flat = base_act_tensor.view(1, -1).float()
-            base_aligned = (base_flat - mu_b_torch) @ R_l_torch + mu_i_torch
+            x = base_flat - mu_b_torch
+            z = x @ V_k_torch
+            x_sub = z @ V_k_torch.T
+            x_resid = x - x_sub
+            z_aligned = z @ R_k_torch
+            base_aligned = z_aligned @ V_k_torch.T + x_resid + mu_i_torch
             base_aligned_tensor = base_aligned.view_as(base_act_tensor)
 
             with ActivationHookManager(adapter_inst) as hook_mgr_aligned:
@@ -590,6 +611,7 @@ def run_recovery_patching_for_family(
     n_boot: int = 1000,
     seed: int = 42,
     train_ratio: float = 0.7,
+    procrustes_pca_dim: int = 64,
 ) -> dict[str, Any]:
     """
     1ファミリーについて Base/Instruct モデルをロードし、Reader と Self の両タスクで回復パッチングを実行
@@ -668,6 +690,7 @@ def run_recovery_patching_for_family(
         train_ratio=train_ratio,
         train_indices=train_indices,
         eval_indices=eval_indices,
+        procrustes_pca_dim=procrustes_pca_dim,
     )
 
     # 2. Self タスクでの回復パッチング
@@ -688,6 +711,7 @@ def run_recovery_patching_for_family(
         train_ratio=train_ratio,
         train_indices=train_indices,
         eval_indices=eval_indices,
+        procrustes_pca_dim=procrustes_pca_dim,
     )
 
     # メモリ解放
@@ -837,6 +861,7 @@ def main():
 
         train_ratio = float(v2_config.get("dataset", {}).get("train_ratio", 0.7))
         logger.info(f"--- Running Recovery Patching for Family: {fam_id} (train_ratio={train_ratio}) ---")
+        procrustes_pca_dim = int(v2_config.get("rq4", {}).get("procrustes_pca_dim", 64))
         res = run_recovery_patching_for_family(
             fam_id=fam_id,
             fam_cfg=fam_cfg,
@@ -846,6 +871,7 @@ def main():
             n_boot=n_boot,
             seed=v2_config.get("seed", 42),
             train_ratio=train_ratio,
+            procrustes_pca_dim=procrustes_pca_dim,
         )
         res["dry_run"] = bool(args.dry_run)
         all_recovery_results[fam_id] = res

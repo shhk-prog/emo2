@@ -52,6 +52,7 @@ from affective_empathy_eval.likelihood import (
     compute_sequence_likelihoods_for_candidates,
 )
 from affective_empathy_eval.manifests import create_run_manifest, is_manifest_matching
+from affective_empathy_eval.statistics import compute_paired_permutation_p_value
 from affective_empathy_eval.models.registry import (
     add_model_selection_args,
     resolve_architecture_dims,
@@ -112,7 +113,11 @@ def compute_cache_metadata(
     tokenizer_revision: str | None = None,
     dtype: str | None = None,
 ) -> Dict[str, Any]:
-    import transformers
+    try:
+        import transformers
+        transformers_version = str(transformers.__version__)
+    except ImportError:
+        transformers_version = "unavailable"
     import torch
 
     dataset_str = "".join(
@@ -134,7 +139,7 @@ def compute_cache_metadata(
         "tokenizer_revision": str(tokenizer_revision or getattr(tokenizer, "name_or_path", "unknown")),
         "dtype": str(dtype or "unknown"),
         "torch_version": str(torch.__version__),
-        "transformers_version": str(transformers.__version__),
+        "transformers_version": transformers_version,
         "git_commit": get_git_commit(),
         "dataset_hash": dataset_hash,
         "prompt_hash": prompt_hash,
@@ -487,6 +492,13 @@ def main():
         "split_seed": args.split_seed,
         "dataset_hash": dataset_hash,
         "zero_forward_optimized": True,
+        "sequence_likelihood": {
+            "normalization": "token_mean",
+            "normalize_length": True,
+            "temperature": 1.0,
+            "candidate_schema": "VA_81",
+            "prompt_format": "v1_phase_c_aipsy_chat",
+        },
     }
     expected_config_hash = compute_string_or_dict_hash(manifest_config)
 
@@ -640,11 +652,7 @@ def main():
         [[c["valence"], c["arousal"], c["dominance"]] for c in cand_dicts]
     )
 
-    aipsy_path = Path("v1/data/processed/aipsy_4split_all.csv")
-    if not aipsy_path.exists():
-        aipsy_path = Path("data/processed/aipsy_4split_all.csv")
-
-    df_aipsy = pd.read_csv(aipsy_path)
+    df_aipsy = pd.read_csv(data_file)
     df_clin = df_aipsy[df_aipsy["split"] == "clinical"].copy()
     df_neut = df_aipsy[df_aipsy["split"] == "neutral"].copy()
 
@@ -740,7 +748,7 @@ def main():
         candidate_schema="vad_triplets_729",
         model_revision=args.model_revision,
         tokenizer_revision=getattr(tokenizer, "name_or_path", "unknown"),
-        dtype=str(torch_dtype),
+        dtype=str(actual_torch_dtype),
     )
 
     # Baselines
@@ -1609,8 +1617,11 @@ def main():
                                 _, al_p_val_v = stats.ttest_rel(aligned_matched_shifts_v, aligned_random_shifts_v)
                             except Exception:
                                 al_p_val_v = 1.0
+                            al_perm_p_val_v = compute_paired_permutation_p_value(
+                                aligned_matched_shifts_v - aligned_random_shifts_v, n_permutations=10000, seed=42
+                            )
                         else:
-                            al_dz_v, al_ci_low_v, al_ci_high_v, al_p_val_v = 0.0, 0.0, 0.0, 1.0
+                            al_dz_v, al_ci_low_v, al_ci_high_v, al_p_val_v, al_perm_p_val_v = 0.0, 0.0, 0.0, 1.0, 1.0
 
                         if not is_zero_alpha and len(aligned_matched_shifts_a) > 2:
                             al_dz_a = compute_paired_cohen_dz(aligned_matched_shifts_a, aligned_random_shifts_a, ddof=1)
@@ -1621,8 +1632,11 @@ def main():
                                 _, al_p_val_a = stats.ttest_rel(aligned_matched_shifts_a, aligned_random_shifts_a)
                             except Exception:
                                 al_p_val_a = 1.0
+                            al_perm_p_val_a = compute_paired_permutation_p_value(
+                                aligned_matched_shifts_a - aligned_random_shifts_a, n_permutations=10000, seed=42
+                            )
                         else:
-                            al_dz_a, al_ci_low_a, al_ci_high_a, al_p_val_a = 0.0, 0.0, 0.0, 1.0
+                            al_dz_a, al_ci_low_a, al_ci_high_a, al_p_val_a, al_perm_p_val_a = 0.0, 0.0, 0.0, 1.0, 1.0
 
                         # Secondary raw signed means
                         mean_m_v = float(np.mean(matched_shifts_v))
@@ -1653,11 +1667,18 @@ def main():
                                 _, p_val_a = stats.ttest_rel(matched_shifts_a, random_shifts_a)
                             except Exception:
                                 p_val_v, p_val_a = 1.0, 1.0
+                            perm_p_val_v = compute_paired_permutation_p_value(
+                                matched_shifts_v - random_shifts_v, n_permutations=10000, seed=42
+                            )
+                            perm_p_val_a = compute_paired_permutation_p_value(
+                                matched_shifts_a - random_shifts_a, n_permutations=10000, seed=42
+                            )
                         else:
                             dz_v, dz_a = 0.0, 0.0
                             ci_low_v, ci_high_v = 0.0, 0.0
                             ci_low_a, ci_high_a = 0.0, 0.0
                             p_val_v, p_val_a = 1.0, 1.0
+                            perm_p_val_v, perm_p_val_a = 1.0, 1.0
 
                         e4_patching_records.append(
                             {
@@ -1684,6 +1705,8 @@ def main():
                                 "aligned_ci_95_high_A": al_ci_high_a,
                                 "aligned_p_val_V": al_p_val_v,
                                 "aligned_p_val_A": al_p_val_a,
+                                "aligned_permutation_p_V": al_perm_p_val_v,
+                                "aligned_permutation_p_A": al_perm_p_val_a,
                                 "transfer_ratio_V": transfer_ratio_v,
                                 "transfer_ratio_A": transfer_ratio_a,
                                 # Secondary: Raw signed shifts
@@ -1707,6 +1730,8 @@ def main():
                                 "ci_95_high_A": ci_high_a,
                                 "p_val_V": p_val_v,
                                 "p_val_A": p_val_a,
+                                "permutation_p_V": perm_p_val_v,
+                                "permutation_p_A": perm_p_val_a,
                             }
                         )
 
@@ -1723,8 +1748,8 @@ def main():
 
             # Determine E3 peak layer for confirmatory condition fixing (Item 1: discovery_mag_reader only)
             e3_peak_layer = None
-            if e3_patching_records:
-                df_e3_temp = pd.DataFrame(e3_patching_records)
+            if e3_causal_records:
+                df_e3_temp = pd.DataFrame(e3_causal_records)
                 peak_col = "discovery_mag_reader"
                 if peak_col not in df_e3_temp.columns:
                     if not args.dry_run:
@@ -1751,10 +1776,18 @@ def main():
                     df_e4["aligned_p_fdr_V"] = apply_fdr_bh(df_e4["aligned_p_val_V"].tolist())
                 if "aligned_p_val_A" in df_e4.columns:
                     df_e4["aligned_p_fdr_A"] = apply_fdr_bh(df_e4["aligned_p_val_A"].tolist())
+                if "aligned_permutation_p_V" in df_e4.columns:
+                    df_e4["aligned_p_fdr_perm_V"] = apply_fdr_bh(df_e4["aligned_permutation_p_V"].tolist())
+                if "aligned_permutation_p_A" in df_e4.columns:
+                    df_e4["aligned_p_fdr_perm_A"] = apply_fdr_bh(df_e4["aligned_permutation_p_A"].tolist())
                 if "p_val_V" in df_e4.columns:
                     df_e4["p_fdr_V"] = apply_fdr_bh(df_e4["p_val_V"].tolist())
                 if "p_val_A" in df_e4.columns:
                     df_e4["p_fdr_A"] = apply_fdr_bh(df_e4["p_val_A"].tolist())
+                if "permutation_p_V" in df_e4.columns:
+                    df_e4["p_fdr_perm_V"] = apply_fdr_bh(df_e4["permutation_p_V"].tolist())
+                if "permutation_p_A" in df_e4.columns:
+                    df_e4["p_fdr_perm_A"] = apply_fdr_bh(df_e4["permutation_p_A"].tolist())
 
             df_e4.to_csv(e4_csv_path, index=False)
             df_e4.to_csv(modular_e4_csv, index=False)

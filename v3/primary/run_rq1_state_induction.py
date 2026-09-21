@@ -244,6 +244,11 @@ def run_real_state_induction(
     specificity_reference_alpha: float = 1.0,
     device: str = "cpu",
     batch_size: int = 81,
+    train_ratio: float = 0.7,
+    seed: int = 42,
+    num_random_controls: int = 5,
+    normalize_length: bool = True,
+    temperature: float = 1.0,
     dry_run: bool = False,
 ) -> Dict[str, Any]:
     """
@@ -295,8 +300,8 @@ def run_real_state_induction(
     adapter = get_model_adapter(model, fam_cfg)
 
     # 1. データを config の train_ratio に基づき厳格分割 (pair_id に基づく Group split)
-    train_ratio = float(v3_cfg.get("dataset", {}).get("train_ratio", 0.7))
-    base_seed = int(v3_cfg.get("seed", 42))
+    train_ratio = float(train_ratio)
+    base_seed = int(seed)
     rng = np.random.RandomState(base_seed)
     if "pair_id" in df.columns and df["pair_id"].nunique() > 1:
         unique_pairs = list(df["pair_id"].unique())
@@ -394,7 +399,7 @@ def run_real_state_induction(
     logger.info(f"Reader-Grounded vs Self-Derived Direction Alignment: cos_V={alignment_v:.3f}, cos_A={alignment_a:.3f}")
 
     Q_sub, _ = compute_orthonormal_subspace(d_v, d_a)  # (D, 2)
-    num_random_controls = int(v3_cfg.get("interventions", {}).get("num_random_controls", 5))
+    num_random_controls = int(num_random_controls)
     rand_controls_v, perp_controls_v = [], []
     rand_controls_a, perp_controls_a = [], []
     for k in range(max(1, num_random_controls)):
@@ -961,6 +966,7 @@ def main():
     else:
         logger.info(f"Executing REAL state induction pipeline for {target_model_id}...")
         spec_ref_alpha = float(v3_cfg.get("interventions", {}).get("specificity_reference_alpha", 1.0))
+        sl_cfg = v3_cfg.get("sequence_likelihood", {})
         results = run_real_state_induction(
             df=df,
             alpha_grid=alpha_grid,
@@ -969,6 +975,11 @@ def main():
             specificity_reference_alpha=spec_ref_alpha,
             device=args.device,
             batch_size=v3_cfg.get("inference", {}).get("batch_size", 81),
+            train_ratio=float(v3_cfg.get("dataset", {}).get("train_ratio", 0.7)),
+            seed=int(v3_cfg.get("seed", 42)),
+            num_random_controls=int(v3_cfg.get("interventions", {}).get("num_random_controls", 5)),
+            normalize_length=bool(sl_cfg.get("normalize_length", True)),
+            temperature=float(sl_cfg.get("temperature", 1.0)),
             dry_run=bool(args.dry_run),
         )
 

@@ -84,6 +84,7 @@ confirmatory:
   # Frozen before confirmatory-family evaluation.
   # Values must not be re-selected using Llama/Gemma/OLMo outcomes.
   selection_source: "qwen_discovery_frozen"
+  n_intervention_samples_per_fold: 5
   sufficiency_relative_depth: 0.5
   temporal_relative_depth_v: 0.65
   temporal_relative_depth_a: 0.65

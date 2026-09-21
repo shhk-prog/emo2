@@ -1,0 +1,45 @@
+{
+  "execution_status": "success",
+  "execution_success": true,
+  "stage": "v1",
+  "experiment_id": "v1_e2_alignment",
+  "completed_at": "2026-09-20T21:09:23.089438+00:00",
+  "metadata": {
+    "model_id": "Qwen/Qwen2.5-1.5B",
+    "model_prefix": "qwen_base"
+  },
+  "model_id": "Qwen/Qwen2.5-1.5B",
+  "model_prefix": "qwen_base",
+  "results": {
+    "alignment": [
+      {
+        "layer": 0,
+        "relative_depth": 0.0,
+        "target": "Valence_human",
+        "r2_aligned_transfer": 0.55,
+        "geometry_pattern": "Operational: Shared Geometry"
+      },
+      {
+        "layer": 1,
+        "relative_depth": 0.3333333333333333,
+        "target": "Valence_human",
+        "r2_aligned_transfer": 0.55,
+        "geometry_pattern": "Operational: Shared Geometry"
+      },
+      {
+        "layer": 2,
+        "relative_depth": 0.6666666666666666,
+        "target": "Valence_human",
+        "r2_aligned_transfer": 0.55,
+        "geometry_pattern": "Operational: Shared Geometry"
+      },
+      {
+        "layer": 3,
+        "relative_depth": 1.0,
+        "target": "Valence_human",
+        "r2_aligned_transfer": 0.55,
+        "geometry_pattern": "Operational: Shared Geometry"
+      }
+    ]
+  }
+}

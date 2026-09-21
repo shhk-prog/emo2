@@ -1,0 +1,2 @@
+pair_id,eval_split,task,site_type,site_layer,impact,impact_va,impact_v,impact_a,delta_v,delta_a
+dry_pair_1,confirmation,Reader,ReaderSite,0,0.55,0.55,0.45,0.3,0.45,0.3

@@ -1,0 +1,49 @@
+{
+  "execution_status": "success",
+  "execution_success": true,
+  "stage": "v1",
+  "experiment_id": "v1_e2_cross_decoding",
+  "completed_at": "2026-09-20T21:03:39.713634+00:00",
+  "metadata": {
+    "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
+    "model_prefix": "qwen_instruct"
+  },
+  "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
+  "model_prefix": "qwen_instruct",
+  "results": {
+    "cross_decoding": [
+      {
+        "layer": 0,
+        "relative_depth": 0.0,
+        "target": "Valence_human",
+        "direct_transfer_score": 0.5,
+        "direct_transfer_score_raw": 0.5,
+        "direct_transfer_score_clipped": 0.5
+      },
+      {
+        "layer": 1,
+        "relative_depth": 0.3333333333333333,
+        "target": "Valence_human",
+        "direct_transfer_score": 0.5,
+        "direct_transfer_score_raw": 0.5,
+        "direct_transfer_score_clipped": 0.5
+      },
+      {
+        "layer": 2,
+        "relative_depth": 0.6666666666666666,
+        "target": "Valence_human",
+        "direct_transfer_score": 0.5,
+        "direct_transfer_score_raw": 0.5,
+        "direct_transfer_score_clipped": 0.5
+      },
+      {
+        "layer": 3,
+        "relative_depth": 1.0,
+        "target": "Valence_human",
+        "direct_transfer_score": 0.5,
+        "direct_transfer_score_raw": 0.5,
+        "direct_transfer_score_clipped": 0.5
+      }
+    ]
+  }
+}

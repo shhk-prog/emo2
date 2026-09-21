@@ -1,0 +1,25 @@
+==================================================================
+Starting Production V1 Pipeline Evaluation
+Timestamp : 2026-09-20T10:31:10Z
+Device    : cuda:0
+Extra Args: --family gemma
+Log File  : results/logs/production_v1_20260920_193110.log
+Cohort    : primary_small (4 families, 8 models)
+Pipeline  : Phase A -> Phase B -> Phase C (E3/E4) -> E6 -> Summarize
+Data Scale: Full production CSVs (actual counts logged by the Python runner)
+Runtime   : unmeasured (do not use pre-benchmark hour estimates)
+==================================================================
+2026-09-20 19:31:18,560 [INFO] Affective Empathy Evaluation Unified Runner
+2026-09-20 19:31:18,560 [INFO] Stage: v1 | Cohort: primary_small | Dry-run: False
+2026-09-20 19:31:18,560 [INFO] Wall-clock estimates are unmeasured until a Qwen-family benchmark is recorded.
+2026-09-20 19:31:18,560 [INFO] Dataset inventory (actual loaded counts; wall-clock time is unmeasured):
+2026-09-20 19:31:18,579 [INFO] EmoBank 3-way: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-20 19:31:18,595 [INFO] AIPsy 4-split: n_rows=480 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=480 | split_counts={'clinical': 192, 'neutral': 192, 'moderate': 48, 'complex_neutral': 48}
+2026-09-20 19:31:18,610 [INFO] V1 Phase B rule-based controls: n_rows=192 | path=v1/data/processed/v1_e5_semantic_controls.csv | n_unique_pair_id=192
+2026-09-20 19:31:18,610 [INFO] === Running V1 Stage Pipeline (model-set: primary_small) ===
+2026-09-20 19:31:18,616 [INFO] --- Running V1 Pipeline for gemma_base (google/gemma-3-1b-pt) ---
+2026-09-20 19:31:18,617 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_a.py --model-id google/gemma-3-1b-pt --model-prefix gemma_base --device cuda:0
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+=== Starting V1 Phase A Probing for Model: google/gemma-3-1b-pt (Instruct=False) ===
+Loading weights:   0%|          | 0/340 [00:00<?, ?it/s]Loading weights:   0%|          | 1/340 [00:02<12:45,  2.26s/it]Loading weights:  74%|███████▍  | 252/340 [00:02<00:00, 148.52it/s]Loading weights: 100%|██████████| 340/340 [00:02<00:00, 120.61it/s]
+Forward Pass Batches:   0%|          | 0/63 [00:00<?, ?it/s]Forward Pass Batches:   2%|▏         | 1/63 [00:01<01:48,  1.75s/it]Forward Pass Batches:   3%|▎         | 2/63 [00:01<00:49,  1.22it/s]Forward Pass Batches:   5%|▍         | 3/63 [00:02<00:34,  1.76it/s]Forward Pass Batches:   8%|▊         | 5/63 [00:02<00:18,  3.18it/s]Forward Pass Batches:  10%|▉         | 6/63 [00:02<00:15,  3.72it/s]Forward Pass Batches:  11%|█         | 7/63 [00:02<00:13,  4.28it/s]Forward Pass Batches:  13%|█▎        | 8/63 [00:02<00:11,  4.83it/s]Forward Pass Batches:  14%|█▍        | 9/63 [00:02<00:09,  5.46it/s]Forward Pass Batches:  16%|█▌        | 10/63 [00:03<00:08,  5.97it/s]Forward Pass Batches:  17%|█▋        | 11/63 [00:03<00:08,  6.36it/s]Forward Pass Batches:  19%|█▉        | 12/63 [00:03<00:09,  5.38it/s]Forward Pass Batches:  21%|██        | 13/63 [00:03<00:08,  5.98it/s]Forward Pass Batches:  24%|██▍       | 15/63 [00:03<00:06,  7.48it/s]

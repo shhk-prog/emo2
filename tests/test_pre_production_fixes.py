@@ -379,3 +379,73 @@ def test_confirmatory_h1_h2_h4_bootstrap_cis():
     pt_c, c_low, c_high = compute_bootstrap_ci(contrasts)
     assert c_low > 0.0  # candidate_start より有意に高い
 
+
+# 18. test_emobank_summary_fails_without_input
+def test_emobank_summary_fails_without_input(tmp_path):
+    """Behavioral EmoBank summary が空入力時に exit code != 0 (FileNotFoundError) となること"""
+    import subprocess
+    import sys
+
+    cmd = [
+        sys.executable,
+        "behavioral/analysis/summarize_behavioral_emobank.py",
+        "--input-dir",
+        str(tmp_path),
+        "--out-dir",
+        str(tmp_path / "out"),
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    assert result.returncode != 0
+    assert "FileNotFoundError" in result.stderr or "No Behavioral EmoBank result CSVs found" in result.stderr
+
+
+# 19. test_phase_c_summary_fails_without_input
+def test_phase_c_summary_fails_without_input(tmp_path):
+    """V1 Phase C summary が空入力時に exit code != 0 (FileNotFoundError) となること"""
+    import subprocess
+    import sys
+
+    cmd = [
+        sys.executable,
+        "v1/primary/phase_c/summarize_phase_c.py",
+        "--input-dir",
+        str(tmp_path),
+        "--out-dir",
+        str(tmp_path / "out"),
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    assert result.returncode != 0
+    assert "FileNotFoundError" in result.stderr or "No Phase C model outputs found" in result.stderr
+
+
+# 20. test_v1_e2_procrustes_pca_n_less_than_d
+def test_v1_e2_procrustes_pca_n_less_than_d():
+    """N < D (N=40, D=128) の高次元条件下で PCA-Procrustes が有限の held-out 評価値を返すこと"""
+    from v1.primary.run_phase_a import evaluate_cross_decoding_and_geometry
+
+    rng = np.random.default_rng(42)
+    N = 40
+    D = 128
+    H_R = rng.standard_normal((N, D)).astype(np.float32)
+    H_S = rng.standard_normal((N, D)).astype(np.float32)
+    y = rng.standard_normal(N).astype(np.float64)
+
+    res = evaluate_cross_decoding_and_geometry(
+        H_R=H_R,
+        H_S=H_S,
+        y=y,
+        cv=5,
+        seed=42,
+        alpha=1.0,
+        procrustes_pca_dim=16,
+    )
+    assert np.isfinite(res["r2_pca_direct"])
+    assert np.isfinite(res["r2_aligned_transfer"])
+    assert np.isfinite(res["alignment_gain"])
+    assert res["alignment_gain"] == pytest.approx(res["r2_aligned_transfer"] - res["r2_pca_direct"])
+    assert res["geometry_pattern"] in {
+        "Operational: Shared Geometry",
+        "Operational: Alignable Geometry",
+        "Operational: Task-Divergent Geometry",
+    }
+

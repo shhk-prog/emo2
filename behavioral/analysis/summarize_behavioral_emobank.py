@@ -202,8 +202,9 @@ def main():
                         break
 
     if not files:
-        print(f"No result CSVs found in {args.input_dir} or fallback.")
-        return
+        raise FileNotFoundError(
+            f"No Behavioral EmoBank result CSVs found in {args.input_dir} or fallback."
+        )
 
     os.makedirs(args.out_dir, exist_ok=True)
     all_metrics = []

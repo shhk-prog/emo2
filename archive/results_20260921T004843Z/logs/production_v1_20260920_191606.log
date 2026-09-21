@@ -1,0 +1,61 @@
+==================================================================
+Starting Production V1 Pipeline Evaluation
+Timestamp : 2026-09-20T10:16:06Z
+Device    : cuda:0
+Extra Args: --family gemma
+Log File  : results/logs/production_v1_20260920_191606.log
+Cohort    : primary_small (4 families, 8 models)
+Pipeline  : Phase A -> Phase B -> Phase C (E3/E4) -> E6 -> Summarize
+Data Scale: Full production CSVs (actual counts logged by the Python runner)
+Runtime   : unmeasured (do not use pre-benchmark hour estimates)
+==================================================================
+2026-09-20 19:16:16,292 [INFO] Affective Empathy Evaluation Unified Runner
+2026-09-20 19:16:16,292 [INFO] Stage: v1 | Cohort: primary_small | Dry-run: False
+2026-09-20 19:16:16,292 [INFO] Wall-clock estimates are unmeasured until a Qwen-family benchmark is recorded.
+2026-09-20 19:16:16,292 [INFO] Dataset inventory (actual loaded counts; wall-clock time is unmeasured):
+2026-09-20 19:16:16,317 [INFO] EmoBank 3-way: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-20 19:16:16,338 [INFO] AIPsy 4-split: n_rows=480 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=480 | split_counts={'clinical': 192, 'neutral': 192, 'moderate': 48, 'complex_neutral': 48}
+2026-09-20 19:16:16,357 [INFO] V1 Phase B rule-based controls: n_rows=192 | path=v1/data/processed/v1_e5_semantic_controls.csv | n_unique_pair_id=192
+2026-09-20 19:16:16,357 [INFO] === Running V1 Stage Pipeline (model-set: primary_small) ===
+2026-09-20 19:16:16,365 [INFO] --- Running V1 Pipeline for gemma_base (google/gemma-3-1b-pt) ---
+2026-09-20 19:16:16,365 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_a.py --model-id google/gemma-3-1b-pt --model-prefix gemma_base --device cuda:0
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+=== Starting V1 Phase A Probing for Model: google/gemma-3-1b-pt (Instruct=False) ===
+Loading weights:   0%|          | 0/340 [00:00<?, ?it/s]Loading weights:   0%|          | 1/340 [00:01<06:20,  1.12s/it]Loading weights:  81%|████████  | 276/340 [00:01<00:00, 308.09it/s]Loading weights: 100%|██████████| 340/340 [00:01<00:00, 254.98it/s]
+Forward Pass Batches:   0%|          | 0/63 [00:00<?, ?it/s]Forward Pass Batches:   2%|▏         | 1/63 [00:02<02:48,  2.72s/it]Forward Pass Batches:   3%|▎         | 2/63 [00:02<01:12,  1.19s/it]Forward Pass Batches:   5%|▍         | 3/63 [00:04<01:13,  1.22s/it]Forward Pass Batches:   8%|▊         | 5/63 [00:05<00:51,  1.12it/s]Forward Pass Batches:  10%|▉         | 6/63 [00:05<00:38,  1.49it/s]Forward Pass Batches:  11%|█         | 7/63 [00:05<00:28,  1.97it/s]Forward Pass Batches:  13%|█▎        | 8/63 [00:05<00:21,  2.55it/s]Forward Pass Batches:  14%|█▍        | 9/63 [00:05<00:16,  3.26it/s]Forward Pass Batches:  16%|█▌        | 10/63 [00:05<00:13,  4.04it/s]Forward Pass Batches:  17%|█▋        | 11/63 [00:06<00:10,  4.84it/s]Forward Pass Batches:  19%|█▉        | 12/63 [00:07<00:25,  1.97it/s]Forward Pass Batches:  21%|██        | 13/63 [00:07<00:19,  2.58it/s]Forward Pass Batches:  24%|██▍       | 15/63 [00:07<00:11,  4.05it/s]Forward Pass Batches:  25%|██▌       | 16/63 [00:07<00:09,  4.70it/s]Forward Pass Batches:  27%|██▋       | 17/63 [00:07<00:08,  5.42it/s]Forward Pass Batches:  30%|███       | 19/63 [00:07<00:06,  7.29it/s]Forward Pass Batches:  33%|███▎      | 21/63 [00:08<00:04,  8.73it/s]Forward Pass Batches:  37%|███▋      | 23/63 [00:08<00:04,  9.17it/s]Forward Pass Batches:  40%|███▉      | 25/63 [00:08<00:03, 10.28it/s]Forward Pass Batches:  43%|████▎     | 27/63 [00:08<00:03, 10.12it/s]Forward Pass Batches:  46%|████▌     | 29/63 [00:08<00:04,  8.26it/s]Forward Pass Batches:  48%|████▊     | 30/63 [00:09<00:03,  8.48it/s]Forward Pass Batches:  52%|█████▏    | 33/63 [00:09<00:02, 11.48it/s]Forward Pass Batches:  56%|█████▌    | 35/63 [00:09<00:02, 11.88it/s]Forward Pass Batches:  59%|█████▊    | 37/63 [00:09<00:02, 12.16it/s]Forward Pass Batches:  62%|██████▏   | 39/63 [00:09<00:01, 12.51it/s]Forward Pass Batches:  65%|██████▌   | 41/63 [00:09<00:01, 11.51it/s]Forward Pass Batches:  68%|██████▊   | 43/63 [00:10<00:01, 10.88it/s]Forward Pass Batches:  73%|███████▎  | 46/63 [00:10<00:01, 13.35it/s]Forward Pass Batches:  76%|███████▌  | 48/63 [00:10<00:01, 13.21it/s]Forward Pass Batches:  79%|███████▉  | 50/63 [00:10<00:01, 11.96it/s]Forward Pass Batches:  83%|████████▎ | 52/63 [00:10<00:00, 12.19it/s]Forward Pass Batches:  86%|████████▌ | 54/63 [00:10<00:00, 12.37it/s]Forward Pass Batches:  89%|████████▉ | 56/63 [00:11<00:00, 12.49it/s]Forward Pass Batches:  92%|█████████▏| 58/63 [00:11<00:00, 12.69it/s]Forward Pass Batches:  95%|█████████▌| 60/63 [00:11<00:00, 12.70it/s]Forward Pass Batches:  98%|█████████▊| 62/63 [00:11<00:00, 11.57it/s]Forward Pass Batches: 100%|██████████| 63/63 [00:11<00:00,  5.41it/s]
+Forward Pass Batches:   0%|          | 0/63 [00:00<?, ?it/s]Forward Pass Batches:   2%|▏         | 1/63 [00:00<00:06,  9.54it/s]Forward Pass Batches:   5%|▍         | 3/63 [00:00<00:05, 11.66it/s]Forward Pass Batches:  10%|▉         | 6/63 [00:00<00:04, 13.40it/s]Forward Pass Batches:  13%|█▎        | 8/63 [00:00<00:04, 11.70it/s]Forward Pass Batches:  17%|█▋        | 11/63 [00:00<00:03, 14.44it/s]Forward Pass Batches:  22%|██▏       | 14/63 [00:00<00:02, 16.39it/s]Forward Pass Batches:  25%|██▌       | 16/63 [00:01<00:03, 15.40it/s]Forward Pass Batches:  30%|███       | 19/63 [00:01<00:02, 15.41it/s]Forward Pass Batches:  35%|███▍      | 22/63 [00:01<00:02, 15.44it/s]Forward Pass Batches:  38%|███▊      | 24/63 [00:01<00:02, 14.83it/s]Forward Pass Batches:  41%|████▏     | 26/63 [00:01<00:02, 14.51it/s]Forward Pass Batches:  44%|████▍     | 28/63 [00:02<00:02, 12.83it/s]Forward Pass Batches:  48%|████▊     | 30/63 [00:02<00:02, 12.00it/s]Forward Pass Batches:  52%|█████▏    | 33/63 [00:02<00:02, 14.34it/s]Forward Pass Batches:  56%|█████▌    | 35/63 [00:02<00:01, 14.02it/s]Forward Pass Batches:  59%|█████▊    | 37/63 [00:02<00:01, 13.86it/s]Forward Pass Batches:  62%|██████▏   | 39/63 [00:02<00:01, 13.75it/s]Forward Pass Batches:  65%|██████▌   | 41/63 [00:02<00:01, 13.49it/s]Forward Pass Batches:  70%|██████▉   | 44/63 [00:03<00:01, 15.55it/s]Forward Pass Batches:  75%|███████▍  | 47/63 [00:03<00:00, 17.13it/s]Forward Pass Batches:  79%|███████▉  | 50/63 [00:03<00:00, 18.09it/s]Forward Pass Batches:  83%|████████▎ | 52/63 [00:03<00:00, 16.51it/s]Forward Pass Batches:  86%|████████▌ | 54/63 [00:03<00:00, 15.58it/s]Forward Pass Batches:  89%|████████▉ | 56/63 [00:03<00:00, 14.73it/s]Forward Pass Batches:  94%|█████████▎| 59/63 [00:03<00:00, 16.48it/s]Forward Pass Batches:  98%|█████████▊| 62/63 [00:04<00:00, 15.88it/s]Forward Pass Batches: 100%|██████████| 63/63 [00:04<00:00, 14.72it/s]
+Traceback (most recent call last):
+  File "/mnt/nas/home/hiromi/src/emo2/v1/primary/run_phase_a.py", line 770, in <module>
+    main()
+  File "/mnt/nas/home/hiromi/src/emo2/v1/primary/run_phase_a.py", line 639, in main
+    res_r_v = evaluate_regression_probe(H_R_l, y_human_v, group_ids)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/nas/home/hiromi/src/emo2/v1/primary/run_phase_a.py", line 188, in evaluate_regression_probe
+    X_train_scaled = scaler.fit_transform(X_train)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/utils/_set_output.py", line 327, in wrapped
+    data_to_wrap = f(self, X, *args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/base.py", line 969, in fit_transform
+    return self.fit(X, **fit_params).transform(X)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/preprocessing/_data.py", line 928, in fit
+    return self.partial_fit(X, y, sample_weight)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/base.py", line 1403, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/preprocessing/_data.py", line 965, in partial_fit
+    X = validate_data(
+        ^^^^^^^^^^^^^^
+  File "/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/utils/validation.py", line 3041, in validate_data
+    out = check_array(X, input_name="X", **check_params)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/utils/validation.py", line 1090, in check_array
+    _assert_all_finite(
+  File "/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/utils/validation.py", line 137, in _assert_all_finite
+    _assert_all_finite_element_wise(
+  File "/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/utils/validation.py", line 186, in _assert_all_finite_element_wise
+    raise ValueError(msg_err)
+ValueError: Input X contains infinity or a value too large for dtype('float32').
+2026-09-20 19:19:42,562 [ERROR] Command failed with exit code 1: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_a.py --model-id google/gemma-3-1b-pt --model-prefix gemma_base --device cuda:0

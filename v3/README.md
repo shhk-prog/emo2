@@ -185,7 +185,7 @@ Target（Qwen）で立てた 4 仮説を、Llama 3.2 / Gemma 3 / OLMo 2 の Inst
 
 1. **H1 Dissociation**: $d_C$ が $d_D$ より深い（$\Delta d_{\text{peak}}, \Delta d_{\text{center}}$ の bootstrap 95% CI 下限 $> 0$）
 2. **H2 Sufficiency**: Valence/Arousal 方向注入の dose-response slope（$\gamma_V, \gamma_A$ の pair-bootstrap 95% CI 下限 $> \text{min\_slope}$）
-3. **H3 Endogenous Relevance**: mediated attenuation（絶対減衰量の bootstrap 95% CI 下限 $> \text{min\_atten\_ci\_lower}$）
+3. **H3 Endogenous Relevance**: absolute mediated attenuation のbootstrap 95% CI下限が閾値を超え、かつ matched-rank random 2D subspace controlに対するNet attenuationの95% CI下限が0を超える
 4. **H4 Temporal emergence**: `pre_V`/`pre_A` 付近の因果応答と `candidate_start` のコントラスト（temporal contrast の pair-bootstrap 95% CI 下限 $> \text{min\_temporal\_contrast}$）
 
 確認側でも GroupKFold / pair split を保つ。Discovery の数字を確認に再利用しない。Sufficiency で片方の注入から両軸を同時に主張しない。

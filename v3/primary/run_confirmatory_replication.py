@@ -23,6 +23,7 @@ except ImportError:  # --dry-run は transformers 未導入環境でも起動で
     AutoModelForCausalLM = None  # type: ignore[misc, assignment]
     AutoTokenizer = None  # type: ignore[misc, assignment]
 from sklearn.linear_model import Ridge
+from sklearn.metrics import r2_score
 from sklearn.model_selection import GroupKFold, KFold
 
 from affective_empathy_eval.geometry import compute_layer_dissociation
@@ -345,6 +346,8 @@ def run_real_model_confirmatory(
         split_gen_fn = lambda data: splitter.split(data)
 
     all_H = {}
+    oof_preds_v_by_layer = {}
+    oof_preds_a_by_layer = {}
     for l in range(num_layers):
         h_l = []
         with torch.no_grad():
@@ -365,7 +368,6 @@ def run_real_model_confirmatory(
         H = np.array(h_l)
         all_H[l] = H
 
-        oof_preds = np.zeros(N)
         oof_preds_v = np.zeros(N)
         oof_preds_a = np.zeros(N)
         for train_idx, test_idx in split_gen_fn(H):
@@ -374,6 +376,9 @@ def run_real_model_confirmatory(
 
             ridge_a = Ridge(alpha=10.0).fit(H[train_idx], y_a[train_idx])
             oof_preds_a[test_idx] = ridge_a.predict(H[test_idx])
+
+        oof_preds_v_by_layer[l] = oof_preds_v.copy()
+        oof_preds_a_by_layer[l] = oof_preds_a.copy()
 
         ss_tot_v = np.sum((y_v - np.mean(y_v))**2)
         ss_res_v = np.sum((y_v - oof_preds_v)**2)
@@ -782,7 +787,20 @@ def run_real_model_confirmatory(
     else:
         slope_a_ci = [float(slope_a), float(slope_a)]
 
-    # H1: C(l) profiles & dissociation bootstrap CIs
+    # H1: C(l) profiles & dissociation bootstrap CIs (Joint bootstrap over matched intervention sample set)
+    h1_idx = np.asarray(intervention_sample_indices, dtype=int)
+    n_h1 = len(h1_idx)
+
+    # Matched-support D(l) on intervention samples
+    d_profile_v_h1 = [
+        float(r2_score(y_v[h1_idx], oof_preds_v_by_layer[l][h1_idx]))
+        for l in range(num_layers)
+    ]
+    d_profile_a_h1 = [
+        float(r2_score(y_a[h1_idx], oof_preds_a_by_layer[l][h1_idx]))
+        for l in range(num_layers)
+    ]
+
     c_profile_v = [
         float(np.mean(test_c_profile_shifts_v[l])) if test_c_profile_shifts_v[l] else 0.0
         for l in range(num_layers)
@@ -791,35 +809,47 @@ def run_real_model_confirmatory(
         float(np.mean(test_c_profile_shifts_a[l])) if test_c_profile_shifts_a[l] else 0.0
         for l in range(num_layers)
     ]
-    dissoc_v = compute_layer_dissociation(relative_depths, d_profile_v, c_profile_v)
-    dissoc_a = compute_layer_dissociation(relative_depths, d_profile_a, c_profile_a)
+    dissoc_v = compute_layer_dissociation(relative_depths, d_profile_v_h1, c_profile_v)
+    dissoc_a = compute_layer_dissociation(relative_depths, d_profile_a_h1, c_profile_a)
+    dissoc_v["d_profile_full_n"] = d_profile_v
+    dissoc_a["d_profile_full_n"] = d_profile_a
 
-    n_h1_samples_v = len(test_c_profile_shifts_v[0]) if num_layers > 0 and 0 in test_c_profile_shifts_v else 0
-    n_h1_samples_a = len(test_c_profile_shifts_a[0]) if num_layers > 0 and 0 in test_c_profile_shifts_a else 0
-    if n_h1_samples_v >= 2:
-        rng_boot = np.random.default_rng(44)
+    if n_h1 >= 2:
+        rng_boot_v = np.random.default_rng(44)
         h1_v_peak_boots, h1_v_center_boots = [], []
+        y_v_h1 = y_v[h1_idx]
         for _ in range(1000):
-            idx = rng_boot.integers(0, n_h1_samples_v, size=n_h1_samples_v)
-            c_b = [float(np.mean([test_c_profile_shifts_v[l][i] for i in idx])) for l in range(num_layers)]
-            d_b = compute_layer_dissociation(relative_depths, d_profile_v, c_b)
-            h1_v_peak_boots.append(d_b["delta_d_peak"])
-            h1_v_center_boots.append(d_b["delta_d_center"])
+            pos = rng_boot_v.integers(0, n_h1, size=n_h1)
+            sampled_y_v = y_v_h1[pos]
+            d_b = [
+                float(r2_score(sampled_y_v, oof_preds_v_by_layer[l][h1_idx[pos]]))
+                for l in range(num_layers)
+            ]
+            c_b = [float(np.mean([test_c_profile_shifts_v[l][p] for p in pos])) for l in range(num_layers)]
+            d_dissoc_b = compute_layer_dissociation(relative_depths, d_b, c_b)
+            h1_v_peak_boots.append(d_dissoc_b["delta_d_peak"])
+            h1_v_center_boots.append(d_dissoc_b["delta_d_center"])
         dissoc_v["delta_d_peak_ci"] = [float(np.percentile(h1_v_peak_boots, 2.5)), float(np.percentile(h1_v_peak_boots, 97.5))]
         dissoc_v["delta_d_center_ci"] = [float(np.percentile(h1_v_center_boots, 2.5)), float(np.percentile(h1_v_center_boots, 97.5))]
     else:
         dissoc_v["delta_d_peak_ci"] = [float(dissoc_v["delta_d_peak"]), float(dissoc_v["delta_d_peak"])]
         dissoc_v["delta_d_center_ci"] = [float(dissoc_v["delta_d_center"]), float(dissoc_v["delta_d_center"])]
 
-    if n_h1_samples_a >= 2:
-        rng_boot = np.random.default_rng(45)
+    if n_h1 >= 2:
+        rng_boot_a = np.random.default_rng(45)
         h1_a_peak_boots, h1_a_center_boots = [], []
+        y_a_h1 = y_a[h1_idx]
         for _ in range(1000):
-            idx = rng_boot.integers(0, n_h1_samples_a, size=n_h1_samples_a)
-            c_b = [float(np.mean([test_c_profile_shifts_a[l][i] for i in idx])) for l in range(num_layers)]
-            d_b = compute_layer_dissociation(relative_depths, d_profile_a, c_b)
-            h1_a_peak_boots.append(d_b["delta_d_peak"])
-            h1_a_center_boots.append(d_b["delta_d_center"])
+            pos = rng_boot_a.integers(0, n_h1, size=n_h1)
+            sampled_y_a = y_a_h1[pos]
+            d_b = [
+                float(r2_score(sampled_y_a, oof_preds_a_by_layer[l][h1_idx[pos]]))
+                for l in range(num_layers)
+            ]
+            c_b = [float(np.mean([test_c_profile_shifts_a[l][p] for p in pos])) for l in range(num_layers)]
+            d_dissoc_b = compute_layer_dissociation(relative_depths, d_b, c_b)
+            h1_a_peak_boots.append(d_dissoc_b["delta_d_peak"])
+            h1_a_center_boots.append(d_dissoc_b["delta_d_center"])
         dissoc_a["delta_d_peak_ci"] = [float(np.percentile(h1_a_peak_boots, 2.5)), float(np.percentile(h1_a_peak_boots, 97.5))]
         dissoc_a["delta_d_center_ci"] = [float(np.percentile(h1_a_center_boots, 2.5)), float(np.percentile(h1_a_center_boots, 97.5))]
     else:

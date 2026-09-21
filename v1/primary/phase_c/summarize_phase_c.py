@@ -159,7 +159,9 @@ def main():
         df_sum.to_csv(out_csv, index=False)
         print(f"Saved Phase C summary to {out_csv}")
     else:
-        print(f"No Phase C model outputs found in {args.input_dir}")
+        raise FileNotFoundError(
+            f"No Phase C model outputs found in {args.input_dir}"
+        )
 
 
 if __name__ == "__main__":

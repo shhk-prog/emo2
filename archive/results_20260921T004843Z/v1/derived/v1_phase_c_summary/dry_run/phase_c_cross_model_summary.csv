@@ -1,0 +1,9 @@
+model,type,total_layers,e3_peak_reader_layer,e3_peak_self_layer,e3_peak_reader_depth,e3_peak_self_depth,e3_mean_directional_cosine,e4_mean_specificity_V,e4_mean_dz_V,e6_status,e6_p_interaction,e6_has_crossover
+Qwen 2.5 1.5B,Base,28,14,14,0.5,0.5,0.885,0.3,1.15,completed,,True
+Qwen 2.5 1.5B,Instruct,28,14,14,0.5,0.5,0.885,0.3,1.15,completed,,True
+Llama 3.2 1.23B,Base,16,14,14,0.5,0.5,0.885,0.3,1.15,completed,,True
+Llama 3.2 1.23B,Instruct,16,14,14,0.5,0.5,0.885,0.3,1.15,completed,,True
+Gemma 3 1B,Base,26,14,14,0.5,0.5,0.885,0.3,1.15,completed,,True
+Gemma 3 1B,Instruct,26,14,14,0.5,0.5,0.885,0.3,1.15,completed,,True
+OLMo 2 1B,Base,16,14,14,0.5,0.5,0.885,0.3,1.15,completed,,True
+OLMo 2 1B,Instruct,16,14,14,0.5,0.5,0.885,0.3,1.15,completed,,True

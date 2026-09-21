@@ -1,0 +1,58 @@
+==================================================================
+Starting Production V3 Pipeline Evaluation
+Timestamp : 2026-09-20T09:33:53Z
+Device    : cuda:0
+Extra Args: --force
+Log File  : results/logs/production_v3_20260920_183353.log
+Cohort    : primary_small (Target: Qwen | Confirmatory: Llama, Gemma, OLMo)
+Pipeline  : RQ1 (Gate) -> RQ2 (4-Maps) -> RQ3 (Mediation) -> Confirmatory
+Data Scale: Full production CSVs (actual counts logged by the Python runner)
+Runtime   : unmeasured (do not use pre-benchmark hour estimates)
+==================================================================
+2026-09-20 18:34:00,258 [INFO] Affective Empathy Evaluation Unified Runner
+2026-09-20 18:34:00,258 [INFO] Stage: v3 | Cohort: primary_small | Dry-run: False
+2026-09-20 18:34:00,258 [INFO] Wall-clock estimates are unmeasured until a Qwen-family benchmark is recorded.
+2026-09-20 18:34:00,258 [INFO] Dataset inventory (actual loaded counts; wall-clock time is unmeasured):
+2026-09-20 18:34:00,309 [INFO] EmoBank 3-way: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-20 18:34:00,328 [INFO] AIPsy 4-split: n_rows=480 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=480 | split_counts={'clinical': 192, 'neutral': 192, 'moderate': 48, 'complex_neutral': 48}
+2026-09-20 18:34:00,342 [INFO] V1 Phase B rule-based controls: n_rows=192 | path=v1/data/processed/v1_e5_semantic_controls.csv | n_unique_pair_id=192
+2026-09-20 18:34:00,343 [INFO] === Running V3 Stage (model-set: primary_small) ===
+2026-09-20 18:34:00,343 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v3/primary/run_rq1_state_induction.py --models-config configs/models.yaml --model-set primary_small --device cuda:0 --force
+2026-09-20 18:34:24,822 [INFO] Starting V3-RQ1 State Induction (pilot=False, dry_run=False)
+2026-09-20 18:34:25,154 [INFO] V3-RQ1 matched-pair table: n_rows=192 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=192 | split_counts={'clinical': 192}
+2026-09-20 18:34:25,384 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 18:34:25,395 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%22f81ead14ab072d65a07817f83a3ee0e5a1890d10%22 "HTTP/1.1 200 OK"
+2026-09-20 18:34:25,413 [INFO] Resolved V3-RQ1 layer=14 from relative_depth=0.5 (L=28, family=qwen)
+2026-09-20 18:34:25,413 [INFO] Executing REAL state induction pipeline for Qwen/Qwen2.5-1.5B-Instruct...
+2026-09-20 18:34:25,413 [INFO] Loading tokenizer and model: Qwen/Qwen2.5-1.5B-Instruct on cuda:0...
+2026-09-20 18:34:25,613 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 18:34:25,628 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%22f81ead14ab072d65a07817f83a3ee0e5a1890d10%22 "HTTP/1.1 200 OK"
+2026-09-20 18:34:25,811 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 18:34:25,823 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/tokenizer_config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%2207bfe0640cb5a0037f9322287fbfc682806cf672%22 "HTTP/1.1 200 OK"
+2026-09-20 18:34:26,009 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-20 18:34:26,183 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-20 18:34:26,698 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct "HTTP/1.1 200 OK"
+2026-09-20 18:34:26,873 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 18:34:26,886 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%22f81ead14ab072d65a07817f83a3ee0e5a1890d10%22 "HTTP/1.1 200 OK"
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:   0%|          | 1/338 [00:00<04:16,  1.31it/s]Loading weights:  47%|████▋     | 159/338 [00:00<00:00, 242.63it/s]Loading weights:  70%|██████▉   | 236/338 [00:01<00:00, 260.84it/s]Loading weights:  86%|████████▋ | 292/338 [00:01<00:00, 263.95it/s]Loading weights: 100%|█████████▉| 337/338 [00:01<00:00, 280.20it/s]Loading weights: 100%|██████████| 338/338 [00:01<00:00, 227.76it/s]
+2026-09-20 18:34:30,220 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 18:34:30,230 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/generation_config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Fgeneration_config.json=&etag=%22dfc11073787daf1b0f9c0f1499487ab5f4c93738%22 "HTTP/1.1 200 OK"
+2026-09-20 18:34:30,408 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/custom_generate/generate.py "HTTP/1.1 404 Not Found"
+2026-09-20 18:34:30,432 [INFO] Group split on pair_id: 96 pairs train (96 rows), 96 pairs test (96 rows)
+2026-09-20 18:34:30,432 [INFO] Split dataset: 96 train pairs, 96 held-out test pairs
+2026-09-20 18:34:30,432 [INFO] Extracting target layer 14 representations and Reader/Self predictions on train split...
+[W920 18:34:51.916510512 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 7163871232 bytes (free: 87359488, total: 99949674496).
+2026-09-20 18:35:24,684 [INFO] Using train-set model Reader Predictions (TaskType.READER) as Primary affect direction targets.
+2026-09-20 18:35:24,764 [INFO] Reader-Grounded vs Self-Derived Direction Alignment: cos_V=0.800, cos_A=0.908
+2026-09-20 18:35:24,934 [INFO] Extracting target layer 14 matched-neutral representations on train split...
+2026-09-20 18:35:26,899 [INFO] Computed mu_neu from 96 matched-neutral train samples
+2026-09-20 18:35:26,899 [INFO] Running causal state induction interventions on 96 test samples...
+2026-09-20 18:41:51,217 [INFO] Gate Evaluation Completed: DECISION = NO_GO
+2026-09-20 18:41:51,217 [INFO]   Checklist: {'dose_response_v_pass': False, 'dose_response_a_pass': False, 'dose_response_pass': False, 'slope_v_ci_lower': 0.002758326003852433, 'slope_a_ci_lower': 0.001484840966592719, 'specificity_v_pass': False, 'specificity_a_pass': False, 'specificity_pass': False, 'specificity_v_ci_lower': -0.00010020080912450387, 'specificity_a_ci_lower': -0.0007776897864240481, 'endogenous_relevance_v_pass': False, 'endogenous_relevance_a_pass': False, 'endogenous_relevance_pass': False, 'endogenous_relevance_v_ci_lower': -0.005732062716014666, 'endogenous_relevance_a_ci_lower': -0.008700977353394057, 'necessity_v_pass': False, 'necessity_a_pass': False, 'necessity_pass': False, 'necessity_v_ci_lower': -0.005732062716014666, 'necessity_a_ci_lower': -0.008700977353394057, 'topic_v_pass': True, 'topic_a_pass': True, 'topic_control_pass': True, 'topic_tvd_v_ci_upper': 0.0009206878232204954, 'topic_tvd_a_ci_upper': 0.0009861834695796305, 'decision_valence': 'NO_GO', 'decision_arousal': 'NO_GO', 'decision': 'NO_GO'}
+2026-09-20 18:41:51,220 [INFO] Saved RQ1 results to v3/results/raw/v3_rq1_results.json
+2026-09-20 18:41:51,222 [INFO] Saved gate decision to v3/results/derived/v3_gate_decision.json
+2026-09-20 18:41:51,239 [INFO] Saved gate decision to v3/results/derived/v3_gate_decision.json
+2026-09-20 18:41:51,239 [WARNING] >>> GATE STATUS: NO_GO. Production pipeline stops unless --force-after-no-go is set. Only exact GO continues; Valence-only / Arousal-only are not GO.
+2026-09-20 18:41:52,160 [INFO] V3 RQ1 gate decision from v3/results/derived/v3_gate_decision.json: NO_GO
+2026-09-20 18:41:52,160 [ERROR] V3 RQ1 gate is NO_GO. Stopping before RQ2/RQ3/Confirmatory. Pass --force-after-no-go only for an explicit override.

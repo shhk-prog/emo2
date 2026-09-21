@@ -1,0 +1,297 @@
+==================================================================
+Starting Production V1 Pipeline Evaluation
+Timestamp : 2026-09-20T09:03:44Z
+Device    : cuda:0
+Extra Args: none
+Log File  : results/logs/production_v1_20260920_180344.log
+Cohort    : primary_small (4 families, 8 models)
+Pipeline  : Phase A -> Phase B -> Phase C (E3/E4) -> E6 -> Summarize
+Data Scale: Full production CSVs (actual counts logged by the Python runner)
+Runtime   : unmeasured (do not use pre-benchmark hour estimates)
+==================================================================
+2026-09-20 18:03:58,937 [INFO] Affective Empathy Evaluation Unified Runner
+2026-09-20 18:03:58,937 [INFO] Stage: v1 | Cohort: primary_small | Dry-run: False
+2026-09-20 18:03:58,937 [INFO] Wall-clock estimates are unmeasured until a Qwen-family benchmark is recorded.
+2026-09-20 18:03:58,937 [INFO] Dataset inventory (actual loaded counts; wall-clock time is unmeasured):
+2026-09-20 18:03:58,973 [INFO] EmoBank 3-way: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-20 18:03:58,996 [INFO] AIPsy 4-split: n_rows=480 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=480 | split_counts={'clinical': 192, 'neutral': 192, 'moderate': 48, 'complex_neutral': 48}
+2026-09-20 18:03:59,067 [INFO] V1 Phase B rule-based controls: n_rows=192 | path=v1/data/processed/v1_e5_semantic_controls.csv | n_unique_pair_id=192
+2026-09-20 18:03:59,068 [INFO] === Running V1 Stage Pipeline (model-set: primary_small) ===
+2026-09-20 18:03:59,075 [INFO] --- Running V1 Pipeline for qwen_base (Qwen/Qwen2.5-1.5B) ---
+2026-09-20 18:03:59,076 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_a.py --model-id Qwen/Qwen2.5-1.5B --model-prefix qwen_base --device cuda:0
+[SKIP] Validated Phase A results found in v1/results/derived/v1_phase_a/qwen_base. Skipping model loading & probing for qwen_base. Use --force to rerun.
+2026-09-20 18:04:32,925 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_b.py --model-id Qwen/Qwen2.5-1.5B --model-prefix qwen_base --device cuda:0
+[SKIP] Validated Phase B results found in v1/results/derived/v1_phase_b/qwen_base. Skipping computation for qwen_base. Use --force to rerun.
+2026-09-20 18:04:44,754 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_c.py --model-id Qwen/Qwen2.5-1.5B --model-prefix qwen_base --device cuda:0 --all-layers
+[SKIP] Validated Phase C results found in v1/results/derived/v1_phase_c_prompt_end/qwen_base. Skipping computation for qwen_base. Use --force to rerun.
+2026-09-20 18:04:58,334 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/phase_c/run_e6_specialization.py --model-id Qwen/Qwen2.5-1.5B --model-prefix qwen_base --device cuda:0
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+=== Starting V1 Phase C E6 Causal Specialization: Qwen/Qwen2.5-1.5B ===
+Site Selection: task_selectivity_contrast (Source: v1/results/derived/v1_phase_c_prompt_end/qwen_base/e3_causal_map.csv)
+Reader-Site Layer: 1 | Self-Site Layer: 10
+Evaluation Split: confirmation (Seed: 42)
+Targeted Ablation strictly evaluated on Confirmation split: N=96 pairs (Discovery N=96 reserved for site selection)
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:   0%|          | 1/338 [00:00<05:36,  1.00it/s]Loading weights:  40%|███▉      | 135/338 [00:01<00:01, 165.31it/s]Loading weights:  60%|██████    | 203/338 [00:01<00:00, 195.35it/s]Loading weights:  75%|███████▍  | 252/338 [00:01<00:00, 199.97it/s]Loading weights:  86%|████████▌ | 290/338 [00:01<00:00, 215.47it/s]Loading weights:  96%|█████████▌| 325/338 [00:01<00:00, 237.21it/s]Loading weights: 100%|██████████| 338/338 [00:01<00:00, 171.20it/s]
+Computing baseline intact predictions...
+Executing 2x2 Targeted Ablations...
+Ablation Pairs:   0%|          | 0/96 [00:00<?, ?it/s]Ablation Pairs:   1%|          | 1/96 [00:05<09:13,  5.82s/it]Ablation Pairs:   2%|▏         | 2/96 [00:11<09:11,  5.87s/it]Ablation Pairs:   3%|▎         | 3/96 [00:17<08:56,  5.77s/it]Ablation Pairs:   4%|▍         | 4/96 [00:23<09:04,  5.92s/it]Ablation Pairs:   5%|▌         | 5/96 [00:29<08:47,  5.79s/it]Ablation Pairs:   6%|▋         | 6/96 [00:34<08:38,  5.76s/it]Ablation Pairs:   7%|▋         | 7/96 [00:40<08:36,  5.80s/it]Ablation Pairs:   8%|▊         | 8/96 [00:46<08:32,  5.83s/it]Ablation Pairs:   9%|▉         | 9/96 [00:52<08:20,  5.75s/it]Ablation Pairs:  10%|█         | 10/96 [00:58<08:19,  5.80s/it]Ablation Pairs:  11%|█▏        | 11/96 [01:03<08:07,  5.73s/it]Ablation Pairs:  12%|█▎        | 12/96 [01:09<07:59,  5.71s/it]Ablation Pairs:  14%|█▎        | 13/96 [01:14<07:52,  5.69s/it]Ablation Pairs:  15%|█▍        | 14/96 [01:20<07:51,  5.75s/it]Ablation Pairs:  16%|█▌        | 15/96 [01:27<08:01,  5.95s/it]Ablation Pairs:  17%|█▋        | 16/96 [01:33<08:03,  6.05s/it]Ablation Pairs:  18%|█▊        | 17/96 [01:40<08:12,  6.23s/it]Ablation Pairs:  19%|█▉        | 18/96 [01:46<08:11,  6.30s/it]Ablation Pairs:  20%|█▉        | 19/96 [01:53<08:11,  6.38s/it]Ablation Pairs:  21%|██        | 20/96 [01:59<08:05,  6.39s/it]Ablation Pairs:  22%|██▏       | 21/96 [02:05<07:52,  6.30s/it]Ablation Pairs:  23%|██▎       | 22/96 [02:12<07:47,  6.32s/it]Ablation Pairs:  24%|██▍       | 23/96 [02:18<07:33,  6.22s/it]Ablation Pairs:  25%|██▌       | 24/96 [02:24<07:27,  6.22s/it]Ablation Pairs:  26%|██▌       | 25/96 [02:31<07:34,  6.40s/it]Ablation Pairs:  27%|██▋       | 26/96 [02:37<07:24,  6.35s/it]Ablation Pairs:  28%|██▊       | 27/96 [02:44<07:25,  6.46s/it]Ablation Pairs:  29%|██▉       | 28/96 [02:49<07:06,  6.27s/it]Ablation Pairs:  30%|███       | 29/96 [02:56<07:00,  6.27s/it]Ablation Pairs:  31%|███▏      | 30/96 [03:02<06:58,  6.34s/it]Ablation Pairs:  32%|███▏      | 31/96 [03:08<06:49,  6.30s/it]Ablation Pairs:  33%|███▎      | 32/96 [03:15<06:54,  6.47s/it]Ablation Pairs:  34%|███▍      | 33/96 [03:22<06:51,  6.54s/it]Ablation Pairs:  35%|███▌      | 34/96 [03:29<06:51,  6.64s/it]Ablation Pairs:  36%|███▋      | 35/96 [03:36<06:57,  6.85s/it]Ablation Pairs:  38%|███▊      | 36/96 [03:43<07:00,  7.01s/it]Ablation Pairs:  39%|███▊      | 37/96 [03:50<06:46,  6.89s/it]Ablation Pairs:  40%|███▉      | 38/96 [03:57<06:43,  6.96s/it]Ablation Pairs:  41%|████      | 39/96 [04:04<06:34,  6.93s/it]Ablation Pairs:  42%|████▏     | 40/96 [04:12<06:36,  7.09s/it]Ablation Pairs:  43%|████▎     | 41/96 [04:19<06:30,  7.11s/it]Ablation Pairs:  44%|████▍     | 42/96 [04:26<06:19,  7.03s/it]Ablation Pairs:  45%|████▍     | 43/96 [04:33<06:19,  7.17s/it]Ablation Pairs:  46%|████▌     | 44/96 [04:40<06:02,  6.97s/it]Ablation Pairs:  47%|████▋     | 45/96 [04:46<05:54,  6.95s/it]Ablation Pairs:  48%|████▊     | 46/96 [04:54<05:50,  7.01s/it]Ablation Pairs:  49%|████▉     | 47/96 [05:01<05:44,  7.03s/it]Ablation Pairs:  50%|█████     | 48/96 [05:08<05:43,  7.15s/it]Ablation Pairs:  51%|█████     | 49/96 [05:14<05:23,  6.87s/it]Ablation Pairs:  52%|█████▏    | 50/96 [05:21<05:09,  6.73s/it]Ablation Pairs:  53%|█████▎    | 51/96 [05:27<04:51,  6.49s/it]Ablation Pairs:  54%|█████▍    | 52/96 [05:33<04:45,  6.48s/it]Ablation Pairs:  55%|█████▌    | 53/96 [05:40<04:42,  6.56s/it]Ablation Pairs:  56%|█████▋    | 54/96 [05:46<04:35,  6.55s/it]Ablation Pairs:  57%|█████▋    | 55/96 [05:53<04:27,  6.52s/it]Ablation Pairs:  58%|█████▊    | 56/96 [05:59<04:19,  6.50s/it]Ablation Pairs:  59%|█████▉    | 57/96 [06:06<04:13,  6.50s/it]Ablation Pairs:  60%|██████    | 58/96 [06:12<04:07,  6.51s/it]Ablation Pairs:  61%|██████▏   | 59/96 [06:19<04:04,  6.60s/it]Ablation Pairs:  62%|██████▎   | 60/96 [06:26<04:05,  6.82s/it]Ablation Pairs:  64%|██████▎   | 61/96 [06:33<03:58,  6.81s/it]Ablation Pairs:  65%|██████▍   | 62/96 [06:40<03:50,  6.78s/it]Ablation Pairs:  66%|██████▌   | 63/96 [06:46<03:41,  6.71s/it]Ablation Pairs:  67%|██████▋   | 64/96 [06:53<03:33,  6.68s/it]Ablation Pairs:  68%|██████▊   | 65/96 [07:00<03:25,  6.64s/it]Ablation Pairs:  69%|██████▉   | 66/96 [07:06<03:16,  6.55s/it]Ablation Pairs:  70%|██████▉   | 67/96 [07:13<03:12,  6.65s/it]Ablation Pairs:  71%|███████   | 68/96 [07:19<03:03,  6.54s/it]Ablation Pairs:  72%|███████▏  | 69/96 [07:26<02:58,  6.61s/it]Ablation Pairs:  73%|███████▎  | 70/96 [07:32<02:49,  6.51s/it]Ablation Pairs:  74%|███████▍  | 71/96 [07:39<02:44,  6.58s/it]Ablation Pairs:  75%|███████▌  | 72/96 [07:46<02:38,  6.62s/it]Ablation Pairs:  76%|███████▌  | 73/96 [07:52<02:32,  6.65s/it]Ablation Pairs:  77%|███████▋  | 74/96 [07:59<02:26,  6.65s/it]Ablation Pairs:  78%|███████▊  | 75/96 [08:06<02:20,  6.70s/it]Ablation Pairs:  79%|███████▉  | 76/96 [08:13<02:14,  6.73s/it]Ablation Pairs:  80%|████████  | 77/96 [08:19<02:07,  6.73s/it]Ablation Pairs:  81%|████████▏ | 78/96 [08:26<02:02,  6.83s/it]Ablation Pairs:  82%|████████▏ | 79/96 [08:33<01:53,  6.70s/it]Ablation Pairs:  83%|████████▎ | 80/96 [08:39<01:46,  6.66s/it]Ablation Pairs:  84%|████████▍ | 81/96 [08:46<01:37,  6.51s/it]Ablation Pairs:  85%|████████▌ | 82/96 [08:52<01:30,  6.49s/it]Ablation Pairs:  86%|████████▋ | 83/96 [08:59<01:24,  6.50s/it]Ablation Pairs:  88%|████████▊ | 84/96 [09:05<01:19,  6.60s/it]Ablation Pairs:  89%|████████▊ | 85/96 [09:12<01:12,  6.59s/it]Ablation Pairs:  90%|████████▉ | 86/96 [09:19<01:06,  6.65s/it]Ablation Pairs:  91%|█████████ | 87/96 [09:26<01:01,  6.80s/it]Ablation Pairs:  92%|█████████▏| 88/96 [09:33<00:54,  6.87s/it]Ablation Pairs:  93%|█████████▎| 89/96 [09:40<00:48,  6.91s/it]Ablation Pairs:  94%|█████████▍| 90/96 [09:47<00:41,  6.86s/it]Ablation Pairs:  95%|█████████▍| 91/96 [09:54<00:35,  7.15s/it]Ablation Pairs:  96%|█████████▌| 92/96 [10:01<00:28,  7.10s/it]Ablation Pairs:  97%|█████████▋| 93/96 [10:08<00:20,  7.00s/it]Ablation Pairs:  98%|█████████▊| 94/96 [10:15<00:14,  7.03s/it]Ablation Pairs:  99%|█████████▉| 95/96 [10:22<00:07,  7.07s/it]Ablation Pairs: 100%|██████████| 96/96 [10:30<00:00,  7.07s/it]Ablation Pairs: 100%|██████████| 96/96 [10:30<00:00,  6.56s/it]
+E6 causal specialization analysis complete. Saved to v1/results/derived/v1_phase_c_prompt_end/qwen_base
+2026-09-20 18:21:17,347 [INFO] --- Running V1 Pipeline for qwen_instruct (Qwen/Qwen2.5-1.5B-Instruct) ---
+2026-09-20 18:21:17,348 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_a.py --model-id Qwen/Qwen2.5-1.5B-Instruct --model-prefix qwen_instruct --device cuda:0 --is-instruct
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+=== Starting V1 Phase A Probing for Model: Qwen/Qwen2.5-1.5B-Instruct (Instruct=True) ===
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:   0%|          | 1/338 [00:00<05:25,  1.03it/s]Loading weights:  23%|██▎       | 77/338 [00:01<00:02, 97.55it/s]Loading weights:  35%|███▍      | 118/338 [00:01<00:02, 99.40it/s]Loading weights:  43%|████▎     | 145/338 [00:01<00:01, 112.20it/s]Loading weights:  50%|████▉     | 168/338 [00:01<00:01, 116.10it/s]Loading weights:  58%|█████▊    | 195/338 [00:01<00:01, 135.78it/s]Loading weights:  69%|██████▊   | 232/338 [00:02<00:00, 152.31it/s]Loading weights:  76%|███████▌  | 257/338 [00:02<00:00, 166.57it/s]Loading weights:  86%|████████▌ | 291/338 [00:02<00:00, 194.99it/s]Loading weights:  93%|█████████▎| 316/338 [00:02<00:00, 189.74it/s]Loading weights: 100%|██████████| 338/338 [00:02<00:00, 131.18it/s]
+Forward Pass Batches:   0%|          | 0/63 [00:00<?, ?it/s]Forward Pass Batches:   2%|▏         | 1/63 [00:01<01:48,  1.75s/it]Forward Pass Batches:   3%|▎         | 2/63 [00:01<00:48,  1.27it/s]Forward Pass Batches:   5%|▍         | 3/63 [00:01<00:28,  2.10it/s]Forward Pass Batches:   8%|▊         | 5/63 [00:02<00:15,  3.84it/s]Forward Pass Batches:  10%|▉         | 6/63 [00:02<00:12,  4.64it/s]Forward Pass Batches:  13%|█▎        | 8/63 [00:02<00:09,  6.07it/s]Forward Pass Batches:  16%|█▌        | 10/63 [00:02<00:07,  7.21it/s]Forward Pass Batches:  19%|█▉        | 12/63 [00:03<00:07,  6.47it/s]Forward Pass Batches:  21%|██        | 13/63 [00:03<00:07,  6.82it/s]Forward Pass Batches:  24%|██▍       | 15/63 [00:03<00:06,  7.84it/s]Forward Pass Batches:  25%|██▌       | 16/63 [00:03<00:05,  8.07it/s]Forward Pass Batches:  29%|██▊       | 18/63 [00:03<00:04,  9.75it/s]Forward Pass Batches:  32%|███▏      | 20/63 [00:03<00:03, 11.10it/s]Forward Pass Batches:  37%|███▋      | 23/63 [00:03<00:02, 14.62it/s]Forward Pass Batches:  40%|███▉      | 25/63 [00:03<00:02, 14.74it/s]Forward Pass Batches:  43%|████▎     | 27/63 [00:04<00:02, 14.90it/s]Forward Pass Batches:  46%|████▌     | 29/63 [00:04<00:02, 13.19it/s]Forward Pass Batches:  49%|████▉     | 31/63 [00:04<00:02, 12.51it/s]Forward Pass Batches:  54%|█████▍    | 34/63 [00:04<00:02, 14.07it/s]Forward Pass Batches:  57%|█████▋    | 36/63 [00:04<00:02, 13.12it/s]Forward Pass Batches:  60%|██████    | 38/63 [00:04<00:01, 13.71it/s]Forward Pass Batches:  63%|██████▎   | 40/63 [00:05<00:01, 14.10it/s]Forward Pass Batches:  67%|██████▋   | 42/63 [00:05<00:01, 13.15it/s]Forward Pass Batches:  71%|███████▏  | 45/63 [00:05<00:01, 16.03it/s]Forward Pass Batches:  75%|███████▍  | 47/63 [00:05<00:01, 15.61it/s]Forward Pass Batches:  79%|███████▉  | 50/63 [00:05<00:00, 16.17it/s]Forward Pass Batches:  83%|████████▎ | 52/63 [00:05<00:00, 15.81it/s]Forward Pass Batches:  86%|████████▌ | 54/63 [00:06<00:00, 14.28it/s]Forward Pass Batches:  89%|████████▉ | 56/63 [00:06<00:00, 13.08it/s]Forward Pass Batches:  92%|█████████▏| 58/63 [00:06<00:00, 13.62it/s]Forward Pass Batches:  95%|█████████▌| 60/63 [00:06<00:00, 14.03it/s]Forward Pass Batches: 100%|██████████| 63/63 [00:06<00:00, 15.15it/s]Forward Pass Batches: 100%|██████████| 63/63 [00:06<00:00,  9.51it/s]
+Forward Pass Batches:   0%|          | 0/63 [00:00<?, ?it/s]Forward Pass Batches:   5%|▍         | 3/63 [00:00<00:03, 17.96it/s]Forward Pass Batches:   8%|▊         | 5/63 [00:00<00:03, 16.91it/s]Forward Pass Batches:  11%|█         | 7/63 [00:00<00:03, 15.75it/s]Forward Pass Batches:  14%|█▍        | 9/63 [00:00<00:03, 15.28it/s]Forward Pass Batches:  17%|█▋        | 11/63 [00:00<00:03, 13.39it/s]Forward Pass Batches:  21%|██        | 13/63 [00:00<00:03, 14.04it/s]Forward Pass Batches:  24%|██▍       | 15/63 [00:01<00:03, 14.60it/s]Forward Pass Batches:  27%|██▋       | 17/63 [00:01<00:03, 14.48it/s]Forward Pass Batches:  30%|███       | 19/63 [00:01<00:02, 14.88it/s]Forward Pass Batches:  35%|███▍      | 22/63 [00:01<00:02, 17.89it/s]Forward Pass Batches:  40%|███▉      | 25/63 [00:01<00:01, 20.17it/s]Forward Pass Batches:  44%|████▍     | 28/63 [00:01<00:02, 17.12it/s]Forward Pass Batches:  48%|████▊     | 30/63 [00:01<00:02, 15.26it/s]Forward Pass Batches:  51%|█████     | 32/63 [00:02<00:02, 15.28it/s]Forward Pass Batches:  54%|█████▍    | 34/63 [00:02<00:01, 15.42it/s]Forward Pass Batches:  57%|█████▋    | 36/63 [00:02<00:01, 14.12it/s]Forward Pass Batches:  62%|██████▏   | 39/63 [00:02<00:01, 17.00it/s]Forward Pass Batches:  65%|██████▌   | 41/63 [00:02<00:01, 16.56it/s]Forward Pass Batches:  70%|██████▉   | 44/63 [00:02<00:01, 18.93it/s]Forward Pass Batches:  75%|███████▍  | 47/63 [00:02<00:00, 20.77it/s]Forward Pass Batches:  79%|███████▉  | 50/63 [00:02<00:00, 22.06it/s]Forward Pass Batches:  84%|████████▍ | 53/63 [00:03<00:00, 23.13it/s]Forward Pass Batches:  89%|████████▉ | 56/63 [00:03<00:00, 16.89it/s]Forward Pass Batches:  92%|█████████▏| 58/63 [00:03<00:00, 16.43it/s]Forward Pass Batches:  95%|█████████▌| 60/63 [00:03<00:00, 16.11it/s]Forward Pass Batches: 100%|██████████| 63/63 [00:03<00:00, 16.65it/s]Forward Pass Batches: 100%|██████████| 63/63 [00:03<00:00, 16.71it/s]
+Loading AIPsy stimuli for classification probing from v1/data/processed/aipsy_4split_all.csv...
+Forward Pass Batches:   0%|          | 0/30 [00:00<?, ?it/s]Forward Pass Batches:   7%|▋         | 2/30 [00:00<00:02, 13.56it/s]Forward Pass Batches:  13%|█▎        | 4/30 [00:00<00:02, 11.92it/s]Forward Pass Batches:  20%|██        | 6/30 [00:00<00:02, 11.15it/s]Forward Pass Batches:  27%|██▋       | 8/30 [00:00<00:01, 12.20it/s]Forward Pass Batches:  33%|███▎      | 10/30 [00:00<00:01, 11.75it/s]Forward Pass Batches:  40%|████      | 12/30 [00:01<00:01, 11.51it/s]Forward Pass Batches:  47%|████▋     | 14/30 [00:01<00:01, 11.74it/s]Forward Pass Batches:  53%|█████▎    | 16/30 [00:01<00:01, 11.74it/s]Forward Pass Batches:  60%|██████    | 18/30 [00:01<00:01, 11.67it/s]Forward Pass Batches:  67%|██████▋   | 20/30 [00:01<00:00, 11.42it/s]Forward Pass Batches:  73%|███████▎  | 22/30 [00:01<00:00, 12.17it/s]Forward Pass Batches:  80%|████████  | 24/30 [00:02<00:00, 11.68it/s]Forward Pass Batches:  87%|████████▋ | 26/30 [00:02<00:00, 11.68it/s]Forward Pass Batches:  93%|█████████▎| 28/30 [00:02<00:00, 11.61it/s]Forward Pass Batches: 100%|██████████| 30/30 [00:02<00:00, 12.28it/s]Forward Pass Batches: 100%|██████████| 30/30 [00:02<00:00, 11.86it/s]
+Forward Pass Batches:   0%|          | 0/30 [00:00<?, ?it/s]Forward Pass Batches:   7%|▋         | 2/30 [00:00<00:02, 12.14it/s]Forward Pass Batches:  13%|█▎        | 4/30 [00:00<00:01, 13.37it/s]Forward Pass Batches:  20%|██        | 6/30 [00:00<00:01, 15.53it/s]Forward Pass Batches:  30%|███       | 9/30 [00:00<00:01, 16.01it/s]Forward Pass Batches:  37%|███▋      | 11/30 [00:00<00:01, 15.66it/s]Forward Pass Batches:  47%|████▋     | 14/30 [00:00<00:00, 16.23it/s]Forward Pass Batches:  53%|█████▎    | 16/30 [00:01<00:00, 14.87it/s]Forward Pass Batches:  60%|██████    | 18/30 [00:01<00:00, 15.01it/s]Forward Pass Batches:  67%|██████▋   | 20/30 [00:01<00:00, 13.89it/s]Forward Pass Batches:  73%|███████▎  | 22/30 [00:01<00:00, 14.20it/s]Forward Pass Batches:  80%|████████  | 24/30 [00:01<00:00, 13.27it/s]Forward Pass Batches:  87%|████████▋ | 26/30 [00:01<00:00, 12.94it/s]Forward Pass Batches:  93%|█████████▎| 28/30 [00:01<00:00, 13.49it/s]Forward Pass Batches: 100%|██████████| 30/30 [00:02<00:00, 14.53it/s]
+Saved AIPsy classification probing to v1/results/derived/v1_phase_a/qwen_instruct/e1_aipsy_classification.csv
+Phase A completed. Results saved to v1/results/derived/v1_phase_a/qwen_instruct
+2026-09-20 18:42:41,727 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_b.py --model-id Qwen/Qwen2.5-1.5B-Instruct --model-prefix qwen_instruct --device cuda:0 --is-instruct
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+=== Starting V1 Phase B Semantic Audit: Qwen/Qwen2.5-1.5B-Instruct ===
+Data Path: v1/data/processed/v1_e5_semantic_controls.csv | Target Layer: 14 (relative_depth=0.50)
+V1 Phase B semantic controls: n_rows=192 | path=v1/data/processed/v1_e5_semantic_controls.csv | n_unique_pair_id=192
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:   0%|          | 1/338 [00:00<04:56,  1.14it/s]Loading weights:  51%|█████     | 172/338 [00:01<00:00, 224.81it/s]Loading weights:  71%|███████▏  | 241/338 [00:01<00:00, 259.48it/s]Loading weights:  87%|████████▋ | 295/338 [00:01<00:00, 257.49it/s]Loading weights: 100%|██████████| 338/338 [00:01<00:00, 277.22it/s]Loading weights: 100%|██████████| 338/338 [00:01<00:00, 217.35it/s]
+Dynamically resolved target layer to 14 from model config.
+Extracting representations across semantic audit conditions...
+Phase B completed. Results saved to v1/results/derived/v1_phase_b/qwen_instruct/phase_b_semantic_controls.csv
+2026-09-20 18:43:24,801 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_c.py --model-id Qwen/Qwen2.5-1.5B-Instruct --model-prefix qwen_instruct --device cuda:0 --is-instruct --all-layers
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+=== Starting V1 Phase C Causal Intervention (Prompt-End Normalized) ===
+Model ID: Qwen/Qwen2.5-1.5B-Instruct | Mode: all
+Loaded 192 matched clinical-neutral pairs.
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:   0%|          | 1/338 [00:00<03:31,  1.59it/s]Loading weights:  40%|████      | 136/338 [00:00<00:00, 249.64it/s]Loading weights:  63%|██████▎   | 213/338 [00:00<00:00, 272.50it/s]Loading weights:  80%|███████▉  | 269/338 [00:01<00:00, 264.38it/s]Loading weights:  93%|█████████▎| 313/338 [00:01<00:00, 281.16it/s]Loading weights: 100%|██████████| 338/338 [00:01<00:00, 239.87it/s]
+[W920 18:54:42.753013510 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 4319412224, total: 99949674496).
+Computing clean baselines...
+Extracting representations...
+Running E3: Shared Causal Map (total layers: 28, already done: 0)...
+E3 Target Layers:   0%|          | 0/28 [00:00<?, ?it/s][W920 19:14:19.673561950 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:   4%|▎         | 1/28 [11:52<5:20:40, 712.61s/it][W920 19:26:15.974267618 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:   7%|▋         | 2/28 [23:49<5:10:00, 715.41s/it][W920 19:38:12.901274227 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  11%|█         | 3/28 [35:46<4:58:21, 716.05s/it][W920 19:50:10.038350366 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  14%|█▍        | 4/28 [47:44<4:46:41, 716.73s/it][W920 20:02:10.098779329 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  18%|█▊        | 5/28 [59:44<4:35:14, 718.03s/it][W920 20:14:07.072908213 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  21%|██▏       | 6/28 [1:11:41<4:23:06, 717.57s/it][W920 20:26:04.053234274 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  25%|██▌       | 7/28 [1:23:39<4:11:08, 717.56s/it][W920 20:38:03.069308950 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  29%|██▊       | 8/28 [1:35:37<3:59:18, 717.93s/it][W920 20:50:02.348667265 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  32%|███▏      | 9/28 [1:47:35<3:47:21, 717.97s/it][W920 21:01:59.961144001 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  36%|███▌      | 10/28 [1:59:33<3:35:24, 718.01s/it][W920 21:13:58.027451077 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  39%|███▉      | 11/28 [2:11:33<3:23:32, 718.36s/it][W920 21:25:58.597616058 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  43%|████▎     | 12/28 [2:23:31<3:11:35, 718.45s/it][W920 21:37:55.831863465 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  46%|████▋     | 13/28 [2:35:29<2:59:32, 718.17s/it][W920 21:49:52.720209357 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  50%|█████     | 14/28 [2:47:26<2:47:30, 717.88s/it][W920 22:01:52.822868379 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  54%|█████▎    | 15/28 [2:59:26<2:35:40, 718.51s/it][W920 22:13:49.455364043 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  57%|█████▋    | 16/28 [3:11:22<2:23:34, 717.86s/it][W920 22:25:46.739146255 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  61%|██████    | 17/28 [3:23:20<2:11:35, 717.76s/it][W920 22:37:44.564690663 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  64%|██████▍   | 18/28 [3:35:19<1:59:41, 718.14s/it][W920 22:49:44.123150326 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  68%|██████▊   | 19/28 [3:47:18<1:47:46, 718.50s/it][W920 23:01:42.980968384 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  71%|███████▏  | 20/28 [3:59:16<1:35:47, 718.39s/it][W920 23:13:40.812358969 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  75%|███████▌  | 21/28 [4:11:14<1:23:47, 718.17s/it][W920 23:25:37.814396816 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  79%|███████▊  | 22/28 [4:23:11<1:11:46, 717.68s/it][W920 23:37:34.286141777 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  82%|████████▏ | 23/28 [4:35:09<59:50, 718.02s/it]  [W920 23:49:35.603674457 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  86%|████████▌ | 24/28 [4:47:09<47:53, 718.40s/it][W921 00:01:32.892038052 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  89%|████████▉ | 25/28 [4:59:06<35:54, 718.01s/it][W921 00:13:29.569472497 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  93%|█████████▎| 26/28 [5:11:03<23:55, 717.78s/it][W921 00:25:23.032581982 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers:  96%|█████████▋| 27/28 [5:22:54<11:55, 715.76s/it][W921 00:37:13.818834149 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 6524239872 bytes (free: 3279224832, total: 99949674496).
+E3 Target Layers: 100%|██████████| 28/28 [5:34:44<00:00, 714.01s/it]E3 Target Layers: 100%|██████████| 28/28 [5:34:44<00:00, 717.30s/it]
+E3 all target layers completed and saved to v1/results/derived/v1_phase_c_prompt_end/qwen_instruct/e3_causal_map.csv
+Running E4 Interchangeability on Layers [11, 12, 16, 17, 23] (total conditions: 25, already done: 0)...
+E4 Conditions:   0%|          | 0/25 [00:00<?, ?it/s]
+E4 L11 a=-1.0:   0%|          | 0/96 [00:00<?, ?it/s][A
+E4 L11 a=-1.0:   1%|          | 1/96 [00:07<12:27,  7.86s/it][A
+E4 L11 a=-1.0:   2%|▏         | 2/96 [00:15<12:18,  7.86s/it][A
+E4 L11 a=-1.0:   3%|▎         | 3/96 [00:23<12:08,  7.84s/it][A
+E4 L11 a=-1.0:   4%|▍         | 4/96 [00:31<12:05,  7.88s/it][A
+E4 L11 a=-1.0:   5%|▌         | 5/96 [00:39<11:55,  7.86s/it][A
+E4 L11 a=-1.0:   6%|▋         | 6/96 [00:47<11:45,  7.83s/it][A
+E4 L11 a=-1.0:   7%|▋         | 7/96 [00:55<11:50,  7.98s/it][A
+E4 L11 a=-1.0:   8%|▊         | 8/96 [01:03<11:52,  8.10s/it][A
+E4 L11 a=-1.0:   9%|▉         | 9/96 [01:11<11:36,  8.01s/it][A
+E4 L11 a=-1.0:  10%|█         | 10/96 [01:19<11:32,  8.05s/it][A
+E4 L11 a=-1.0:  11%|█▏        | 11/96 [01:27<11:28,  8.09s/it][A
+E4 L11 a=-1.0:  12%|█▎        | 12/96 [01:35<11:16,  8.05s/it][A
+E4 L11 a=-1.0:  14%|█▎        | 13/96 [01:43<11:02,  7.99s/it][A
+E4 L11 a=-1.0:  15%|█▍        | 14/96 [01:52<11:09,  8.17s/it][A
+E4 L11 a=-1.0:  16%|█▌        | 15/96 [02:01<11:21,  8.42s/it][A
+E4 L11 a=-1.0:  17%|█▋        | 16/96 [02:09<11:18,  8.48s/it][A
+E4 L11 a=-1.0:  18%|█▊        | 17/96 [02:19<11:33,  8.78s/it][A
+E4 L11 a=-1.0:  19%|█▉        | 18/96 [02:28<11:30,  8.86s/it][A
+E4 L11 a=-1.0:  20%|█▉        | 19/96 [02:37<11:29,  8.95s/it][A
+E4 L11 a=-1.0:  21%|██        | 20/96 [02:46<11:16,  8.90s/it][A
+E4 L11 a=-1.0:  22%|██▏       | 21/96 [02:54<10:55,  8.74s/it][A
+E4 L11 a=-1.0:  23%|██▎       | 22/96 [03:03<10:45,  8.73s/it][A
+E4 L11 a=-1.0:  24%|██▍       | 23/96 [03:12<10:39,  8.76s/it][A
+E4 L11 a=-1.0:  25%|██▌       | 24/96 [03:20<10:23,  8.66s/it][A
+E4 L11 a=-1.0:  26%|██▌       | 25/96 [03:29<10:21,  8.75s/it][A
+E4 L11 a=-1.0:  27%|██▋       | 26/96 [03:38<10:09,  8.71s/it][A
+E4 L11 a=-1.0:  28%|██▊       | 27/96 [03:47<10:02,  8.74s/it][A
+E4 L11 a=-1.0:  29%|██▉       | 28/96 [03:55<09:38,  8.51s/it][A
+E4 L11 a=-1.0:  30%|███       | 29/96 [04:03<09:28,  8.49s/it][A
+E4 L11 a=-1.0:  31%|███▏      | 30/96 [04:11<09:19,  8.48s/it][A
+E4 L11 a=-1.0:  32%|███▏      | 31/96 [04:21<09:26,  8.72s/it][A
+E4 L11 a=-1.0:  33%|███▎      | 32/96 [04:30<09:28,  8.89s/it][A
+E4 L11 a=-1.0:  34%|███▍      | 33/96 [04:40<09:35,  9.13s/it][A
+E4 L11 a=-1.0:  35%|███▌      | 34/96 [04:49<09:26,  9.13s/it][A
+E4 L11 a=-1.0:  36%|███▋      | 35/96 [04:58<09:17,  9.14s/it][A
+E4 L11 a=-1.0:  38%|███▊      | 36/96 [05:07<09:06,  9.11s/it][A
+E4 L11 a=-1.0:  39%|███▊      | 37/96 [05:16<08:55,  9.07s/it][A
+E4 L11 a=-1.0:  40%|███▉      | 38/96 [05:25<08:51,  9.16s/it][A
+E4 L11 a=-1.0:  41%|████      | 39/96 [05:34<08:36,  9.07s/it][A
+E4 L11 a=-1.0:  42%|████▏     | 40/96 [05:44<08:32,  9.15s/it][A
+E4 L11 a=-1.0:  43%|████▎     | 41/96 [05:53<08:22,  9.14s/it][A
+E4 L11 a=-1.0:  44%|████▍     | 42/96 [06:02<08:13,  9.14s/it][A
+E4 L11 a=-1.0:  45%|████▍     | 43/96 [06:11<08:09,  9.23s/it][A
+E4 L11 a=-1.0:  46%|████▌     | 44/96 [06:21<08:04,  9.32s/it][A
+E4 L11 a=-1.0:  47%|████▋     | 45/96 [06:30<07:52,  9.26s/it][A
+E4 L11 a=-1.0:  48%|████▊     | 46/96 [06:39<07:43,  9.26s/it][A
+E4 L11 a=-1.0:  49%|████▉     | 47/96 [06:49<07:35,  9.30s/it][A
+E4 L11 a=-1.0:  50%|█████     | 48/96 [06:58<07:27,  9.32s/it][A
+E4 L11 a=-1.0:  51%|█████     | 49/96 [07:07<07:17,  9.30s/it][A
+E4 L11 a=-1.0:  52%|█████▏    | 50/96 [07:16<07:07,  9.29s/it][A
+E4 L11 a=-1.0:  53%|█████▎    | 51/96 [07:25<06:51,  9.15s/it][A
+E4 L11 a=-1.0:  54%|█████▍    | 52/96 [07:35<06:46,  9.23s/it][A
+E4 L11 a=-1.0:  55%|█████▌    | 53/96 [07:45<06:44,  9.41s/it][A
+E4 L11 a=-1.0:  56%|█████▋    | 54/96 [07:54<06:33,  9.36s/it][A
+E4 L11 a=-1.0:  57%|█████▋    | 55/96 [08:03<06:24,  9.38s/it][A
+E4 L11 a=-1.0:  58%|█████▊    | 56/96 [08:13<06:15,  9.39s/it][A
+E4 L11 a=-1.0:  59%|█████▉    | 57/96 [08:22<06:04,  9.35s/it][A
+E4 L11 a=-1.0:  60%|██████    | 58/96 [08:31<05:56,  9.39s/it][A
+E4 L11 a=-1.0:  61%|██████▏   | 59/96 [08:41<05:52,  9.53s/it][A
+E4 L11 a=-1.0:  62%|██████▎   | 60/96 [08:52<05:56,  9.90s/it][A
+E4 L11 a=-1.0:  64%|██████▎   | 61/96 [09:02<05:44,  9.84s/it][A
+E4 L11 a=-1.0:  65%|██████▍   | 62/96 [09:11<05:30,  9.71s/it][A
+E4 L11 a=-1.0:  66%|██████▌   | 63/96 [09:21<05:21,  9.75s/it][A
+E4 L11 a=-1.0:  67%|██████▋   | 64/96 [09:31<05:12,  9.75s/it][A
+E4 L11 a=-1.0:  68%|██████▊   | 65/96 [09:40<04:58,  9.63s/it][A
+E4 L11 a=-1.0:  69%|██████▉   | 66/96 [09:49<04:43,  9.44s/it][A
+E4 L11 a=-1.0:  70%|██████▉   | 67/96 [09:59<04:36,  9.53s/it][A
+E4 L11 a=-1.0:  71%|███████   | 68/96 [10:08<04:23,  9.40s/it][A
+E4 L11 a=-1.0:  72%|███████▏  | 69/96 [10:17<04:14,  9.41s/it][A
+E4 L11 a=-1.0:  73%|███████▎  | 70/96 [10:26<04:01,  9.28s/it][A
+E4 L11 a=-1.0:  74%|███████▍  | 71/96 [10:36<03:54,  9.39s/it][A
+E4 L11 a=-1.0:  75%|███████▌  | 72/96 [10:45<03:44,  9.35s/it][A
+E4 L11 a=-1.0:  76%|███████▌  | 73/96 [10:55<03:37,  9.44s/it][A
+E4 L11 a=-1.0:  77%|███████▋  | 74/96 [11:04<03:28,  9.46s/it][A
+E4 L11 a=-1.0:  78%|███████▊  | 75/96 [11:14<03:17,  9.41s/it][A
+E4 L11 a=-1.0:  79%|███████▉  | 76/96 [11:23<03:09,  9.46s/it][A
+E4 L11 a=-1.0:  80%|████████  | 77/96 [11:33<02:59,  9.46s/it][A
+E4 L11 a=-1.0:  81%|████████▏ | 78/96 [11:43<02:53,  9.62s/it][A
+E4 L11 a=-1.0:  82%|████████▏ | 79/96 [11:52<02:41,  9.49s/it][A
+E4 L11 a=-1.0:  83%|████████▎ | 80/96 [12:02<02:34,  9.68s/it][A
+E4 L11 a=-1.0:  84%|████████▍ | 81/96 [12:11<02:22,  9.52s/it][A
+E4 L11 a=-1.0:  85%|████████▌ | 82/96 [12:20<02:12,  9.47s/it][A
+E4 L11 a=-1.0:  86%|████████▋ | 83/96 [12:30<02:02,  9.40s/it][A
+E4 L11 a=-1.0:  88%|████████▊ | 84/96 [12:39<01:54,  9.50s/it][A
+E4 L11 a=-1.0:  89%|████████▊ | 85/96 [12:48<01:42,  9.32s/it][A
+E4 L11 a=-1.0:  90%|████████▉ | 86/96 [12:58<01:34,  9.43s/it][A
+E4 L11 a=-1.0:  91%|█████████ | 87/96 [13:08<01:27,  9.69s/it][A
+E4 L11 a=-1.0:  92%|█████████▏| 88/96 [13:18<01:18,  9.83s/it][A
+E4 L11 a=-1.0:  93%|█████████▎| 89/96 [13:29<01:09,  9.92s/it][A
+E4 L11 a=-1.0:  94%|█████████▍| 90/96 [13:38<00:59,  9.84s/it][A
+E4 L11 a=-1.0:  95%|█████████▍| 91/96 [13:49<00:51, 10.26s/it][A
+E4 L11 a=-1.0:  96%|█████████▌| 92/96 [13:59<00:40, 10.16s/it][A
+E4 L11 a=-1.0:  97%|█████████▋| 93/96 [14:09<00:30, 10.13s/it][A
+E4 L11 a=-1.0:  98%|█████████▊| 94/96 [14:20<00:20, 10.12s/it][A
+E4 L11 a=-1.0:  99%|█████████▉| 95/96 [14:30<00:10, 10.14s/it][A
+E4 L11 a=-1.0: 100%|██████████| 96/96 [14:40<00:00, 10.21s/it][A
+                                                              [AE4 Conditions:   4%|▍         | 1/25 [14:40<5:52:16, 880.71s/it]E4 Conditions:   4%|▍         | 1/25 [14:40<5:52:16, 880.71s/it, layer=11, alpha=-1]
+E4 L11 a=0.0:   0%|          | 0/96 [00:00<?, ?it/s][A
+                                                    [AE4 Conditions:   8%|▊         | 2/25 [14:40<5:37:36, 880.71s/it, layer=11, alpha=0] 
+E4 L11 a=0.5:   0%|          | 0/96 [00:00<?, ?it/s][A
+E4 L11 a=0.5:   1%|          | 1/96 [00:07<12:28,  7.87s/it][A
+E4 L11 a=0.5:   2%|▏         | 2/96 [00:15<12:18,  7.86s/it][A
+E4 L11 a=0.5:   3%|▎         | 3/96 [00:23<12:08,  7.83s/it][A
+E4 L11 a=0.5:   4%|▍         | 4/96 [00:31<12:03,  7.87s/it][A
+E4 L11 a=0.5:   5%|▌         | 5/96 [00:39<11:53,  7.84s/it][A
+E4 L11 a=0.5:   6%|▋         | 6/96 [00:47<11:44,  7.83s/it][A
+E4 L11 a=0.5:   7%|▋         | 7/96 [00:55<11:49,  7.97s/it][A
+E4 L11 a=0.5:   8%|▊         | 8/96 [01:03<11:52,  8.09s/it][A
+E4 L11 a=0.5:   9%|▉         | 9/96 [01:11<11:35,  8.00s/it][A
+E4 L11 a=0.5:  10%|█         | 10/96 [01:19<11:37,  8.11s/it][A
+E4 L11 a=0.5:  11%|█▏        | 11/96 [01:28<11:31,  8.13s/it][A
+E4 L11 a=0.5:  12%|█▎        | 12/96 [01:35<11:18,  8.08s/it][A
+E4 L11 a=0.5:  14%|█▎        | 13/96 [01:43<11:05,  8.01s/it][A
+E4 L11 a=0.5:  15%|█▍        | 14/96 [01:52<11:12,  8.20s/it][A
+E4 L11 a=0.5:  16%|█▌        | 15/96 [02:01<11:23,  8.44s/it][A
+E4 L11 a=0.5:  17%|█▋        | 16/96 [02:10<11:19,  8.50s/it][A
+E4 L11 a=0.5:  18%|█▊        | 17/96 [02:19<11:34,  8.79s/it][A
+E4 L11 a=0.5:  19%|█▉        | 18/96 [02:28<11:31,  8.86s/it][A
+E4 L11 a=0.5:  20%|█▉        | 19/96 [02:37<11:29,  8.96s/it][A
+E4 L11 a=0.5:  21%|██        | 20/96 [02:46<11:17,  8.91s/it][A
+E4 L11 a=0.5:  22%|██▏       | 21/96 [02:54<10:56,  8.75s/it][A
+E4 L11 a=0.5:  23%|██▎       | 22/96 [03:03<10:45,  8.73s/it][A
+E4 L11 a=0.5:  24%|██▍       | 23/96 [03:12<10:39,  8.76s/it][A
+E4 L11 a=0.5:  25%|██▌       | 24/96 [03:20<10:23,  8.66s/it][A
+E4 L11 a=0.5:  26%|██▌       | 25/96 [03:29<10:21,  8.75s/it][A
+E4 L11 a=0.5:  27%|██▋       | 26/96 [03:38<10:09,  8.71s/it][A
+E4 L11 a=0.5:  28%|██▊       | 27/96 [03:47<10:02,  8.73s/it][A
+E4 L11 a=0.5:  29%|██▉       | 28/96 [03:55<09:38,  8.51s/it][A
+E4 L11 a=0.5:  30%|███       | 29/96 [04:03<09:28,  8.49s/it][A
+E4 L11 a=0.5:  31%|███▏      | 30/96 [04:12<09:19,  8.48s/it][A
+E4 L11 a=0.5:  32%|███▏      | 31/96 [04:21<09:26,  8.72s/it][A
+E4 L11 a=0.5:  33%|███▎      | 32/96 [04:30<09:29,  8.89s/it][A
+E4 L11 a=0.5:  34%|███▍      | 33/96 [04:40<09:35,  9.14s/it][A
+E4 L11 a=0.5:  35%|███▌      | 34/96 [04:49<09:26,  9.14s/it][A
+E4 L11 a=0.5:  36%|███▋      | 35/96 [04:58<09:17,  9.14s/it][A
+E4 L11 a=0.5:  38%|███▊      | 36/96 [05:07<09:06,  9.11s/it][A
+E4 L11 a=0.5:  39%|███▊      | 37/96 [05:16<08:55,  9.07s/it][A
+E4 L11 a=0.5:  40%|███▉      | 38/96 [05:26<08:51,  9.17s/it][A
+E4 L11 a=0.5:  41%|████      | 39/96 [05:34<08:37,  9.08s/it][A
+E4 L11 a=0.5:  42%|████▏     | 40/96 [05:44<08:33,  9.17s/it][A
+E4 L11 a=0.5:  43%|████▎     | 41/96 [05:53<08:23,  9.16s/it][A
+E4 L11 a=0.5:  44%|████▍     | 42/96 [06:02<08:14,  9.16s/it][A
+E4 L11 a=0.5:  45%|████▍     | 43/96 [06:12<08:10,  9.25s/it][A
+E4 L11 a=0.5:  46%|████▌     | 44/96 [06:21<08:05,  9.34s/it][A
+E4 L11 a=0.5:  47%|████▋     | 45/96 [06:30<07:53,  9.28s/it][A
+E4 L11 a=0.5:  48%|████▊     | 46/96 [06:40<07:44,  9.28s/it][A
+E4 L11 a=0.5:  49%|████▉     | 47/96 [06:49<07:36,  9.33s/it][A
+E4 L11 a=0.5:  50%|█████     | 48/96 [06:58<07:28,  9.34s/it][A
+E4 L11 a=0.5:  51%|█████     | 49/96 [07:08<07:18,  9.32s/it][A
+E4 L11 a=0.5:  52%|█████▏    | 50/96 [07:17<07:08,  9.31s/it][A
+E4 L11 a=0.5:  53%|█████▎    | 51/96 [07:26<06:52,  9.17s/it][A
+E4 L11 a=0.5:  54%|█████▍    | 52/96 [07:35<06:47,  9.25s/it][A
+E4 L11 a=0.5:  55%|█████▌    | 53/96 [07:45<06:45,  9.43s/it][A
+E4 L11 a=0.5:  56%|█████▋    | 54/96 [07:54<06:34,  9.38s/it][A
+E4 L11 a=0.5:  57%|█████▋    | 55/96 [08:04<06:25,  9.40s/it][A
+E4 L11 a=0.5:  58%|█████▊    | 56/96 [08:13<06:16,  9.40s/it][A
+E4 L11 a=0.5:  59%|█████▉    | 57/96 [08:22<06:05,  9.37s/it][A
+E4 L11 a=0.5:  60%|██████    | 58/96 [08:32<05:57,  9.42s/it][A
+E4 L11 a=0.5:  61%|██████▏   | 59/96 [08:42<05:53,  9.55s/it][A
+E4 L11 a=0.5:  62%|██████▎   | 60/96 [08:53<05:56,  9.91s/it][A
+E4 L11 a=0.5:  64%|██████▎   | 61/96 [09:02<05:44,  9.85s/it][A
+E4 L11 a=0.5:  65%|██████▍   | 62/96 [09:12<05:30,  9.73s/it][A
+E4 L11 a=0.5:  66%|██████▌   | 63/96 [09:22<05:22,  9.77s/it][A
+E4 L11 a=0.5:  67%|██████▋   | 64/96 [09:31<05:12,  9.78s/it][A
+E4 L11 a=0.5:  68%|██████▊   | 65/96 [09:41<04:59,  9.66s/it][A
+E4 L11 a=0.5:  69%|██████▉   | 66/96 [09:50<04:43,  9.45s/it][A
+E4 L11 a=0.5:  70%|██████▉   | 67/96 [10:00<04:36,  9.54s/it][A
+E4 L11 a=0.5:  71%|███████   | 68/96 [10:09<04:23,  9.41s/it][A
+E4 L11 a=0.5:  72%|███████▏  | 69/96 [10:18<04:14,  9.43s/it][A
+E4 L11 a=0.5:  73%|███████▎  | 70/96 [10:27<04:01,  9.29s/it][A
+E4 L11 a=0.5:  74%|███████▍  | 71/96 [10:37<03:55,  9.41s/it][A
+E4 L11 a=0.5:  75%|███████▌  | 72/96 [10:46<03:45,  9.38s/it][A
+E4 L11 a=0.5:  76%|███████▌  | 73/96 [10:56<03:37,  9.47s/it][A
+E4 L11 a=0.5:  77%|███████▋  | 74/96 [11:05<03:28,  9.48s/it][A
+E4 L11 a=0.5:  78%|███████▊  | 75/96 [11:15<03:17,  9.42s/it][A
+E4 L11 a=0.5:  79%|███████▉  | 76/96 [11:24<03:09,  9.47s/it][A
+E4 L11 a=0.5:  80%|████████  | 77/96 [11:34<02:59,  9.47s/it][A
+E4 L11 a=0.5:  81%|████████▏ | 78/96 [11:44<02:53,  9.62s/it][A
+E4 L11 a=0.5:  82%|████████▏ | 79/96 [11:53<02:41,  9.50s/it][A
+E4 L11 a=0.5:  83%|████████▎ | 80/96 [12:03<02:34,  9.68s/it][A
+E4 L11 a=0.5:  84%|████████▍ | 81/96 [12:12<02:22,  9.53s/it][A
+E4 L11 a=0.5:  85%|████████▌ | 82/96 [12:21<02:12,  9.48s/it][A
+E4 L11 a=0.5:  86%|████████▋ | 83/96 [12:31<02:02,  9.42s/it][A
+E4 L11 a=0.5:  88%|████████▊ | 84/96 [12:40<01:54,  9.52s/it][A
+E4 L11 a=0.5:  89%|████████▊ | 85/96 [12:49<01:42,  9.35s/it][A
+E4 L11 a=0.5:  90%|████████▉ | 86/96 [12:59<01:34,  9.46s/it][A
+E4 L11 a=0.5:  91%|█████████ | 87/96 [13:09<01:27,  9.71s/it][A
+E4 L11 a=0.5:  92%|█████████▏| 88/96 [13:20<01:18,  9.86s/it][A
+E4 L11 a=0.5:  93%|█████████▎| 89/96 [13:30<01:09,  9.94s/it][A
+E4 L11 a=0.5:  94%|█████████▍| 90/96 [13:40<00:59,  9.88s/it][A
+E4 L11 a=0.5:  95%|█████████▍| 91/96 [13:51<00:51, 10.28s/it][A
+E4 L11 a=0.5:  96%|█████████▌| 92/96 [14:01<00:40, 10.18s/it][A
+E4 L11 a=0.5:  97%|█████████▋| 93/96 [14:11<00:30, 10.16s/it][A
+E4 L11 a=0.5:  98%|█████████▊| 94/96 [14:21<00:20, 10.15s/it][A
+E4 L11 a=0.5:  99%|█████████▉| 95/96 [14:31<00:10, 10.17s/it][A

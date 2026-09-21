@@ -381,6 +381,31 @@ def resolve_joint_stage_index(
     return t_idx
 
 
+def validate_sequence_likelihood_protocol(
+    cfg: dict[str, Any] | None = None,
+    normalize_length: bool = True,
+    temperature: float = 1.0,
+) -> None:
+    """
+    Primary Sequence-Likelihood プロトコルの固定検証。
+    Token mean (normalize_length=True) かつ Temperature=1.0 は変更可能なハイパーパラメータではなく固定測定プロトコルである。
+    """
+    if cfg is not None and "sequence_likelihood" in cfg:
+        sl_cfg = cfg["sequence_likelihood"]
+        cfg_norm = sl_cfg.get("normalize_length", True)
+        cfg_temp = float(sl_cfg.get("temperature", 1.0))
+        if cfg_norm is not True or cfg_temp != 1.0:
+            raise ValueError(
+                f"Primary Sequence-Likelihood is fixed to token mean, T=1.0. "
+                f"Found normalize_length={cfg_norm}, temperature={cfg_temp}"
+            )
+    if normalize_length is not True or float(temperature) != 1.0:
+        raise ValueError(
+            f"Primary Sequence-Likelihood is fixed to token mean, T=1.0. "
+            f"Got normalize_length={normalize_length}, temperature={temperature}"
+        )
+
+
 def compute_sequence_likelihoods_for_candidates(
     model: Any,
     tokenizer: Any,
@@ -404,6 +429,8 @@ def compute_sequence_likelihoods_for_candidates(
         log_likelihoods: (num_candidates,) - 各候補の対数尤度配列（token mean または raw sum）
         probs: (num_candidates,) - Softmax(log_likelihoods / temperature) により正規化された確率分布
     """
+    validate_sequence_likelihood_protocol(normalize_length=normalize_length, temperature=temperature)
+
     if candidates is None:
         cand_dicts = build_va_candidates()
         cand_strings = [c["json_str"] for c in cand_dicts]

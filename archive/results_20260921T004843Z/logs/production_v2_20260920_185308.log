@@ -1,0 +1,82 @@
+==================================================================
+Starting Production V2 Pipeline Evaluation
+Timestamp : 2026-09-20T09:53:08Z
+Device    : cuda:0
+Extra Args: --family olmo
+Log File  : results/logs/production_v2_20260920_185308.log
+Cohort    : primary_small (4 families: Qwen, Llama, Gemma, OLMo)
+Pipeline  : RQ1/RQ2 (Cross-decoding) -> RQ3 (Causal Map) -> RQ4 (Recovery Patching)
+Data Scale: Full production CSVs (actual counts logged by the Python runner)
+Runtime   : unmeasured (do not use pre-benchmark hour estimates)
+==================================================================
+2026-09-20 18:53:15,660 [INFO] Affective Empathy Evaluation Unified Runner
+2026-09-20 18:53:15,660 [INFO] Stage: v2 | Cohort: primary_small | Dry-run: False
+2026-09-20 18:53:15,660 [INFO] Wall-clock estimates are unmeasured until a Qwen-family benchmark is recorded.
+2026-09-20 18:53:15,660 [INFO] Dataset inventory (actual loaded counts; wall-clock time is unmeasured):
+2026-09-20 18:53:15,678 [INFO] EmoBank 3-way: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-20 18:53:15,693 [INFO] AIPsy 4-split: n_rows=480 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=480 | split_counts={'clinical': 192, 'neutral': 192, 'moderate': 48, 'complex_neutral': 48}
+2026-09-20 18:53:15,710 [INFO] V1 Phase B rule-based controls: n_rows=192 | path=v1/data/processed/v1_e5_semantic_controls.csv | n_unique_pair_id=192
+2026-09-20 18:53:15,710 [INFO] === Running V2 Stage (model-set: primary_small) ===
+2026-09-20 18:53:15,710 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v2/primary/run_rq1_rq2_cross_decoding.py --models-config configs/models.yaml --model-set primary_small --device cuda:0 --family olmo
+2026-09-20 18:53:40,443 [INFO] Starting V2-RQ1 & RQ2 analysis (dry_run=False, device=cuda:0)
+2026-09-20 18:53:40,495 [INFO] V2-RQ1/RQ2 dataset: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-20 18:53:40,500 [INFO] Dataset loaded: total=1000, train=700, held_out_test=300
+2026-09-20 18:53:40,529 [INFO] Loaded existing validated results for olmo from v2/results/raw/v2_geometry_olmo.json. Skipping computation.
+2026-09-20 18:53:40,618 [INFO] All done! Integrated summary with Bootstrap CIs saved to v2/results/derived/v2_cross_family_summary.json
+2026-09-20 18:53:41,408 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v2/primary/run_rq3_causal_map.py --models-config configs/models.yaml --model-set primary_small --device cuda:0 --family olmo
+2026-09-20 18:53:52,388 [INFO] Starting V2-RQ3 Causal Map analysis (dry_run=False, device=cuda:0)
+2026-09-20 18:53:52,413 [INFO] V2-RQ3 dataset: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-20 18:53:52,747 [INFO] HTTP Request: HEAD https://huggingface.co/allenai/OLMo-2-0425-1B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 18:53:52,764 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/allenai/OLMo-2-0425-1B-Instruct/48d788eca847d4d7548f375ad03d3c9312f6139e/config.json?%2Fallenai%2FOLMo-2-0425-1B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%228270c25100714b935d5f538f06e90b4dd18418d3%22 "HTTP/1.1 200 OK"
+2026-09-20 18:53:52,807 [INFO] --- Running Causal Maps for Family: olmo (16 layers) ---
+2026-09-20 18:53:52,807 [INFO] Loading weights for allenai/OLMo-2-0425-1B (plain) onto cuda:0...
+2026-09-20 18:53:52,982 [INFO] HTTP Request: HEAD https://huggingface.co/allenai/OLMo-2-0425-1B/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 18:53:52,996 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/allenai/OLMo-2-0425-1B/a1847dff35000b4271fa70afc5db10fd29fedbdf/config.json?%2Fallenai%2FOLMo-2-0425-1B%2Fresolve%2Fmain%2Fconfig.json=&etag=%220e6dffcd9b40b734014ef9909d6bc7b62c4c1fe1%22 "HTTP/1.1 200 OK"
+2026-09-20 18:53:53,183 [INFO] HTTP Request: HEAD https://huggingface.co/allenai/OLMo-2-0425-1B/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 18:53:53,195 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/allenai/OLMo-2-0425-1B/a1847dff35000b4271fa70afc5db10fd29fedbdf/tokenizer_config.json?%2Fallenai%2FOLMo-2-0425-1B%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%22f9e5ee94cf605b587aa8021f7e27e7d5381c07b7%22 "HTTP/1.1 200 OK"
+2026-09-20 18:53:53,374 [INFO] HTTP Request: HEAD https://huggingface.co/allenai/OLMo-2-0425-1B/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 18:53:53,388 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/allenai/OLMo-2-0425-1B/a1847dff35000b4271fa70afc5db10fd29fedbdf/tokenizer_config.json?%2Fallenai%2FOLMo-2-0425-1B%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%22f9e5ee94cf605b587aa8021f7e27e7d5381c07b7%22 "HTTP/1.1 200 OK"
+2026-09-20 18:53:53,569 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-20 18:53:53,756 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-20 18:53:54,429 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B "HTTP/1.1 200 OK"
+2026-09-20 18:53:54,620 [INFO] HTTP Request: HEAD https://huggingface.co/allenai/OLMo-2-0425-1B/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 18:53:54,632 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/allenai/OLMo-2-0425-1B/a1847dff35000b4271fa70afc5db10fd29fedbdf/config.json?%2Fallenai%2FOLMo-2-0425-1B%2Fresolve%2Fmain%2Fconfig.json=&etag=%220e6dffcd9b40b734014ef9909d6bc7b62c4c1fe1%22 "HTTP/1.1 200 OK"
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/179 [00:00<?, ?it/s]Loading weights:   1%|          | 1/179 [00:00<02:05,  1.41it/s]Loading weights:  26%|██▋       | 47/179 [00:00<00:01, 78.47it/s]Loading weights:  42%|████▏     | 75/179 [00:00<00:01, 101.63it/s]Loading weights:  54%|█████▍    | 97/179 [00:01<00:00, 119.29it/s]Loading weights:  66%|██████▌   | 118/179 [00:01<00:00, 129.61it/s]Loading weights:  77%|███████▋  | 137/179 [00:01<00:00, 137.20it/s]Loading weights:  88%|████████▊ | 157/179 [00:01<00:00, 149.76it/s]Loading weights: 100%|██████████| 179/179 [00:01<00:00, 115.55it/s]
+2026-09-20 18:53:57,913 [INFO] HTTP Request: HEAD https://huggingface.co/allenai/OLMo-2-0425-1B/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 18:53:57,924 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/allenai/OLMo-2-0425-1B/a1847dff35000b4271fa70afc5db10fd29fedbdf/generation_config.json?%2Fallenai%2FOLMo-2-0425-1B%2Fresolve%2Fmain%2Fgeneration_config.json=&etag=%225b349a5ba3b23008b50aaed4b394b269a138e6f8%22 "HTTP/1.1 200 OK"
+2026-09-20 18:53:57,929 [INFO] Causal patching for base_plain_reader...
+2026-09-20 20:40:56,193 [INFO] Causal patching for base_plain_self...
+2026-09-20 22:26:42,868 [INFO] Loading weights for allenai/OLMo-2-0425-1B-Instruct (matched_plain) onto cuda:0...
+2026-09-20 22:26:43,182 [INFO] HTTP Request: HEAD https://huggingface.co/allenai/OLMo-2-0425-1B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 22:26:43,195 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/allenai/OLMo-2-0425-1B-Instruct/48d788eca847d4d7548f375ad03d3c9312f6139e/config.json?%2Fallenai%2FOLMo-2-0425-1B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%228270c25100714b935d5f538f06e90b4dd18418d3%22 "HTTP/1.1 200 OK"
+2026-09-20 22:26:43,431 [INFO] HTTP Request: HEAD https://huggingface.co/allenai/OLMo-2-0425-1B-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 22:26:43,444 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/allenai/OLMo-2-0425-1B-Instruct/48d788eca847d4d7548f375ad03d3c9312f6139e/tokenizer_config.json?%2Fallenai%2FOLMo-2-0425-1B-Instruct%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%226a68ef73052b644e4a32208ae0114236db221028%22 "HTTP/1.1 200 OK"
+2026-09-20 22:26:43,640 [INFO] HTTP Request: HEAD https://huggingface.co/allenai/OLMo-2-0425-1B-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 22:26:43,654 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/allenai/OLMo-2-0425-1B-Instruct/48d788eca847d4d7548f375ad03d3c9312f6139e/tokenizer_config.json?%2Fallenai%2FOLMo-2-0425-1B-Instruct%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%226a68ef73052b644e4a32208ae0114236db221028%22 "HTTP/1.1 200 OK"
+2026-09-20 22:26:43,848 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-20 22:26:44,029 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-20 22:26:44,880 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B-Instruct "HTTP/1.1 200 OK"
+2026-09-20 22:26:45,082 [INFO] HTTP Request: HEAD https://huggingface.co/allenai/OLMo-2-0425-1B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 22:26:45,093 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/allenai/OLMo-2-0425-1B-Instruct/48d788eca847d4d7548f375ad03d3c9312f6139e/config.json?%2Fallenai%2FOLMo-2-0425-1B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%228270c25100714b935d5f538f06e90b4dd18418d3%22 "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/179 [00:00<?, ?it/s]Loading weights:   1%|          | 1/179 [00:00<00:20,  8.73it/s]Loading weights:  26%|██▋       | 47/179 [00:00<00:00, 258.47it/s]Loading weights:  52%|█████▏    | 93/179 [00:00<00:00, 346.97it/s]Loading weights:  83%|████████▎ | 148/179 [00:00<00:00, 421.48it/s]Loading weights: 100%|██████████| 179/179 [00:00<00:00, 379.27it/s]
+2026-09-20 22:26:45,931 [INFO] HTTP Request: HEAD https://huggingface.co/allenai/OLMo-2-0425-1B-Instruct/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 22:26:45,942 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/allenai/OLMo-2-0425-1B-Instruct/48d788eca847d4d7548f375ad03d3c9312f6139e/generation_config.json?%2Fallenai%2FOLMo-2-0425-1B-Instruct%2Fresolve%2Fmain%2Fgeneration_config.json=&etag=%22bfdadfedab612dd93776ee6547bcdbc11d0c78ab%22 "HTTP/1.1 200 OK"
+2026-09-20 22:26:45,960 [INFO] Causal patching for inst_matched_plain_reader...
+2026-09-21 00:13:15,607 [INFO] Causal patching for inst_matched_plain_self...
+2026-09-21 01:56:35,291 [INFO] Loading weights for allenai/OLMo-2-0425-1B-Instruct (native_chat) onto cuda:0...
+2026-09-21 01:56:35,508 [INFO] HTTP Request: HEAD https://huggingface.co/allenai/OLMo-2-0425-1B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-21 01:56:35,518 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/allenai/OLMo-2-0425-1B-Instruct/48d788eca847d4d7548f375ad03d3c9312f6139e/config.json?%2Fallenai%2FOLMo-2-0425-1B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%228270c25100714b935d5f538f06e90b4dd18418d3%22 "HTTP/1.1 200 OK"
+2026-09-21 01:56:35,737 [INFO] HTTP Request: HEAD https://huggingface.co/allenai/OLMo-2-0425-1B-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-21 01:56:35,749 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/allenai/OLMo-2-0425-1B-Instruct/48d788eca847d4d7548f375ad03d3c9312f6139e/tokenizer_config.json?%2Fallenai%2FOLMo-2-0425-1B-Instruct%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%226a68ef73052b644e4a32208ae0114236db221028%22 "HTTP/1.1 200 OK"
+2026-09-21 01:56:35,931 [INFO] HTTP Request: HEAD https://huggingface.co/allenai/OLMo-2-0425-1B-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-21 01:56:35,944 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/allenai/OLMo-2-0425-1B-Instruct/48d788eca847d4d7548f375ad03d3c9312f6139e/tokenizer_config.json?%2Fallenai%2FOLMo-2-0425-1B-Instruct%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%226a68ef73052b644e4a32208ae0114236db221028%22 "HTTP/1.1 200 OK"
+2026-09-21 01:56:36,126 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 01:56:36,316 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 01:56:37,018 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B-Instruct "HTTP/1.1 200 OK"
+2026-09-21 01:56:37,214 [INFO] HTTP Request: HEAD https://huggingface.co/allenai/OLMo-2-0425-1B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-21 01:56:37,225 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/allenai/OLMo-2-0425-1B-Instruct/48d788eca847d4d7548f375ad03d3c9312f6139e/config.json?%2Fallenai%2FOLMo-2-0425-1B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%228270c25100714b935d5f538f06e90b4dd18418d3%22 "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/179 [00:00<?, ?it/s]Loading weights:   1%|          | 1/179 [00:00<00:21,  8.25it/s]Loading weights:  32%|███▏      | 58/179 [00:00<00:00, 304.04it/s]Loading weights:  64%|██████▍   | 115/179 [00:00<00:00, 411.91it/s]Loading weights:  96%|█████████▌| 172/179 [00:00<00:00, 468.64it/s]Loading weights: 100%|██████████| 179/179 [00:00<00:00, 410.93it/s]
+2026-09-21 01:56:37,978 [INFO] HTTP Request: HEAD https://huggingface.co/allenai/OLMo-2-0425-1B-Instruct/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-21 01:56:37,987 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/allenai/OLMo-2-0425-1B-Instruct/48d788eca847d4d7548f375ad03d3c9312f6139e/generation_config.json?%2Fallenai%2FOLMo-2-0425-1B-Instruct%2Fresolve%2Fmain%2Fgeneration_config.json=&etag=%22bfdadfedab612dd93776ee6547bcdbc11d0c78ab%22 "HTTP/1.1 200 OK"
+2026-09-21 01:56:37,993 [INFO] Causal patching for inst_native_chat_reader...

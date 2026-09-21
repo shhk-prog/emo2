@@ -1,0 +1,138 @@
+{
+  "execution_status": "success",
+  "execution_success": true,
+  "stage": "v3",
+  "experiment_id": "v3_confirmatory_replication",
+  "completed_at": "2026-09-21T00:37:01.227598+00:00",
+  "metadata": {
+    "family_id": "olmo",
+    "model_id": "allenai/OLMo-2-0425-1B-Instruct",
+    "dry_run": true
+  },
+  "family_id": "olmo",
+  "model_id": "allenai/OLMo-2-0425-1B-Instruct",
+  "dry_run": true,
+  "results": {
+    "family": "OLMo 2",
+    "is_simulation": true,
+    "primary_grounding": "reader_prediction (simulated)",
+    "num_layers": 16,
+    "h1_dissociation": {
+      "valence": {
+        "d_d_star": 0.4666666666666667,
+        "d_c_star": 0.6666666666666666,
+        "delta_d_star": 0.19999999999999996,
+        "bar_d_d": 0.48395203192158726,
+        "bar_d_c": 0.6928246736566566,
+        "delta_bar_d": 0.2088726417350693,
+        "d_peak_D": 0.4666666666666667,
+        "d_peak_C": 0.6666666666666666,
+        "delta_d_peak": 0.19999999999999996,
+        "d_center_D": 0.48395203192158726,
+        "d_center_C": 0.6928246736566566,
+        "delta_d_center": 0.2088726417350693
+      },
+      "arousal": {
+        "d_d_star": 0.4666666666666667,
+        "d_c_star": 0.7333333333333333,
+        "delta_d_star": 0.2666666666666666,
+        "bar_d_d": 0.4771198721367487,
+        "bar_d_c": 0.6908279230804395,
+        "delta_bar_d": 0.21370805094369077,
+        "d_peak_D": 0.4666666666666667,
+        "d_peak_C": 0.7333333333333333,
+        "delta_d_peak": 0.2666666666666666,
+        "d_center_D": 0.4771198721367487,
+        "d_center_C": 0.6908279230804395,
+        "delta_d_center": 0.21370805094369077
+      },
+      "d_peak_D": 0.4666666666666667,
+      "d_peak_C": 0.6666666666666666,
+      "delta_d_peak": 0.19999999999999996,
+      "delta_d_center": 0.2088726417350693,
+      "passed": true
+    },
+    "h2_sufficiency": {
+      "slope_v": 0.7959394926772163,
+      "slope_a": 0.6497953161565053,
+      "passed": true
+    },
+    "h3_endogenous_relevance": {
+      "valence": {
+        "natural_shift": 1.0549003847853995,
+        "attenuated_shift": 0.4085160788762403,
+        "mediated_attenuation": 0.6463843059091592,
+        "attenuation_ratio": 0.6127444024400981
+      },
+      "arousal": {
+        "natural_shift": 0.9670122699034532,
+        "attenuated_shift": 0.4307388070897584,
+        "mediated_attenuation": 0.5362734628136948,
+        "attenuation_ratio": 0.5545673819291213
+      },
+      "random_subspace_control": {
+        "valence": {
+          "attenuation_random": 0.12927686118183185,
+          "net_attenuation_vs_random": {
+            "mean": 0.5171074447273274,
+            "ci_lower": 0.3878305835454955,
+            "ci_upper": 0.6463843059091592
+          }
+        },
+        "arousal": {
+          "attenuation_random": 0.10725469256273897,
+          "net_attenuation_vs_random": {
+            "mean": 0.42901877025095586,
+            "ci_lower": 0.32176407768821685,
+            "ci_upper": 0.5362734628136948
+          }
+        }
+      },
+      "natural_shift": 1.0549003847853995,
+      "attenuated_shift": 0.4085160788762403,
+      "mediated_attenuation": 0.6463843059091592,
+      "attenuation_ratio": 0.6127444024400981,
+      "passed": true
+    },
+    "h3_necessity": {
+      "natural_shift": 1.0549003847853995,
+      "attenuated_shift": 0.4085160788762403,
+      "attenuation_ratio": 0.6127444024400981,
+      "passed": true
+    },
+    "h4_temporal_emergence": {
+      "stage_causal": {
+        "candidate_start": 0.1328169486914278,
+        "pre_V": 1.0292675419395683,
+        "V_value": 0.6397586003915587,
+        "pre_A": 0.37964804278206715,
+        "A_value": 0.25502480927586607,
+        "response_end": 0.05588479889907082
+      },
+      "stage_causal_v": {
+        "candidate_start": 0.1328169486914278,
+        "pre_V": 1.0292675419395683,
+        "V_value": 0.6397586003915587,
+        "pre_A": 0.37964804278206715,
+        "A_value": 0.25502480927586607,
+        "response_end": 0.05588479889907082
+      },
+      "stage_causal_a": {
+        "candidate_start": 0.10564398973168188,
+        "pre_V": 0.40043331357509243,
+        "V_value": 0.23461536896912202,
+        "pre_A": 0.9388009948522984,
+        "A_value": 0.5756193272991399,
+        "response_end": 0.07611270400764848
+      },
+      "contrast_v": 0.8964505932481405,
+      "contrast_a": 0.8331570051206165,
+      "non_uniform_leverage": true,
+      "passed_valence": true,
+      "passed_arousal": true,
+      "passed": true
+    },
+    "auxiliary_qc_all_pass": true,
+    "all_confirmed": true
+  }
+}

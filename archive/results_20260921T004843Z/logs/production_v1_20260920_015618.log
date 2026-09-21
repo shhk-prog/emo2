@@ -1,0 +1,34 @@
+==================================================================
+Starting Production V1 Pipeline Evaluation
+Timestamp : 2026-09-19T16:56:18Z
+Device    : cuda:0
+Extra Args: none
+Log File  : results/logs/production_v1_20260920_015618.log
+Cohort    : primary_small (4 families, 8 models)
+Pipeline  : Phase A -> Phase B -> Phase C (E3/E4) -> E6 -> Summarize
+Data Scale: Full production CSVs (actual counts logged by the Python runner)
+Runtime   : unmeasured (do not use pre-benchmark hour estimates)
+==================================================================
+2026-09-20 01:56:28,187 [INFO] Affective Empathy Evaluation Unified Runner
+2026-09-20 01:56:28,187 [INFO] Stage: v1 | Cohort: primary_small | Dry-run: False
+2026-09-20 01:56:28,187 [INFO] Wall-clock estimates are unmeasured until a Qwen-family benchmark is recorded.
+2026-09-20 01:56:28,187 [INFO] Dataset inventory (actual loaded counts; wall-clock time is unmeasured):
+2026-09-20 01:56:28,227 [INFO] EmoBank 3-way: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-20 01:56:28,273 [INFO] AIPsy 4-split: n_rows=480 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=480 | split_counts={'clinical': 192, 'neutral': 192, 'moderate': 48, 'complex_neutral': 48}
+2026-09-20 01:56:28,285 [INFO] V1 Phase B rule-based controls: n_rows=192 | path=v1/data/processed/v1_e5_semantic_controls.csv | n_unique_pair_id=192
+2026-09-20 01:56:28,285 [INFO] === Running V1 Stage Pipeline (model-set: primary_small) ===
+2026-09-20 01:56:28,291 [INFO] --- Running V1 Pipeline for qwen_base (Qwen/Qwen2.5-1.5B) ---
+2026-09-20 01:56:28,291 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_a.py --model-id Qwen/Qwen2.5-1.5B --model-prefix qwen_base --device cuda:0
+[SKIP] Validated Phase A results found in v1/results/derived/v1_phase_a/qwen_base. Skipping model loading & probing for qwen_base. Use --force to rerun.
+2026-09-20 01:56:56,259 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_b.py --model-id Qwen/Qwen2.5-1.5B --model-prefix qwen_base --device cuda:0
+[SKIP] Validated Phase B results found in v1/results/derived/v1_phase_b/qwen_base. Skipping computation for qwen_base. Use --force to rerun.
+2026-09-20 01:57:07,776 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_c.py --model-id Qwen/Qwen2.5-1.5B --model-prefix qwen_base --device cuda:0 --all-layers
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+=== Starting V1 Phase C Causal Intervention (Prompt-End Normalized) ===
+Model ID: Qwen/Qwen2.5-1.5B | Mode: all
+Loaded 192 matched clinical-neutral pairs.
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:   0%|          | 1/338 [00:00<03:40,  1.53it/s]Loading weights:  40%|███▉      | 135/338 [00:00<00:00, 240.61it/s]Loading weights:  63%|██████▎   | 213/338 [00:01<00:00, 254.97it/s]Loading weights:  79%|███████▉  | 268/338 [00:01<00:00, 261.57it/s]Loading weights:  93%|█████████▎| 313/338 [00:01<00:00, 273.32it/s]Loading weights: 100%|██████████| 338/338 [00:01<00:00, 232.74it/s]
+Loaded validated clean baselines from v1/results/cache/qwen_base/baselines_n192.npz
+Loaded validated representations from v1/results/cache/qwen_base/hidden_states_n192.npz
+Running E3: Shared Causal Map...
+E3 Target Layers:   0%|          | 0/28 [00:00<?, ?it/s]

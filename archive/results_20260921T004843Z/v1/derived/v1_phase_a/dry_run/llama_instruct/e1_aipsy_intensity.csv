@@ -1,0 +1,5 @@
+layer,relative_depth,dataset,target,reader_spearman_rho,self_spearman_rho,reader_pearson_r,self_pearson_r,reader_r2,self_r2
+0,0.0,AIPsy,intensity_none_moderate_peak,0.7,0.65,0.68,0.62,0.45,0.38
+1,0.3333333333333333,AIPsy,intensity_none_moderate_peak,0.7,0.65,0.68,0.62,0.45,0.38
+2,0.6666666666666666,AIPsy,intensity_none_moderate_peak,0.7,0.65,0.68,0.62,0.45,0.38
+3,1.0,AIPsy,intensity_none_moderate_peak,0.7,0.65,0.68,0.62,0.45,0.38

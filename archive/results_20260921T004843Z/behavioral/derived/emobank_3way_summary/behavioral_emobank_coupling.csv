@@ -1,0 +1,13 @@
+model,dimension,dim_label,r_RS,p_RS,rho_RS,delta_mean,delta_std
+behavioral_emobank_qwen_base,V,Valence,1.0,0.0,1.0,0.12000000000000019,0.16613247725836125
+behavioral_emobank_qwen_base,A,Arousal,0.9999999999999999,0.0,1.0,0.04999999999999982,0.04999999999999982
+behavioral_emobank_qwen_base,D,Dominance,,,,0.0,0.0
+behavioral_emobank_qwen_instruct,V,Valence,1.0,0.0,1.0,0.12000000000000019,0.16613247725836125
+behavioral_emobank_qwen_instruct,A,Arousal,0.9999999999999999,0.0,1.0,0.04999999999999982,0.04999999999999982
+behavioral_emobank_qwen_instruct,D,Dominance,,,,0.0,0.0
+qwen_base,V,Valence,1.0,0.0,1.0,0.12000000000000019,0.16613247725836125
+qwen_base,A,Arousal,0.9999999999999999,0.0,1.0,0.04999999999999982,0.04999999999999982
+qwen_base,D,Dominance,,,,0.0,0.0
+qwen_instruct,V,Valence,1.0,0.0,1.0,0.12000000000000019,0.16613247725836125
+qwen_instruct,A,Arousal,0.9999999999999999,0.0,1.0,0.04999999999999982,0.04999999999999982
+qwen_instruct,D,Dominance,,,,0.0,0.0

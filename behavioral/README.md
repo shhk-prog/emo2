@@ -16,7 +16,7 @@ Behavioral Stage は、内部表現や因果介入の前に、**モデル出力�
 - **統制条件**:
   - 内容整合中立統制文（Clinical vs Neutral matched pairs）
   - 語彙・統語複雑性統制文（Complex Neutral による特異性検証）
-  - Benjamini-Hochberg FDR 多重比較補正（Family 単位: Sensitivity, Dose-Response, Coupling）
+  - Benjamini-Hochberg FDR 多重比較補正（Family 単位: Sensitivity, Dose-Response, Specificity, Coupling）
 - **出力成果物**:
   - `behavioral/results/emobank_3way_summary/`
   - `behavioral/results/aipsy_4split_summary/` (`behavioral_aipsy_summary.csv`, `aipsy_coupling.csv`, `aipsy_sensitivity.csv`, `aipsy_dose_response.csv`, `aipsy_specificity.csv`)

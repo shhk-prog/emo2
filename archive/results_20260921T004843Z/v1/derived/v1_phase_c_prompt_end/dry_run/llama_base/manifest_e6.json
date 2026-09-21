@@ -1,0 +1,47 @@
+{
+  "run_type": "v1_phase_c_e6_specialization",
+  "model_name": "meta-llama/Llama-3.2-1B",
+  "config": {
+    "model_prefix": "llama_base",
+    "reader_layer": 0,
+    "self_layer": 14,
+    "site_selection_method": "task_selectivity_contrast",
+    "split_eval": "confirmation",
+    "split_seed": 42,
+    "dry_run": true
+  },
+  "metadata": {
+    "p_value_interaction": 0.001,
+    "coef_interaction": 0.42,
+    "cell_means": {
+      "Reader_ReaderSite": 0.55,
+      "Self_ReaderSite": 0.2,
+      "Reader_SelfSite": 0.18,
+      "Self_SelfSite": 0.62
+    },
+    "has_crossover": true,
+    "site_selection_method": "task_selectivity_contrast",
+    "reader_layer": 0,
+    "self_layer": 14,
+    "split_eval": "confirmation"
+  },
+  "timestamp_utc": "2026-09-20T23:41:30.000206+00:00",
+  "git_commit": "4c3fca0",
+  "run_id": "20260920T234130000137Z_4c3fca0_94a8c3dc_eb75242a",
+  "config_hash": "94a8c3dc7269c8ce",
+  "dataset_hash": "unknown",
+  "model_revision": "4e20de362430cd3b72f300e6b0f18e50e7166e08",
+  "tokenizer_revision": "main",
+  "prompt_version": "1.0.0",
+  "prompt_hash": "unknown",
+  "candidate_space": "VAD_729",
+  "measurement_space": "VA_expectation_from_VAD_729",
+  "actual_dtype": "bfloat16",
+  "template_mode": "system_user",
+  "seed": 42,
+  "code_version": "2.2.0",
+  "intervention_version": "prompt_end_normalized",
+  "sequence_likelihood_normalization": "token_mean",
+  "temperature": 1.0,
+  "dry_run": true
+}

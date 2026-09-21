@@ -1,0 +1,23 @@
+{
+  "execution_status": "success",
+  "execution_success": true,
+  "stage": "behavioral",
+  "experiment_id": "behavioral_aipsy_4split",
+  "completed_at": "2026-09-20T21:09:14.565287+00:00",
+  "metadata": {
+    "tag": "qwen_instruct",
+    "model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "is_instruct": true
+  },
+  "tag": "qwen_instruct",
+  "model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "is_instruct": true,
+  "results": {
+    "tag": "qwen_instruct",
+    "model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "is_instruct": true,
+    "num_samples": 16,
+    "mean_s_ev": 5.0,
+    "mean_s_ea": 5.0
+  }
+}

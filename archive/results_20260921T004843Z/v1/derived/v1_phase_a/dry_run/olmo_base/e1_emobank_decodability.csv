@@ -1,0 +1,5 @@
+layer,relative_depth,dataset,target_V_human_r2_reader,target_V_human_r2_self,target_V_human_pr_reader,target_V_human_pr_self,target_A_human_r2_reader,target_A_human_r2_self,target_A_human_pr_reader,target_A_human_pr_self
+0,0.0,EmoBank,0.5,0.4,0.7,0.6,0.3,0.2,0.5,0.4
+1,0.3333333333333333,EmoBank,0.5,0.4,0.7,0.6,0.3,0.2,0.5,0.4
+2,0.6666666666666666,EmoBank,0.5,0.4,0.7,0.6,0.3,0.2,0.5,0.4
+3,1.0,EmoBank,0.5,0.4,0.7,0.6,0.3,0.2,0.5,0.4

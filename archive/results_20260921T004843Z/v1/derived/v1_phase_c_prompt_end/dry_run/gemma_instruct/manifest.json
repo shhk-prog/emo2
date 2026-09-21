@@ -1,0 +1,87 @@
+{
+  "run_type": "v1_phase_c",
+  "model_name": "google/gemma-3-1b-it",
+  "config": {
+    "model_prefix": "gemma_instruct",
+    "mode": "all",
+    "limit": 0,
+    "dry_run": true
+  },
+  "metadata": {
+    "e3_records": [
+      {
+        "layer": 0,
+        "relative_depth": 0.0,
+        "delta_h_cosine": 0.85,
+        "magnitude_reader": 0.3,
+        "magnitude_self": 0.25,
+        "discovery_mag_reader": 0.32,
+        "discovery_mag_self": 0.26,
+        "r2_causal_effect": 0.45
+      },
+      {
+        "layer": 14,
+        "relative_depth": 0.5,
+        "delta_h_cosine": 0.92,
+        "magnitude_reader": 0.65,
+        "magnitude_self": 0.7,
+        "discovery_mag_reader": 0.68,
+        "discovery_mag_self": 0.72,
+        "r2_causal_effect": 0.65
+      }
+    ],
+    "e4_records": [
+      {
+        "layer": 14,
+        "relative_depth": 0.5,
+        "alpha": 1.0,
+        "aligned_matched_shift_V": 0.35,
+        "aligned_matched_shift_A": 0.25,
+        "aligned_random_shift_V": 0.05,
+        "aligned_random_shift_A": 0.02,
+        "aligned_specificity_V": 0.3,
+        "aligned_specificity_A": 0.23,
+        "aligned_cohen_dz_V": 1.15,
+        "aligned_cohen_dz_A": 0.95,
+        "transfer_ratio_V": 0.7,
+        "transfer_ratio_A": 0.65,
+        "matched_shift_V": 0.35,
+        "matched_shift_A": 0.25,
+        "random_shift_V": 0.05,
+        "random_shift_A": 0.02,
+        "specificity_V": 0.3,
+        "specificity_A": 0.23,
+        "cohen_dz_V": 1.15,
+        "cohen_dz_A": 0.95,
+        "is_confirmatory": true,
+        "aligned_p_val_V": 0.0001,
+        "aligned_p_val_A": 0.0002,
+        "aligned_p_fdr_V": 0.0001,
+        "aligned_p_fdr_A": 0.0002,
+        "p_val_V": 0.0001,
+        "p_val_A": 0.0002,
+        "p_fdr_V": 0.0001,
+        "p_fdr_A": 0.0002
+      }
+    ]
+  },
+  "timestamp_utc": "2026-09-20T23:42:46.157520+00:00",
+  "git_commit": "4c3fca0",
+  "run_id": "20260920T234246157445Z_4c3fca0_48697356_4dd30e3e",
+  "config_hash": "48697356ac68c1ee",
+  "dataset_hash": "unknown",
+  "model_revision": "6e82811a2f60298e8bf43e98cb8be1b23838e55c",
+  "tokenizer_revision": "main",
+  "prompt_version": "1.0.0",
+  "prompt_hash": "unknown",
+  "candidate_space": "VAD_729",
+  "measurement_space": "VA_expectation_from_VAD_729",
+  "actual_dtype": "bfloat16",
+  "template_mode": "system_user",
+  "seed": 42,
+  "code_version": "2.2.0",
+  "intervention_version": "none",
+  "sequence_likelihood_normalization": "token_mean",
+  "temperature": 1.0,
+  "dry_run": true
+}

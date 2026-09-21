@@ -1,0 +1,5 @@
+layer,relative_depth,dataset,target,reader_balanced_acc,self_balanced_acc,reader_f1_macro,self_f1_macro,reader_roc_auc,self_roc_auc
+0,0.0,AIPsy,emotion_category_secondary,0.65,0.6,0.62,0.58,0.8,0.76
+1,0.3333333333333333,AIPsy,emotion_category_secondary,0.65,0.6,0.62,0.58,0.8,0.76
+2,0.6666666666666666,AIPsy,emotion_category_secondary,0.65,0.6,0.62,0.58,0.8,0.76
+3,1.0,AIPsy,emotion_category_secondary,0.65,0.6,0.62,0.58,0.8,0.76

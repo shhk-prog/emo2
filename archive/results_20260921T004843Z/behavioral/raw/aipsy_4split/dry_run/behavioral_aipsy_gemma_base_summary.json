@@ -1,0 +1,23 @@
+{
+  "execution_status": "success",
+  "execution_success": true,
+  "stage": "behavioral",
+  "experiment_id": "behavioral_aipsy_4split",
+  "completed_at": "2026-09-20T23:39:08.215332+00:00",
+  "metadata": {
+    "tag": "gemma_base",
+    "model": "google/gemma-3-1b-pt",
+    "is_instruct": false
+  },
+  "tag": "gemma_base",
+  "model": "google/gemma-3-1b-pt",
+  "is_instruct": false,
+  "results": {
+    "tag": "gemma_base",
+    "model": "google/gemma-3-1b-pt",
+    "is_instruct": false,
+    "num_samples": 480,
+    "mean_s_ev": 5.0,
+    "mean_s_ea": 5.486
+  }
+}

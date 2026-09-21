@@ -7,6 +7,7 @@ phase_a:
   seed: 42
   cv_folds: 5
   ridge_alpha: 1.0
+  procrustes_pca_dim: 64
 
 # Phase B 設定 (Item 20)
 phase_b:

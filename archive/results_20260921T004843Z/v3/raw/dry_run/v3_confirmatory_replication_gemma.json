@@ -1,0 +1,138 @@
+{
+  "execution_status": "success",
+  "execution_success": true,
+  "stage": "v3",
+  "experiment_id": "v3_confirmatory_replication",
+  "completed_at": "2026-09-21T00:37:01.009271+00:00",
+  "metadata": {
+    "family_id": "gemma",
+    "model_id": "google/gemma-3-1b-it",
+    "dry_run": true
+  },
+  "family_id": "gemma",
+  "model_id": "google/gemma-3-1b-it",
+  "dry_run": true,
+  "results": {
+    "family": "Gemma 3",
+    "is_simulation": true,
+    "primary_grounding": "reader_prediction (simulated)",
+    "num_layers": 26,
+    "h1_dissociation": {
+      "valence": {
+        "d_d_star": 0.48,
+        "d_c_star": 0.72,
+        "delta_d_star": 0.24,
+        "bar_d_d": 0.4905043545567465,
+        "bar_d_c": 0.688853459882927,
+        "delta_bar_d": 0.1983491053261805,
+        "d_peak_D": 0.48,
+        "d_peak_C": 0.72,
+        "delta_d_peak": 0.24,
+        "d_center_D": 0.4905043545567465,
+        "d_center_C": 0.688853459882927,
+        "delta_d_center": 0.1983491053261805
+      },
+      "arousal": {
+        "d_d_star": 0.48,
+        "d_c_star": 0.72,
+        "delta_d_star": 0.24,
+        "bar_d_d": 0.4762168815715641,
+        "bar_d_c": 0.6915898570965325,
+        "delta_bar_d": 0.21537297552496842,
+        "d_peak_D": 0.48,
+        "d_peak_C": 0.72,
+        "delta_d_peak": 0.24,
+        "d_center_D": 0.4762168815715641,
+        "d_center_C": 0.6915898570965325,
+        "delta_d_center": 0.21537297552496842
+      },
+      "d_peak_D": 0.48,
+      "d_peak_C": 0.72,
+      "delta_d_peak": 0.24,
+      "delta_d_center": 0.1983491053261805,
+      "passed": true
+    },
+    "h2_sufficiency": {
+      "slope_v": 0.7951625806727669,
+      "slope_a": 0.683587688402907,
+      "passed": true
+    },
+    "h3_endogenous_relevance": {
+      "valence": {
+        "natural_shift": 1.07885619402407,
+        "attenuated_shift": 0.40374236205977326,
+        "mediated_attenuation": 0.6751138319642966,
+        "attenuation_ratio": 0.6257681382410772
+      },
+      "arousal": {
+        "natural_shift": 0.9789829518232277,
+        "attenuated_shift": 0.384541157766127,
+        "mediated_attenuation": 0.5944417940571007,
+        "attenuation_ratio": 0.6072034175365676
+      },
+      "random_subspace_control": {
+        "valence": {
+          "attenuation_random": 0.13502276639285934,
+          "net_attenuation_vs_random": {
+            "mean": 0.5400910655714374,
+            "ci_lower": 0.40506829917857795,
+            "ci_upper": 0.6751138319642966
+          }
+        },
+        "arousal": {
+          "attenuation_random": 0.11888835881142015,
+          "net_attenuation_vs_random": {
+            "mean": 0.4755534352456806,
+            "ci_lower": 0.35666507643426043,
+            "ci_upper": 0.5944417940571007
+          }
+        }
+      },
+      "natural_shift": 1.07885619402407,
+      "attenuated_shift": 0.40374236205977326,
+      "mediated_attenuation": 0.6751138319642966,
+      "attenuation_ratio": 0.6257681382410772,
+      "passed": true
+    },
+    "h3_necessity": {
+      "natural_shift": 1.07885619402407,
+      "attenuated_shift": 0.40374236205977326,
+      "attenuation_ratio": 0.6257681382410772,
+      "passed": true
+    },
+    "h4_temporal_emergence": {
+      "stage_causal": {
+        "candidate_start": 0.0951908151256446,
+        "pre_V": 1.065005245912098,
+        "V_value": 0.6395531674171913,
+        "pre_A": 0.4031243252419339,
+        "A_value": 0.2464177108161323,
+        "response_end": 0.06588516276697662
+      },
+      "stage_causal_v": {
+        "candidate_start": 0.0951908151256446,
+        "pre_V": 1.065005245912098,
+        "V_value": 0.6395531674171913,
+        "pre_A": 0.4031243252419339,
+        "A_value": 0.2464177108161323,
+        "response_end": 0.06588516276697662
+      },
+      "stage_causal_a": {
+        "candidate_start": 0.08060015038550966,
+        "pre_V": 0.365548691497983,
+        "V_value": 0.20211142980806898,
+        "pre_A": 0.9517728094465052,
+        "A_value": 0.6157574961139208,
+        "response_end": 0.08005082009207455
+      },
+      "contrast_v": 0.9698144307864534,
+      "contrast_a": 0.8711726590609956,
+      "non_uniform_leverage": true,
+      "passed_valence": true,
+      "passed_arousal": true,
+      "passed": true
+    },
+    "auxiliary_qc_all_pass": true,
+    "all_confirmed": true
+  }
+}

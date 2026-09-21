@@ -1,0 +1,59 @@
+==================================================================
+Starting Production V3 Pipeline Evaluation
+Timestamp : 2026-09-20T08:48:37Z
+Device    : cuda:0
+Extra Args: none
+Log File  : results/logs/production_v3_20260920_174837.log
+Cohort    : primary_small (Target: Qwen | Confirmatory: Llama, Gemma, OLMo)
+Pipeline  : RQ1 (Gate) -> RQ2 (4-Maps) -> RQ3 (Mediation) -> Confirmatory
+Data Scale: Full production CSVs (actual counts logged by the Python runner)
+Runtime   : unmeasured (do not use pre-benchmark hour estimates)
+==================================================================
+2026-09-20 17:48:46,394 [INFO] Affective Empathy Evaluation Unified Runner
+2026-09-20 17:48:46,394 [INFO] Stage: v3 | Cohort: primary_small | Dry-run: False
+2026-09-20 17:48:46,394 [INFO] Wall-clock estimates are unmeasured until a Qwen-family benchmark is recorded.
+2026-09-20 17:48:46,394 [INFO] Dataset inventory (actual loaded counts; wall-clock time is unmeasured):
+2026-09-20 17:48:46,416 [INFO] EmoBank 3-way: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-20 17:48:46,432 [INFO] AIPsy 4-split: n_rows=480 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=480 | split_counts={'clinical': 192, 'neutral': 192, 'moderate': 48, 'complex_neutral': 48}
+2026-09-20 17:48:46,449 [INFO] V1 Phase B rule-based controls: n_rows=192 | path=v1/data/processed/v1_e5_semantic_controls.csv | n_unique_pair_id=192
+2026-09-20 17:48:46,449 [INFO] === Running V3 Stage (model-set: primary_small) ===
+2026-09-20 17:48:46,449 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v3/primary/run_rq1_state_induction.py --models-config configs/models.yaml --model-set primary_small --device cuda:0
+2026-09-20 17:49:13,911 [INFO] Starting V3-RQ1 State Induction (pilot=False, dry_run=False)
+2026-09-20 17:49:14,409 [INFO] V3-RQ1 matched-pair table: n_rows=192 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=192 | split_counts={'clinical': 192}
+2026-09-20 17:49:14,714 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 17:49:14,728 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%22f81ead14ab072d65a07817f83a3ee0e5a1890d10%22 "HTTP/1.1 200 OK"
+2026-09-20 17:49:14,776 [INFO] Resolved V3-RQ1 layer=14 from relative_depth=0.5 (L=28, family=qwen)
+2026-09-20 17:49:14,778 [INFO] Executing REAL state induction pipeline for Qwen/Qwen2.5-1.5B-Instruct...
+2026-09-20 17:49:14,778 [INFO] Loading tokenizer and model: Qwen/Qwen2.5-1.5B-Instruct on cuda:0...
+2026-09-20 17:49:14,958 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 17:49:14,972 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%22f81ead14ab072d65a07817f83a3ee0e5a1890d10%22 "HTTP/1.1 200 OK"
+2026-09-20 17:49:15,155 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 17:49:15,168 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/tokenizer_config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%2207bfe0640cb5a0037f9322287fbfc682806cf672%22 "HTTP/1.1 200 OK"
+2026-09-20 17:49:15,367 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-20 17:49:15,548 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-20 17:49:15,995 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct "HTTP/1.1 200 OK"
+2026-09-20 17:49:16,171 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 17:49:16,182 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%22f81ead14ab072d65a07817f83a3ee0e5a1890d10%22 "HTTP/1.1 200 OK"
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:   0%|          | 1/338 [00:01<07:30,  1.34s/it]Loading weights:  25%|██▍       | 83/338 [00:01<00:03, 78.45it/s]Loading weights:  37%|███▋      | 124/338 [00:01<00:02, 92.02it/s]Loading weights:  45%|████▍     | 152/338 [00:01<00:01, 106.67it/s]Loading weights:  52%|█████▏    | 176/338 [00:02<00:01, 110.57it/s]Loading weights:  58%|█████▊    | 196/338 [00:02<00:01, 111.02it/s]Loading weights:  63%|██████▎   | 213/338 [00:02<00:01, 104.40it/s]Loading weights:  72%|███████▏  | 243/338 [00:02<00:00, 135.68it/s]Loading weights:  78%|███████▊  | 262/338 [00:02<00:00, 129.65it/s]Loading weights:  83%|████████▎ | 281/338 [00:02<00:00, 140.50it/s]Loading weights:  90%|████████▉ | 304/338 [00:03<00:00, 133.94it/s]Loading weights: 100%|██████████| 338/338 [00:03<00:00, 108.41it/s]
+2026-09-20 17:49:21,076 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 17:49:21,088 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/generation_config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Fgeneration_config.json=&etag=%22dfc11073787daf1b0f9c0f1499487ab5f4c93738%22 "HTTP/1.1 200 OK"
+2026-09-20 17:49:21,279 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/custom_generate/generate.py "HTTP/1.1 404 Not Found"
+/mnt/nas/home/hiromi/src/emo2/v3/primary/run_rq1_state_induction.py:275: UserWarning: you are shuffling a 'ArrowStringArray' object which is not a subclass of 'Sequence'; `shuffle` is not guaranteed to behave correctly. E.g., non-numpy array/tensor objects with view semantics may contain duplicates after shuffling.
+  rng.shuffle(unique_pairs)
+2026-09-20 17:49:21,331 [INFO] Group split on pair_id: 96 pairs train (96 rows), 96 pairs test (96 rows)
+2026-09-20 17:49:21,331 [INFO] Split dataset: 96 train pairs, 96 held-out test pairs
+2026-09-20 17:49:21,331 [INFO] Extracting target layer 14 representations and Reader/Self predictions on train split...
+[W920 17:49:42.138925421 CUDACachingAllocator.cpp:3934] memory allocation failed with OOM on device 0 while trying to allocate 7163871232 bytes (free: 87359488, total: 99949674496).
+2026-09-20 17:50:15,921 [INFO] Using train-set model Reader Predictions (TaskType.READER) as Primary affect direction targets.
+Traceback (most recent call last):
+  File "/mnt/nas/home/hiromi/src/emo2/v3/primary/run_rq1_state_induction.py", line 961, in <module>
+    main()
+  File "/mnt/nas/home/hiromi/src/emo2/v3/primary/run_rq1_state_induction.py", line 887, in main
+    results = run_real_state_induction(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/nas/home/hiromi/src/emo2/v3/primary/run_rq1_state_induction.py", line 346, in run_real_state_induction
+    d_v = directions_primary["direction_v"]  # (D,) Primary Reader-grounded
+          ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+TypeError: tuple indices must be integers or slices, not str
+2026-09-20 17:50:17,192 [ERROR] Command failed with exit code 1: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v3/primary/run_rq1_state_induction.py --models-config configs/models.yaml --model-set primary_small --device cuda:0

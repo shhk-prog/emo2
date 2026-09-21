@@ -1,0 +1,51 @@
+{
+  "execution_status": "success",
+  "execution_success": true,
+  "stage": "v1",
+  "experiment_id": "v1_e4_interchangeability",
+  "completed_at": "2026-09-20T20:09:56.961230+00:00",
+  "metadata": {
+    "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
+    "model_prefix": "qwen_instruct",
+    "dry_run": true
+  },
+  "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
+  "model_prefix": "qwen_instruct",
+  "dry_run": true,
+  "results": {
+    "interchangeability": [
+      {
+        "layer": 14,
+        "relative_depth": 0.5,
+        "alpha": 1.0,
+        "aligned_matched_shift_V": 0.35,
+        "aligned_matched_shift_A": 0.25,
+        "aligned_random_shift_V": 0.05,
+        "aligned_random_shift_A": 0.02,
+        "aligned_specificity_V": 0.3,
+        "aligned_specificity_A": 0.23,
+        "aligned_cohen_dz_V": 1.15,
+        "aligned_cohen_dz_A": 0.95,
+        "transfer_ratio_V": 0.7,
+        "transfer_ratio_A": 0.65,
+        "matched_shift_V": 0.35,
+        "matched_shift_A": 0.25,
+        "random_shift_V": 0.05,
+        "random_shift_A": 0.02,
+        "specificity_V": 0.3,
+        "specificity_A": 0.23,
+        "cohen_dz_V": 1.15,
+        "cohen_dz_A": 0.95,
+        "is_confirmatory": true,
+        "aligned_p_val_V": 0.0001,
+        "aligned_p_val_A": 0.0002,
+        "aligned_p_fdr_V": 0.0001,
+        "aligned_p_fdr_A": 0.0002,
+        "p_val_V": 0.0001,
+        "p_val_A": 0.0002,
+        "p_fdr_V": 0.0001,
+        "p_fdr_A": 0.0002
+      }
+    ]
+  }
+}

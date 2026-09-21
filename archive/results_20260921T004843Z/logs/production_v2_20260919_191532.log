@@ -1,0 +1,147 @@
+==================================================================
+Starting Production V2 Pipeline Evaluation
+Timestamp : 2026-09-19T10:15:32Z
+Device    : cuda:0
+Extra Args: none
+Log File  : results/logs/production_v2_20260919_191532.log
+Cohort    : primary_small (4 families: Qwen, Llama, Gemma, OLMo)
+Pipeline  : RQ1/RQ2 (Cross-decoding) -> RQ3 (Causal Map) -> RQ4 (Recovery Patching)
+Data Scale: Full production CSVs (actual counts logged by the Python runner)
+Runtime   : unmeasured (do not use pre-benchmark hour estimates)
+==================================================================
+2026-09-19 19:15:34,284 [INFO] Affective Empathy Evaluation Unified Runner
+2026-09-19 19:15:34,284 [INFO] Stage: v2 | Cohort: primary_small | Dry-run: False
+2026-09-19 19:15:34,284 [INFO] Wall-clock estimates are unmeasured until a Qwen-family benchmark is recorded.
+2026-09-19 19:15:34,284 [INFO] Dataset inventory (actual loaded counts; wall-clock time is unmeasured):
+2026-09-19 19:15:34,290 [INFO] EmoBank 3-way: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-19 19:15:34,295 [INFO] AIPsy 4-split: n_rows=480 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=480 | split_counts={'clinical': 192, 'neutral': 192, 'moderate': 48, 'complex_neutral': 48}
+2026-09-19 19:15:34,301 [INFO] V1 Phase B rule-based controls: n_rows=192 | path=v1/data/processed/v1_e5_semantic_controls.csv | n_unique_pair_id=192
+2026-09-19 19:15:34,301 [INFO] === Running V2 Stage (model-set: primary_small) ===
+2026-09-19 19:15:34,301 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v2/primary/run_rq1_rq2_cross_decoding.py --models-config configs/models.yaml --model-set primary_small --device cuda:0
+2026-09-19 19:15:39,471 [INFO] Starting V2-RQ1 & RQ2 analysis (dry_run=False, device=cuda:0)
+2026-09-19 19:15:39,480 [INFO] V2-RQ1/RQ2 dataset: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-19 19:15:39,481 [INFO] Dataset loaded: total=1000, train=700, held_out_test=300
+2026-09-19 19:15:39,483 [INFO] Loaded existing validated results for qwen from v2/results/raw/v2_geometry_qwen.json. Skipping computation.
+2026-09-19 19:15:39,483 [INFO] Loaded existing validated results for llama from v2/results/raw/v2_geometry_llama.json. Skipping computation.
+2026-09-19 19:15:39,484 [INFO] Loaded existing validated results for gemma from v2/results/raw/v2_geometry_gemma.json. Skipping computation.
+2026-09-19 19:15:39,485 [INFO] Loaded existing validated results for olmo from v2/results/raw/v2_geometry_olmo.json. Skipping computation.
+2026-09-19 19:15:39,517 [INFO] All done! Integrated summary with Bootstrap CIs saved to v2/results/derived/v2_cross_family_summary.json
+2026-09-19 19:15:40,415 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v2/primary/run_rq3_causal_map.py --models-config configs/models.yaml --model-set primary_small --device cuda:0
+2026-09-19 19:15:44,256 [INFO] Starting V2-RQ3 Causal Map analysis (dry_run=False, device=cuda:0)
+2026-09-19 19:15:44,265 [INFO] V2-RQ3 dataset: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-19 19:15:44,482 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-19 19:15:44,492 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%22f81ead14ab072d65a07817f83a3ee0e5a1890d10%22 "HTTP/1.1 200 OK"
+2026-09-19 19:15:44,498 [INFO] --- Running Causal Maps for Family: qwen (28 layers) ---
+2026-09-19 19:15:44,498 [INFO] Loading weights for Qwen/Qwen2.5-1.5B (plain) onto cuda:0...
+2026-09-19 19:15:44,671 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-19 19:15:44,681 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B/8faed761d45a263340a0528343f099c05c9a4323/config.json?%2FQwen%2FQwen2.5-1.5B%2Fresolve%2Fmain%2Fconfig.json=&etag=%22169d606d5cf502a5628a52381586679a6d0caaab%22 "HTTP/1.1 200 OK"
+2026-09-19 19:15:44,856 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-19 19:15:44,865 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B/8faed761d45a263340a0528343f099c05c9a4323/tokenizer_config.json?%2FQwen%2FQwen2.5-1.5B%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%22ba7e4c5637b9732dadcd66286ce48334e8b31e9e%22 "HTTP/1.1 200 OK"
+2026-09-19 19:15:45,047 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-19 19:15:45,229 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-19 19:15:45,577 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B "HTTP/1.1 200 OK"
+2026-09-19 19:15:45,753 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-19 19:15:45,764 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B/8faed761d45a263340a0528343f099c05c9a4323/config.json?%2FQwen%2FQwen2.5-1.5B%2Fresolve%2Fmain%2Fconfig.json=&etag=%22169d606d5cf502a5628a52381586679a6d0caaab%22 "HTTP/1.1 200 OK"
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:  51%|█████     | 172/338 [00:00<00:00, 1714.19it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 1709.00it/s]
+2026-09-19 19:15:46,850 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-19 19:15:46,859 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B/8faed761d45a263340a0528343f099c05c9a4323/generation_config.json?%2FQwen%2FQwen2.5-1.5B%2Fresolve%2Fmain%2Fgeneration_config.json=&etag=%22cbbb3133034e192527e5321b4c679154e4819ab8%22 "HTTP/1.1 200 OK"
+2026-09-19 19:15:46,860 [INFO] Causal patching for base_plain_reader...
+2026-09-19 21:52:41,648 [INFO] Causal patching for base_plain_self...
+2026-09-20 00:27:40,979 [INFO] Loading weights for Qwen/Qwen2.5-1.5B-Instruct (matched_plain) onto cuda:0...
+2026-09-20 00:27:41,200 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 00:27:41,210 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%22f81ead14ab072d65a07817f83a3ee0e5a1890d10%22 "HTTP/1.1 200 OK"
+2026-09-20 00:27:41,445 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 00:27:41,455 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/tokenizer_config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%2207bfe0640cb5a0037f9322287fbfc682806cf672%22 "HTTP/1.1 200 OK"
+2026-09-20 00:27:41,627 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-20 00:27:41,797 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-20 00:27:42,153 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct "HTTP/1.1 200 OK"
+2026-09-20 00:27:42,326 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 00:27:42,338 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%22f81ead14ab072d65a07817f83a3ee0e5a1890d10%22 "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:  33%|███▎      | 112/338 [00:00<00:00, 1109.11it/s]Loading weights:  83%|████████▎ | 279/338 [00:00<00:00, 1428.30it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 1427.54it/s]
+2026-09-20 00:27:42,855 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 00:27:42,867 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/generation_config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Fgeneration_config.json=&etag=%22dfc11073787daf1b0f9c0f1499487ab5f4c93738%22 "HTTP/1.1 200 OK"
+2026-09-20 00:27:42,868 [INFO] Causal patching for inst_matched_plain_reader...
+2026-09-20 03:05:39,266 [INFO] Causal patching for inst_matched_plain_self...
+2026-09-20 05:41:00,417 [INFO] Loading weights for Qwen/Qwen2.5-1.5B-Instruct (native_chat) onto cuda:0...
+2026-09-20 05:41:00,705 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 05:41:00,715 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%22f81ead14ab072d65a07817f83a3ee0e5a1890d10%22 "HTTP/1.1 200 OK"
+2026-09-20 05:41:00,970 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 05:41:00,980 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/tokenizer_config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%2207bfe0640cb5a0037f9322287fbfc682806cf672%22 "HTTP/1.1 200 OK"
+2026-09-20 05:41:01,153 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-20 05:41:01,325 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-20 05:41:01,679 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct "HTTP/1.1 200 OK"
+2026-09-20 05:41:01,851 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 05:41:01,861 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%22f81ead14ab072d65a07817f83a3ee0e5a1890d10%22 "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:  33%|███▎      | 111/338 [00:00<00:00, 1101.22it/s]Loading weights:  83%|████████▎ | 279/338 [00:00<00:00, 1428.06it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 1429.10it/s]
+2026-09-20 05:41:02,377 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-20 05:41:02,388 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/generation_config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Fgeneration_config.json=&etag=%22dfc11073787daf1b0f9c0f1499487ab5f4c93738%22 "HTTP/1.1 200 OK"
+2026-09-20 05:41:02,389 [INFO] Causal patching for inst_native_chat_reader...
+2026-09-20 08:37:06,931 [INFO] Causal patching for inst_native_chat_self...
+2026-09-20 11:31:55,030 [INFO] Matched dissociation changes (qwen valence): Self Delta d* shift=-0.074, Reader Delta d* shift=-0.148
+2026-09-20 11:31:55,030 [INFO] Matched dissociation changes (qwen arousal): Self Delta d* shift=-0.222, Reader Delta d* shift=-0.667
+2026-09-20 11:31:55,067 [INFO] Saved causal map to v2/results/raw/v2_causal_map_qwen.json
+2026-09-20 11:31:56,224 [INFO] Saved family pair-level records (168000 rows) to v2/results/derived/pair_level/v2_causal_pair_level_qwen.csv
+2026-09-20 11:31:56,697 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct/resolve/main/config.json "HTTP/1.1 200 OK"
+2026-09-20 11:31:56,846 [INFO] --- Running Causal Maps for Family: llama (16 layers) ---
+2026-09-20 11:31:56,846 [INFO] Loading weights for meta-llama/Llama-3.2-1B (plain) onto cuda:0...
+2026-09-20 11:31:57,024 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-1B/resolve/main/config.json "HTTP/1.1 200 OK"
+2026-09-20 11:31:57,242 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-1B/resolve/main/tokenizer_config.json "HTTP/1.1 200 OK"
+2026-09-20 11:31:57,426 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-20 11:31:57,631 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-20 11:31:58,473 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B "HTTP/1.1 200 OK"
+2026-09-20 11:31:58,666 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-1B/resolve/main/config.json "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/146 [00:00<?, ?it/s]Loading weights:  45%|████▌     | 66/146 [00:00<00:00, 646.74it/s]Loading weights: 100%|██████████| 146/146 [00:00<00:00, 797.69it/s]
+2026-09-20 11:31:59,111 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-1B/resolve/main/generation_config.json "HTTP/1.1 200 OK"
+2026-09-20 11:31:59,112 [INFO] Causal patching for base_plain_reader...
+2026-09-20 12:46:48,106 [INFO] Causal patching for base_plain_self...
+2026-09-20 14:00:22,097 [INFO] Loading weights for meta-llama/Llama-3.2-1B-Instruct (matched_plain) onto cuda:0...
+2026-09-20 14:00:22,362 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct/resolve/main/config.json "HTTP/1.1 200 OK"
+2026-09-20 14:00:22,640 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 200 OK"
+2026-09-20 14:00:24,218 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-20 14:00:26,219 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-20 14:00:27,274 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B-Instruct "HTTP/1.1 200 OK"
+2026-09-20 14:00:27,470 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct/resolve/main/config.json "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/146 [00:00<?, ?it/s]Loading weights:   1%|          | 1/146 [00:01<02:45,  1.14s/it]Loading weights:   1%|▏         | 2/146 [00:01<01:16,  1.89it/s]Loading weights:   3%|▎         | 5/146 [00:01<00:26,  5.32it/s]Loading weights:  10%|▉         | 14/146 [00:01<00:07, 17.97it/s]Loading weights:  14%|█▍        | 21/146 [00:01<00:04, 25.59it/s]Loading weights:  21%|██        | 30/146 [00:01<00:03, 36.00it/s]Loading weights:  25%|██▍       | 36/146 [00:01<00:02, 38.37it/s]Loading weights:  29%|██▉       | 42/146 [00:02<00:02, 36.14it/s]Loading weights:  34%|███▎      | 49/146 [00:02<00:02, 43.08it/s]Loading weights:  40%|████      | 59/146 [00:02<00:01, 53.72it/s]Loading weights:  47%|████▋     | 68/146 [00:02<00:01, 61.43it/s]Loading weights:  53%|█████▎    | 77/146 [00:02<00:01, 66.83it/s]Loading weights:  58%|█████▊    | 85/146 [00:02<00:00, 65.08it/s]Loading weights:  65%|██████▌   | 95/146 [00:02<00:00, 63.36it/s]Loading weights:  71%|███████   | 103/146 [00:02<00:00, 65.61it/s]Loading weights:  77%|███████▋  | 113/146 [00:03<00:00, 70.38it/s]Loading weights:  86%|████████▌ | 125/146 [00:03<00:00, 82.73it/s]Loading weights:  92%|█████████▏| 134/146 [00:03<00:00, 71.22it/s]Loading weights:  97%|█████████▋| 142/146 [00:03<00:00, 52.41it/s]Loading weights: 100%|██████████| 146/146 [00:03<00:00, 40.37it/s]
+2026-09-20 14:00:31,371 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct/resolve/main/generation_config.json "HTTP/1.1 200 OK"
+2026-09-20 14:00:31,373 [INFO] Causal patching for inst_matched_plain_reader...
+2026-09-20 15:20:16,202 [INFO] Causal patching for inst_matched_plain_self...
+2026-09-20 16:38:10,926 [INFO] Loading weights for meta-llama/Llama-3.2-1B-Instruct (native_chat) onto cuda:0...
+2026-09-20 16:38:11,218 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct/resolve/main/config.json "HTTP/1.1 200 OK"
+2026-09-20 16:38:11,442 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 200 OK"
+2026-09-20 16:38:11,637 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-20 16:38:11,815 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-20 16:38:12,805 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B-Instruct "HTTP/1.1 200 OK"
+2026-09-20 16:38:13,005 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct/resolve/main/config.json "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/146 [00:00<?, ?it/s]Loading weights:   1%|          | 1/146 [00:00<01:48,  1.34it/s]Loading weights:   3%|▎         | 5/146 [00:00<00:19,  7.17it/s]Loading weights:  10%|▉         | 14/146 [00:01<00:06, 21.05it/s]Loading weights:  13%|█▎        | 19/146 [00:01<00:04, 26.56it/s]Loading weights:  16%|█▋        | 24/146 [00:01<00:04, 29.78it/s]Loading weights:  21%|██        | 31/146 [00:01<00:02, 38.79it/s]Loading weights:  27%|██▋       | 39/146 [00:01<00:02, 47.82it/s]Loading weights:  31%|███       | 45/146 [00:01<00:02, 44.26it/s]Loading weights:  35%|███▍      | 51/146 [00:01<00:02, 43.21it/s]Loading weights:  40%|████      | 59/146 [00:01<00:01, 47.48it/s]Loading weights:  47%|████▋     | 68/146 [00:02<00:01, 54.87it/s]Loading weights:  52%|█████▏    | 76/146 [00:02<00:01, 59.91it/s]Loading weights:  58%|█████▊    | 84/146 [00:02<00:01, 61.81it/s]Loading weights:  64%|██████▎   | 93/146 [00:02<00:00, 62.94it/s]Loading weights:  68%|██████▊   | 100/146 [00:02<00:00, 48.25it/s]Loading weights:  73%|███████▎  | 106/146 [00:02<00:01, 38.62it/s]Loading weights:  77%|███████▋  | 113/146 [00:02<00:00, 42.71it/s]Loading weights:  83%|████████▎ | 121/146 [00:03<00:00, 48.51it/s]Loading weights:  89%|████████▉ | 130/146 [00:03<00:00, 55.13it/s]Loading weights:  95%|█████████▌| 139/146 [00:03<00:00, 59.43it/s]Loading weights: 100%|██████████| 146/146 [00:03<00:00, 42.93it/s]
+2026-09-20 16:38:16,761 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct/resolve/main/generation_config.json "HTTP/1.1 200 OK"
+2026-09-20 16:38:16,776 [INFO] Causal patching for inst_native_chat_reader...
+2026-09-20 18:05:14,540 [INFO] Causal patching for inst_native_chat_self...
+2026-09-20 19:31:19,459 [INFO] Matched dissociation changes (llama valence): Self Delta d* shift=-0.533, Reader Delta d* shift=-0.133
+2026-09-20 19:31:19,460 [INFO] Matched dissociation changes (llama arousal): Self Delta d* shift=-0.467, Reader Delta d* shift=-0.467
+2026-09-20 19:31:19,463 [INFO] Saved causal map to v2/results/raw/v2_causal_map_llama.json
+2026-09-20 19:31:19,974 [INFO] Saved family pair-level records (96000 rows) to v2/results/derived/pair_level/v2_causal_pair_level_llama.csv
+2026-09-20 19:31:20,183 [INFO] HTTP Request: HEAD https://huggingface.co/google/gemma-3-1b-it/resolve/main/config.json "HTTP/1.1 200 OK"
+2026-09-20 19:31:20,204 [INFO] --- Running Causal Maps for Family: gemma (26 layers) ---
+2026-09-20 19:31:20,204 [INFO] Loading weights for google/gemma-3-1b-pt (plain) onto cuda:0...
+2026-09-20 19:31:20,386 [INFO] HTTP Request: HEAD https://huggingface.co/google/gemma-3-1b-pt/resolve/main/config.json "HTTP/1.1 200 OK"
+2026-09-20 19:31:20,570 [INFO] HTTP Request: HEAD https://huggingface.co/google/gemma-3-1b-pt/resolve/main/tokenizer_config.json "HTTP/1.1 200 OK"
+2026-09-20 19:31:20,758 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-3-1b-pt/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-20 19:31:20,934 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-3-1b-pt/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-20 19:31:22,089 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-3-1b-pt "HTTP/1.1 200 OK"
+2026-09-20 19:31:22,265 [INFO] HTTP Request: HEAD https://huggingface.co/google/gemma-3-1b-pt/resolve/main/config.json "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/340 [00:00<?, ?it/s]Loading weights:  59%|█████▊    | 199/340 [00:00<00:00, 1977.70it/s]Loading weights: 100%|██████████| 340/340 [00:00<00:00, 2454.16it/s]
+2026-09-20 19:31:22,666 [INFO] HTTP Request: HEAD https://huggingface.co/google/gemma-3-1b-pt/resolve/main/generation_config.json "HTTP/1.1 200 OK"
+2026-09-20 19:31:22,667 [INFO] Causal patching for base_plain_reader...
+2026-09-20 21:32:27,064 [INFO] Causal patching for base_plain_self...
+2026-09-20 23:28:14,964 [INFO] Loading weights for google/gemma-3-1b-it (matched_plain) onto cuda:0...
+2026-09-20 23:28:15,233 [INFO] HTTP Request: HEAD https://huggingface.co/google/gemma-3-1b-it/resolve/main/config.json "HTTP/1.1 200 OK"
+2026-09-20 23:28:15,427 [INFO] HTTP Request: HEAD https://huggingface.co/google/gemma-3-1b-it/resolve/main/tokenizer_config.json "HTTP/1.1 200 OK"
+2026-09-20 23:28:15,613 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-3-1b-it/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-20 23:28:15,800 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-3-1b-it/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-20 23:28:16,964 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-3-1b-it "HTTP/1.1 200 OK"
+2026-09-20 23:28:17,143 [INFO] HTTP Request: HEAD https://huggingface.co/google/gemma-3-1b-it/resolve/main/config.json "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/340 [00:00<?, ?it/s]Loading weights:  59%|█████▊    | 199/340 [00:00<00:00, 1984.22it/s]Loading weights: 100%|██████████| 340/340 [00:00<00:00, 2428.10it/s]
+2026-09-20 23:28:17,534 [INFO] HTTP Request: HEAD https://huggingface.co/google/gemma-3-1b-it/resolve/main/generation_config.json "HTTP/1.1 200 OK"
+2026-09-20 23:28:17,536 [INFO] Causal patching for inst_matched_plain_reader...
+2026-09-21 01:29:40,725 [INFO] Causal patching for inst_matched_plain_self...

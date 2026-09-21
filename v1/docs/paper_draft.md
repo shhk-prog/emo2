@@ -35,7 +35,7 @@ Large language models; affective reactivity; functional affective processing; Ru
 自己報告VAを離散出力としてではなく候補列尤度分布として測定し、キーワードフリー最小対で得た内部表現の復元可能性と因果的寄与を統合した点に本研究の新規性がある。
 
 主貢献は以下の3点に整理される：
-1. **Sequence Likelihood Protocol**: 81個の候補JSON列の条件付き確率から、離散デコードの閾値化・パース失敗を避けるVA期待値推定器を提案する。
+1. **Sequence Likelihood Protocol**: 729個（V1/Behavioral: 729 VAD, V2/V3: 81 VA）の候補JSON列の条件付き確率から、離散デコードの閾値化・パース失敗を避けるVA期待値推定器を提案する。
 2. **Keyword-free causal evaluation**: AIPsy-Affectの感情刺激／中性最小対を使い、感情語彙への反応と状況的感情意味への反応を切り分ける。
 3. **Behavior–representation dissociation**: 自己報告が中立へ収束する場合でも、内部表現には刺激条件を復元できる情報が存在しうることを、復元可能性と介入効果を分離して評価する。
 
@@ -45,14 +45,34 @@ Large language models; affective reactivity; functional affective processing; Ru
 
 ## 3.1 情動反応性の操作的定義
 本研究では、以下の条件を満たす現象を「機能的情動反応性」として操作的に定義する。
-1. 他者の感情的な状況を与えたとき、モデルがその感情価と覚醒度に対応した情報を内部で処理すること（復元可能性）。
-2. 入力前後で候補応答列の条件付き尤度分布から得られるVA期待値が系統的に移動すること。
-3. 内部表現を操作・置換すると、自己状態報告が予測可能な方向に変わること（因果的寄与）。
+1. 他者の感情的な状況を与えたとき、モデルがその感情価と覚醒度に�## 4.4 因果介入 (Activation Patching & Direction Intervention) と Sequence Likelihood Protocol
+内部表現（Hidden states）の抽出にあたり、本実験ではモデルの全層および特定トークン位置（stimulus_last_token / prompt_end）から隠れ状態を抽出した。
 
-本稿における「感情文脈情報」とは、AIPsy-Affectで定義された感情的ヴィネットと、それに対応する中性対照ヴィネットを区別する情報を指す。この復元可能性は、特定の感情カテゴリ、連続的VA座標、または主観的感情状態の直接的符号化を単独では意味しない。またここでいう「内部表現」も人間の主観的感情ではなく、後続の行動に影響を与えうるモデル内の機能的表現（functionally relevant representations）を指す。
+離散パース評価で発生する量子化バリア（NaNや0.0への収束）を克服するため、本研究は候補JSON列に対する連続条件付きシーケンス対数確率を測定する尤度プロトコルを採用した。
+- **Behavioral / V1 Primary**: 729通り（$V, A, D \in \{1..9\}$）のコンパクトJSON列（`{"valence":V,"arousal":A,"dominance":D}`、空白なし）
+- **V2 / V3 Primary**: 81通り（$V, A \in \{1..9\}$）のコンパクトJSON列（`{"valence":V,"arousal":A}`）
 
-## 3.2 問題設定の形式化
-本研究では、Valence–Arousal空間を行動的評価の測定座標系として利用し、刺激提示前と提示後の期待VAベクトル（$\mathbf{e}^{base}$, $\mathbf{e}^{post}$）の差分である反応ベクトル $\Delta\mathbf{e}^{resp} = \mathbf{e}^{post} - \mathbf{e}^{base}$ の振る舞いに焦点を当てる。モデルのVA感受性行列などの数理的同定よりも、この候補VA自己報告分布と内部表現から復元される情報との間に生じる「乖離」のメカニズムを明らかにすることを主眼とする。
+スコア $s(x)$ は長さ正規化された対数尤度（Token mean log likelihood）として定義される：
+$$ s_{v,a,d}(x) = \frac{1}{|y_{v,a,d}|} \sum_{t=1}^{|y_{v,a,d}|} \log p_\theta(y_{v,a,d,t}\mid x,y_{v,a,d,<t}) $$
+これを温度 $\tau=1.0$ でSoftmax正規化し、同時分布 $p_\theta(v,a,d\mid x)$ と期待値 $E[V \mid x], E[A \mid x], E[D \mid x]$ を得る。
+
+介入の主指標として以下を報告する：
+- **絶対介入効果**: $E[V]_I - E[V]_T$ および $E[V]_S - E[V]_I$
+- **回復比 (Recovery Ratio)**: $W_1(P_{\text{clean}}, P_{\text{target}})$ に対する変位短縮比率
+- **方向的一致**: Source-Target差分とIntervention-Target差分の符号一致率
+
+***
+
+# 5. 実験結果 (Experimental Results)
+
+## 5.1 RQ1: 行動的反応性と定型的出力収束
+本研究では、機能的内部表現の検証に先立ち、EmoBank データセットの Primary 1,000 刺激を用いた行動的評価を行った。この実験の目的は、強力なアライメントを受けた現代のLLMが、テキストの感情的文脈を正しく認識できるか（認知的理解）、そしてそれに影響されて自己報告を変化させるか（情動的反応性）を分離して評価することである。
+
+結果として、テキストを読んだ一般読者がどう感じるかを推測する「感情認識（Recognition）タスク」においては、モデルが出力した Recognition VA 値と EmoBankの人間注釈値との間に有意な正の相関が確認された。これはモデルがテキストの感情的性質を正確に理解していることを示している。
+
+しかしこれに対し、テキストを読んだモデル自身の感情を問う「自己報告（Self）タスク」では、離散生成において多くの試行が `{"valence": 5, "arousal": 5, "dominance": 5}` という完全ニュートラルへ強く収束した。
+
+**表1: 行動的反応性の結果例**��明らかにすることを主眼とする。
 
 ## 3.3 研究課題
 本研究は以下の3つの研究課題（RQ）を設定する：
@@ -67,8 +87,8 @@ Large language models; affective reactivity; functional affective processing; Ru
 ## 4.1 データセット
 本研究では、評価の段階に応じて以下の2つのデータセットを用いた。
 
-### 1. 外部妥当性確認および予備実験（EmoBank）
-行動的評価のベースラインとして、テキストに対して人間が Valence (不快〜快) と Arousal (沈静〜活性) を付与した大規模コーパスである EmoBank を使用した。本研究では、この中から予備実験用に3,210刺激、主実験の外部妥当性確認用に321刺激を抽出して利用した。
+### 1. 外部妥当性確認および行動的評価（EmoBank）
+行動的評価のベースラインとして、テキストに対して人間が Valence (不快〜快) と Arousal (沈静〜活性) を付与した大規模コーパスである EmoBank を使用した。本研究では、この中から主実験の外部妥当性確認用に層化抽出された Primary 1,000 刺激（`data/processed/stimuli_vad_3way_test1k.csv`）を利用した。
 
 **【EmoBank データの例】**
 | 刺激ID | テキスト例 (text) | Valence | Arousal |
@@ -90,10 +110,14 @@ EmoBankのような既存コーパスには「死 (death)」や「殺害 (killed
 この最小対を用いることで、「Target条件（中立）」を処理中のモデルに対し、「Source条件（感情）」の隠れ状態を差し替えるといった精密な因果介入（Activation Patching）が可能となる。
 
 ## 4.2 対象モデルと推論設定
-本研究では、機能的内部表現の検証のため、公開重みを持つ以下のモデルを対象とした。
-- `meta-llama/Llama-3.2-1B-Instruct` (16層)
-- `Qwen/Qwen2.5-1.5B-Instruct` (28層)
-推論にはバッチサイズ512を用いたLeft Paddingバッチ推論アーキテクチャを適用し、計算効率の最適化を図った。Temperatureは0.0に設定している。
+本研究では、機能的内部表現の検証のため、公開重みを持つ以下のモデルファミリー（Base / Instruct）を対象とした。
+- `Qwen/Qwen2.5-1.5B` / `Qwen/Qwen2.5-1.5B-Instruct`
+- `meta-llama/Llama-3.2-1B` / `meta-llama/Llama-3.2-1B-Instruct`
+- `google/gemma-3-1b-pt` / `google/gemma-3-1b-it`
+- `allenai/OLMo-2-0425-1B` / `allenai/OLMo-2-0425-1B-Instruct`
+- `mistralai/Mistral-7B-v0.3` / `mistralai/Mistral-7B-Instruct-v0.3`
+
+再現性担保のため Hugging Face コミットハッシュ（revision）を固定し、精度は `torch.bfloat16`（対応環境）または `torch.float16` を適用した。Temperature は 0.0（サンプリングを行わず決定論的推論）に設定している。
 
 ## 4.3 プロンプト構造と独立セッション
 各刺激・モデル・反復において、以下の評価タスクはすべて独立したセッション（API呼び出し）として実行し、認識値によるアンカリングや過去の感情履歴の交絡を防いだ。

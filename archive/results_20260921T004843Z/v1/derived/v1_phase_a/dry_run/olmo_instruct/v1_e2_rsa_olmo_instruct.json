@@ -1,0 +1,41 @@
+{
+  "execution_status": "success",
+  "execution_success": true,
+  "stage": "v1",
+  "experiment_id": "v1_e2_rsa",
+  "completed_at": "2026-09-20T23:43:22.604783+00:00",
+  "metadata": {
+    "model_id": "allenai/OLMo-2-0425-1B-Instruct",
+    "model_prefix": "olmo_instruct"
+  },
+  "model_id": "allenai/OLMo-2-0425-1B-Instruct",
+  "model_prefix": "olmo_instruct",
+  "results": {
+    "rsa": [
+      {
+        "layer": 0,
+        "relative_depth": 0.0,
+        "target": "Valence_human",
+        "rsa_correlation": 0.7
+      },
+      {
+        "layer": 1,
+        "relative_depth": 0.3333333333333333,
+        "target": "Valence_human",
+        "rsa_correlation": 0.7
+      },
+      {
+        "layer": 2,
+        "relative_depth": 0.6666666666666666,
+        "target": "Valence_human",
+        "rsa_correlation": 0.7
+      },
+      {
+        "layer": 3,
+        "relative_depth": 1.0,
+        "target": "Valence_human",
+        "rsa_correlation": 0.7
+      }
+    ]
+  }
+}

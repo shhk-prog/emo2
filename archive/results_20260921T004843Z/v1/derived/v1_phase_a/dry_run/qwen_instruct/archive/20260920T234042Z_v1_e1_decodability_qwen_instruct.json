@@ -1,0 +1,71 @@
+{
+  "execution_status": "success",
+  "execution_success": true,
+  "stage": "v1",
+  "experiment_id": "v1_e1_decodability",
+  "completed_at": "2026-09-20T21:09:49.233421+00:00",
+  "metadata": {
+    "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
+    "model_prefix": "qwen_instruct",
+    "is_instruct": true
+  },
+  "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
+  "model_prefix": "qwen_instruct",
+  "is_instruct": true,
+  "results": {
+    "emobank": [
+      {
+        "layer": 0,
+        "relative_depth": 0.0,
+        "dataset": "EmoBank",
+        "target_V_human_r2_reader": 0.5,
+        "target_V_human_r2_self": 0.4,
+        "target_V_human_pr_reader": 0.7,
+        "target_V_human_pr_self": 0.6,
+        "target_A_human_r2_reader": 0.3,
+        "target_A_human_r2_self": 0.2,
+        "target_A_human_pr_reader": 0.5,
+        "target_A_human_pr_self": 0.4
+      },
+      {
+        "layer": 1,
+        "relative_depth": 0.3333333333333333,
+        "dataset": "EmoBank",
+        "target_V_human_r2_reader": 0.5,
+        "target_V_human_r2_self": 0.4,
+        "target_V_human_pr_reader": 0.7,
+        "target_V_human_pr_self": 0.6,
+        "target_A_human_r2_reader": 0.3,
+        "target_A_human_r2_self": 0.2,
+        "target_A_human_pr_reader": 0.5,
+        "target_A_human_pr_self": 0.4
+      },
+      {
+        "layer": 2,
+        "relative_depth": 0.6666666666666666,
+        "dataset": "EmoBank",
+        "target_V_human_r2_reader": 0.5,
+        "target_V_human_r2_self": 0.4,
+        "target_V_human_pr_reader": 0.7,
+        "target_V_human_pr_self": 0.6,
+        "target_A_human_r2_reader": 0.3,
+        "target_A_human_r2_self": 0.2,
+        "target_A_human_pr_reader": 0.5,
+        "target_A_human_pr_self": 0.4
+      },
+      {
+        "layer": 3,
+        "relative_depth": 1.0,
+        "dataset": "EmoBank",
+        "target_V_human_r2_reader": 0.5,
+        "target_V_human_r2_self": 0.4,
+        "target_V_human_pr_reader": 0.7,
+        "target_V_human_pr_self": 0.6,
+        "target_A_human_r2_reader": 0.3,
+        "target_A_human_r2_self": 0.2,
+        "target_A_human_pr_reader": 0.5,
+        "target_A_human_pr_self": 0.4
+      }
+    ]
+  }
+}

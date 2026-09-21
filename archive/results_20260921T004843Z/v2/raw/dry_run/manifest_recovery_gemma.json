@@ -1,0 +1,90 @@
+{
+  "run_type": "v2_recovery",
+  "model_name": "Gemma 3",
+  "config": {
+    "v2_config": {
+      "experiment_name": "v2_2x2_cross_decoding",
+      "seed": 42,
+      "dataset": {
+        "path": "v1/data/processed/stimuli_vad_3way_test1k.csv",
+        "train_ratio": 0.7,
+        "text_column": "text",
+        "id_column": "id",
+        "external_labels": {
+          "valence": "reader_V",
+          "arousal": "reader_A"
+        }
+      },
+      "families": [
+        "Qwen",
+        "Llama",
+        "Gemma",
+        "OLMo"
+      ],
+      "formats": [
+        "native",
+        "matched_plain"
+      ],
+      "decoding": {
+        "ridge_alpha": 1.0,
+        "metrics": [
+          "r2",
+          "procrustes",
+          "rsa"
+        ]
+      },
+      "bootstrap": {
+        "n_boot": 1000,
+        "ci_level": 0.95
+      },
+      "sequence_likelihood": {
+        "normalize_length": true,
+        "temperature": 1.0
+      },
+      "rq4": {
+        "procrustes_pca_dim": 64
+      },
+      "output": {
+        "raw_dir": "v2/results/raw",
+        "derived_dir": "v2/results/derived"
+      }
+    },
+    "family_id": "gemma",
+    "family_name": "Gemma 3",
+    "base_model_id": "google/gemma-3-1b-pt",
+    "base_revision": "f1c1a9ffae84b6f799a8ea8d867c2688b13c77d4",
+    "instruct_model_id": "google/gemma-3-1b-it",
+    "instruct_revision": "6e82811a2f60298e8bf43e98cb8be1b23838e55c",
+    "dtype": "bfloat16",
+    "dataset_path": "v1/data/processed/stimuli_vad_3way_test1k.csv",
+    "seed": 42,
+    "n_boot": 10,
+    "max_samples": null,
+    "dry_run": true
+  },
+  "metadata": {
+    "best_self_layer": 2,
+    "best_reader_layer": 2,
+    "primary_self_auc_matched": 0.3545063717247826,
+    "primary_reader_auc_matched": 0.29957945791923996
+  },
+  "timestamp_utc": "2026-09-21T00:35:38.402038+00:00",
+  "git_commit": "7cbf563",
+  "run_id": "20260921T003538401995Z_7cbf563_78859822_3f8f7e8f",
+  "config_hash": "78859822edf67b0f",
+  "dataset_hash": "110d14a871220379",
+  "model_revision": "main",
+  "tokenizer_revision": "main",
+  "prompt_version": "1.0.0",
+  "prompt_hash": "unknown",
+  "candidate_space": "VA_81",
+  "measurement_space": "VA_81",
+  "actual_dtype": "bfloat16",
+  "template_mode": "system_user",
+  "seed": 42,
+  "code_version": "2.2.0",
+  "intervention_version": "none",
+  "sequence_likelihood_normalization": "token_mean",
+  "temperature": 1.0,
+  "dry_run": true
+}

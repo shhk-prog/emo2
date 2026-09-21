@@ -1,0 +1,30 @@
+{
+  "execution_status": "success",
+  "execution_success": true,
+  "stage": "v1",
+  "experiment_id": "v1_e6_double_dissociation",
+  "completed_at": "2026-09-20T23:41:57.548559+00:00",
+  "metadata": {
+    "model_id": "meta-llama/Llama-3.2-1B-Instruct",
+    "model_prefix": "llama_instruct",
+    "dry_run": true
+  },
+  "model_id": "meta-llama/Llama-3.2-1B-Instruct",
+  "model_prefix": "llama_instruct",
+  "dry_run": true,
+  "results": {
+    "p_value_interaction": 0.001,
+    "coef_interaction": 0.42,
+    "cell_means": {
+      "Reader_ReaderSite": 0.55,
+      "Self_ReaderSite": 0.2,
+      "Reader_SelfSite": 0.18,
+      "Self_SelfSite": 0.62
+    },
+    "has_crossover": true,
+    "site_selection_method": "task_selectivity_contrast",
+    "reader_layer": 0,
+    "self_layer": 14,
+    "split_eval": "confirmation"
+  }
+}

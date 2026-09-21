@@ -426,6 +426,8 @@ def evaluate_cross_decoding_and_geometry(
     group_ids: Optional[np.ndarray] = None,
     cv: int = 5,
     seed: int = 42,
+    alpha: float = 1.0,
+    procrustes_pca_dim: int = 64,
 ) -> Dict[str, Any]:
     for name, H in {
         "Reader": H_R,
@@ -450,7 +452,9 @@ def evaluate_cross_decoding_and_geometry(
                 "r2_cross_s_to_r": float("nan"),
                 "direct_transfer_score": float("nan"),
                 "rsa_correlation": float("nan"),
+                "r2_pca_direct": float("nan"),
                 "r2_aligned_transfer": float("nan"),
+                "alignment_gain": float("nan"),
                 "geometry_pattern": "insufficient_groups",
                 "is_held_out": True,
             }
@@ -468,6 +472,7 @@ def evaluate_cross_decoding_and_geometry(
     pred_s_to_r_task_scaled = np.zeros(n_samples, dtype=float)
     pred_within_r = np.zeros(n_samples, dtype=float)
     pred_within_s = np.zeros(n_samples, dtype=float)
+    pred_pca_direct = np.zeros(n_samples, dtype=float)
     pred_aligned_s_to_r = np.zeros(n_samples, dtype=float)
     rsa_scores = []
 
@@ -483,7 +488,7 @@ def evaluate_cross_decoding_and_geometry(
         HS_tr_s = scaler_s.fit_transform(HS_tr)
         HS_te_s = scaler_s.transform(HS_te)
 
-        clf_r = Ridge(alpha=1.0, random_state=seed)
+        clf_r = Ridge(alpha=alpha, random_state=seed)
         clf_r.fit(HR_tr_s, y_tr)
         pred_within_r[test_idx] = clf_r.predict(HR_te_s)
         # Primary: Reader-fit scaler applied across both tasks (Reader and Self)
@@ -491,7 +496,7 @@ def evaluate_cross_decoding_and_geometry(
         # Secondary: task-specific scaler
         pred_r_to_s_task_scaled[test_idx] = clf_r.predict(HS_te_s)
 
-        clf_s = Ridge(alpha=1.0, random_state=seed)
+        clf_s = Ridge(alpha=alpha, random_state=seed)
         clf_s.fit(HS_tr_s, y_tr)
         pred_within_s[test_idx] = clf_s.predict(HS_te_s)
         # Primary: Self-fit scaler applied across both tasks (Self and Reader)
@@ -499,14 +504,29 @@ def evaluate_cross_decoding_and_geometry(
         # Secondary: task-specific scaler
         pred_s_to_r_task_scaled[test_idx] = clf_s.predict(HR_te_s)
 
-        try:
-            M = np.dot(HS_tr_s.T, HR_tr_s)
-            U, _, Vt = np.linalg.svd(M, full_matrices=False)
-            Q = np.dot(U, Vt)
-            HS_te_aligned = np.dot(HS_te_s, Q)
-            pred_aligned_s_to_r[test_idx] = clf_r.predict(HS_te_aligned)
-        except Exception:
-            pred_aligned_s_to_r[test_idx] = pred_r_to_s[test_idx]
+        # Procrustes alignment in joint PCA subspace (Rank-safe N < D, matching V2)
+        k = min(
+            procrustes_pca_dim,
+            len(train_idx) - 1,
+            HR_tr_s.shape[1],
+        )
+        if k < 1:
+            raise ValueError(f"Procrustes PCA dimension k must be >= 1, got {k}")
+
+        pca = PCA(n_components=k, random_state=seed)
+        pca.fit(np.vstack([HR_tr_s, HS_tr_s]))
+
+        ZR_tr = pca.transform(HR_tr_s)
+        ZS_tr = pca.transform(HS_tr_s)
+        ZS_te = pca.transform(HS_te_s)
+
+        M = ZS_tr.T @ ZR_tr
+        U, _, Vt = np.linalg.svd(M, full_matrices=False)
+        Q = U @ Vt
+
+        clf_r_pca = Ridge(alpha=alpha, random_state=seed).fit(ZR_tr, y_tr)
+        pred_pca_direct[test_idx] = clf_r_pca.predict(ZS_te)
+        pred_aligned_s_to_r[test_idx] = clf_r_pca.predict(ZS_te @ Q)
 
         try:
             rdm_r = pdist(HR_te_s, metric="correlation")
@@ -523,15 +543,20 @@ def evaluate_cross_decoding_and_geometry(
     r2_s_to_r = float(r2_score(y, pred_s_to_r))
     r2_r_to_s_task_scaled = float(r2_score(y, pred_r_to_s_task_scaled))
     r2_s_to_r_task_scaled = float(r2_score(y, pred_s_to_r_task_scaled))
+    r2_pca_direct = float(r2_score(y, pred_pca_direct))
     r2_aligned_transfer = float(r2_score(y, pred_aligned_s_to_r))
-    rsa_score = float(np.mean(rsa_scores)) if rsa_scores else 0.0
+    alignment_gain = float(r2_aligned_transfer - r2_pca_direct)
+    rsa_score = float(np.mean(rsa_scores)) if rsa_scores else float("nan")
 
     direct_transfer_score_raw = (r2_r_to_s + r2_s_to_r) / 2.0
     direct_transfer_score_clipped = max(0.0, direct_transfer_score_raw)
 
     if direct_transfer_score_raw >= 0.3:
         pattern = "Operational: Shared Geometry"
-    elif r2_aligned_transfer >= 0.3 or rsa_score >= 0.6:
+    elif (
+        r2_aligned_transfer >= 0.3
+        and alignment_gain > 0
+    ):
         pattern = "Operational: Alignable Geometry"
     else:
         pattern = "Operational: Task-Divergent Geometry"
@@ -546,8 +571,10 @@ def evaluate_cross_decoding_and_geometry(
         "direct_transfer_score": direct_transfer_score_raw,
         "direct_transfer_score_raw": direct_transfer_score_raw,
         "direct_transfer_score_clipped": direct_transfer_score_clipped,
-        "rsa_correlation": rsa_score,
+        "r2_pca_direct": r2_pca_direct,
         "r2_aligned_transfer": r2_aligned_transfer,
+        "alignment_gain": alignment_gain,
+        "rsa_correlation": rsa_score,
         "geometry_pattern": pattern,
         "is_held_out": True,
     }
@@ -644,6 +671,7 @@ def main():
     phase_a_seed = int(phase_a_cfg.get("seed", 42))
     phase_a_cv = int(phase_a_cfg.get("cv_folds", 5))
     phase_a_alpha = float(phase_a_cfg.get("ridge_alpha", 1.0))
+    phase_a_procrustes_pca_dim = int(phase_a_cfg.get("procrustes_pca_dim", 64))
 
     if args.dry_run:
         args.out_dir = os.path.join(args.out_dir, "dry_run")
@@ -707,6 +735,7 @@ def main():
         "seed": phase_a_seed,
         "cv_folds": phase_a_cv,
         "ridge_alpha": phase_a_alpha,
+        "procrustes_pca_dim": phase_a_procrustes_pca_dim,
     }
     expected_cfg_hash = compute_string_or_dict_hash(manifest_config)
 
@@ -1000,7 +1029,14 @@ def main():
             )
 
             geom_v = evaluate_cross_decoding_and_geometry(
-                H_R_l, H_S_l, y_human_v, group_ids=group_ids
+                H_R_l,
+                H_S_l,
+                y_human_v,
+                group_ids=group_ids,
+                cv=phase_a_cv,
+                seed=phase_a_seed,
+                alpha=phase_a_alpha,
+                procrustes_pca_dim=phase_a_procrustes_pca_dim,
             )
             geom_v["layer"] = l
             geom_v["relative_depth"] = rel_d
@@ -1008,7 +1044,14 @@ def main():
             e2_emobank_records.append(geom_v)
 
             geom_a = evaluate_cross_decoding_and_geometry(
-                H_R_l, H_S_l, y_human_a, group_ids=group_ids
+                H_R_l,
+                H_S_l,
+                y_human_a,
+                group_ids=group_ids,
+                cv=phase_a_cv,
+                seed=phase_a_seed,
+                alpha=phase_a_alpha,
+                procrustes_pca_dim=phase_a_procrustes_pca_dim,
             )
             geom_a["layer"] = l
             geom_a["relative_depth"] = rel_d

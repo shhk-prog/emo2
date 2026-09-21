@@ -1,0 +1,23 @@
+{
+  "execution_status": "success",
+  "execution_success": true,
+  "stage": "behavioral",
+  "experiment_id": "behavioral_aipsy_4split",
+  "completed_at": "2026-09-21T02:01:33.863131+00:00",
+  "metadata": {
+    "tag": "olmo_instruct",
+    "model": "allenai/OLMo-2-0425-1B-Instruct",
+    "is_instruct": true
+  },
+  "tag": "olmo_instruct",
+  "model": "allenai/OLMo-2-0425-1B-Instruct",
+  "is_instruct": true,
+  "results": {
+    "tag": "olmo_instruct",
+    "model": "allenai/OLMo-2-0425-1B-Instruct",
+    "is_instruct": true,
+    "num_samples": 480,
+    "mean_s_ev": 5.0,
+    "mean_s_ea": 5.486
+  }
+}

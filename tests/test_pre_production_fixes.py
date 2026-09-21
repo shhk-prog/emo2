@@ -483,3 +483,83 @@ def test_chat_template_system_role_fallback():
     assert p_c_gemma == "FALLBACK:user"
 
 
+# 22. test_behavioral_emobank_summary_dedup_and_model_name
+def test_behavioral_emobank_summary_dedup_and_model_name(tmp_path):
+    """正式CSVと互換CSVが同居していても、重複せず単一のモデル名(qwen_base)として集計されることを検証"""
+    import subprocess
+    import sys
+    import pandas as pd
+    from behavioral.analysis.summarize_behavioral_emobank import extract_model_name
+
+    # 1. extract_model_name 単体テスト
+    assert extract_model_name("behavioral_emobank_qwen_base_3way_vad.csv") == "qwen_base"
+    assert extract_model_name("qwen_base_3way_vad.csv") == "qwen_base"
+    assert extract_model_name("behavioral_emobank_llama_instruct_3way_vad.csv") == "llama_instruct"
+
+    # 2. 同居ディレクトリでの集計テスト
+    in_dir = tmp_path / "emobank_raw"
+    in_dir.mkdir()
+    out_dir = tmp_path / "emobank_summary"
+
+    dummy_cols = [
+        "id", "text",
+        "human_writer_v", "human_writer_a", "human_writer_d",
+        "human_reader_v", "human_reader_a", "human_reader_d",
+        "w_ev", "w_ea", "w_ed", "w_gv", "w_ga", "w_gd",
+        "r_ev", "r_ea", "r_ed", "r_gv", "r_ga", "r_gd",
+        "s_ev", "s_ea", "s_ed", "s_gv", "s_ga", "s_gd",
+    ]
+    row = {c: 5.0 for c in dummy_cols}
+    row["id"] = "test_1"
+    row["text"] = "Sample text"
+    df = pd.DataFrame([row, row, row])
+
+    # 正式CSVと互換CSVの両方を同一内容で配置
+    formal_csv = in_dir / "behavioral_emobank_qwen_base_3way_vad.csv"
+    compat_csv = in_dir / "qwen_base_3way_vad.csv"
+    df.to_csv(formal_csv, index=False)
+    df.to_csv(compat_csv, index=False)
+
+    cmd = [
+        sys.executable,
+        "behavioral/analysis/summarize_behavioral_emobank.py",
+        "--input-dir", str(in_dir),
+        "--out-dir", str(out_dir),
+    ]
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    assert res.returncode == 0, f"Script failed: {res.stderr}"
+
+    metrics_df = pd.read_csv(out_dir / "behavioral_emobank_metrics.csv")
+    neutral_df = pd.read_csv(out_dir / "behavioral_emobank_neutral_rates.csv")
+
+    # モデルは二重計上されず1種類のみ、かつ 'qwen_base' であること
+    assert list(metrics_df["model"].unique()) == ["qwen_base"]
+    assert list(neutral_df["model"].unique()) == ["qwen_base"]
+
+
+# 23. test_manifest_code_version_cache_invalidation
+def test_manifest_code_version_cache_invalidation(tmp_path):
+    """旧コードバージョン(2.2.0)の manifest が現在の DEFAULT_CODE_VERSION(2.3.0) でキャッシュ不一致となることを検証"""
+    import json
+    from affective_empathy_eval.manifests import DEFAULT_CODE_VERSION, is_manifest_matching
+
+    assert DEFAULT_CODE_VERSION == "2.3.0"
+
+    old_manifest_path = tmp_path / "old_manifest.json"
+    old_data = {
+        "manifest_version": "1.0.0",
+        "code_version": "2.2.0",
+        "model_name": "test-model",
+        "dry_run": False,
+    }
+    with open(old_manifest_path, "w", encoding="utf-8") as f:
+        json.dump(old_data, f)
+
+    # デフォルト (expected_code_version=DEFAULT_CODE_VERSION="2.3.0") では False (キャッシュ無効)
+    assert is_manifest_matching(str(old_manifest_path), expected_model_name="test-model") is False
+
+    # 明示的に旧バージョンを指定した場合のみ True
+    assert is_manifest_matching(str(old_manifest_path), expected_model_name="test-model", expected_code_version="2.2.0") is True
+
+
+

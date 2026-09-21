@@ -57,9 +57,17 @@ TASK_PREFIX = {
 }
 
 
+def extract_model_name(csv_path) -> str:
+    """Extract clean model name without 'behavioral_emobank_' prefix or '_3way_vad' suffix."""
+    stem = Path(csv_path).stem.replace("_3way_vad", "")
+    if stem.startswith("behavioral_emobank_"):
+        return stem[len("behavioral_emobank_") :]
+    return stem
+
+
 def analyze_file(csv_path):
     df = pd.read_csv(csv_path)
-    model_name = Path(csv_path).stem.replace("_3way_vad", "")
+    model_name = extract_model_name(csv_path)
     n_samples = len(df)
 
     rows = []
@@ -181,29 +189,44 @@ def main():
         action="store_true",
         help="Summarize only dry_run results",
     )
+    parser.add_argument(
+        "--allow-legacy-fallback",
+        action="store_true",
+        help="Allow fallback to legacy filenames (*_3way_vad.csv) or legacy directories if standard files are not found",
+    )
     args = parser.parse_args()
 
     if args.dry_run:
         args.input_dir = str(Path(args.input_dir) / "dry_run")
         args.out_dir = str(Path(args.out_dir) / "dry_run")
-        files = sorted(glob.glob(os.path.join(args.input_dir, "*_3way_vad.csv")))
-    else:
-        files = sorted(glob.glob(os.path.join(args.input_dir, "*_3way_vad.csv")))
-        if not files:
-            # Fallbacks: legacy path and v1 results
+
+    # Primary: formal behavioral_emobank_*_3way_vad.csv only
+    standard_pattern = os.path.join(args.input_dir, "behavioral_emobank_*_3way_vad.csv")
+    files = sorted(glob.glob(standard_pattern))
+
+    if not files and args.allow_legacy_fallback:
+        # Fallback 1: input_dir 内の互換ファイル名 (*_3way_vad.csv)
+        compat_files = sorted(glob.glob(os.path.join(args.input_dir, "*_3way_vad.csv")))
+        if compat_files:
+            files = compat_files
+        else:
+            # Fallback 2: 旧ディレクトリ探索
             fallbacks = [
                 "behavioral/results/emobank_3way",
                 "v1/results/emobank_3way_vad_test1k",
             ]
             for fb in fallbacks:
                 if os.path.exists(fb):
-                    files = sorted(glob.glob(os.path.join(fb, "*_3way_vad.csv")))
+                    files = sorted(glob.glob(os.path.join(fb, "behavioral_emobank_*_3way_vad.csv"))) or sorted(
+                        glob.glob(os.path.join(fb, "*_3way_vad.csv"))
+                    )
                     if files:
                         break
 
     if not files:
         raise FileNotFoundError(
-            f"No Behavioral EmoBank result CSVs found in {args.input_dir} or fallback."
+            f"No Behavioral EmoBank result CSVs found in {args.input_dir}. "
+            f"(If attempting to read legacy filenames or directories, specify --allow-legacy-fallback)"
         )
 
     os.makedirs(args.out_dir, exist_ok=True)
@@ -215,7 +238,7 @@ def main():
         df_m, df_c, p555 = analyze_file(f)
         all_metrics.append(df_m)
         all_couplings.append(df_c)
-        p555["model"] = Path(f).stem.replace("_3way_vad", "")
+        p555["model"] = extract_model_name(f)
         neutral_summaries.append(p555)
 
     res_metrics = pd.concat(all_metrics, ignore_index=True)

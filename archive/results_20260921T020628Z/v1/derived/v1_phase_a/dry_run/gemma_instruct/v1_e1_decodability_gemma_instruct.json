@@ -1,0 +1,223 @@
+{
+  "execution_status": "success",
+  "execution_success": true,
+  "stage": "v1",
+  "experiment_id": "v1_e1_decodability",
+  "completed_at": "2026-09-21T02:04:09.707875+00:00",
+  "metadata": {
+    "model_id": "google/gemma-3-1b-it",
+    "model_prefix": "gemma_instruct",
+    "is_instruct": true,
+    "dataset": "both"
+  },
+  "model_id": "google/gemma-3-1b-it",
+  "model_prefix": "gemma_instruct",
+  "is_instruct": true,
+  "dataset": "both",
+  "results": {
+    "emobank": [
+      {
+        "layer": 0,
+        "relative_depth": 0.0,
+        "dataset": "EmoBank",
+        "target_V_human_r2_reader": 0.5,
+        "target_V_human_r2_self": 0.4,
+        "target_V_human_pr_reader": 0.7,
+        "target_V_human_pr_self": 0.6,
+        "target_A_human_r2_reader": 0.3,
+        "target_A_human_r2_self": 0.2,
+        "target_A_human_pr_reader": 0.5,
+        "target_A_human_pr_self": 0.4
+      },
+      {
+        "layer": 1,
+        "relative_depth": 0.3333333333333333,
+        "dataset": "EmoBank",
+        "target_V_human_r2_reader": 0.5,
+        "target_V_human_r2_self": 0.4,
+        "target_V_human_pr_reader": 0.7,
+        "target_V_human_pr_self": 0.6,
+        "target_A_human_r2_reader": 0.3,
+        "target_A_human_r2_self": 0.2,
+        "target_A_human_pr_reader": 0.5,
+        "target_A_human_pr_self": 0.4
+      },
+      {
+        "layer": 2,
+        "relative_depth": 0.6666666666666666,
+        "dataset": "EmoBank",
+        "target_V_human_r2_reader": 0.5,
+        "target_V_human_r2_self": 0.4,
+        "target_V_human_pr_reader": 0.7,
+        "target_V_human_pr_self": 0.6,
+        "target_A_human_r2_reader": 0.3,
+        "target_A_human_r2_self": 0.2,
+        "target_A_human_pr_reader": 0.5,
+        "target_A_human_pr_self": 0.4
+      },
+      {
+        "layer": 3,
+        "relative_depth": 1.0,
+        "dataset": "EmoBank",
+        "target_V_human_r2_reader": 0.5,
+        "target_V_human_r2_self": 0.4,
+        "target_V_human_pr_reader": 0.7,
+        "target_V_human_pr_self": 0.6,
+        "target_A_human_r2_reader": 0.3,
+        "target_A_human_r2_self": 0.2,
+        "target_A_human_pr_reader": 0.5,
+        "target_A_human_pr_self": 0.4
+      }
+    ],
+    "aipsy_primary": [
+      {
+        "layer": 0,
+        "relative_depth": 0.0,
+        "dataset": "AIPsy",
+        "target": "clinical_vs_matched_neutral",
+        "reader_balanced_acc": 0.85,
+        "self_balanced_acc": 0.82,
+        "reader_f1_macro": 0.84,
+        "self_f1_macro": 0.81,
+        "reader_roc_auc": 0.92,
+        "self_roc_auc": 0.89
+      },
+      {
+        "layer": 1,
+        "relative_depth": 0.3333333333333333,
+        "dataset": "AIPsy",
+        "target": "clinical_vs_matched_neutral",
+        "reader_balanced_acc": 0.85,
+        "self_balanced_acc": 0.82,
+        "reader_f1_macro": 0.84,
+        "self_f1_macro": 0.81,
+        "reader_roc_auc": 0.92,
+        "self_roc_auc": 0.89
+      },
+      {
+        "layer": 2,
+        "relative_depth": 0.6666666666666666,
+        "dataset": "AIPsy",
+        "target": "clinical_vs_matched_neutral",
+        "reader_balanced_acc": 0.85,
+        "self_balanced_acc": 0.82,
+        "reader_f1_macro": 0.84,
+        "self_f1_macro": 0.81,
+        "reader_roc_auc": 0.92,
+        "self_roc_auc": 0.89
+      },
+      {
+        "layer": 3,
+        "relative_depth": 1.0,
+        "dataset": "AIPsy",
+        "target": "clinical_vs_matched_neutral",
+        "reader_balanced_acc": 0.85,
+        "self_balanced_acc": 0.82,
+        "reader_f1_macro": 0.84,
+        "self_f1_macro": 0.81,
+        "reader_roc_auc": 0.92,
+        "self_roc_auc": 0.89
+      }
+    ],
+    "aipsy_intensity": [
+      {
+        "layer": 0,
+        "relative_depth": 0.0,
+        "dataset": "AIPsy",
+        "target": "intensity_none_moderate_peak",
+        "reader_spearman_rho": 0.7,
+        "self_spearman_rho": 0.65,
+        "reader_pearson_r": 0.68,
+        "self_pearson_r": 0.62,
+        "reader_r2": 0.45,
+        "self_r2": 0.38
+      },
+      {
+        "layer": 1,
+        "relative_depth": 0.3333333333333333,
+        "dataset": "AIPsy",
+        "target": "intensity_none_moderate_peak",
+        "reader_spearman_rho": 0.7,
+        "self_spearman_rho": 0.65,
+        "reader_pearson_r": 0.68,
+        "self_pearson_r": 0.62,
+        "reader_r2": 0.45,
+        "self_r2": 0.38
+      },
+      {
+        "layer": 2,
+        "relative_depth": 0.6666666666666666,
+        "dataset": "AIPsy",
+        "target": "intensity_none_moderate_peak",
+        "reader_spearman_rho": 0.7,
+        "self_spearman_rho": 0.65,
+        "reader_pearson_r": 0.68,
+        "self_pearson_r": 0.62,
+        "reader_r2": 0.45,
+        "self_r2": 0.38
+      },
+      {
+        "layer": 3,
+        "relative_depth": 1.0,
+        "dataset": "AIPsy",
+        "target": "intensity_none_moderate_peak",
+        "reader_spearman_rho": 0.7,
+        "self_spearman_rho": 0.65,
+        "reader_pearson_r": 0.68,
+        "self_pearson_r": 0.62,
+        "reader_r2": 0.45,
+        "self_r2": 0.38
+      }
+    ],
+    "aipsy_secondary": [
+      {
+        "layer": 0,
+        "relative_depth": 0.0,
+        "dataset": "AIPsy",
+        "target": "emotion_category_secondary",
+        "reader_balanced_acc": 0.65,
+        "self_balanced_acc": 0.6,
+        "reader_f1_macro": 0.62,
+        "self_f1_macro": 0.58,
+        "reader_roc_auc": 0.8,
+        "self_roc_auc": 0.76
+      },
+      {
+        "layer": 1,
+        "relative_depth": 0.3333333333333333,
+        "dataset": "AIPsy",
+        "target": "emotion_category_secondary",
+        "reader_balanced_acc": 0.65,
+        "self_balanced_acc": 0.6,
+        "reader_f1_macro": 0.62,
+        "self_f1_macro": 0.58,
+        "reader_roc_auc": 0.8,
+        "self_roc_auc": 0.76
+      },
+      {
+        "layer": 2,
+        "relative_depth": 0.6666666666666666,
+        "dataset": "AIPsy",
+        "target": "emotion_category_secondary",
+        "reader_balanced_acc": 0.65,
+        "self_balanced_acc": 0.6,
+        "reader_f1_macro": 0.62,
+        "self_f1_macro": 0.58,
+        "reader_roc_auc": 0.8,
+        "self_roc_auc": 0.76
+      },
+      {
+        "layer": 3,
+        "relative_depth": 1.0,
+        "dataset": "AIPsy",
+        "target": "emotion_category_secondary",
+        "reader_balanced_acc": 0.65,
+        "self_balanced_acc": 0.6,
+        "reader_f1_macro": 0.62,
+        "self_f1_macro": 0.58,
+        "reader_roc_auc": 0.8,
+        "self_roc_auc": 0.76
+      }
+    ]
+  }
+}

@@ -1,0 +1,5 @@
+layer,relative_depth,dataset,target,reader_balanced_acc,self_balanced_acc,reader_f1_macro,self_f1_macro,reader_roc_auc,self_roc_auc
+0,0.0,AIPsy,clinical_vs_matched_neutral,0.85,0.82,0.84,0.81,0.92,0.89
+1,0.3333333333333333,AIPsy,clinical_vs_matched_neutral,0.85,0.82,0.84,0.81,0.92,0.89
+2,0.6666666666666666,AIPsy,clinical_vs_matched_neutral,0.85,0.82,0.84,0.81,0.92,0.89
+3,1.0,AIPsy,clinical_vs_matched_neutral,0.85,0.82,0.84,0.81,0.92,0.89

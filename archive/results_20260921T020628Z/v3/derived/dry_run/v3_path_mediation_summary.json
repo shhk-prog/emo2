@@ -1,0 +1,27 @@
+{
+  "mediator_layer": 18,
+  "mediator_relative_depth": 0.6666666666666666,
+  "n_total": 96,
+  "n_valid_ratio_v": 96,
+  "n_valid_ratio_a": 96,
+  "valence_mediated_attenuation": 0.9546305589567173,
+  "valence_mediated_attenuation_ci": [
+    0.9118434745462287,
+    0.9945515464717168
+  ],
+  "arousal_mediated_attenuation": 0.7900625496692081,
+  "arousal_mediated_attenuation_ci": [
+    0.745557001073483,
+    0.8296937387042013
+  ],
+  "valence_attenuation_ratio": 0.7444935294856366,
+  "valence_attenuation_ci": [
+    0.7218604752491858,
+    0.7640126792228248
+  ],
+  "arousal_attenuation_ratio": 0.7344321351441326,
+  "arousal_attenuation_ci": [
+    0.7075043846466479,
+    0.7587597743223696
+  ]
+}

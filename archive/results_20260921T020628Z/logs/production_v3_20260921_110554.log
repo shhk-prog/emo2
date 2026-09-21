@@ -1,0 +1,87 @@
+==================================================================
+Starting Production V3 Pipeline Evaluation
+Timestamp : 2026-09-21T02:05:54Z
+Device    : cpu
+Python    : /mnt/nas/home/hiromi/src/emo2/.venv/bin/python
+Python Ver: Python 3.12.3
+Pip Ver   : 
+Git SHA   : 074de6e08e72c5a54d6957f2b81db27f1ec900fe
+uv.lock   : 5c6343d85ce02a529c05cb796a7a0cca6bfd1558fef8750d6c692e37258631d9
+Extra Args: --dry-run
+Log File  : results/logs/production_v3_20260921_110554.log
+Cohort    : primary_small (Target: Qwen | Confirmatory: Llama, Gemma, OLMo)
+Pipeline  : RQ1 (Gate) -> RQ2 (4-Maps) -> RQ3 (Mediation) -> Confirmatory
+Data Scale: Full production CSVs (actual counts logged by the Python runner)
+Runtime   : unmeasured (do not use pre-benchmark hour estimates)
+==================================================================
+2026-09-21 11:05:56,284 [INFO] Affective Empathy Evaluation Unified Runner
+2026-09-21 11:05:56,284 [INFO] Stage: v3 | Cohort: primary_small | Dry-run: True
+2026-09-21 11:05:56,284 [INFO] Wall-clock estimates are unmeasured until a Qwen-family benchmark is recorded.
+2026-09-21 11:05:56,284 [INFO] Dataset inventory (actual loaded counts; wall-clock time is unmeasured):
+2026-09-21 11:05:56,289 [INFO] EmoBank 3-way: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-21 11:05:56,295 [INFO] AIPsy 4-split: n_rows=480 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=480 | split_counts={'clinical': 192, 'neutral': 192, 'moderate': 48, 'complex_neutral': 48}
+2026-09-21 11:05:56,300 [INFO] V1 Phase B rule-based controls: n_rows=192 | path=v1/data/processed/v1_e5_semantic_controls.csv | n_unique_pair_id=192
+2026-09-21 11:05:56,301 [INFO] === Running V3 Stage (model-set: primary_small) ===
+2026-09-21 11:05:56,301 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v3/primary/run_rq1_state_induction.py --models-config configs/models.yaml --model-set primary_small --device cpu --dry-run
+2026-09-21 11:06:00,429 [INFO] Starting V3-RQ1 State Induction (pilot=False, dry_run=True)
+2026-09-21 11:06:00,570 [INFO] V3-RQ1 matched-pair table: n_rows=192 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=192 | split_counts={'clinical': 192}
+2026-09-21 11:06:00,802 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-21 11:06:00,811 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%22f81ead14ab072d65a07817f83a3ee0e5a1890d10%22 "HTTP/1.1 200 OK"
+2026-09-21 11:06:00,816 [INFO] Resolved V3-RQ1 layer=14 from relative_depth=0.5 (L=28, family=qwen)
+2026-09-21 11:06:00,818 [INFO] Executing mock state induction and gate simulation (--dry-run specified)...
+2026-09-21 11:06:00,916 [INFO] Gate Evaluation Completed: DECISION = GO
+2026-09-21 11:06:00,916 [INFO]   Checklist: {'dose_response_v_pass': True, 'dose_response_a_pass': True, 'dose_response_pass': True, 'slope_v_ci_lower': 0.8459905250320652, 'slope_a_ci_lower': 0.6983406461849994, 'specificity_v_pass': True, 'specificity_a_pass': True, 'specificity_pass': True, 'specificity_v_ci_lower': 0.7175007906708999, 'specificity_a_ci_lower': 0.5730759326515606, 'endogenous_relevance_v_pass': True, 'endogenous_relevance_a_pass': True, 'endogenous_relevance_pass': True, 'endogenous_relevance_v_ci_lower': 0.41002280288135234, 'endogenous_relevance_a_ci_lower': 0.3792470799163825, 'necessity_v_pass': True, 'necessity_a_pass': True, 'necessity_pass': True, 'necessity_v_ci_lower': 0.41002280288135234, 'necessity_a_ci_lower': 0.3792470799163825, 'topic_v_pass': True, 'topic_a_pass': True, 'topic_control_pass': True, 'topic_tvd_v_ci_upper': 0.05106216199143577, 'topic_tvd_a_ci_upper': 0.04160138883418304, 'decision_valence': 'GO', 'decision_arousal': 'GO', 'decision': 'GO'}
+2026-09-21 11:06:00,918 [INFO] [v3:v3_rq1_gate] Sequentially saved result to v3/results/raw/dry_run/v3_rq1_gate_qwen.json (success=True)
+2026-09-21 11:06:00,918 [INFO] Saved RQ1 results to v3/results/raw/dry_run/v3_rq1_results.json and v3/results/raw/dry_run/v3_rq1_gate_qwen.json
+2026-09-21 11:06:00,918 [INFO] Saved gate decision to v3/results/derived/dry_run/v3_gate_decision.json
+2026-09-21 11:06:00,923 [INFO] Saved gate decision to v3/results/derived/dry_run/v3_gate_decision.json
+2026-09-21 11:06:00,923 [INFO] >>> GATE STATUS: GO. Production pipeline may continue to RQ2/RQ3/Confirmatory.
+2026-09-21 11:06:01,892 [INFO] V3 RQ1 gate decision from v3/results/derived/dry_run/v3_gate_decision.json: GO
+2026-09-21 11:06:01,892 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v3/primary/run_rq2_spatiotemporal_maps.py --models-config configs/models.yaml --model-set primary_small --device cpu --dry-run
+2026-09-21 11:06:05,938 [INFO] Starting V3 Spatiotemporal 4-Map Analysis (dry_run=True)
+2026-09-21 11:06:06,083 [INFO] V3-RQ2 matched-pair table: n_rows=192 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=192 | split_counts={'clinical': 192}
+2026-09-21 11:06:06,314 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-21 11:06:06,324 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%22f81ead14ab072d65a07817f83a3ee0e5a1890d10%22 "HTTP/1.1 200 OK"
+2026-09-21 11:06:06,330 [INFO] Executing mock spatiotemporal 4-map generation (--dry-run specified)...
+2026-09-21 11:06:06,336 [INFO] [v3:v3_rq2_spatiotemporal_maps] Sequentially saved result to v3/results/raw/dry_run/v3_rq2_spatiotemporal_maps_qwen.json (success=True)
+2026-09-21 11:06:06,336 [INFO] Saved discovery spatiotemporal 4-maps to v3/results/raw/dry_run/v3_discovery_spatiotemporal_maps_qwen.json and v3/results/raw/dry_run/v3_rq2_spatiotemporal_maps_qwen.json
+2026-09-21 11:06:06,340 [INFO] Saved RQ2 manifest to v3/results/raw/dry_run/manifest_rq2_qwen.json
+2026-09-21 11:06:06,340 [INFO] Saved dissociation summary to v3/results/derived/dry_run/v3_spatiotemporal_summary.json
+2026-09-21 11:06:06,341 [INFO] Saved RQ2 causal sites artifact to v3/results/derived/dry_run/v3_rq2_causal_sites.json
+2026-09-21 11:06:06,341 [INFO] Valence Dissociation Delta Peak: 0.185
+2026-09-21 11:06:06,341 [INFO] Arousal Dissociation Delta Peak: 0.222
+2026-09-21 11:06:07,273 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v3/primary/run_rq3_path_mediation.py --models-config configs/models.yaml --model-set primary_small --device cpu --dry-run
+2026-09-21 11:06:11,345 [INFO] Starting V3 Path Mediation Analysis (dry_run=True)
+2026-09-21 11:06:11,487 [INFO] V3-RQ3 matched-pair table: n_rows=192 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=192 | split_counts={'clinical': 192}
+2026-09-21 11:06:11,701 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-21 11:06:11,710 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-1.5B-Instruct/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/config.json?%2FQwen%2FQwen2.5-1.5B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%22f81ead14ab072d65a07817f83a3ee0e5a1890d10%22 "HTTP/1.1 200 OK"
+2026-09-21 11:06:11,717 [INFO] Executing mock path mediation analysis (--dry-run specified)...
+2026-09-21 11:06:11,770 [INFO] [v3:v3_rq3_path_mediation] Sequentially saved result to v3/results/raw/dry_run/v3_rq3_path_mediation_qwen.json (success=True)
+2026-09-21 11:06:11,770 [INFO] Saved path mediation raw results to v3/results/raw/dry_run/v3_path_mediation_qwen.json and v3/results/raw/dry_run/v3_rq3_path_mediation_qwen.json
+2026-09-21 11:06:11,774 [INFO] Saved RQ3 manifest to v3/results/raw/dry_run/manifest_rq3_qwen.json
+2026-09-21 11:06:11,774 [INFO] Saved path mediation summary to v3/results/derived/dry_run/v3_path_mediation_summary.json
+2026-09-21 11:06:11,775 [INFO] Successfully generated canonical frozen confirmatory sites artifact at v3/results/derived/dry_run/frozen_confirmatory_sites.json
+2026-09-21 11:06:12,735 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v3/primary/run_confirmatory_replication.py --models-config configs/models.yaml --model-set primary_small --device cpu --dry-run
+2026-09-21 11:06:16,810 [INFO] Starting Step 7 Confirmatory Replication across families (dry_run=True)
+2026-09-21 11:06:16,952 [INFO] V3 confirmatory matched-pair table: n_rows=192 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=192 | split_counts={'clinical': 192}
+2026-09-21 11:06:16,954 [INFO] Successfully loaded frozen confirmatory sites from v3/results/derived/dry_run/frozen_confirmatory_sites.json
+2026-09-21 11:06:17,164 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct/resolve/main/config.json "HTTP/1.1 200 OK"
+2026-09-21 11:06:17,185 [INFO] Simulating confirmatory replication for Llama 3.2 (--dry-run)...
+2026-09-21 11:06:17,186 [INFO] [v3:v3_confirmatory_replication] Sequentially saved result to v3/results/raw/dry_run/v3_confirmatory_replication_llama.json (success=True)
+2026-09-21 11:06:17,186 [INFO] Saved Llama 3.2 confirmatory results to v3/results/raw/dry_run/v3_confirmatory_llama.json and v3/results/raw/dry_run/v3_confirmatory_replication_llama.json
+2026-09-21 11:06:17,363 [INFO] HTTP Request: HEAD https://huggingface.co/google/gemma-3-1b-it/resolve/main/config.json "HTTP/1.1 200 OK"
+2026-09-21 11:06:17,372 [INFO] Simulating confirmatory replication for Gemma 3 (--dry-run)...
+2026-09-21 11:06:17,374 [INFO] [v3:v3_confirmatory_replication] Sequentially saved result to v3/results/raw/dry_run/v3_confirmatory_replication_gemma.json (success=True)
+2026-09-21 11:06:17,374 [INFO] Saved Gemma 3 confirmatory results to v3/results/raw/dry_run/v3_confirmatory_gemma.json and v3/results/raw/dry_run/v3_confirmatory_replication_gemma.json
+2026-09-21 11:06:17,550 [INFO] HTTP Request: HEAD https://huggingface.co/allenai/OLMo-2-0425-1B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-21 11:06:17,559 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/allenai/OLMo-2-0425-1B-Instruct/48d788eca847d4d7548f375ad03d3c9312f6139e/config.json?%2Fallenai%2FOLMo-2-0425-1B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%228270c25100714b935d5f538f06e90b4dd18418d3%22 "HTTP/1.1 200 OK"
+2026-09-21 11:06:17,564 [INFO] Simulating confirmatory replication for OLMo 2 (--dry-run)...
+2026-09-21 11:06:17,565 [INFO] [v3:v3_confirmatory_replication] Sequentially saved result to v3/results/raw/dry_run/v3_confirmatory_replication_olmo.json (success=True)
+2026-09-21 11:06:17,565 [INFO] Saved OLMo 2 confirmatory results to v3/results/raw/dry_run/v3_confirmatory_olmo.json and v3/results/raw/dry_run/v3_confirmatory_replication_olmo.json
+2026-09-21 11:06:17,630 [INFO] Saved cross-model replication summary to v3/results/derived/dry_run/v3_cross_model_replication_summary.json
+2026-09-21 11:06:17,630 [INFO] Step 7 Confirmatory replication completed: MOCK_SIMULATION: Hypotheses simulated for validation purposes.
+2026-09-21 11:06:18,577 [INFO] All requested stages completed successfully!
+==================================================================
+V3 Pipeline Evaluation completed successfully!
+Elapsed Time: 25 seconds
+==================================================================

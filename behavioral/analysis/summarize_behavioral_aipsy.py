@@ -395,30 +395,35 @@ def main():
         action="store_true",
         help="Summarize only dry_run results",
     )
+    parser.add_argument(
+        "--allow-legacy-fallback",
+        action="store_true",
+        help="Allow fallback to legacy directories if standard files are not found in input_dir",
+    )
     args = parser.parse_args()
 
     if args.dry_run:
         args.input_dir = str(Path(args.input_dir) / "dry_run")
         args.out_dir = str(Path(args.out_dir) / "dry_run")
-        files = sorted(glob.glob(os.path.join(args.input_dir, "behavioral_aipsy_*_4split.csv")))
-    else:
-        files = sorted(glob.glob(os.path.join(args.input_dir, "behavioral_aipsy_*_4split.csv")))
-        if not files:
-            # Fallback paths
-            fallbacks = [
-                "behavioral/results/raw/aipsy_4split",
-                "results/raw/behavioral/aipsy_4split",
-                "v1/results/aipsy_4split_eval",
-            ]
-            for fb in fallbacks:
-                if os.path.exists(fb):
-                    files = sorted(glob.glob(os.path.join(fb, "behavioral_aipsy_*_4split.csv")))
-                    if files:
-                        break
+
+    files = sorted(glob.glob(os.path.join(args.input_dir, "behavioral_aipsy_*_4split.csv")))
+    if not files and args.allow_legacy_fallback:
+        # Fallback paths
+        fallbacks = [
+            "behavioral/results/raw/aipsy_4split",
+            "results/raw/behavioral/aipsy_4split",
+            "v1/results/aipsy_4split_eval",
+        ]
+        for fb in fallbacks:
+            if os.path.exists(fb):
+                files = sorted(glob.glob(os.path.join(fb, "behavioral_aipsy_*_4split.csv")))
+                if files:
+                    break
 
     if not files:
         raise FileNotFoundError(
-            f"No AIPsy behavioral result CSVs found in {args.input_dir}"
+            f"No AIPsy behavioral result CSVs found in {args.input_dir}. "
+            f"(If attempting to read legacy directories, specify --allow-legacy-fallback)"
         )
 
     os.makedirs(args.out_dir, exist_ok=True)

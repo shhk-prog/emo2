@@ -453,8 +453,8 @@ def test_v1_e2_procrustes_pca_n_less_than_d():
 # 21. test_chat_template_system_role_fallback
 def test_chat_template_system_role_fallback():
     """System role を非対応とする tokenizer で user-only への fallback が正常動作することを検証"""
-    from v1.primary.run_phase_b import build_prompt as build_prompt_b
-    from v1.primary.run_phase_c import build_prompt_canonical as build_prompt_c
+    from v1.primary.run_phase_b import format_prompt as format_prompt_b
+    from v1.primary.run_phase_c import format_prompt as format_prompt_c
 
     class StandardTokenizer:
         def apply_chat_template(self, messages, tokenize=False, add_generation_prompt=True):
@@ -471,15 +471,15 @@ def test_chat_template_system_role_fallback():
     gemma_tok = GemmaLikeTokenizer()
 
     # 1. Standard: Phase B / C ともに system+user
-    p_b_std = build_prompt_b(std_tok, "Hello world", "reader", is_instruct=True)
+    p_b_std = format_prompt_b(std_tok, "Hello world", "reader", is_instruct=True)
     assert p_b_std == "STANDARD:system|user"
-    p_c_std = build_prompt_c(std_tok, "Hello world", "reader", is_instruct=True)
+    p_c_std = format_prompt_c(std_tok, "Hello world", "reader", is_instruct=True)
     assert p_c_std == "STANDARD:system|user"
 
     # 2. Gemma-like (system 非対応): fallback して user のみで成功
-    p_b_gemma = build_prompt_b(gemma_tok, "Hello world", "reader", is_instruct=True)
+    p_b_gemma = format_prompt_b(gemma_tok, "Hello world", "reader", is_instruct=True)
     assert p_b_gemma == "FALLBACK:user"
-    p_c_gemma = build_prompt_c(gemma_tok, "Hello world", "reader", is_instruct=True)
+    p_c_gemma = format_prompt_c(gemma_tok, "Hello world", "reader", is_instruct=True)
     assert p_c_gemma == "FALLBACK:user"
 
 

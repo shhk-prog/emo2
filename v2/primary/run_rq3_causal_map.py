@@ -8,7 +8,7 @@ import argparse
 import json
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 import pandas as pd

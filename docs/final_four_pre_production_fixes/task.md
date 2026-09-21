@@ -29,7 +29,7 @@
   - [x] cross-family summary (`v2_cross_family_summary.json`) でも `valence` と `arousal` を別々に集約し、既存キーは後方互換として保持
 
 ### 5. 検証
-- [ ] `pytest -q`
+- [x] `pytest -q`
 - [ ] `ruff check src behavioral v1/primary v2/primary v3/primary tests`
 - [ ] 各ステージ dry-run 完走確認
 - [x] `docs/final_four_pre_production_fixes/walkthrough.md` 作成

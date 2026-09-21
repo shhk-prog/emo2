@@ -1,0 +1,329 @@
+{
+  "execution_status": "success",
+  "execution_success": true,
+  "stage": "v1",
+  "experiment_id": "v1_e2_rsa",
+  "completed_at": "2026-09-21T03:10:18.873289+00:00",
+  "metadata": {
+    "model_id": "google/gemma-3-1b-pt",
+    "model_prefix": "gemma_base"
+  },
+  "model_id": "google/gemma-3-1b-pt",
+  "model_prefix": "gemma_base",
+  "results": {
+    "rsa": [
+      {
+        "layer": 0,
+        "relative_depth": 0.0,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9870278970256656
+      },
+      {
+        "layer": 0,
+        "relative_depth": 0.0,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9870278970256656
+      },
+      {
+        "layer": 1,
+        "relative_depth": 0.04,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9701080517516454
+      },
+      {
+        "layer": 1,
+        "relative_depth": 0.04,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9701080517516454
+      },
+      {
+        "layer": 2,
+        "relative_depth": 0.08,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9813840194458395
+      },
+      {
+        "layer": 2,
+        "relative_depth": 0.08,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9813840194458395
+      },
+      {
+        "layer": 3,
+        "relative_depth": 0.12,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9832600627547334
+      },
+      {
+        "layer": 3,
+        "relative_depth": 0.12,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9832600627547334
+      },
+      {
+        "layer": 4,
+        "relative_depth": 0.16,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9746566417767054
+      },
+      {
+        "layer": 4,
+        "relative_depth": 0.16,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9746566417767054
+      },
+      {
+        "layer": 5,
+        "relative_depth": 0.2,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9566356939202916
+      },
+      {
+        "layer": 5,
+        "relative_depth": 0.2,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9566356939202916
+      },
+      {
+        "layer": 6,
+        "relative_depth": 0.24,
+        "target": "Valence_human",
+        "rsa_correlation": 0.946849275554225
+      },
+      {
+        "layer": 6,
+        "relative_depth": 0.24,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.946849275554225
+      },
+      {
+        "layer": 7,
+        "relative_depth": 0.28,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9378941410845796
+      },
+      {
+        "layer": 7,
+        "relative_depth": 0.28,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9378941410845796
+      },
+      {
+        "layer": 8,
+        "relative_depth": 0.32,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9398537111699407
+      },
+      {
+        "layer": 8,
+        "relative_depth": 0.32,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9398537111699407
+      },
+      {
+        "layer": 9,
+        "relative_depth": 0.36,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9345452211690077
+      },
+      {
+        "layer": 9,
+        "relative_depth": 0.36,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9345452211690077
+      },
+      {
+        "layer": 10,
+        "relative_depth": 0.4,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9449376324400298
+      },
+      {
+        "layer": 10,
+        "relative_depth": 0.4,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9449376324400298
+      },
+      {
+        "layer": 11,
+        "relative_depth": 0.44,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9276020180932635
+      },
+      {
+        "layer": 11,
+        "relative_depth": 0.44,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9276020180932635
+      },
+      {
+        "layer": 12,
+        "relative_depth": 0.48,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9145563391780221
+      },
+      {
+        "layer": 12,
+        "relative_depth": 0.48,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9145563391780221
+      },
+      {
+        "layer": 13,
+        "relative_depth": 0.52,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9024241121857719
+      },
+      {
+        "layer": 13,
+        "relative_depth": 0.52,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9024241121857719
+      },
+      {
+        "layer": 14,
+        "relative_depth": 0.56,
+        "target": "Valence_human",
+        "rsa_correlation": 0.8957941329039525
+      },
+      {
+        "layer": 14,
+        "relative_depth": 0.56,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.8957941329039525
+      },
+      {
+        "layer": 15,
+        "relative_depth": 0.6,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9005548783245864
+      },
+      {
+        "layer": 15,
+        "relative_depth": 0.6,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9005548783245864
+      },
+      {
+        "layer": 16,
+        "relative_depth": 0.64,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9087722825399851
+      },
+      {
+        "layer": 16,
+        "relative_depth": 0.64,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9087722825399851
+      },
+      {
+        "layer": 17,
+        "relative_depth": 0.68,
+        "target": "Valence_human",
+        "rsa_correlation": 0.8255623250070186
+      },
+      {
+        "layer": 17,
+        "relative_depth": 0.68,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.8255623250070186
+      },
+      {
+        "layer": 18,
+        "relative_depth": 0.72,
+        "target": "Valence_human",
+        "rsa_correlation": 0.8724194816979376
+      },
+      {
+        "layer": 18,
+        "relative_depth": 0.72,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.8724194816979376
+      },
+      {
+        "layer": 19,
+        "relative_depth": 0.76,
+        "target": "Valence_human",
+        "rsa_correlation": 0.8832200906279974
+      },
+      {
+        "layer": 19,
+        "relative_depth": 0.76,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.8832200906279974
+      },
+      {
+        "layer": 20,
+        "relative_depth": 0.8,
+        "target": "Valence_human",
+        "rsa_correlation": 0.887545745570988
+      },
+      {
+        "layer": 20,
+        "relative_depth": 0.8,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.887545745570988
+      },
+      {
+        "layer": 21,
+        "relative_depth": 0.84,
+        "target": "Valence_human",
+        "rsa_correlation": 0.8978544663685171
+      },
+      {
+        "layer": 21,
+        "relative_depth": 0.84,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.8978544663685171
+      },
+      {
+        "layer": 22,
+        "relative_depth": 0.88,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9007754977345954
+      },
+      {
+        "layer": 22,
+        "relative_depth": 0.88,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9007754977345954
+      },
+      {
+        "layer": 23,
+        "relative_depth": 0.92,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9066718062644818
+      },
+      {
+        "layer": 23,
+        "relative_depth": 0.92,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9066718062644818
+      },
+      {
+        "layer": 24,
+        "relative_depth": 0.96,
+        "target": "Valence_human",
+        "rsa_correlation": 0.910337219025908
+      },
+      {
+        "layer": 24,
+        "relative_depth": 0.96,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.910337219025908
+      },
+      {
+        "layer": 25,
+        "relative_depth": 1.0,
+        "target": "Valence_human",
+        "rsa_correlation": 0.906028247081465
+      },
+      {
+        "layer": 25,
+        "relative_depth": 1.0,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.906028247081465
+      }
+    ]
+  }
+}

@@ -99,6 +99,7 @@ from affective_empathy_eval.likelihood import (
     evaluate_expected_vad_from_prompt,
     get_euclidean_ground_cost_matrix,
     prepare_joint_sequence_with_boundary,
+    canonicalize_prompt_candidate_boundary,
     resolve_joint_stage_index,
 )
 
@@ -248,6 +249,7 @@ __all__ = [
     "compute_emd_recovery_ratio",
     "compute_distribution_metrics",
     "prepare_joint_sequence_with_boundary",
+    "canonicalize_prompt_candidate_boundary",
     "resolve_joint_stage_index",
     "compute_sequence_likelihoods_for_candidates",
     "evaluate_expected_va_from_prompt",

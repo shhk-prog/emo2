@@ -562,4 +562,55 @@ def test_manifest_code_version_cache_invalidation(tmp_path):
     assert is_manifest_matching(str(old_manifest_path), expected_model_name="test-model", expected_code_version="2.2.0") is True
 
 
+# 24. test_v1_phase_c_checkpoint_metadata_code_version
+def test_v1_phase_c_checkpoint_metadata_code_version():
+    """V1 Phase C の checkpoint manifest および cache metadata に code_version が含まれることを検証"""
+    import pandas as pd
+    from affective_empathy_eval.manifests import DEFAULT_CODE_VERSION
+    from v1.primary.run_phase_c import compute_cache_metadata, make_phase_c_checkpoint_manifest
+
+    # 1. make_phase_c_checkpoint_manifest
+    ckpt = make_phase_c_checkpoint_manifest(
+        model_id="test_model",
+        model_revision="rev1",
+        tokenizer_revision="tok_rev1",
+        config_hash="cfg_hash",
+        dataset_hash="ds_hash",
+        prompt_hash="p_hash",
+        stage_type="e3",
+    )
+    assert ckpt["code_version"] == DEFAULT_CODE_VERSION
+    assert ckpt["intervention_version"] == "v1_phase_c_v2"
+
+    # 2. compute_cache_metadata
+    df_dummy = pd.DataFrame([{"pair_id": 1, "text_aff": "aff", "text_neu": "neu"}])
+    cache_meta = compute_cache_metadata(
+        model_id="test_model",
+        tokenizer=None,
+        df=df_dummy,
+        all_prompts=["prompt1"],
+    )
+    assert cache_meta["code_version"] == DEFAULT_CODE_VERSION
+
+
+# 25. test_v1_phase_c_manifest_config_schema
+def test_v1_phase_c_manifest_config_schema():
+    """V1 Phase C および E6 の manifest 設定の candidate_schema が VAD_729 であり一貫していることを検証"""
+    import inspect
+    from v1.primary import run_phase_c
+    from v1.primary.phase_c import run_e6_specialization
+
+    # run_phase_c のソースコード内に candidate_schema: VAD_729 が含まれ、VA_81 になっていないこと
+    src_c = inspect.getsource(run_phase_c.main)
+    assert '"candidate_schema": "VAD_729"' in src_c
+    assert '"candidate_schema": "VA_81"' not in src_c
+    assert 'expected_intervention_version="v1_phase_c_v2"' in src_c
+
+    # run_e6_specialization のソースコード内で manifest_config に e3_hash が含まれ、同一 config が使用されていること
+    src_e6 = inspect.getsource(run_e6_specialization.main)
+    assert '"e3_hash": e3_hash' in src_e6
+    assert 'config=manifest_config' in src_e6
+
+
+
 

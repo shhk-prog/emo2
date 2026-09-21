@@ -1,0 +1,209 @@
+{
+  "execution_status": "success",
+  "execution_success": true,
+  "stage": "v1",
+  "experiment_id": "v1_e2_rsa",
+  "completed_at": "2026-09-21T03:09:55.087879+00:00",
+  "metadata": {
+    "model_id": "allenai/OLMo-2-0425-1B",
+    "model_prefix": "olmo_base"
+  },
+  "model_id": "allenai/OLMo-2-0425-1B",
+  "model_prefix": "olmo_base",
+  "results": {
+    "rsa": [
+      {
+        "layer": 0,
+        "relative_depth": 0.0,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9884893950267026
+      },
+      {
+        "layer": 0,
+        "relative_depth": 0.0,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9884893950267026
+      },
+      {
+        "layer": 1,
+        "relative_depth": 0.06666666666666667,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9914758527873808
+      },
+      {
+        "layer": 1,
+        "relative_depth": 0.06666666666666667,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9914758527873808
+      },
+      {
+        "layer": 2,
+        "relative_depth": 0.13333333333333333,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9894003423977651
+      },
+      {
+        "layer": 2,
+        "relative_depth": 0.13333333333333333,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9894003423977651
+      },
+      {
+        "layer": 3,
+        "relative_depth": 0.2,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9876618805054995
+      },
+      {
+        "layer": 3,
+        "relative_depth": 0.2,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9876618805054995
+      },
+      {
+        "layer": 4,
+        "relative_depth": 0.26666666666666666,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9794136012317285
+      },
+      {
+        "layer": 4,
+        "relative_depth": 0.26666666666666666,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9794136012317285
+      },
+      {
+        "layer": 5,
+        "relative_depth": 0.3333333333333333,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9698122079349114
+      },
+      {
+        "layer": 5,
+        "relative_depth": 0.3333333333333333,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9698122079349114
+      },
+      {
+        "layer": 6,
+        "relative_depth": 0.4,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9663789955658905
+      },
+      {
+        "layer": 6,
+        "relative_depth": 0.4,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9663789955658905
+      },
+      {
+        "layer": 7,
+        "relative_depth": 0.4666666666666667,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9668661603169284
+      },
+      {
+        "layer": 7,
+        "relative_depth": 0.4666666666666667,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9668661603169284
+      },
+      {
+        "layer": 8,
+        "relative_depth": 0.5333333333333333,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9279010661058515
+      },
+      {
+        "layer": 8,
+        "relative_depth": 0.5333333333333333,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9279010661058515
+      },
+      {
+        "layer": 9,
+        "relative_depth": 0.6,
+        "target": "Valence_human",
+        "rsa_correlation": 0.9009214416447809
+      },
+      {
+        "layer": 9,
+        "relative_depth": 0.6,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.9009214416447809
+      },
+      {
+        "layer": 10,
+        "relative_depth": 0.6666666666666666,
+        "target": "Valence_human",
+        "rsa_correlation": 0.8928100048279909
+      },
+      {
+        "layer": 10,
+        "relative_depth": 0.6666666666666666,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.8928100048279909
+      },
+      {
+        "layer": 11,
+        "relative_depth": 0.7333333333333333,
+        "target": "Valence_human",
+        "rsa_correlation": 0.8662655453622079
+      },
+      {
+        "layer": 11,
+        "relative_depth": 0.7333333333333333,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.8662655453622079
+      },
+      {
+        "layer": 12,
+        "relative_depth": 0.8,
+        "target": "Valence_human",
+        "rsa_correlation": 0.8206021704882842
+      },
+      {
+        "layer": 12,
+        "relative_depth": 0.8,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.8206021704882842
+      },
+      {
+        "layer": 13,
+        "relative_depth": 0.8666666666666667,
+        "target": "Valence_human",
+        "rsa_correlation": 0.7853025257939712
+      },
+      {
+        "layer": 13,
+        "relative_depth": 0.8666666666666667,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.7853025257939712
+      },
+      {
+        "layer": 14,
+        "relative_depth": 0.9333333333333333,
+        "target": "Valence_human",
+        "rsa_correlation": 0.7941844568980099
+      },
+      {
+        "layer": 14,
+        "relative_depth": 0.9333333333333333,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.7941844568980099
+      },
+      {
+        "layer": 15,
+        "relative_depth": 1.0,
+        "target": "Valence_human",
+        "rsa_correlation": 0.8061658189640897
+      },
+      {
+        "layer": 15,
+        "relative_depth": 1.0,
+        "target": "Arousal_human",
+        "rsa_correlation": 0.8061658189640897
+      }
+    ]
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "execution_status": "success",
+  "execution_success": true,
+  "stage": "v1",
+  "experiment_id": "v1_e5_semantic_controls",
+  "completed_at": "2026-09-21T03:13:07.536659+00:00",
+  "metadata": {
+    "model_id": "google/gemma-3-1b-pt",
+    "model_prefix": "gemma_base",
+    "task_type": "reader",
+    "target_layer": 12,
+    "relative_depth": 0.5,
+    "num_pairs": 192,
+    "dry_run": false
+  },
+  "model_id": "google/gemma-3-1b-pt",
+  "model_prefix": "gemma_base",
+  "task_type": "reader",
+  "target_layer": 12,
+  "relative_depth": 0.5,
+  "num_pairs": 192,
+  "dry_run": false,
+  "results": {
+    "acc_original_minimal_pair": 0.875,
+    "acc_pair_aware_held_out_paraphrase": 1.0,
+    "pair_aware_held_out_reversal_drop": -0.005212247371673584,
+    "n_train_pairs": 134,
+    "n_test_pairs": 58,
+    "n_nonfallback_paraphrase_pairs": 8,
+    "n_nonfallback_reversal_pairs": 18,
+    "n_primary_test_paraphrase_pairs": 2,
+    "n_primary_test_reversal_pairs": 7,
+    "sensitivity_held_out_paraphrase": 0.8793103448275862,
+    "sensitivity_held_out_reversal_drop": 0.021204888820648193,
+    "acc_paraphrase_invariance_all": 0.9947916666666667,
+    "acc_word_shuffle": 0.734375,
+    "mean_affective_prob_original": 0.9877870678901672,
+    "mean_affective_prob_outcome_reversed": 0.966492235660553,
+    "outcome_reversal_prob_drop": 0.021294832229614258
+  }
+}

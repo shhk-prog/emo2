@@ -1,0 +1,10 @@
+{
+  "model": "Qwen/Qwen2.5-1.5B",
+  "model_revision": "8faed761d45a263340a0528343f099c05c9a4323",
+  "limit": null,
+  "is_instruct": false,
+  "stimuli_hash": "110d14a871220379",
+  "prompt_hash": "45ba0bbd8d295366",
+  "candidate_hash": "26fd4d1c4b97b9f8",
+  "dtype": "bfloat16"
+}

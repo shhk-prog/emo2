@@ -27,8 +27,9 @@ V2 の正式実行面。設計・指標・解釈の本文は親の [`v2/README.m
 1. `run_rq1_rq2_cross_decoding.py`
 2. `run_rq3_causal_map.py`
 3. `run_rq4_recovery_patching.py`
+4. `--family` / `--base-model` / `--instruct-model` が無いときだけ `run_confirmatory_analysis.py`
 
-確証的 LMM は `run_confirmatory_analysis.py` を別途実行する。scale validation（Mistral 7B）は `--model-set scale_validation` または `--stage scale_validation` で Primary と分離する。
+1 family 実行では 4 を省略する。scale validation（Mistral 7B）は `--model-set scale_validation` または `--stage scale_validation` で Primary と分離する。`--force` は各 RQ と confirmatory に転送される。設定正本は `configs/v2_experiments.yaml`（`normalize_length: true`）。
 
 ## スクリプト
 
@@ -45,8 +46,10 @@ V2 の正式実行面。設計・指標・解釈の本文は親の [`v2/README.m
 
 ```bash
 bash scripts/run_production_v2.sh cuda:0
+bash scripts/run_production_v2.sh cuda:0 --force
 
 python -m affective_empathy_eval.run --stage v2 --model-set primary_small --device cuda:0
+python -m affective_empathy_eval.run --stage v2 --model-set primary_small --family qwen --device cuda:0
 python -m affective_empathy_eval.run --stage scale_validation --device cuda:0
 
 python v2/primary/run_rq1_rq2_cross_decoding.py \

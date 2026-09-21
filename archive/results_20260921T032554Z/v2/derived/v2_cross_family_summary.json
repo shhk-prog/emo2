@@ -1,0 +1,610 @@
+{
+  "families": [
+    "qwen",
+    "llama",
+    "gemma",
+    "olmo"
+  ],
+  "per_family_summary": {
+    "qwen": {
+      "by_axis": {
+        "valence": {
+          "primary_matched_plain": {
+            "com_distortion_reader": 0.5860516972206926,
+            "com_distortion_self": 0.5794951242375711,
+            "peak_depth_base_cross": 0.6296296296296297,
+            "peak_depth_inst_cross": 0.5185185185185185,
+            "peak_depth_delta_share": 0.9629629629629629,
+            "mean_delta_sharing": -0.43607633966425347
+          },
+          "secondary_native_chat": {
+            "com_distortion_reader": 0.547525378511496,
+            "com_distortion_self": 0.554810308575061,
+            "peak_depth_base_cross": 0.6296296296296297,
+            "peak_depth_inst_cross": 0.6296296296296297,
+            "peak_depth_delta_share": 0.9629629629629629,
+            "mean_delta_sharing": 0.1829244943608683
+          },
+          "format_effect": {
+            "mean_delta_sharing_format": 0.6190008340251217
+          },
+          "com_distortion_reader": 0.5860516972206926,
+          "com_distortion_self": 0.5794951242375711,
+          "peak_depth_base_cross": 0.6296296296296297,
+          "peak_depth_inst_cross": 0.5185185185185185,
+          "peak_depth_delta_share": 0.9629629629629629,
+          "mean_delta_sharing": -0.43607633966425347,
+          "mean_delta_sharing_matched": -0.43607633966425347,
+          "mean_delta_sharing_format": 0.6190008340251217
+        },
+        "arousal": {
+          "primary_matched_plain": {
+            "com_distortion_reader": 0.5860516972206926,
+            "com_distortion_self": 0.5794951242375711,
+            "peak_depth_base_cross": 0.07407407407407407,
+            "peak_depth_inst_cross": 0.07407407407407407,
+            "peak_depth_delta_share": 0.8888888888888888,
+            "mean_delta_sharing": -0.8937719957740212
+          },
+          "secondary_native_chat": {
+            "com_distortion_reader": 0.547525378511496,
+            "com_distortion_self": 0.554810308575061,
+            "peak_depth_base_cross": 0.07407407407407407,
+            "peak_depth_inst_cross": 0.07407407407407407,
+            "peak_depth_delta_share": 0.5555555555555556,
+            "mean_delta_sharing": -0.4742292052619749
+          },
+          "format_effect": {
+            "mean_delta_sharing_format": 0.4195427905120463
+          },
+          "com_distortion_reader": 0.5860516972206926,
+          "com_distortion_self": 0.5794951242375711,
+          "peak_depth_base_cross": 0.07407407407407407,
+          "peak_depth_inst_cross": 0.07407407407407407,
+          "peak_depth_delta_share": 0.8888888888888888,
+          "mean_delta_sharing": -0.8937719957740212,
+          "mean_delta_sharing_matched": -0.8937719957740212,
+          "mean_delta_sharing_format": 0.4195427905120463
+        }
+      },
+      "primary_matched_plain": {
+        "com_distortion_reader": 0.5860516972206926,
+        "com_distortion_self": 0.5794951242375711,
+        "peak_depth_base_cross": 0.6296296296296297,
+        "peak_depth_inst_cross": 0.5185185185185185,
+        "peak_depth_delta_share": 0.9629629629629629,
+        "mean_delta_sharing": -0.43607633966425347
+      },
+      "secondary_native_chat": {
+        "com_distortion_reader": 0.547525378511496,
+        "com_distortion_self": 0.554810308575061,
+        "peak_depth_base_cross": 0.6296296296296297,
+        "peak_depth_inst_cross": 0.6296296296296297,
+        "peak_depth_delta_share": 0.9629629629629629,
+        "mean_delta_sharing": 0.1829244943608683
+      },
+      "format_effect": {
+        "mean_delta_sharing_format": 0.6190008340251217
+      },
+      "com_distortion_reader": 0.5860516972206926,
+      "com_distortion_self": 0.5794951242375711,
+      "peak_depth_base_cross": 0.6296296296296297,
+      "peak_depth_inst_cross": 0.5185185185185185,
+      "peak_depth_delta_share": 0.9629629629629629,
+      "mean_delta_sharing": -0.43607633966425347,
+      "mean_delta_sharing_matched": -0.43607633966425347,
+      "mean_delta_sharing_format": 0.6190008340251217
+    },
+    "llama": {
+      "by_axis": {
+        "valence": {
+          "primary_matched_plain": {
+            "com_distortion_reader": 0.5321844659566353,
+            "com_distortion_self": 0.5686973588631131,
+            "peak_depth_base_cross": 0.6666666666666666,
+            "peak_depth_inst_cross": 0.6666666666666666,
+            "peak_depth_delta_share": 1.0,
+            "mean_delta_sharing": 0.2486539241771736
+          },
+          "secondary_native_chat": {
+            "com_distortion_reader": 0.5304175917829432,
+            "com_distortion_self": 0.5624852284279621,
+            "peak_depth_base_cross": 0.6666666666666666,
+            "peak_depth_inst_cross": 0.6,
+            "peak_depth_delta_share": 1.0,
+            "mean_delta_sharing": 0.16690625230625789
+          },
+          "format_effect": {
+            "mean_delta_sharing_format": -0.08174767187091572
+          },
+          "com_distortion_reader": 0.5321844659566353,
+          "com_distortion_self": 0.5686973588631131,
+          "peak_depth_base_cross": 0.6666666666666666,
+          "peak_depth_inst_cross": 0.6666666666666666,
+          "peak_depth_delta_share": 1.0,
+          "mean_delta_sharing": 0.2486539241771736,
+          "mean_delta_sharing_matched": 0.2486539241771736,
+          "mean_delta_sharing_format": -0.08174767187091572
+        },
+        "arousal": {
+          "primary_matched_plain": {
+            "com_distortion_reader": 0.5321844659566353,
+            "com_distortion_self": 0.5686973588631131,
+            "peak_depth_base_cross": 0.13333333333333333,
+            "peak_depth_inst_cross": 0.4,
+            "peak_depth_delta_share": 1.0,
+            "mean_delta_sharing": 0.06852893880705224
+          },
+          "secondary_native_chat": {
+            "com_distortion_reader": 0.5304175917829432,
+            "com_distortion_self": 0.5624852284279621,
+            "peak_depth_base_cross": 0.13333333333333333,
+            "peak_depth_inst_cross": 0.4,
+            "peak_depth_delta_share": 0.4,
+            "mean_delta_sharing": -0.41946891574358336
+          },
+          "format_effect": {
+            "mean_delta_sharing_format": -0.48799785455063555
+          },
+          "com_distortion_reader": 0.5321844659566353,
+          "com_distortion_self": 0.5686973588631131,
+          "peak_depth_base_cross": 0.13333333333333333,
+          "peak_depth_inst_cross": 0.4,
+          "peak_depth_delta_share": 1.0,
+          "mean_delta_sharing": 0.06852893880705224,
+          "mean_delta_sharing_matched": 0.06852893880705224,
+          "mean_delta_sharing_format": -0.48799785455063555
+        }
+      },
+      "primary_matched_plain": {
+        "com_distortion_reader": 0.5321844659566353,
+        "com_distortion_self": 0.5686973588631131,
+        "peak_depth_base_cross": 0.6666666666666666,
+        "peak_depth_inst_cross": 0.6666666666666666,
+        "peak_depth_delta_share": 1.0,
+        "mean_delta_sharing": 0.2486539241771736
+      },
+      "secondary_native_chat": {
+        "com_distortion_reader": 0.5304175917829432,
+        "com_distortion_self": 0.5624852284279621,
+        "peak_depth_base_cross": 0.6666666666666666,
+        "peak_depth_inst_cross": 0.6,
+        "peak_depth_delta_share": 1.0,
+        "mean_delta_sharing": 0.16690625230625789
+      },
+      "format_effect": {
+        "mean_delta_sharing_format": -0.08174767187091572
+      },
+      "com_distortion_reader": 0.5321844659566353,
+      "com_distortion_self": 0.5686973588631131,
+      "peak_depth_base_cross": 0.6666666666666666,
+      "peak_depth_inst_cross": 0.6666666666666666,
+      "peak_depth_delta_share": 1.0,
+      "mean_delta_sharing": 0.2486539241771736,
+      "mean_delta_sharing_matched": 0.2486539241771736,
+      "mean_delta_sharing_format": -0.08174767187091572
+    },
+    "gemma": {
+      "by_axis": {
+        "valence": {
+          "primary_matched_plain": {
+            "com_distortion_reader": 0.4073755766144486,
+            "com_distortion_self": 0.4895943970737626,
+            "peak_depth_base_cross": 0.08,
+            "peak_depth_inst_cross": 0.04,
+            "peak_depth_delta_share": 0.4,
+            "mean_delta_sharing": -1.6381205201208606
+          },
+          "secondary_native_chat": {
+            "com_distortion_reader": 0.38706521448360764,
+            "com_distortion_self": 0.4714771310787413,
+            "peak_depth_base_cross": 0.08,
+            "peak_depth_inst_cross": 0.0,
+            "peak_depth_delta_share": 0.92,
+            "mean_delta_sharing": -2.971318154072172
+          },
+          "format_effect": {
+            "mean_delta_sharing_format": -1.333197633951311
+          },
+          "com_distortion_reader": 0.4073755766144486,
+          "com_distortion_self": 0.4895943970737626,
+          "peak_depth_base_cross": 0.08,
+          "peak_depth_inst_cross": 0.04,
+          "peak_depth_delta_share": 0.4,
+          "mean_delta_sharing": -1.6381205201208606,
+          "mean_delta_sharing_matched": -1.6381205201208606,
+          "mean_delta_sharing_format": -1.333197633951311
+        },
+        "arousal": {
+          "primary_matched_plain": {
+            "com_distortion_reader": 0.4073755766144486,
+            "com_distortion_self": 0.4895943970737626,
+            "peak_depth_base_cross": 0.0,
+            "peak_depth_inst_cross": 0.0,
+            "peak_depth_delta_share": 0.36,
+            "mean_delta_sharing": 0.02933725579054254
+          },
+          "secondary_native_chat": {
+            "com_distortion_reader": 0.38706521448360764,
+            "com_distortion_self": 0.4714771310787413,
+            "peak_depth_base_cross": 0.0,
+            "peak_depth_inst_cross": 0.0,
+            "peak_depth_delta_share": 0.96,
+            "mean_delta_sharing": -5.8310993407106455
+          },
+          "format_effect": {
+            "mean_delta_sharing_format": -5.860436596501186
+          },
+          "com_distortion_reader": 0.4073755766144486,
+          "com_distortion_self": 0.4895943970737626,
+          "peak_depth_base_cross": 0.0,
+          "peak_depth_inst_cross": 0.0,
+          "peak_depth_delta_share": 0.36,
+          "mean_delta_sharing": 0.02933725579054254,
+          "mean_delta_sharing_matched": 0.02933725579054254,
+          "mean_delta_sharing_format": -5.860436596501186
+        }
+      },
+      "primary_matched_plain": {
+        "com_distortion_reader": 0.4073755766144486,
+        "com_distortion_self": 0.4895943970737626,
+        "peak_depth_base_cross": 0.08,
+        "peak_depth_inst_cross": 0.04,
+        "peak_depth_delta_share": 0.4,
+        "mean_delta_sharing": -1.6381205201208606
+      },
+      "secondary_native_chat": {
+        "com_distortion_reader": 0.38706521448360764,
+        "com_distortion_self": 0.4714771310787413,
+        "peak_depth_base_cross": 0.08,
+        "peak_depth_inst_cross": 0.0,
+        "peak_depth_delta_share": 0.92,
+        "mean_delta_sharing": -2.971318154072172
+      },
+      "format_effect": {
+        "mean_delta_sharing_format": -1.333197633951311
+      },
+      "com_distortion_reader": 0.4073755766144486,
+      "com_distortion_self": 0.4895943970737626,
+      "peak_depth_base_cross": 0.08,
+      "peak_depth_inst_cross": 0.04,
+      "peak_depth_delta_share": 0.4,
+      "mean_delta_sharing": -1.6381205201208606,
+      "mean_delta_sharing_matched": -1.6381205201208606,
+      "mean_delta_sharing_format": -1.333197633951311
+    },
+    "olmo": {
+      "by_axis": {
+        "valence": {
+          "primary_matched_plain": {
+            "com_distortion_reader": 0.4756200623009026,
+            "com_distortion_self": 0.510779989298497,
+            "peak_depth_base_cross": 0.7333333333333333,
+            "peak_depth_inst_cross": 0.8,
+            "peak_depth_delta_share": 0.0,
+            "mean_delta_sharing": -0.3924411318430682
+          },
+          "secondary_native_chat": {
+            "com_distortion_reader": 0.530907744038544,
+            "com_distortion_self": 0.5201422174532276,
+            "peak_depth_base_cross": 0.7333333333333333,
+            "peak_depth_inst_cross": 0.6666666666666666,
+            "peak_depth_delta_share": 0.06666666666666667,
+            "mean_delta_sharing": -1.279517094248459
+          },
+          "format_effect": {
+            "mean_delta_sharing_format": -0.8870759624053909
+          },
+          "com_distortion_reader": 0.4756200623009026,
+          "com_distortion_self": 0.510779989298497,
+          "peak_depth_base_cross": 0.7333333333333333,
+          "peak_depth_inst_cross": 0.8,
+          "peak_depth_delta_share": 0.0,
+          "mean_delta_sharing": -0.3924411318430682,
+          "mean_delta_sharing_matched": -0.3924411318430682,
+          "mean_delta_sharing_format": -0.8870759624053909
+        },
+        "arousal": {
+          "primary_matched_plain": {
+            "com_distortion_reader": 0.4756200623009026,
+            "com_distortion_self": 0.510779989298497,
+            "peak_depth_base_cross": 0.9333333333333333,
+            "peak_depth_inst_cross": 0.0,
+            "peak_depth_delta_share": 0.0,
+            "mean_delta_sharing": -0.3942194978797113
+          },
+          "secondary_native_chat": {
+            "com_distortion_reader": 0.530907744038544,
+            "com_distortion_self": 0.5201422174532276,
+            "peak_depth_base_cross": 0.9333333333333333,
+            "peak_depth_inst_cross": 0.5333333333333333,
+            "peak_depth_delta_share": 1.0,
+            "mean_delta_sharing": -0.6727526297374395
+          },
+          "format_effect": {
+            "mean_delta_sharing_format": -0.2785331318577283
+          },
+          "com_distortion_reader": 0.4756200623009026,
+          "com_distortion_self": 0.510779989298497,
+          "peak_depth_base_cross": 0.9333333333333333,
+          "peak_depth_inst_cross": 0.0,
+          "peak_depth_delta_share": 0.0,
+          "mean_delta_sharing": -0.3942194978797113,
+          "mean_delta_sharing_matched": -0.3942194978797113,
+          "mean_delta_sharing_format": -0.2785331318577283
+        }
+      },
+      "primary_matched_plain": {
+        "com_distortion_reader": 0.4756200623009026,
+        "com_distortion_self": 0.510779989298497,
+        "peak_depth_base_cross": 0.7333333333333333,
+        "peak_depth_inst_cross": 0.8,
+        "peak_depth_delta_share": 0.0,
+        "mean_delta_sharing": -0.3924411318430682
+      },
+      "secondary_native_chat": {
+        "com_distortion_reader": 0.530907744038544,
+        "com_distortion_self": 0.5201422174532276,
+        "peak_depth_base_cross": 0.7333333333333333,
+        "peak_depth_inst_cross": 0.6666666666666666,
+        "peak_depth_delta_share": 0.06666666666666667,
+        "mean_delta_sharing": -1.279517094248459
+      },
+      "format_effect": {
+        "mean_delta_sharing_format": -0.8870759624053909
+      },
+      "com_distortion_reader": 0.4756200623009026,
+      "com_distortion_self": 0.510779989298497,
+      "peak_depth_base_cross": 0.7333333333333333,
+      "peak_depth_inst_cross": 0.8,
+      "peak_depth_delta_share": 0.0,
+      "mean_delta_sharing": -0.3924411318430682,
+      "mean_delta_sharing_matched": -0.3924411318430682,
+      "mean_delta_sharing_format": -0.8870759624053909
+    }
+  },
+  "by_axis": {
+    "valence": {
+      "primary_matched_plain": {
+        "bootstrap_ci_95": {
+          "com_distortion_reader": {
+            "mean": 0.5003079505231698,
+            "ci_lower": 0.4385777989499953,
+            "ci_upper": 0.5591180815886639
+          },
+          "com_distortion_self": {
+            "mean": 0.537141717368236,
+            "ci_lower": 0.5001871931861298,
+            "ci_upper": 0.5740962415503421
+          },
+          "peak_depth_base_cross": {
+            "mean": 0.5274074074074074,
+            "ci_lower": 0.22666666666666663,
+            "ci_upper": 0.7074074074074074
+          },
+          "peak_depth_inst_cross": {
+            "mean": 0.5062962962962962,
+            "ci_lower": 0.19666666666666666,
+            "ci_upper": 0.7333333333333334
+          },
+          "mean_delta_sharing": {
+            "mean": -0.5544960168627522,
+            "ci_lower": -1.3267006730514126,
+            "ci_upper": -0.07189360383294731
+          }
+        },
+        "paired_peak_depth_comparison": {
+          "mean_diff": -0.0211111111111111,
+          "median_diff": -0.02,
+          "diffs": [
+            -0.11111111111111116,
+            0.0,
+            -0.04,
+            0.06666666666666676
+          ],
+          "p_value": 0.75,
+          "all_positive": false,
+          "all_negative": false
+        }
+      },
+      "secondary_native_chat": {
+        "bootstrap_ci_95": {
+          "com_distortion_reader": {
+            "mean": 0.4989789822041477,
+            "ci_lower": 0.4230258468723417,
+            "ci_upper": 0.5432484318293578
+          },
+          "com_distortion_self": {
+            "mean": 0.527228721383748,
+            "ci_lower": 0.4923104254528212,
+            "ci_upper": 0.5586477685015115
+          },
+          "peak_depth_inst_cross": {
+            "mean": 0.4740740740740741,
+            "ci_lower": 0.1574074074074074,
+            "ci_upper": 0.6574074074074073
+          },
+          "mean_delta_sharing": {
+            "mean": -0.9752511254133762,
+            "ci_lower": -2.1867620524775644,
+            "ci_upper": 0.1749153733335631
+          }
+        }
+      }
+    },
+    "arousal": {
+      "primary_matched_plain": {
+        "bootstrap_ci_95": {
+          "com_distortion_reader": {
+            "mean": 0.5003079505231698,
+            "ci_lower": 0.4385777989499953,
+            "ci_upper": 0.5591180815886639
+          },
+          "com_distortion_self": {
+            "mean": 0.537141717368236,
+            "ci_lower": 0.5001871931861298,
+            "ci_upper": 0.5740962415503421
+          },
+          "peak_depth_base_cross": {
+            "mean": 0.2851851851851852,
+            "ci_lower": 0.03333333333333333,
+            "ci_upper": 0.7185185185185186
+          },
+          "peak_depth_inst_cross": {
+            "mean": 0.11851851851851852,
+            "ci_lower": 0.0,
+            "ci_upper": 0.30000000000000004
+          },
+          "mean_delta_sharing": {
+            "mean": -0.29753132476403443,
+            "ci_lower": -0.6629946828828803,
+            "ci_upper": 0.04893309729879739
+          }
+        },
+        "paired_peak_depth_comparison": {
+          "mean_diff": -0.16666666666666666,
+          "median_diff": 0.0,
+          "diffs": [
+            0.0,
+            0.2666666666666667,
+            0.0,
+            -0.9333333333333333
+          ],
+          "p_value": 1.0,
+          "all_positive": false,
+          "all_negative": false
+        }
+      },
+      "secondary_native_chat": {
+        "bootstrap_ci_95": {
+          "com_distortion_reader": {
+            "mean": 0.4989789822041477,
+            "ci_lower": 0.4230258468723417,
+            "ci_upper": 0.5432484318293578
+          },
+          "com_distortion_self": {
+            "mean": 0.527228721383748,
+            "ci_lower": 0.4923104254528212,
+            "ci_upper": 0.5586477685015115
+          },
+          "peak_depth_inst_cross": {
+            "mean": 0.2518518518518519,
+            "ci_lower": 0.037037037037037035,
+            "ci_upper": 0.4666666666666667
+          },
+          "mean_delta_sharing": {
+            "mean": -1.849387522863411,
+            "ci_lower": -4.491881806848478,
+            "ci_upper": -0.44684906050277906
+          }
+        }
+      }
+    }
+  },
+  "primary_matched_plain": {
+    "bootstrap_ci_95": {
+      "com_distortion_reader": {
+        "mean": 0.5003079505231698,
+        "ci_lower": 0.4385777989499953,
+        "ci_upper": 0.5591180815886639
+      },
+      "com_distortion_self": {
+        "mean": 0.537141717368236,
+        "ci_lower": 0.5001871931861298,
+        "ci_upper": 0.5740962415503421
+      },
+      "peak_depth_base_cross": {
+        "mean": 0.5274074074074074,
+        "ci_lower": 0.22666666666666663,
+        "ci_upper": 0.7074074074074074
+      },
+      "peak_depth_inst_cross": {
+        "mean": 0.5062962962962962,
+        "ci_lower": 0.19666666666666666,
+        "ci_upper": 0.7333333333333334
+      },
+      "mean_delta_sharing": {
+        "mean": -0.5544960168627522,
+        "ci_lower": -1.3267006730514126,
+        "ci_upper": -0.07189360383294731
+      }
+    },
+    "paired_peak_depth_comparison": {
+      "mean_diff": -0.0211111111111111,
+      "median_diff": -0.02,
+      "diffs": [
+        -0.11111111111111116,
+        0.0,
+        -0.04,
+        0.06666666666666676
+      ],
+      "p_value": 0.75,
+      "all_positive": false,
+      "all_negative": false
+    }
+  },
+  "secondary_native_chat": {
+    "bootstrap_ci_95": {
+      "com_distortion_reader": {
+        "mean": 0.4989789822041477,
+        "ci_lower": 0.4230258468723417,
+        "ci_upper": 0.5432484318293578
+      },
+      "com_distortion_self": {
+        "mean": 0.527228721383748,
+        "ci_lower": 0.4923104254528212,
+        "ci_upper": 0.5586477685015115
+      },
+      "peak_depth_inst_cross": {
+        "mean": 0.4740740740740741,
+        "ci_lower": 0.1574074074074074,
+        "ci_upper": 0.6574074074074073
+      },
+      "mean_delta_sharing": {
+        "mean": -0.9752511254133762,
+        "ci_lower": -2.1867620524775644,
+        "ci_upper": 0.1749153733335631
+      }
+    }
+  },
+  "bootstrap_ci_95": {
+    "com_distortion_reader": {
+      "mean": 0.5003079505231698,
+      "ci_lower": 0.4385777989499953,
+      "ci_upper": 0.5591180815886639
+    },
+    "com_distortion_self": {
+      "mean": 0.537141717368236,
+      "ci_lower": 0.5001871931861298,
+      "ci_upper": 0.5740962415503421
+    },
+    "peak_depth_base_cross": {
+      "mean": 0.5274074074074074,
+      "ci_lower": 0.22666666666666663,
+      "ci_upper": 0.7074074074074074
+    },
+    "peak_depth_inst_cross": {
+      "mean": 0.5062962962962962,
+      "ci_lower": 0.19666666666666666,
+      "ci_upper": 0.7333333333333334
+    },
+    "mean_delta_sharing": {
+      "mean": -0.5544960168627522,
+      "ci_lower": -1.3267006730514126,
+      "ci_upper": -0.07189360383294731
+    }
+  },
+  "paired_peak_depth_comparison": {
+    "mean_diff": -0.0211111111111111,
+    "median_diff": -0.02,
+    "diffs": [
+      -0.11111111111111116,
+      0.0,
+      -0.04,
+      0.06666666666666676
+    ],
+    "p_value": 0.75,
+    "all_positive": false,
+    "all_negative": false
+  }
+}

@@ -29,19 +29,20 @@ V3 の正式実行面。設計・指標・解釈の本文は親の [`v3/README.m
 
 統合 CLI / `run_production_v3.sh` は次の順である。
 
-1. `run_rq1_state_induction.py` → `v3/results/derived/v3_gate_decision.json`
+1. `run_rq1_state_induction.py` → 本番は `v3/results/derived/v3_gate_decision.json`、`--dry-run` は `v3/results/derived/dry_run/v3_gate_decision.json`
 2. `decision == "GO"` のときだけ RQ2 → RQ3 → Confirmatory
 3. `NO_GO` / 軸片方の GO は終了コード 2
 4. `--force-after-no-go` のときだけ 2 を強制する
+5. `--force` は各 RQ のキャッシュ再計算であり、ゲート継続ではない
 
-単独で RQ2 を呼ぶとゲートは見ない。本番経路では見ないといけない。
+単独で RQ2 を呼ぶとゲートは見ない。本番経路では見ないといけない。設定正本は `configs/v3_experiments.yaml`（`min_sufficiency_slope: 0.1`、`n_causal_samples: 15`、`confirmatory` frozen ブロック、`normalize_length: true`）。
 
 ## スクリプト
 
 | ファイル | 問い | 実装上の固定点 |
 |---|---|---|
 | `run_rq1_state_induction.py` | 方向注入は特異的に自己報告を動かすか | pair Group split。Primary 方向は人間 reader またはモデル Reader Prediction。$d_V$ / $d_A$ 別 sweep。matched-neutral 必須。層は $d=0.5$ |
-| `run_rq2_spatiotemporal_maps.py` | $D,\beta,\gamma,C$ のピークはどこか | joint sequence patch。`n_map_samples` と `n_intervene_samples`（既定 15）を分離。`analysis_role: discovery`。符号付き $\beta$ と `abs_beta_*` |
+| `run_rq2_spatiotemporal_maps.py` | $D,\beta,\gamma,C$ のピークはどこか | joint sequence patch。YAML `response_start` を実行キー `candidate_start` に正規化。`n_map_samples` と `n_intervene_samples`（既定 15）を分離。`analysis_role: discovery`。符号付き $\beta$ と `abs_beta_*` |
 | `run_rq3_path_mediation.py` | 部分空間遮断で変位は減衰するか | Discovery / Confirmation 50:50。NDE/NIE とは呼ばない |
 | `run_confirmatory_replication.py` | 他 family でも同じか | Llama / Gemma 3 / OLMo 2。Sufficiency も V/A 別 sweep |
 

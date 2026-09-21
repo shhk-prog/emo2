@@ -83,3 +83,5 @@ Thumbs.db
 !**/results/derived/.gitkeep
 !**/results/cache/.gitkeep
 !**/results/logs/.gitkeep
+
+artifact/

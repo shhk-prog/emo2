@@ -1,0 +1,41 @@
+{
+  "execution_status": "success",
+  "execution_success": true,
+  "stage": "v1",
+  "experiment_id": "v1_e5_semantic_controls",
+  "completed_at": "2026-09-21T03:17:50.236447+00:00",
+  "metadata": {
+    "model_id": "Qwen/Qwen2.5-1.5B",
+    "model_prefix": "qwen_base",
+    "task_type": "reader",
+    "target_layer": 14,
+    "relative_depth": 0.5,
+    "num_pairs": 192,
+    "dry_run": false
+  },
+  "model_id": "Qwen/Qwen2.5-1.5B",
+  "model_prefix": "qwen_base",
+  "task_type": "reader",
+  "target_layer": 14,
+  "relative_depth": 0.5,
+  "num_pairs": 192,
+  "dry_run": false,
+  "results": {
+    "acc_original_minimal_pair": 0.890625,
+    "acc_pair_aware_held_out_paraphrase": 1.0,
+    "pair_aware_held_out_reversal_drop": 0.00013512372970581055,
+    "n_train_pairs": 134,
+    "n_test_pairs": 58,
+    "n_nonfallback_paraphrase_pairs": 8,
+    "n_nonfallback_reversal_pairs": 18,
+    "n_primary_test_paraphrase_pairs": 2,
+    "n_primary_test_reversal_pairs": 7,
+    "sensitivity_held_out_paraphrase": 0.9224137931034483,
+    "sensitivity_held_out_reversal_drop": 0.2992565631866455,
+    "acc_paraphrase_invariance_all": 1.0,
+    "acc_word_shuffle": 0.7682291666666666,
+    "mean_affective_prob_original": 0.9916707873344421,
+    "mean_affective_prob_outcome_reversed": 0.6787994503974915,
+    "outcome_reversal_prob_drop": 0.3128713369369507
+  }
+}

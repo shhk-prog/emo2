@@ -1,0 +1,85 @@
+{
+  "run_type": "v2_geometry",
+  "model_name": "Gemma 3",
+  "config": {
+    "v2_config": {
+      "experiment_name": "v2_2x2_cross_decoding",
+      "seed": 42,
+      "dataset": {
+        "path": "v1/data/processed/stimuli_vad_3way_test1k.csv",
+        "train_ratio": 0.7,
+        "text_column": "text",
+        "id_column": "id",
+        "external_labels": {
+          "valence": "reader_V",
+          "arousal": "reader_A"
+        }
+      },
+      "families": [
+        "Qwen",
+        "Llama",
+        "Gemma",
+        "OLMo"
+      ],
+      "formats": [
+        "native",
+        "matched_plain"
+      ],
+      "decoding": {
+        "ridge_alpha": 1.0,
+        "metrics": [
+          "r2",
+          "procrustes",
+          "rsa"
+        ]
+      },
+      "bootstrap": {
+        "n_boot": 1000,
+        "ci_level": 0.95
+      },
+      "sequence_likelihood": {
+        "normalize_length": true,
+        "temperature": 1.0
+      },
+      "rq4": {
+        "procrustes_pca_dim": 64
+      },
+      "output": {
+        "raw_dir": "v2/results/raw",
+        "derived_dir": "v2/results/derived"
+      }
+    },
+    "family_id": "gemma",
+    "base_model": "google/gemma-3-1b-pt",
+    "base_revision": "fcf18a2a879aab110ca39f8bffbccd5d49d8eb29",
+    "instruct_model": "google/gemma-3-1b-it",
+    "instruct_revision": "dcc83ea841ab6100d6b47a070329e1ba4cf78752",
+    "seed": 42,
+    "max_samples": null,
+    "dry_run": false,
+    "dtype": "bfloat16"
+  },
+  "metadata": {
+    "num_layers": 26,
+    "hidden_dim": 1152
+  },
+  "timestamp_utc": "2026-09-21T03:05:21.273858+00:00",
+  "git_commit": "6ce8318",
+  "run_id": "20260921T030521273825Z_6ce8318_eef7c479_bdfb30da",
+  "config_hash": "eef7c4792600eca3",
+  "dataset_hash": "110d14a871220379",
+  "model_revision": "main",
+  "tokenizer_revision": "main",
+  "prompt_version": "1.0.0",
+  "prompt_hash": "unknown",
+  "candidate_space": "N/A",
+  "measurement_space": "prompt_end_hidden_state",
+  "actual_dtype": "bfloat16",
+  "template_mode": "system_user",
+  "seed": 42,
+  "code_version": "2.3.0",
+  "intervention_version": "none",
+  "sequence_likelihood_normalization": "token_mean",
+  "temperature": 1.0,
+  "dry_run": false
+}

@@ -1,0 +1,16 @@
+==================================================================
+Starting Production Behavioral Evaluation
+Timestamp : 2026-09-21T02:50:21Z
+Device    : cuda:0
+Python    : /mnt/nas/home/hiromi/src/emo2/.venv/bin/python
+Python Ver: Python 3.12.3
+Pip Ver   : 
+Git SHA   : 6ce8318b3058ff12385dc5b26ebe8c85de2c4d1d
+uv.lock   : 5c6343d85ce02a529c05cb796a7a0cca6bfd1558fef8750d6c692e37258631d9
+==================================================================
+Extra Args: --force
+Log File  : results/logs/production_behavioral_20260921_115021.log
+Cohort    : primary_small (4 families, 8 models)
+Datasets  : EmoBank + AIPsy (actual counts logged by the Python runner)
+Runtime   : unmeasured (do not use pre-benchmark hour estimates)
+==================================================================

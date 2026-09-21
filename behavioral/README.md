@@ -18,8 +18,9 @@ Behavioral Stage は、内部表現や因果介入の前に、**モデル出力�
   - 語彙・統語複雑性統制文（Complex Neutral による特異性検証）
   - Benjamini-Hochberg FDR 多重比較補正（Family 単位: Sensitivity, Dose-Response, Specificity, Coupling）
 - **出力成果物**:
-  - `behavioral/results/emobank_3way_summary/`
-  - `behavioral/results/aipsy_4split_summary/` (`behavioral_aipsy_summary.csv`, `aipsy_coupling.csv`, `aipsy_sensitivity.csv`, `aipsy_dose_response.csv`, `aipsy_specificity.csv`)
+  - 生表: `behavioral/results/raw/emobank_3way/`, `behavioral/results/raw/aipsy_4split/`
+  - 集計: `behavioral/results/derived/emobank_3way_summary/`, `behavioral/results/derived/aipsy_4split_summary/`
+  - dry-run は各ディレクトリの `dry_run/` 配下に隔離する
 
 操作定義:
 - **Reader**: 平均的読者の VA を推定する認識課題
@@ -201,19 +202,21 @@ behavioral/
 
 仮想環境 `.venv` を有効化し、プロジェクトルートから実行する。所要時間は未計測。Qwen 1 family の benchmark 後に更新する。
 
-本番は stage 分割を推奨する。
+本番は stage 分割を推奨する。`run_production_behavioral.sh` は `.venv` を有効化し、第2引数以降を `EXTRA_ARGS` として統合 CLI へ転送する。
 
 ```bash
 bash scripts/run_production_behavioral.sh cuda:0
+bash scripts/run_production_behavioral.sh cuda:0 --force
 ```
 
-統合 CLI:
+統合 CLI は各モデルで EmoBank → AIPsy を走らせたあと、要約スクリプトを自動実行する。`--model-revision` は `configs/models.yaml` の pinned SHA を渡す。`--dtype` は registry の `inference_dtype`（現行 `bfloat16`）。
 
 ```bash
 python -m affective_empathy_eval.run --stage behavioral --model-set primary_small --device cuda:0
+python -m affective_empathy_eval.run --stage behavioral --model-set primary_small --family qwen --device cuda:0 --batch-size 81
 ```
 
-Dry-run（モデル重みを載せないスモークテスト）:
+Dry-run（モデル重みを載せないスモークテスト。成果物は `raw/*/dry_run/` と `derived/*/dry_run/`）:
 
 ```bash
 python -m affective_empathy_eval.run --stage behavioral --model-set primary_small --dry-run
@@ -221,13 +224,16 @@ python -m affective_empathy_eval.run --stage behavioral --model-set primary_smal
 
 ### 7.1 単独実行（1 モデル）
 
+本番単独実行では `--model-revision` が必須。未指定なら registry から解決し、解決できなければ落ちる。`--force` は既存 CSV があっても再計算する。`--batch-size` 既定は 81。AIPsy の `--limit` 既定は `0`（全件）。
+
 ```bash
 python behavioral/primary/run_behavioral_emobank.py \
     --model Qwen/Qwen2.5-1.5B-Instruct \
     --is_instruct \
     --tag qwen_instruct \
+    --dtype bfloat16 \
     --stimuli-path v1/data/processed/stimuli_vad_3way.csv \
-    --out-dir behavioral/results/emobank_3way \
+    --out-dir behavioral/results/raw/emobank_3way \
     --device cuda:0
 
 python behavioral/primary/run_behavioral_aipsy.py \
@@ -235,23 +241,27 @@ python behavioral/primary/run_behavioral_aipsy.py \
     --is-instruct \
     --tag qwen_instruct \
     --stimuli-path v1/data/processed/aipsy_4split_all.csv \
-    --out-dir behavioral/results/aipsy_4split \
+    --out-dir behavioral/results/raw/aipsy_4split \
     --device cuda:0
 ```
 
-`--model` と `--tag` は必須。`--limit` は動作確認用。本番では付けない。
+`--model` と `--tag` は必須。Instruct フラグは EmoBank が `--is_instruct`、AIPsy が `--is-instruct`（ハイフンの有無が違う）。`--limit` は動作確認用。本番では付けない。
 
 ### 7.2 集計
 
+統合 CLI / production bash は完了後に自動で呼ぶ。手動再集計する場合:
+
 ```bash
 python behavioral/analysis/summarize_behavioral_emobank.py \
-    --input-dir behavioral/results/emobank_3way \
-    --out-dir behavioral/results/emobank_3way_summary
+    --input-dir behavioral/results/raw/emobank_3way \
+    --out-dir behavioral/results/derived/emobank_3way_summary
 
 python behavioral/analysis/summarize_behavioral_aipsy.py \
-    --input-dir behavioral/results/aipsy_4split \
-    --out-dir behavioral/results/aipsy_4split_summary
+    --input-dir behavioral/results/raw/aipsy_4split \
+    --out-dir behavioral/results/derived/aipsy_4split_summary
 ```
+
+`--dry-run` を付けると `dry_run/` 配下だけを集計する。legacy パスへのフォールバックは `--allow-legacy-fallback` だけ。
 
 ---
 
@@ -259,17 +269,17 @@ python behavioral/analysis/summarize_behavioral_aipsy.py \
 
 | 出力 | 内容 |
 |---|---|
-| `{tag}_3way_vad.csv` | 刺激ごと、課題 $W/R/S$ の $E[V],E[A],E[D]$、greedy argmax、人間参照 |
+| `behavioral/results/raw/emobank_3way/{tag}_3way_vad.csv` | 刺激ごと、課題 $W/R/S$ の $E[V],E[A],E[D]$、greedy argmax、人間参照 |
 | `{tag}_3way_vad_summary.json` | 課題×次元の相関、$(5,5,5)$ 率、manifest |
-| `{tag}_aipsy_4split.csv` | `split` 付き。列例: `{w,r,s}_e{v,a,d}` |
-| `behavioral_*_summary.csv` | 4 軸のモデル横断表 |
+| `behavioral/results/raw/aipsy_4split/{tag}_aipsy_4split.csv` | `split` 付き。列例: `{w,r,s}_e{v,a,d}` |
+| `behavioral/results/derived/*_summary/` | 4 軸のモデル横断表 |
 
 - **Dry-run 成果物の完全隔離**: `--dry-run` 実行時の出力先は自動的に `.../dry_run` サブディレクトリへ隔離され、本番成果物ディレクトリを上書き・汚染しない設計。サマライザーも dry-run 実行時は `dry_run` ディレクトリのみを集計する。
 - **チェックポイント再開の厳密性**: 中断再開は、CSV に加えて `checkpoint_metadata.json` が存在し、モデル設定、シード、データセットハッシュ等の全メタデータが完全一致する場合にのみ許可される。メタデータ欠損または不一致のチェックポイントは安全のため破棄・退避される。
 
 `{tag}` は `qwen_instruct` のように family と variant を表す。生応答は CSV に埋め込みすぎず、manifest（`run_id`、model_id、commit、設定）を残す。失敗・パース不能は削除せず理由コードとともに保存する。
 
-本番 bash は `.venv` を有効化し、`results/logs/production_behavioral_TIMESTAMP.log` に tee する。統合 CLI の `--device` 既定は `cpu`。`--model` と `--tag` は単独実行で必須。`--limit` は確認用。
+本番 bash は `.venv` を有効化し、`results/logs/production_behavioral_TIMESTAMP.log` に tee する。統合 CLI の `--device` 既定は `cpu`。`--model` と `--tag` は単独実行で必須。`--model-revision` は本番必須（registry 解決可）。`--limit` は確認用。`--force` は既存 CSV を再計算する。
 
 ---
 

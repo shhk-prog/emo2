@@ -299,6 +299,38 @@ def compute_emd_recovery_ratio(
     )
 
 
+def canonicalize_prompt_candidate_boundary(
+    prompt: str,
+    candidate: str,
+) -> tuple[str, str]:
+    """
+    プロンプト末尾の trailing ASCII space を候補先頭へ移動し、
+    BPEマージによるプレフィックス検証失敗を防ぐ境界正規化を行う。
+
+    連結後の完全文字列は保存される
+    （scoring_prompt + scoring_candidate == prompt + candidate）。
+    build_prompt() の戻り値やモデルへの入力テキストは変更しない。
+
+    token-level continuation boundary は再定義される：
+    canonicalize 後は trailing whitespace を含む先頭トークン（例: ' {'）が
+    candidate 側の最初のトークンとして length normalization の対象に含まれる。
+    旧実装（マージによりクラッシュ）との数値的一致は保証しない。
+    本定義を全 Stage・全モデルで統一して用いる。
+
+    例:
+        prompt    = "...Response: "
+        candidate = '{"valence":1,"arousal":1}'
+        → scoring_prompt    = "...Response:"
+        → scoring_candidate = ' {"valence":1,"arousal":1}'
+    """
+    n = len(prompt) - len(prompt.rstrip(" "))
+    if n == 0:
+        return prompt, candidate
+    suffix = prompt[-n:]
+    assert prompt[:-n] + suffix + candidate == prompt + candidate
+    return prompt[:-n], suffix + candidate
+
+
 def prepare_joint_sequence_with_boundary(
     prompt: str,
     candidate: str,
@@ -447,9 +479,13 @@ def compute_sequence_likelihoods_for_candidates(
     cand_start_indices = []
 
     for c in cand_strings:
+        scoring_prompt, scoring_c = canonicalize_prompt_candidate_boundary(prompt, c)
+        assert scoring_prompt + scoring_c == prompt + c, (
+            "Boundary canonicalization violated text invariance"
+        )
         full_ids, c_start = prepare_joint_sequence_with_boundary(
-            prompt=prompt,
-            candidate=c,
+            prompt=scoring_prompt,
+            candidate=scoring_c,
             tokenizer=tokenizer,
             delimiter=delimiter,
             require_strict_prefix=True,

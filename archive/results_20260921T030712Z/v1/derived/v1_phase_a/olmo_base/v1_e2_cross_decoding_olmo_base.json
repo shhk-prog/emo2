@@ -1,0 +1,273 @@
+{
+  "execution_status": "success",
+  "execution_success": true,
+  "stage": "v1",
+  "experiment_id": "v1_e2_cross_decoding",
+  "completed_at": "2026-09-21T03:06:21.298495+00:00",
+  "metadata": {
+    "model_id": "allenai/OLMo-2-0425-1B",
+    "model_prefix": "olmo_base"
+  },
+  "model_id": "allenai/OLMo-2-0425-1B",
+  "model_prefix": "olmo_base",
+  "results": {
+    "cross_decoding": [
+      {
+        "layer": 0,
+        "relative_depth": 0.0,
+        "target": "Valence_human",
+        "direct_transfer_score": -5.495687468219824,
+        "direct_transfer_score_raw": -5.495687468219824,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 0,
+        "relative_depth": 0.0,
+        "target": "Arousal_human",
+        "direct_transfer_score": -3.646906650332973,
+        "direct_transfer_score_raw": -3.646906650332973,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 1,
+        "relative_depth": 0.06666666666666667,
+        "target": "Valence_human",
+        "direct_transfer_score": -1.9311463527485633,
+        "direct_transfer_score_raw": -1.9311463527485633,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 1,
+        "relative_depth": 0.06666666666666667,
+        "target": "Arousal_human",
+        "direct_transfer_score": -3.7223079138901447,
+        "direct_transfer_score_raw": -3.7223079138901447,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 2,
+        "relative_depth": 0.13333333333333333,
+        "target": "Valence_human",
+        "direct_transfer_score": -1.8689143794368004,
+        "direct_transfer_score_raw": -1.8689143794368004,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 2,
+        "relative_depth": 0.13333333333333333,
+        "target": "Arousal_human",
+        "direct_transfer_score": -4.0491752784159365,
+        "direct_transfer_score_raw": -4.0491752784159365,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 3,
+        "relative_depth": 0.2,
+        "target": "Valence_human",
+        "direct_transfer_score": -2.8151642892202746,
+        "direct_transfer_score_raw": -2.8151642892202746,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 3,
+        "relative_depth": 0.2,
+        "target": "Arousal_human",
+        "direct_transfer_score": -5.610558770214747,
+        "direct_transfer_score_raw": -5.610558770214747,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 4,
+        "relative_depth": 0.26666666666666666,
+        "target": "Valence_human",
+        "direct_transfer_score": -3.119541337662792,
+        "direct_transfer_score_raw": -3.119541337662792,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 4,
+        "relative_depth": 0.26666666666666666,
+        "target": "Arousal_human",
+        "direct_transfer_score": -4.443095230599335,
+        "direct_transfer_score_raw": -4.443095230599335,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 5,
+        "relative_depth": 0.3333333333333333,
+        "target": "Valence_human",
+        "direct_transfer_score": -3.9336842722492014,
+        "direct_transfer_score_raw": -3.9336842722492014,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 5,
+        "relative_depth": 0.3333333333333333,
+        "target": "Arousal_human",
+        "direct_transfer_score": -8.637446084975153,
+        "direct_transfer_score_raw": -8.637446084975153,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 6,
+        "relative_depth": 0.4,
+        "target": "Valence_human",
+        "direct_transfer_score": -6.415389455821556,
+        "direct_transfer_score_raw": -6.415389455821556,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 6,
+        "relative_depth": 0.4,
+        "target": "Arousal_human",
+        "direct_transfer_score": -11.691127008897416,
+        "direct_transfer_score_raw": -11.691127008897416,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 7,
+        "relative_depth": 0.4666666666666667,
+        "target": "Valence_human",
+        "direct_transfer_score": -4.770481073208286,
+        "direct_transfer_score_raw": -4.770481073208286,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 7,
+        "relative_depth": 0.4666666666666667,
+        "target": "Arousal_human",
+        "direct_transfer_score": -8.533139804204781,
+        "direct_transfer_score_raw": -8.533139804204781,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 8,
+        "relative_depth": 0.5333333333333333,
+        "target": "Valence_human",
+        "direct_transfer_score": -4.525774394042223,
+        "direct_transfer_score_raw": -4.525774394042223,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 8,
+        "relative_depth": 0.5333333333333333,
+        "target": "Arousal_human",
+        "direct_transfer_score": -10.157494029928825,
+        "direct_transfer_score_raw": -10.157494029928825,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 9,
+        "relative_depth": 0.6,
+        "target": "Valence_human",
+        "direct_transfer_score": -8.323910326074852,
+        "direct_transfer_score_raw": -8.323910326074852,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 9,
+        "relative_depth": 0.6,
+        "target": "Arousal_human",
+        "direct_transfer_score": -24.777701069710066,
+        "direct_transfer_score_raw": -24.777701069710066,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 10,
+        "relative_depth": 0.6666666666666666,
+        "target": "Valence_human",
+        "direct_transfer_score": -6.626868831161881,
+        "direct_transfer_score_raw": -6.626868831161881,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 10,
+        "relative_depth": 0.6666666666666666,
+        "target": "Arousal_human",
+        "direct_transfer_score": -12.181159684233545,
+        "direct_transfer_score_raw": -12.181159684233545,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 11,
+        "relative_depth": 0.7333333333333333,
+        "target": "Valence_human",
+        "direct_transfer_score": -4.878922083538349,
+        "direct_transfer_score_raw": -4.878922083538349,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 11,
+        "relative_depth": 0.7333333333333333,
+        "target": "Arousal_human",
+        "direct_transfer_score": -28.95129326128987,
+        "direct_transfer_score_raw": -28.95129326128987,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 12,
+        "relative_depth": 0.8,
+        "target": "Valence_human",
+        "direct_transfer_score": -7.290981452408715,
+        "direct_transfer_score_raw": -7.290981452408715,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 12,
+        "relative_depth": 0.8,
+        "target": "Arousal_human",
+        "direct_transfer_score": -16.81427321764345,
+        "direct_transfer_score_raw": -16.81427321764345,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 13,
+        "relative_depth": 0.8666666666666667,
+        "target": "Valence_human",
+        "direct_transfer_score": -3.895854181389796,
+        "direct_transfer_score_raw": -3.895854181389796,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 13,
+        "relative_depth": 0.8666666666666667,
+        "target": "Arousal_human",
+        "direct_transfer_score": -27.85517659016771,
+        "direct_transfer_score_raw": -27.85517659016771,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 14,
+        "relative_depth": 0.9333333333333333,
+        "target": "Valence_human",
+        "direct_transfer_score": -2.715008102508696,
+        "direct_transfer_score_raw": -2.715008102508696,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 14,
+        "relative_depth": 0.9333333333333333,
+        "target": "Arousal_human",
+        "direct_transfer_score": -11.468356295150848,
+        "direct_transfer_score_raw": -11.468356295150848,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 15,
+        "relative_depth": 1.0,
+        "target": "Valence_human",
+        "direct_transfer_score": -1.972834666512062,
+        "direct_transfer_score_raw": -1.972834666512062,
+        "direct_transfer_score_clipped": 0.0
+      },
+      {
+        "layer": 15,
+        "relative_depth": 1.0,
+        "target": "Arousal_human",
+        "direct_transfer_score": -7.779642339976875,
+        "direct_transfer_score_raw": -7.779642339976875,
+        "direct_transfer_score_clipped": 0.0
+      }
+    ]
+  }
+}

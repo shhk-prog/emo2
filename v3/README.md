@@ -29,7 +29,7 @@ Behavioral  →  V1  →  V2  →  V3
 - V2: Base ↔ Instruct の再編
 - V3: Instruct（主に target family）で、状態誘導 → 時空間 map → 部分空間遮断による減衰 → 他 family での確認
 
-Target family の既定は `configs/v3_experiments.yaml` の `target_family: qwen`（Instruct）。ID は `configs/models.yaml` から解決する。registry に無い family は Qwen 文字列へ落とさず `KeyError` にする。
+Target family の既定は `configs/v3_experiments.yaml` の `target_family: qwen`（Instruct）。ID・pinned revision・`inference_dtype: bfloat16` は `configs/models.yaml` から解決する。registry に無い family は Qwen 文字列へ落とさず `KeyError` にする。
 
 | 役割 | Family | スクリプト |
 |---|---|---|
@@ -56,8 +56,9 @@ v3/
 ├── docs/                    # 現行導線。legacy/ は旧ドラフト
 ├── scripts/legacy/
 └── results/
-    ├── raw/
-    └── derived/
+    ├── raw/                 # dry-run 時は raw/dry_run/
+    └── derived/             # 本番ゲート: derived/v3_gate_decision.json
+                             # dry-run ゲート: derived/dry_run/v3_gate_decision.json
 ```
 
 ---
@@ -88,12 +89,17 @@ v3/
 
 | 判定 | 内容 |
 |---|---|
-| Sufficiency / dose-response | 各軸の slope CI 下限が正（$d_V$ と $d_A$ を別 sweep） |
-| Specificity | matched 効果が $K=5$ 本の random / orthogonal controls の平均を上回る |
-| Necessity | 射影除去による attenuation の CI 下限が閾値超 |
-| Topic control | Topic 課題の TVD 上限が `max_topic_tvd` 未満 |
+| Sufficiency / dose-response | 各軸の slope CI 下限が `min_sufficiency_slope`（現行 `0.1`）超（$d_V$ と $d_A$ を別 sweep） |
+| Specificity | matched 効果が $K=5$ 本の random / orthogonal controls の平均を `min_specificity_diff`（現行 `0.05`）上回る |
+| Necessity | 射影除去による attenuation の CI 下限が `min_necessity_attenuation`（現行 `0.05`）超 |
+| Topic control | Topic 課題の TVD 上限が `max_topic_tvd`（現行 `0.15`）未満 |
 
-統合 CLI / `run_production_v3.sh` は RQ1 のあと `v3/results/derived/v3_gate_decision.json` を読む。`decision` が完全一致の `GO` のときだけ RQ2 以降へ進む。`NO_GO` および `GO (Valence-only)` / `GO (Arousal-only)` では停止する。継続は `--force-after-no-go` のみ。
+統合 CLI / `run_production_v3.sh` は RQ1 のあと gate を読む。
+
+- 本番: `v3/results/derived/v3_gate_decision.json`
+- `--dry-run`: `v3/results/derived/dry_run/v3_gate_decision.json`
+
+`decision` が完全一致の `GO` のときだけ RQ2 以降へ進む。`NO_GO` および `GO (Valence-only)` / `GO (Arousal-only)` では終了コード 2。継続は `--force-after-no-go` のみ。`--force` は各 RQ のキャッシュ再計算であり、ゲート継続とは別フラグである。
 
 ### 3.3 Topic control の位置づけ
 
@@ -120,15 +126,16 @@ Primary は **4-Map × 2軸（V, A）** を同じ格子で出す。旧称のま�
 
 出力キーは `D_V`, `D_A`, `beta_V`, `beta_A`, `beta_V_ci`, `beta_A_ci`, `abs_beta_V`, `abs_beta_A`, `gamma_V`, `gamma_A`, `C_V`, `C_A`。$D$ と $C$ だけを走らせる縮小版ではない。
 
-意味段階（Teacher-forced candidate sequence 上の計算段階）:
+意味段階（Teacher-forced candidate sequence 上の計算段階）。`configs/v3_experiments.yaml` の `semantic_stages` は次の 6 段である。
 
-1. `response_start`: 最初の候補 token を生成する直前（`cand_start - 1` = `prompt_end`）。自己回帰的因果関係に整合。
-2. `candidate_start`: 候補の最初の token そのもの（`cand_start`）。
-3. `pre_V`: Valence トークン生成直前
-4. `V_value`: Valence トークン処理後
-5. `pre_A`: Arousal トークン生成直前
-6. `A_value`: Arousal トークン処理後
-7. `response_end`: 最終候補 token 処理後（因果効果が原理上消失する **Negative control** として保持）
+1. `response_start`（YAML 名）
+2. `pre_V`: Valence トークン生成直前
+3. `V_value`: Valence トークン処理後
+4. `pre_A`: Arousal トークン生成直前
+5. `A_value`: Arousal トークン処理後
+6. `response_end`: 最終候補 token 処理後（因果効果が原理上消失する **Negative control** として保持）
+
+RQ2 / Confirmatory は実行キーを **`response_start` → `candidate_start` に正規化**してから patch する。`resolve_joint_stage_index` 自体は `response_start` を `cand_start - 1`（prompt_end）と解釈するが、正規化後の本番経路では第 1 段階は `candidate_start`（`cand_start + 0`、候補先頭 token）になる。YAML に `candidate_start` を別エントリとしては持たない。
 
 $C(l,t)$ と $\gamma(l,t)$ は実介入の $\alpha$ sweep から測る。プローブ係数で代用しない。生成段階の patch は joint sequence 上の token であり、`prompt_end` に丸めない。
 
@@ -190,6 +197,19 @@ Target（Qwen）で立てた 4 仮説を、Llama 3.2 / Gemma 3 / OLMo 2 の Inst
 
 確認側でも GroupKFold / pair split を保つ。Discovery の数字を確認に再利用しない。Sufficiency で片方の注入から両軸を同時に主張しない。
 
+凍結パラメータは YAML の `confirmatory` ブロック（`selection_source: qwen_discovery_frozen`）。Llama / Gemma / OLMo の結果を見て再選定しない。
+
+| キー | 現行値 |
+|---|---|
+| `n_intervention_samples_per_fold` | 5 |
+| `sufficiency_relative_depth` | 0.5 |
+| `temporal_relative_depth_v` / `_a` | 0.65 |
+| `temporal_stage_v` / `_a` | `pre_V` / `pre_A` |
+| `mediation_relative_depth` | 0.65 |
+| `qc.min_sufficiency_slope` | 0.1 |
+| `qc.min_mediated_attenuation_ci_lower` | 0.0 |
+| `qc.min_temporal_contrast` | 0.0 |
+
 ---
 
 ## 7. データと設定
@@ -200,13 +220,13 @@ Target（Qwen）で立てた 4 仮説を、Llama 3.2 / Gemma 3 / OLMo 2 の Inst
 | 除外 | EmoBank 3-way（`pair_id` なし）。AIPsy の `moderate` / `complex_neutral`（対が揃わない行） |
 | 禁止 | 人工中立文 `"This is a neutral and ordinary statement."`、固定 $5.0$ fallback |
 | 候補空間 | 81 VA。729 VAD の期待値と直接比較しない |
-| 実験設定 | `configs/v3_experiments.yaml` |
-| モデル | `configs/models.yaml`。target 既定 `qwen` Instruct |
+| 実験設定 | `configs/v3_experiments.yaml`。`sequence_likelihood.normalize_length: true`、`temperature: 1.0` |
+| モデル | `configs/models.yaml`。target 既定 `qwen` Instruct。pinned revision + `bfloat16` |
 | 層（RQ1） | `--layer` が無ければ $d=0.5$ から $l=\operatorname{round}(d(L-1))$ |
 | $\alpha$ grid（RQ1） | $-1.0,-0.5,0.0,0.5,1.0$ |
 | $\alpha$ sweep（RQ2） | $-2.0,-1.0,-0.5,0.0,0.5,1.0,2.0$ |
 | 因果介入件数（RQ2） | `spatiotemporal.n_causal_samples: 15`（マップ件数 `N` とは別） |
-| ゲート | specificity 差 $0.05$、necessity $0.05$、Topic TVD $0.15$、bootstrap $n=1000$ |
+| ゲート | `min_sufficiency_slope: 0.1`、specificity 差 $0.05$、necessity $0.05$、Topic TVD $0.15$、bootstrap $n=1000$ |
 | Confirmatory families | `llama`, `gemma`, `olmo` |
 
 ### 7.1 方向推定（RQ1）
@@ -221,14 +241,24 @@ Target（Qwen）で立てた 4 仮説を、Llama 3.2 / Gemma 3 / OLMo 2 の Inst
 ### 7.2 生成段階の位置（RQ2）
 
 1. `prepare_joint_sequence_with_boundary` で prompt + candidate を joint tokenize する
-2. candidate 内オフセットは `get_generation_stage_tokens`（`pre_V`, `V_value` など）
-3. 絶対位置は `resolve_joint_stage_index = cand_start + offset`
-4. `prompt_end` への `min` はしない。範囲外はエラー
-5. 尤度計算は `generation_patch` で同じ絶対位置に hook する
+2. YAML の `response_start` は実行キー `candidate_start` に正規化する
+3. candidate 内オフセットは `get_generation_stage_tokens`（`candidate_start=0`, `pre_V`, `V_value` など。`response_start` は offset 0 のエイリアス）
+4. 絶対位置は `resolve_joint_stage_index`:
+   - `response_start` → `cand_start - 1`（prompt_end）
+   - それ以外（正規化後の `candidate_start` を含む）→ `cand_start + offset`
+5. `prompt_end` への `min` はしない。範囲外はエラー
+6. 尤度計算は `generation_patch` で同じ絶対位置に hook する
+
+現行本番経路は 2 の正規化を先に行うため、第 1 段階の patch 位置は候補先頭 token である。
 
 ### 7.3 ゲートファイル
 
-`v3/results/derived/v3_gate_decision.json` の `decision` が完全一致の `GO` のときだけ `run.py` が RQ2 以降を呼ぶ。`NO_GO` / `GO (Valence-only)` / `GO (Arousal-only)` は終了コード 2。`--force-after-no-go` のみ継続。
+`run.py` が読むパス:
+
+- 本番: `v3/results/derived/v3_gate_decision.json`
+- dry-run: `v3/results/derived/dry_run/v3_gate_decision.json`
+
+`decision` が完全一致の `GO` のときだけ RQ2 以降を呼ぶ。`NO_GO` / `GO (Valence-only)` / `GO (Arousal-only)` は終了コード 2。`--force-after-no-go` のみ継続。`--force` はキャッシュ再計算であり、ゲート継続ではない。
 
 ---
 
@@ -238,15 +268,21 @@ Target（Qwen）で立てた 4 仮説を、Llama 3.2 / Gemma 3 / OLMo 2 の Inst
 
 ```bash
 bash scripts/run_production_v3.sh cuda:0
+# キャッシュ無視
+# bash scripts/run_production_v3.sh cuda:0 --force
 # RQ1 が GO でない場合に明示継続するときだけ
 # bash scripts/run_production_v3.sh cuda:0 --force-after-no-go
 ```
+
+`run_production_v3.sh` は第2引数以降を `EXTRA_ARGS` として統合 CLI へ転送する。
 
 統合 CLI:
 
 ```bash
 python -m affective_empathy_eval.run --stage v3 --model-set primary_small --device cuda:0
+# python -m affective_empathy_eval.run --stage v3 --model-set primary_small --force
 # python -m affective_empathy_eval.run --stage v3 --model-set primary_small --force-after-no-go
+python -m affective_empathy_eval.run --stage v3 --model-set primary_small --dry-run
 ```
 
 個別:
@@ -288,7 +324,8 @@ python v3/primary/run_rq1_state_induction.py --dry-run --family qwen
 | ファイル | 内容 |
 |---|---|
 | `v3/results/raw/v3_rq1_results.json` | 用量反応、specificity、attenuation、Topic TVD、ゲート |
-| `v3/results/derived/v3_gate_decision.json` | `GO` / `NO_GO` / 軸片方の GO。pipeline 継続は完全一致の `GO` のみ |
+| `v3/results/derived/v3_gate_decision.json` | 本番ゲート。`GO` / `NO_GO` / 軸片方の GO。pipeline 継続は完全一致の `GO` のみ |
+| `v3/results/derived/dry_run/v3_gate_decision.json` | `--dry-run` 時のゲート。本番ファイルを上書きしない |
 | `v3/results/raw/v3_spatiotemporal_maps_{family}.json` | $D,\beta,\gamma,C$ と `abs_beta_*`。`analysis_role=discovery` |
 | `v3/results/raw/v3_path_mediation_{family}.json` | Discovery 層、Confirmation の attenuation |
 | `v3/results/raw/v3_confirmatory_{family}.json` | 4 仮説の合否 |

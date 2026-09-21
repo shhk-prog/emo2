@@ -50,6 +50,7 @@ except ImportError:  # --dry-run は transformers 未導入環境でも起動で
     AutoTokenizer = None  # type: ignore[misc, assignment]
 
 from affective_empathy_eval.geometry import get_block_hidden_state
+from affective_empathy_eval.io import is_experiment_completed, save_experiment_result
 from affective_empathy_eval.manifests import create_run_manifest
 from affective_empathy_eval.models.registry import (
     add_model_selection_args,
@@ -717,7 +718,6 @@ def main():
         compute_string_or_dict_hash,
         compute_file_hash,
     )
-    from affective_empathy_eval.io import is_experiment_completed
 
     dataset_hash = (
         compute_string_or_dict_hash([compute_file_hash(Path(dp)) for dp in dataset_paths])
@@ -788,7 +788,6 @@ def main():
             }
             for l in range(dummy_layers)
         ]
-        from affective_empathy_eval.io import save_experiment_result
         pd.DataFrame(e1_records).to_csv(
             os.path.join(model_dir, "v1_e1_emobank_decodability.csv"), index=False
         )
@@ -1305,7 +1304,6 @@ def main():
             e1_payload["aipsy_secondary"] = e1_sec_records
 
     # Save aggregated E1 decodability JSON once at the end of Phase A
-    from affective_empathy_eval.io import save_experiment_result
     if e1_payload:
         save_experiment_result(
             os.path.join(model_dir, f"v1_e1_decodability_{args.model_prefix}.json"),

@@ -519,7 +519,162 @@ def test_prepare_joint_sequence_boundary_and_bpe_merge():
     with pytest.raises(ValueError, match="Strict prefix property violated"):
         prepare_joint_sequence_with_boundary(prompt_b, cand_b, tok, delimiter="", require_strict_prefix=True)
 
+# ─────────────────────────────────────────────────────────────────────
+# Boundary Canonicalization テスト
+# ─────────────────────────────────────────────────────────────────────
+
+def test_canonicalize_prompt_candidate_boundary_text_invariance():
+    """連結後の文字列が一文字も変わらないことを検証（モック不要・高速）"""
+    from affective_empathy_eval.likelihood import canonicalize_prompt_candidate_boundary
+
+    cases = [
+        ("Response: ",  '{"valence":1,"arousal":1}'),
+        ("Response:  ", '{"valence":1,"arousal":1}'),   # 複数スペース
+        ("Response:\n", '{"valence":1,"arousal":1}'),   # 末尾が改行: 変化なし
+        ("Response:",   '{"valence":1,"arousal":1}'),   # スペースなし: 変化なし
+    ]
+    for prompt, candidate in cases:
+        p2, c2 = canonicalize_prompt_candidate_boundary(prompt, candidate)
+        assert p2 + c2 == prompt + candidate, (
+            f"Text invariant violated: {repr(prompt + candidate)} != {repr(p2 + c2)}"
+        )
+
+    # スペースだけが移動されることを確認
+    p2, c2 = canonicalize_prompt_candidate_boundary(
+        "Response: ", '{"valence":1,"arousal":1}'
+    )
+    assert p2 == "Response:"
+    assert c2 == ' {"valence":1,"arousal":1}'
 
 
+def test_canonicalize_no_op_when_no_trailing_space():
+    """末尾スペースがない場合は prompt/candidate ともに変化しないことを検証"""
+    from affective_empathy_eval.likelihood import canonicalize_prompt_candidate_boundary
 
+    p2, c2 = canonicalize_prompt_candidate_boundary("Response:", '{"valence":5,"arousal":5}')
+    assert p2 == "Response:"
+    assert c2 == '{"valence":5,"arousal":5}'
+
+    # 改行は strip しない（ASCII space のみ対象）
+    p3, c3 = canonicalize_prompt_candidate_boundary("Response:\n", '{"valence":5,"arousal":5}')
+    assert p3 == "Response:\n"
+    assert c3 == '{"valence":5,"arousal":5}'
+
+
+def test_canonicalize_enables_strict_prefix_with_bpe_merge():
+    """
+    ' {' がマージされる Qwen-style tokenizer モックで、
+    canonicalize なし → ValueError、canonicalize 後 → strict prefix 成立、を検証。
+    """
+    from affective_empathy_eval.likelihood import (
+        canonicalize_prompt_candidate_boundary,
+        prepare_joint_sequence_with_boundary,
+    )
+
+    class QwenStyleTokenizer:
+        """' {' を単一マージトークン(5212)にする BPE 挙動を模擬"""
+        pad_token_id = 0
+        eos_token_id = 1
+        _MERGES = {" {": 5212}
+
+        def encode(self, text: str, add_special_tokens: bool = False) -> list[int]:
+            tokens = []
+            i = 0
+            while i < len(text):
+                if i + 2 <= len(text) and text[i : i + 2] in self._MERGES:
+                    tokens.append(self._MERGES[text[i : i + 2]])
+                    i += 2
+                else:
+                    tokens.append(ord(text[i]))
+                    i += 1
+            return tokens
+
+    tok = QwenStyleTokenizer()
+    prompt = "Response: "
+    candidate = '{"valence":1,"arousal":1}'
+
+    # canonicalize なし → strict prefix 違反
+    with pytest.raises(ValueError, match="Strict prefix property violated"):
+        prepare_joint_sequence_with_boundary(
+            prompt=prompt, candidate=candidate, tokenizer=tok, require_strict_prefix=True
+        )
+
+    # canonicalize 後 → strict prefix 成立、かつ連結文字列不変
+    p2, c2 = canonicalize_prompt_candidate_boundary(prompt, candidate)
+    assert p2 + c2 == prompt + candidate
+    full_ids, c_start = prepare_joint_sequence_with_boundary(
+        prompt=p2, candidate=c2, tokenizer=tok, require_strict_prefix=True
+    )
+    prompt_ids = tok.encode(p2)
+    assert full_ids[: len(prompt_ids)] == prompt_ids
+    assert c_start == len(prompt_ids)
+
+
+@pytest.mark.slow
+def test_canonicalize_all_candidates_strict_prefix_real_tokenizer():
+    """
+    Qwen2.5-1.5B 実 tokenizer を使い、81 VA + 729 VAD = 810 候補すべてで
+    canonicalize 後に require_strict_prefix=True が通ることを検証する。
+
+    - strict prefix failure = 0
+    - 全候補で連結文字列完全一致
+    - モデルウェイト不要（tokenizer のみ）
+
+    AGENTS.md §8.2: 実 API を使う統合テストは明示的なフラグを指定した場合のみ実行。
+    実行方法: python -m pytest tests/test_likelihood.py -q -m slow
+    """
+    pytest.importorskip("transformers")
+    from transformers import AutoTokenizer
+
+    from affective_empathy_eval.likelihood import (
+        build_va_candidates,
+        build_vad_candidates,
+        canonicalize_prompt_candidate_boundary,
+        prepare_joint_sequence_with_boundary,
+    )
+
+    model_id = "Qwen/Qwen2.5-1.5B"
+    try:
+        tok = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
+    except Exception as e:
+        pytest.skip(f"Tokenizer not available: {e}")
+
+    # build_prompt(plain) の実際の末尾を再現
+    prompt = (
+        "Text: Hello world.\n\n"
+        "Rate the emotional state of the reader when reading the following text "
+        "on a scale of 1 to 9 for Valence (1=extremely negative, 9=extremely positive) "
+        "and Arousal (1=extremely calm, 9=extremely excited).\n"
+        "Respond strictly in JSON format:\n"
+        '{\"valence\": <int 1-9>, \"arousal\": <int 1-9>}'
+        "\n\nResponse: "
+    )
+
+    all_candidates = (
+        [c["json_str"] for c in build_va_candidates()]
+        + [c["json_str"] for c in build_vad_candidates()]
+    )
+    assert len(all_candidates) == 81 + 729
+
+    failures = []
+    for candidate in all_candidates:
+        p2, c2 = canonicalize_prompt_candidate_boundary(prompt, candidate)
+        # 連結文字列不変
+        assert p2 + c2 == prompt + candidate, (
+            f"Text invariance violated for candidate: {candidate[:40]}"
+        )
+        try:
+            prepare_joint_sequence_with_boundary(
+                prompt=p2,
+                candidate=c2,
+                tokenizer=tok,
+                require_strict_prefix=True,
+            )
+        except ValueError as e:
+            failures.append(f"{candidate[:40]}: {e}")
+
+    assert failures == [], (
+        f"strict prefix failed for {len(failures)}/810 candidates:\n"
+        + "\n".join(failures[:5])
+    )
 

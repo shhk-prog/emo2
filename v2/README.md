@@ -131,8 +131,11 @@ $$
 - Bootstrap 95% CI（既定 $n=1000$）
 - 対比較は family 内 Base vs Instruct（paired）
 - 確証的統合: `v2/primary/run_confirmatory_analysis.py`（LMM, FDR）。Primary 4 family と Mistral 7B を同じ主表に混ぜない
+- 統合 CLI / `run_production_v2.sh` は RQ4 のあと、`--family` / `--base-model` / `--instruct-model` が無いときだけ confirmatory を自動実行する。1 family 実行では LMM を呼ばない
+- `--force` は RQ1〜RQ4 と confirmatory のキャッシュを無視する
 - データ既定: `v1/data/processed/stimuli_vad_3way_test1k.csv`。件数はロード時にログする。固定の「1,000 件」は書かない。V3 の AIPsy matched-neutral とは別データである
-- Sequence-Likelihood は 81 VA。Behavioral / V1 の 729 VAD 期待値と直接比較しない
+- Sequence-Likelihood は 81 VA。Behavioral / V1 の 729 VAD 期待値と直接比較しない。`configs/v2_experiments.yaml` の `sequence_likelihood.normalize_length: true`、`temperature: 1.0`
+- モデル revision は `configs/models.yaml` の pinned SHA。`inference_dtype: bfloat16`
 - `--dry-run` は固定 fixture の VA ラベルを使う。乱数でラベルを作らない
 
 ---
@@ -163,13 +166,19 @@ v2/
 
 ```bash
 bash scripts/run_production_v2.sh cuda:0
+bash scripts/run_production_v2.sh cuda:0 --force
 ```
+
+`run_production_v2.sh` は第2引数以降を `EXTRA_ARGS` として統合 CLI へ転送する。family フィルタが無いので confirmatory も自動実行される。
 
 統合 CLI:
 
 ```bash
 python -m affective_empathy_eval.run --stage v2 --model-set primary_small --device cuda:0
+python -m affective_empathy_eval.run --stage v2 --model-set primary_small --family qwen --device cuda:0
 ```
+
+1 family 実行では confirmatory は走らない。横断 LMM が必要なら `run_confirmatory_analysis.py` を別途呼ぶ。
 
 Scale validation（Mistral 7B、Primary と分離）:
 
@@ -214,7 +223,7 @@ python v2/primary/run_rq1_rq2_cross_decoding.py --dry-run --family qwen
 | `v2/results/raw/v2_causal_map_{family}.json` | RQ3 の $D(l)$, $C(l)$, ピーク相対深度 |
 | `v2/results/raw/v2_recovery_{family}.json` | RQ4 の $W_1$ と recovery |
 | `v2/results/derived/v2_cross_family_summary.json` | 対比較と CI |
-| `v2/results/derived/v2_lmm_confirmatory.json` | 確証的 LMM（実行した場合） |
+| `v2/results/derived/v2_lmm_confirmatory.json` | 確証的 LMM。family 未指定の統合 CLI / production bash では RQ4 後に自動生成 |
 
 ---
 

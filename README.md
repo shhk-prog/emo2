@@ -43,11 +43,11 @@ Covariation  →  Representation & Overlap  →  Reorganization  →  Causal Lev
 | **V3** | **Causal Leverage** (因果的利用可能性と必然性) | §7. From Representation to Causal Utilization | *Where and when does affect-relevant information exert measurable causal leverage over self-report?* | Instruct 側の層 × 生成段階（十分性・特異性・内生関連性の局在） |
 
 - **Behavioral** (`behavioral/`): EmoBank 3-Way と AIPsy 4-Split。4軸は correspondence, Sensitivity, Dose-response / Specificity, Reader–Self coupling（刺激変化に対する $\Delta$ カップリング $\text{corr}(\Delta_R, \Delta_S)$ を Primary 化）。`--dry-run` 時の出力完全隔離とチェックポイント再開時のメタデータ完全照合を実装。[`behavioral/README.md`](behavioral/README.md)
-- **V1** (`v1/`): decodability / 幾何（E1/E2）、意味統制感度（Phase B）、因果マップと交換可能性（E3/E4）、課題特異化（E6）。同一モデル内での部分的重複（partially overlapping causally relevant representations and intervention-sensitive sites）を検証。$\Delta h$ は感情操作関連変位として定義。E4 は $K=20$ 回の固定シード derangements による random donor distribution と比較。E6 は task-specific causal site sensitivity として位置づけ。`checkpoint_manifest.json` による厳格再開、left/right padding 双対応、silent truncation 検出を完備。[`v1/README.md`](v1/README.md)
-- **V2** (`v2/`): 幾何再編、ピーク解離、2D OT 分布回復（RQ1〜RQ4。直交 Procrustes アラインメント統制）。各モデル内部の活性化操作（RQ3/RQ4）は**モデル内因果介入（within-model causal characterization）**として同定し、Base と Instruct のモデル間比較は**事後学習に伴う再編（post-training-associated reorganization）**として観察的に帰属。RQ3 に同 norm ランダム・直交方向統制（Net Causal Effect）を導入。RQ4 では matched-plain raw（direct interchangeability）と Procrustes aligned（coordinate-remapping-adjusted recovery）を対比し、coordinate remappingと整合するかを検証するmechanistic controlとして評価。[`v2/README.md`](v2/README.md)
+- **V1** (`v1/`): decodability / 幾何（E1/E2）、意味統制感度（Phase B は `--task-type reader` と `self` を別実行）、因果マップと交換可能性（E3/E4）、課題特異化（E6）。同一モデル内での部分的重複（partially overlapping causally relevant representations and intervention-sensitive sites）を検証。$\Delta h$ は感情操作関連変位として定義。E4 は $K=20$ 回の固定シード derangements による random donor distribution と比較。E6 は task-specific causal site sensitivity として位置づけ。本番 bash は `--all-layers` 固定。`checkpoint_manifest.json` による厳格再開、left/right padding 双対応、silent truncation 検出を完備。[`v1/README.md`](v1/README.md)
+- **V2** (`v2/`): 幾何再編、ピーク解離、2D OT 分布回復（RQ1〜RQ4。直交 Procrustes アラインメント統制）。各モデル内部の活性化操作（RQ3/RQ4）は**モデル内因果介入（within-model causal characterization）**として同定し、Base と Instruct のモデル間比較は**事後学習に伴う再編（post-training-associated reorganization）**として観察的に帰属。RQ3 に同 norm ランダム・直交方向統制（Net Causal Effect）を導入。RQ4 では matched-plain raw（direct interchangeability）と Procrustes aligned（coordinate-remapping-adjusted recovery）を対比し、coordinate remappingと整合するかを検証するmechanistic controlとして評価。family 未指定の統合 CLI は confirmatory LMM を自動実行する。[`v2/README.md`](v2/README.md)
 - **V3** (`v3/`): AIPsy matched-neutral 192 pair での状態誘導ゲート、時空間 4-Map、mediated attenuation、確証的再現。
   - **Direction Injection**: 中立文への方向加算注入（$h + \alpha \sigma_h \hat{d}$）による十分性と因果的影響力（*sufficiency / causal leverage*）。RQ1 では $K=5$ 本のランダム・直交方向統制との差分を評価。
-  - **Spatiotemporal 4-Maps**: $\beta(l,t)$ の回帰目的変数を Self-report ($y_{\text{self}}$) に修正（Reader 内部予測スコア $\rightarrow$ Self-report $\mid$ 刺激共変量）。生成段階は `response_start = prompt_end`（`cand_start - 1`）に整合、`response_end` は negative control として配置。$\gamma$ スロープは 1 SD 正規化用量あたりの変化率として定義。
+  - **Spatiotemporal 4-Maps**: $\beta(l,t)$ の回帰目的変数を Self-report ($y_{\text{self}}$) に修正（Reader 内部予測スコア $\rightarrow$ Self-report $\mid$ 刺激共変量）。YAML の `response_start` は実行キー `candidate_start` に正規化する。`resolve_joint_stage_index("response_start")` は `cand_start - 1` だが、正規化後の本番経路の第 1 段階は候補先頭 token。`response_end` は negative control。$\gamma$ スロープは 1 SD 正規化用量あたりの変化率として定義。
   - **Subspace Removal**: 情動文に対する中心化2D直交部分空間除去による内生的な関連性（*endogenous relevance*）。RQ3 では matched-rank random 2D subspace removal コントロール ($Q_{\text{rand}}$) と比較し、任意の 2 次元破壊による非特異的変位減少と情動特異的減衰を分離。
   - **Confirmatory Replication**: H1〜H4 の全仮説判定基準を **CI lower bound > preregistered threshold** に統一。架空値フォールバックを完全排除。[`v3/README.md`](v3/README.md)
 
@@ -122,17 +122,28 @@ Stimulus
 - V2 / V3: $9^2=81$ VA。JSON は `{"valence": int, "arousal": int}`
 - Valence / Arousal が主対象。Dominance は Behavioral / V1 の補助次元
 - 両空間の $E[V], E[A]$ を同一尺度として比較しない
+- スコアリング正本は各 YAML の `sequence_likelihood`。現行は **`normalize_length: true`（token mean）かつ `temperature: 1.0`**。`validate_sequence_likelihood_protocol` がこれを固定測定プロトコルとして検証する
 
 ### 4.3 層と介入位置
 
 - 相対深度 $d = l/(L-1)$（0-based）。論文・横断表は層番号ではなく $d$ で比較する
 - V1 / V2 の標準介入位置は prompt-end（`add_special_tokens=False`、`prompt_end = len(prompt_ids)-1`）
-- V3 RQ2 の生成段階は joint sequence 上の token。`prompt_end` に丸めない
+- V3 の生成段階は joint sequence 上の絶対 token。`prompt_end` へ `min` で丸めない。範囲外はエラー
+- `resolve_joint_stage_index` の規則:
+  - `response_start` → `cand_start - 1`（= prompt_end）
+  - それ以外 → `cand_start + offset`（`get_generation_stage_tokens` の候補内オフセット）
+- YAML の `semantic_stages` 先頭は `response_start`。RQ2 / Confirmatory は実行キーを **`response_start` → `candidate_start` に正規化**してから patch するため、現行本番経路の第 1 段階は候補先頭 token（`cand_start + 0`）である
 - Phase B / V3 RQ1 の既定層は $d=0.5$ から $l=\operatorname{round}(d(L-1))$。Qwen 14 層固定ではない
 
 ### 4.4 モデル正本
 
-ID の正本は [`configs/models.yaml`](configs/models.yaml) のみ。コードへ model ID をハードコードしない。未知 family は Qwen へ落とさず `KeyError` にする。`--model-id` / `--family` が必要な単独スクリプトで Qwen default は使わない。
+正本は [`configs/models.yaml`](configs/models.yaml) のみ。コードへ model ID をハードコードしない。未知 family は Qwen へ落とさず `KeyError` にする。`--model-id` / `--family` が必要な単独スクリプトで Qwen default は使わない。
+
+現行レジストリが持つ運用固定値:
+
+- **pinned revision SHA**: 各 variant の `base_revision` / `instruct_revision`。本番単独実行は `--model-revision` 未指定なら registry から解決し、解決できなければ `ValueError`
+- **`inference_dtype: bfloat16`**: セット単位および family 単位。Behavioral 統合 CLI は `--dtype` にこれを渡す
+- Hugging Face ID と revision を切り離して記録する。`main` 追従は本番禁止
 
 ### 4.5 データ
 
@@ -151,7 +162,26 @@ V3 は AIPsy の clinical–neutral 192 pair だけを wide 化する。EmoBank 
 
 `**/results/raw/**` と `**/results/derived/**` は追記専用で Git 管理しない（`.gitkeep` のみ残す）。再実行は別 `run_id`。失敗・拒否・パース不能は削除せず理由とともに残す。
 
-### 4.7 共通プロトコル対応表 (Cross-Stage Methodological Matrix)
+### 4.7 統合 CLI のフラグ（`src/affective_empathy_eval/run.py`）
+
+`python -m affective_empathy_eval.run` が受け付ける引数。サブスクリプトへそのまま転送されるものと、特定 Stage だけが読むものがある。
+
+| フラグ | 既定 | 効く Stage | 意味 |
+|---|---|---|---|
+| `--stage` | 必須 | 全体 | `behavioral`, `v1`, `v2`, `v3`, `scale_validation`, `all` |
+| `--model-set` | `primary_small` | 全体 | `configs/models.yaml` のセット名 |
+| `--family` / `--base-model` / `--instruct-model` | なし | 全体 | 1 family / 1 対に絞る。未指定ならセット全件 |
+| `--device` | `cpu` | 全体 | 本番 GPU では `cuda:0` |
+| `--dry-run` | off | 全体 | 重みを載せない。成果物は各 Stage の `dry_run/` へ隔離 |
+| `--max-samples` | なし | 全体 | Behavioral/V1 は `--limit`、V2 は `--max-samples`、V3 RQ2 以降は `--subsample` に変換 |
+| `--force` | off | Behavioral / V1 / V2 / V3 | 有効キャッシュがあっても再計算 |
+| `--all-layers` | off | V1 Phase C のみ | 全層因果パッチ。`run_production_v1.sh` は常に付与する |
+| `--batch-size` | サブスクリプト既定 | Behavioral | 候補尤度のバッチ。未指定時は 81 |
+| `--force-after-no-go` | off | V3 | RQ1 が完全一致 `GO` でないときだけ後続を明示継続 |
+
+サブプロセス起動時、`run.py` はリポジトリ `src/` を `PYTHONPATH` 先頭に注入する。
+
+### 4.8 共通プロトコル対応表 (Cross-Stage Methodological Matrix)
 
 論文の Methods 章で定義される、各ステージにおける統一的な実験仕様の対応表です：
 
@@ -159,7 +189,7 @@ V3 は AIPsy の clinical–neutral 192 pair だけを wide 化する。EmoBank 
 |---|---|---|---|---|
 | **Candidate Space** | $9^3 = 729$ VAD | $9^3 = 729$ VAD | $9^2 = 81$ VA | $9^2 = 81$ VA |
 | **Prompt Format** | Plain (Base) / Chat (Instruct) | Plain (Base) / Chat (Instruct) | Plain (Base) / Chat & Matched-Plain (Instruct) | Chat (Instruct primary) |
-| **Token Position** | Sequence-end (log-likelihood) | `valid_pos[-1]` (`prompt_end`) | `prompt_end` (D/C anchor 統一) | Spatiotemporal Grid (`prompt_end` + joint stage tokens) |
+| **Token Position** | Sequence-end (log-likelihood) | `valid_pos[-1]` (`prompt_end`) | `prompt_end` (D/C anchor 統一) | Joint-sequence grid。YAML `response_start` は実行時 `candidate_start` に正規化 |
 | **Layer Coordinate** | N/A (Black-box behavioral) | Relative depth $d = l / (L-1)$ | Relative depth $d = l / (L-1)$ | Relative depth $d = l / (L-1)$ |
 | **Split Unit** | Pair-aware (`pair_id`) / Unpaired (EmoBank) | Stratified Group Split (`pair_id` 漏洩防止) | Stratified Group Split (`pair_id` 漏洩防止) | Matched-pair (192 clinical-neutral pairs) |
 | **Primary Metric** | $E[V], E[A]$, Cohen's $d_z$, Spearman $\rho$, $r_{RS}$ | $R^2$, Balanced Acc, RSA, Causal Shift $\Delta V, \Delta A$, Specificity (vs 20-derangements) | Cross-decoding $\Delta\Delta_{\text{cross}}$, $\Delta d_{\text{peak}}$, Net Causal $C - C_{\text{rand}}$, 2D OT EMD Recovery (Raw vs Aligned) | Interventional slope $\gamma$, Net Subspace Attenuation (vs random 2D), Spatiotemporal $\beta$, Causal Leverage $C$ |
@@ -211,10 +241,22 @@ uv pip install -e ".[dev]"
 | device 既定 | `cuda:0`（第1引数） | `cpu` |
 | ログ | `results/logs/production_<stage>_TIMESTAMP.log` に tee | 標準出力のみ |
 | モデル集合 | `primary_small` 固定 | `--model-set` で切替 |
-| `--family` / `--max-samples` | 基本なし | あり |
-| V3 ゲート継続 | 第2/第3引数に `--force-after-no-go` | `--force-after-no-go` |
+| 追加フラグ | 第2引数以降を `EXTRA_ARGS` として CLI へ転送 | 上表のフラグを直接指定 |
+| V1 全層 | **常に `--all-layers` を付与** | 明示したときだけ |
+| `--family` / `--max-samples` | `EXTRA_ARGS` 経由 | あり |
+| V3 ゲート継続 | `EXTRA_ARGS` に `--force-after-no-go` | `--force-after-no-go` |
 
 本番 GPU では bash script を使う。確認や 1 family だけなら統合 CLI。
+
+各 production script が CLI に渡すもの:
+
+| Script | 固定で付くもの | 転送 |
+|---|---|---|
+| `run_production_behavioral.sh` | `--stage behavioral --model-set primary_small` | `EXTRA_ARGS`（`--force`, `--batch-size` 等） |
+| `run_production_v1.sh` | `--stage v1 --model-set primary_small --all-layers` | `EXTRA_ARGS` |
+| `run_production_v2.sh` | `--stage v2 --model-set primary_small` | `EXTRA_ARGS` |
+| `run_production_v3.sh` | `--stage v3 --model-set primary_small` | `EXTRA_ARGS`（`--force-after-no-go` 等） |
+| `run_production_all.sh` | 上記 4 本を順に呼ぶ | 同じ `EXTRA_ARGS` を全 Stage へ転送 |
 
 ### 7.2 本番（4 family）
 
@@ -226,19 +268,30 @@ bash scripts/run_production_v2.sh cuda:0
 bash scripts/run_production_v3.sh cuda:0
 ```
 
+キャッシュを無視して再計算する例:
+
+```bash
+bash scripts/run_production_v1.sh cuda:0 --force
+```
+
 V3 の RQ1 が完全一致の `GO` でないと RQ2 以降は走らない。明示継続だけ:
 
 ```bash
 bash scripts/run_production_v3.sh cuda:0 --force-after-no-go
 ```
 
-### 7.3 統合 CLI
+### 7.3 統合 CLI が実際に呼ぶ後処理
 
-`--stage all` も Behavioral → V1 → V2 → V3 の順（`PRODUCTION_STAGE_ORDER`）。
+`--stage all` も Behavioral → V1 → V2 → V3 の順（`PRODUCTION_STAGE_ORDER`）。各 Stage の中身は次のとおり。
+
+- **Behavioral**: 各 family × Base/Instruct で EmoBank → AIPsy。`--model-revision` と `--dtype`（registry の `inference_dtype`、既定 `bfloat16`）を付与。完了後に `summarize_behavioral_emobank.py` と `summarize_behavioral_aipsy.py` を自動実行する
+- **V1**: Phase B 統制 CSV が無ければ生成。各モデルで Phase A → Phase B `--task-type reader` → Phase B `--task-type self` → Phase C → E6。最後に `summarize_phase_c.py`
+- **V2**: RQ1/RQ2 → RQ3 → RQ4。`--family` / `--base-model` / `--instruct-model` が無いときだけ `run_confirmatory_analysis.py` を自動実行する
+- **V3**: RQ1 のあと gate を読む。本番は `v3/results/derived/v3_gate_decision.json`、`--dry-run` は `v3/results/derived/dry_run/v3_gate_decision.json`。`decision` が完全一致の `GO` のときだけ RQ2 → RQ3 → Confirmatory
 
 ```bash
 python -m affective_empathy_eval.run --stage behavioral --model-set primary_small --device cuda:0
-python -m affective_empathy_eval.run --stage v1 --model-set primary_small --device cuda:0
+python -m affective_empathy_eval.run --stage v1 --model-set primary_small --device cuda:0 --all-layers
 python -m affective_empathy_eval.run --stage v2 --model-set primary_small --device cuda:0
 python -m affective_empathy_eval.run --stage v3 --model-set primary_small --device cuda:0
 
@@ -246,7 +299,7 @@ python -m affective_empathy_eval.run --stage v2 --model-set scale_validation --d
 python -m affective_empathy_eval.run --stage v3 --model-set primary_small --dry-run
 ```
 
-`--dry-run` はモデル重みを載せない。transformers 未導入でも Primary は起動する。
+`--dry-run` はモデル重みを載せない。transformers 未導入でも Primary は起動する。実行開始時に実 CSV の行数・pair 数をログする（手書き件数は正本にしない）。
 
 ### 7.4 論文
 
@@ -266,7 +319,8 @@ python -m affective_empathy_eval.run --stage v3 --model-set primary_small --dry-
 │       ├── models/                # 共通 ModelRegistry & ModelAdapters
 │       └── ...
 ├── tests/                         # 共通テストスイート (All tests should pass)
-├── configs/                       # 共通設定ファイル (models.yaml: 唯一のモデル定義正本)
+├── configs/                       # 共通設定 (models.yaml / v1_experiments.yaml / v2_experiments.yaml / v3_experiments.yaml)
+├── scripts/                       # 本番 bash ランナーと感度分析
 ├── behavioral/                    # 行動実験 Primary パイプライン & 分析
 ├── v1/                            # V1 表現幾何・Prompt-End 因果パッチング実験
 ├── v2/                            # V2 幾何・因果結合・分布回復実験 (Primary: v2/primary/)
@@ -274,4 +328,4 @@ python -m affective_empathy_eval.run --stage v3 --model-set primary_small --dry-
 └── docs/                          # 実験記録・仕様書・決定ログ
 ```
 
-各 Stage の本文は `behavioral/README.md`, `v1/README.md`, `v2/README.md`, `v3/README.md`。実行面の短い案内はそれぞれの `primary/README.md`。モデル ID は `configs/models.yaml` のみ。決定の記録は `docs/decision_log.md`。
+各 Stage の本文は `behavioral/README.md`, `v1/README.md`, `v2/README.md`, `v3/README.md`。実行面の短い案内はそれぞれの `primary/README.md`。本番ラッパは [`scripts/README.md`](scripts/README.md)。モデル ID・revision・dtype は `configs/models.yaml` のみ。決定の記録は `docs/decision_log.md`。

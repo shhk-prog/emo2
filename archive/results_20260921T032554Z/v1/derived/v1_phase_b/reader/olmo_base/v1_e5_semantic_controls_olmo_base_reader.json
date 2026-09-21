@@ -1,0 +1,41 @@
+{
+  "execution_status": "success",
+  "execution_success": true,
+  "stage": "v1",
+  "experiment_id": "v1_e5_semantic_controls",
+  "completed_at": "2026-09-21T03:13:10.714325+00:00",
+  "metadata": {
+    "model_id": "allenai/OLMo-2-0425-1B",
+    "model_prefix": "olmo_base",
+    "task_type": "reader",
+    "target_layer": 8,
+    "relative_depth": 0.5,
+    "num_pairs": 192,
+    "dry_run": false
+  },
+  "model_id": "allenai/OLMo-2-0425-1B",
+  "model_prefix": "olmo_base",
+  "task_type": "reader",
+  "target_layer": 8,
+  "relative_depth": 0.5,
+  "num_pairs": 192,
+  "dry_run": false,
+  "results": {
+    "acc_original_minimal_pair": 0.90625,
+    "acc_pair_aware_held_out_paraphrase": 1.0,
+    "pair_aware_held_out_reversal_drop": 0.012440860271453857,
+    "n_train_pairs": 134,
+    "n_test_pairs": 58,
+    "n_nonfallback_paraphrase_pairs": 8,
+    "n_nonfallback_reversal_pairs": 18,
+    "n_primary_test_paraphrase_pairs": 2,
+    "n_primary_test_reversal_pairs": 7,
+    "sensitivity_held_out_paraphrase": 0.9137931034482758,
+    "sensitivity_held_out_reversal_drop": 0.1375238299369812,
+    "acc_paraphrase_invariance_all": 1.0,
+    "acc_word_shuffle": 0.7786458333333333,
+    "mean_affective_prob_original": 0.9953060150146484,
+    "mean_affective_prob_outcome_reversed": 0.9089156985282898,
+    "outcome_reversal_prob_drop": 0.08639031648635864
+  }
+}

@@ -51,7 +51,7 @@ from affective_empathy_eval.likelihood import (
     build_vad_candidates,
     compute_sequence_likelihoods_for_candidates,
 )
-from affective_empathy_eval.manifests import create_run_manifest, is_manifest_matching
+from affective_empathy_eval.manifests import DEFAULT_CODE_VERSION, create_run_manifest, is_manifest_matching
 from affective_empathy_eval.statistics import compute_paired_permutation_p_value
 from affective_empathy_eval.models.registry import (
     add_model_selection_args,
@@ -146,6 +146,7 @@ def compute_cache_metadata(
         "candidate_schema": candidate_schema,
         "intervention_position": intervention_position,
         "tokenizer": f"{tok_name}_v{vocab_size}",
+        "code_version": DEFAULT_CODE_VERSION,
     }
 
 
@@ -185,6 +186,7 @@ def make_phase_c_checkpoint_manifest(
         "dataset_hash": str(dataset_hash),
         "prompt_hash": str(prompt_hash),
         "intervention_version": "v1_phase_c_v2",
+        "code_version": DEFAULT_CODE_VERSION,
     }
 
 
@@ -498,7 +500,7 @@ def main():
             "normalization": "token_mean",
             "normalize_length": True,
             "temperature": 1.0,
-            "candidate_schema": "VA_81",
+            "candidate_schema": "VAD_729",
             "prompt_format": "v1_phase_c_aipsy_chat",
         },
     }
@@ -523,6 +525,7 @@ def main():
             expected_config_hash=expected_config_hash,
             expected_dataset_hash=dataset_hash,
             expected_model_revision=args.model_revision,
+            expected_intervention_version="v1_phase_c_v2",
             expected_dry_run=False,
         )
         if manifest_valid:
@@ -1620,7 +1623,7 @@ def main():
                             except Exception:
                                 al_p_val_v = 1.0
                             al_perm_p_val_v = compute_paired_permutation_p_value(
-                                aligned_matched_shifts_v - aligned_random_shifts_v, n_permutations=10000, seed=42
+                                np.asarray(aligned_matched_shifts_v) - np.asarray(aligned_random_shifts_v), n_permutations=10000, seed=42
                             )
                         else:
                             al_dz_v, al_ci_low_v, al_ci_high_v, al_p_val_v, al_perm_p_val_v = 0.0, 0.0, 0.0, 1.0, 1.0
@@ -1635,7 +1638,7 @@ def main():
                             except Exception:
                                 al_p_val_a = 1.0
                             al_perm_p_val_a = compute_paired_permutation_p_value(
-                                aligned_matched_shifts_a - aligned_random_shifts_a, n_permutations=10000, seed=42
+                                np.asarray(aligned_matched_shifts_a) - np.asarray(aligned_random_shifts_a), n_permutations=10000, seed=42
                             )
                         else:
                             al_dz_a, al_ci_low_a, al_ci_high_a, al_p_val_a, al_perm_p_val_a = 0.0, 0.0, 0.0, 1.0, 1.0
@@ -1670,10 +1673,10 @@ def main():
                             except Exception:
                                 p_val_v, p_val_a = 1.0, 1.0
                             perm_p_val_v = compute_paired_permutation_p_value(
-                                matched_shifts_v - random_shifts_v, n_permutations=10000, seed=42
+                                np.asarray(matched_shifts_v) - np.asarray(random_shifts_v), n_permutations=10000, seed=42
                             )
                             perm_p_val_a = compute_paired_permutation_p_value(
-                                matched_shifts_a - random_shifts_a, n_permutations=10000, seed=42
+                                np.asarray(matched_shifts_a) - np.asarray(random_shifts_a), n_permutations=10000, seed=42
                             )
                         else:
                             dz_v, dz_a = 0.0, 0.0
@@ -1816,17 +1819,12 @@ def main():
         run_type="v1_phase_c",
         model_name=args.model_id,
         model_revision=args.model_revision or "main",
-        config={
-            "model_prefix": args.model_prefix,
-            "mode": args.mode,
-            "limit": args.limit,
-            "alphas": args.alphas,
-            "num_layers": num_layers,
-            "split_seed": args.split_seed,
-            "zero_forward_optimized": True,
-        },
+        config=manifest_config,
+        dataset_path=str(data_file),
+        dataset_hash=dataset_hash,
         candidate_space="VAD_729",
         measurement_space="VA_expectation_from_VAD_729",
+        intervention_version="v1_phase_c_v2",
         actual_dtype=str(actual_torch_dtype).replace("torch.", ""),
         run_id=args.run_id,
         dry_run=args.dry_run,

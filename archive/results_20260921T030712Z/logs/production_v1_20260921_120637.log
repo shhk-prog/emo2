@@ -1,0 +1,26 @@
+==================================================================
+Starting Production V1 Pipeline Evaluation
+Timestamp : 2026-09-21T03:06:37Z
+Device    : cuda:0
+Python    : /mnt/nas/home/hiromi/src/emo2/.venv/bin/python
+Python Ver: Python 3.12.3
+Pip Ver   : 
+Git SHA   : 6ce8318b3058ff12385dc5b26ebe8c85de2c4d1d
+uv.lock   : 5c6343d85ce02a529c05cb796a7a0cca6bfd1558fef8750d6c692e37258631d9
+Extra Args: none
+Log File  : results/logs/production_v1_20260921_120637.log
+Cohort    : primary_small (4 families, 8 models)
+Pipeline  : Phase A -> Phase B -> Phase C (E3/E4) -> E6 -> Summarize
+Data Scale: Full production CSVs (actual counts logged by the Python runner)
+Runtime   : unmeasured (do not use pre-benchmark hour estimates)
+==================================================================
+2026-09-21 12:06:44,165 [INFO] Affective Empathy Evaluation Unified Runner
+2026-09-21 12:06:44,165 [INFO] Stage: v1 | Cohort: primary_small | Dry-run: False
+2026-09-21 12:06:44,165 [INFO] Wall-clock estimates are unmeasured until a Qwen-family benchmark is recorded.
+2026-09-21 12:06:44,165 [INFO] Dataset inventory (actual loaded counts; wall-clock time is unmeasured):
+2026-09-21 12:06:44,180 [INFO] EmoBank 3-way: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-21 12:06:44,194 [INFO] AIPsy 4-split: n_rows=480 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=480 | split_counts={'clinical': 192, 'neutral': 192, 'moderate': 48, 'complex_neutral': 48}
+2026-09-21 12:06:44,209 [INFO] V1 Phase B rule-based controls: n_rows=192 | path=v1/data/processed/v1_e5_semantic_controls.csv | n_unique_pair_id=192
+2026-09-21 12:06:44,209 [INFO] === Running V1 Stage Pipeline (model-set: primary_small) ===
+2026-09-21 12:06:44,216 [INFO] --- Running V1 Pipeline for qwen_base (Qwen/Qwen2.5-1.5B, revision=8faed761d45a263340a0528343f099c05c9a4323) ---
+2026-09-21 12:06:44,216 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_a.py --model-id Qwen/Qwen2.5-1.5B --model-prefix qwen_base --device cuda:0 --model-revision 8faed761d45a263340a0528343f099c05c9a4323

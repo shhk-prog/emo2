@@ -12,12 +12,12 @@ Behavioral の正式実行面。設計・指標・解釈の本文は親の [`beh
 | `run_behavioral_emobank.py` | `v1/data/processed/stimuli_vad_3way.csv` | Writer / Reader / Self | 人間 VAD との $r$, $\rho$, MAE。$(5,5,5)$ 率は補助 |
 | `run_behavioral_aipsy.py` | `v1/data/processed/aipsy_4split_all.csv` | 同上 | Sensitivity, dose-response, specificity, $R$–$S$ coupling |
 
-集計:
+集計（統合 CLI 完了後に自動実行。手動再集計も可）:
 
-| ファイル | 入力 | 出力 |
+| ファイル | 入力既定 | 出力既定 |
 |---|---|---|
-| `behavioral/analysis/summarize_behavioral_emobank.py` | `behavioral/results/emobank_3way/` | `emobank_3way_summary/` |
-| `behavioral/analysis/summarize_behavioral_aipsy.py` | `behavioral/results/aipsy_4split/` | `aipsy_4split_summary/` |
+| `behavioral/analysis/summarize_behavioral_emobank.py` | `behavioral/results/raw/emobank_3way/` | `behavioral/results/derived/emobank_3way_summary/` |
+| `behavioral/analysis/summarize_behavioral_aipsy.py` | `behavioral/results/raw/aipsy_4split/` | `behavioral/results/derived/aipsy_4split_summary/` |
 
 ## 引数
 
@@ -26,11 +26,16 @@ Behavioral の正式実行面。設計・指標・解釈の本文は親の [`beh
 - `--model`: `configs/models.yaml` の ID と一致させる。暗黙 Qwen default は無い
 - `--tag`: 出力接頭辞（例: `qwen_instruct`）
 - Instruct は EmoBank が `--is_instruct`、AIPsy が `--is-instruct`（ハイフンの有無が違う）
+- `--model-revision`: 本番必須。未指定なら registry の pinned SHA。解決できなければ `ValueError`
+- `--dtype`: EmoBank のみ。既定 `bfloat16`（`float16` も可）。統合 CLI は registry の `inference_dtype` を渡す
+- `--batch-size`: 既定 81
+- `--force`: 既存 CSV があっても再計算
+- `--dry-run`: 重みを載せない。出力は `out-dir/dry_run/`
 - `--device`: 本番は `cuda:0`
-- `--limit`: 確認用。本番では付けない
-- `--stimuli-path` / `--out-dir`: 既定は上表
+- `--limit`: 確認用。EmoBank 既定 `None`、AIPsy 既定 `0`（全件）。本番では付けない
+- `--stimuli-path` / `--out-dir`: 既定は上表（`results/raw/`）
 
-統合 CLI は `--model` / `--tag` を registry から埋める。bash `run_production_behavioral.sh` は `.venv` を有効化し、device 既定 `cuda:0`、ログを `results/logs/` に残す。
+統合 CLI は `--model` / `--tag` / `--model-revision` / `--dtype` を registry から埋め、完了後に要約を自動実行する。bash `run_production_behavioral.sh` は `.venv` を有効化し、device 既定 `cuda:0`、第2引数以降を `EXTRA_ARGS` として転送し、ログを `results/logs/` に残す。
 
 ## 実行
 
@@ -39,11 +44,11 @@ Behavioral の正式実行面。設計・指標・解釈の本文は親の [`beh
 モデル ID は `configs/models.yaml` を正本とし、CLI が自動解決してディスパッチします。
 
 ```bash
-# Primary 1-1.5B コホート全体を実行
+# Primary 1-1.5B コホート全体を実行（完了後に要約を自動実行）
 python -m affective_empathy_eval.run --stage behavioral --model-set primary_small --device cuda:0
 
-# 特定ファミリーのみ実行する場合
-python -m affective_empathy_eval.run --stage behavioral --model-set primary_small --family qwen --device cuda:0
+# 特定ファミリーのみ。キャッシュ無視
+python -m affective_empathy_eval.run --stage behavioral --model-set primary_small --family qwen --device cuda:0 --force
 ```
 
 ### 本番 Bash ランナー

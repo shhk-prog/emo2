@@ -11,9 +11,9 @@
 | `v3/primary/run_rq3_path_mediation.py` | mediated attenuation |
 | `v3/primary/run_confirmatory_replication.py` | 他 family 追試。Sufficiency も V/A 別 |
 
-統合 CLI は RQ1 が完全一致の `GO` のときだけ後続へ進む。
+統合 CLI は RQ1 が完全一致の `GO` のときだけ後続へ進む。本番ゲートは `v3/results/derived/v3_gate_decision.json`、dry-run は `v3/results/derived/dry_run/v3_gate_decision.json`。`--force` は再計算、`--force-after-no-go` はゲート継続。
 
-データは AIPsy 192 pair。81 VA。ゲートは完全一致の `GO` のみ後続へ進む。
+データは AIPsy 192 pair。81 VA。YAML `response_start` は実行時 `candidate_start` に正規化する。
 
 ```bash
 python -m affective_empathy_eval.run --stage v3 --model-set primary_small --device cuda:0

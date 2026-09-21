@@ -1,0 +1,68 @@
+==================================================================
+Starting Production V2 Pipeline Evaluation
+Timestamp : 2026-09-21T02:51:37Z
+Device    : cuda:0
+Python    : /mnt/nas/home/hiromi/src/emo2/.venv/bin/python
+Python Ver: Python 3.12.3
+Pip Ver   : 
+Git SHA   : 6ce8318b3058ff12385dc5b26ebe8c85de2c4d1d
+uv.lock   : 5c6343d85ce02a529c05cb796a7a0cca6bfd1558fef8750d6c692e37258631d9
+Extra Args: --force
+Log File  : results/logs/production_v2_20260921_115137.log
+Cohort    : primary_small (4 families: Qwen, Llama, Gemma, OLMo)
+Pipeline  : RQ1/RQ2 (Cross-decoding) -> RQ3 (Causal Map) -> RQ4 (Recovery Patching)
+Data Scale: Full production CSVs (actual counts logged by the Python runner)
+Runtime   : unmeasured (do not use pre-benchmark hour estimates)
+==================================================================
+2026-09-21 11:51:39,920 [INFO] Affective Empathy Evaluation Unified Runner
+2026-09-21 11:51:39,920 [INFO] Stage: v2 | Cohort: primary_small | Dry-run: False
+2026-09-21 11:51:39,920 [INFO] Wall-clock estimates are unmeasured until a Qwen-family benchmark is recorded.
+2026-09-21 11:51:39,920 [INFO] Dataset inventory (actual loaded counts; wall-clock time is unmeasured):
+2026-09-21 11:51:39,926 [INFO] EmoBank 3-way: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-21 11:51:39,931 [INFO] AIPsy 4-split: n_rows=480 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=480 | split_counts={'clinical': 192, 'neutral': 192, 'moderate': 48, 'complex_neutral': 48}
+2026-09-21 11:51:39,937 [INFO] V1 Phase B rule-based controls: n_rows=192 | path=v1/data/processed/v1_e5_semantic_controls.csv | n_unique_pair_id=192
+2026-09-21 11:51:39,938 [INFO] === Running V2 Stage (model-set: primary_small) ===
+2026-09-21 11:51:39,938 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v2/primary/run_rq1_rq2_cross_decoding.py --models-config configs/models.yaml --model-set primary_small --device cuda:0 --force
+2026-09-21 11:51:45,133 [INFO] Starting V2-RQ1 & RQ2 analysis (dry_run=False, device=cuda:0)
+2026-09-21 11:51:45,142 [INFO] V2-RQ1/RQ2 dataset: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-21 11:51:45,143 [INFO] Dataset loaded: total=1000, train=700, held_out_test=300
+2026-09-21 11:51:45,151 [INFO] --- Processing Family: qwen (Qwen 2.5, 28 layers, dim=1536) ---
+2026-09-21 11:51:45,151 [INFO] Extracting activations for base_reader (model=Qwen/Qwen2.5-1.5B, format=plain)...
+2026-09-21 11:51:45,151 [INFO] Loading weights for Qwen/Qwen2.5-1.5B onto cuda:0...
+2026-09-21 11:51:45,356 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B/tree/8faed761d45a263340a0528343f099c05c9a4323/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 11:51:45,531 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B/tree/8faed761d45a263340a0528343f099c05c9a4323?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 11:51:45,896 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B "HTTP/1.1 200 OK"
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:   0%|          | 1/338 [00:00<01:18,  4.32it/s]Loading weights:   4%|▍         | 15/338 [00:00<00:05, 54.39it/s]Loading weights:   8%|▊         | 26/338 [00:00<00:04, 68.62it/s]Loading weights:  12%|█▏        | 39/338 [00:00<00:03, 83.35it/s]Loading weights:  14%|█▍        | 49/338 [00:00<00:03, 81.99it/s]Loading weights:  17%|█▋        | 58/338 [00:00<00:03, 72.79it/s]Loading weights:  20%|██        | 69/338 [00:00<00:03, 78.88it/s]Loading weights:  26%|██▌       | 87/338 [00:01<00:02, 96.32it/s]Loading weights:  30%|██▉       | 101/338 [00:01<00:02, 104.48it/s]Loading weights:  35%|███▍      | 117/338 [00:01<00:01, 118.24it/s]Loading weights:  40%|███▉      | 135/338 [00:01<00:01, 124.79it/s]Loading weights:  44%|████▍     | 148/338 [00:01<00:01, 114.80it/s]Loading weights:  51%|█████     | 171/338 [00:01<00:01, 134.72it/s]Loading weights:  55%|█████▍    | 185/338 [00:01<00:01, 120.68it/s]Loading weights:  60%|█████▉    | 202/338 [00:01<00:01, 131.70it/s]Loading weights:  64%|██████▍   | 216/338 [00:02<00:01, 100.78it/s]Loading weights:  68%|██████▊   | 231/338 [00:02<00:00, 108.50it/s]Loading weights:  72%|███████▏  | 244/338 [00:02<00:00, 112.15it/s]Loading weights:  76%|███████▌  | 257/338 [00:02<00:00, 100.30it/s]Loading weights:  81%|████████▏ | 275/338 [00:02<00:00, 118.66it/s]Loading weights:  85%|████████▌ | 288/338 [00:02<00:00, 120.55it/s]Loading weights:  90%|████████▉ | 303/338 [00:02<00:00, 121.94it/s]Loading weights:  93%|█████████▎| 316/338 [00:03<00:00, 117.07it/s]Loading weights:  97%|█████████▋| 329/338 [00:03<00:00, 114.57it/s]Loading weights: 100%|██████████| 338/338 [00:03<00:00, 106.89it/s]
+2026-09-21 11:52:03,280 [INFO] Extracting activations for base_self (model=Qwen/Qwen2.5-1.5B, format=plain)...
+2026-09-21 11:52:03,281 [INFO] Loading weights for Qwen/Qwen2.5-1.5B onto cuda:0...
+2026-09-21 11:52:03,483 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B/tree/8faed761d45a263340a0528343f099c05c9a4323/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 11:52:03,660 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B/tree/8faed761d45a263340a0528343f099c05c9a4323?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 11:52:04,003 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:  40%|███▉      | 135/338 [00:00<00:00, 1334.69it/s]Loading weights:  94%|█████████▍| 317/338 [00:00<00:00, 1606.27it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 1602.81it/s]
+2026-09-21 11:52:15,507 [INFO] Extracting activations for inst_reader (model=Qwen/Qwen2.5-1.5B-Instruct, format=chat)...
+2026-09-21 11:52:15,507 [INFO] Loading weights for Qwen/Qwen2.5-1.5B-Instruct onto cuda:0...
+2026-09-21 11:52:15,705 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 11:52:15,878 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/989aa7980e4cf806f80c7fef2b1adb7bc71aa306?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 11:52:16,222 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:  36%|███▋      | 123/338 [00:00<00:00, 1214.44it/s]Loading weights:  86%|████████▋ | 292/338 [00:00<00:00, 1464.07it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 1477.64it/s]
+2026-09-21 11:52:28,176 [INFO] Extracting activations for inst_self (model=Qwen/Qwen2.5-1.5B-Instruct, format=chat)...
+2026-09-21 11:52:28,177 [INFO] Loading weights for Qwen/Qwen2.5-1.5B-Instruct onto cuda:0...
+2026-09-21 11:52:28,371 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 11:52:28,554 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/989aa7980e4cf806f80c7fef2b1adb7bc71aa306?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 11:52:28,908 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:  50%|█████     | 170/338 [00:00<00:00, 1649.44it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 1711.70it/s]
+2026-09-21 11:52:40,567 [INFO] Extracting activations for inst_matched_reader (model=Qwen/Qwen2.5-1.5B-Instruct, format=plain)...
+2026-09-21 11:52:40,568 [INFO] Loading weights for Qwen/Qwen2.5-1.5B-Instruct onto cuda:0...
+2026-09-21 11:52:40,758 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 11:52:40,933 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/989aa7980e4cf806f80c7fef2b1adb7bc71aa306?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 11:52:41,281 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:  36%|███▋      | 123/338 [00:00<00:00, 1211.17it/s]Loading weights:  86%|████████▋ | 292/338 [00:00<00:00, 1487.85it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 1491.87it/s]
+2026-09-21 11:52:52,445 [INFO] Extracting activations for inst_matched_self (model=Qwen/Qwen2.5-1.5B-Instruct, format=plain)...
+2026-09-21 11:52:52,446 [INFO] Loading weights for Qwen/Qwen2.5-1.5B-Instruct onto cuda:0...
+2026-09-21 11:52:52,646 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 11:52:52,820 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/989aa7980e4cf806f80c7fef2b1adb7bc71aa306?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 11:52:53,163 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:  36%|███▋      | 123/338 [00:00<00:00, 1217.69it/s]Loading weights:  86%|████████▌ | 291/338 [00:00<00:00, 1484.32it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 1494.39it/s]
+2026-09-21 11:53:04,262 [INFO] Running held-out geometry & cross-decoding analysis across 28 layers (has_matched=True)...
+2026-09-21 11:53:04,265 [INFO]   Evaluating layer 0/27 (d=0.00)...

@@ -1,0 +1,1146 @@
+==================================================================
+Starting Production V2 Pipeline Evaluation
+Timestamp : 2026-09-21T03:07:17Z
+Device    : cuda:0
+Python    : /mnt/nas/home/hiromi/src/emo2/.venv/bin/python
+Python Ver: Python 3.12.3
+Pip Ver   : 
+Git SHA   : 6ce8318b3058ff12385dc5b26ebe8c85de2c4d1d
+uv.lock   : 5c6343d85ce02a529c05cb796a7a0cca6bfd1558fef8750d6c692e37258631d9
+Extra Args: none
+Log File  : results/logs/production_v2_20260921_120717.log
+Cohort    : primary_small (4 families: Qwen, Llama, Gemma, OLMo)
+Pipeline  : RQ1/RQ2 (Cross-decoding) -> RQ3 (Causal Map) -> RQ4 (Recovery Patching)
+Data Scale: Full production CSVs (actual counts logged by the Python runner)
+Runtime   : unmeasured (do not use pre-benchmark hour estimates)
+==================================================================
+2026-09-21 12:07:19,544 [INFO] Affective Empathy Evaluation Unified Runner
+2026-09-21 12:07:19,544 [INFO] Stage: v2 | Cohort: primary_small | Dry-run: False
+2026-09-21 12:07:19,544 [INFO] Wall-clock estimates are unmeasured until a Qwen-family benchmark is recorded.
+2026-09-21 12:07:19,544 [INFO] Dataset inventory (actual loaded counts; wall-clock time is unmeasured):
+2026-09-21 12:07:19,550 [INFO] EmoBank 3-way: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-21 12:07:19,556 [INFO] AIPsy 4-split: n_rows=480 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=480 | split_counts={'clinical': 192, 'neutral': 192, 'moderate': 48, 'complex_neutral': 48}
+2026-09-21 12:07:19,562 [INFO] V1 Phase B rule-based controls: n_rows=192 | path=v1/data/processed/v1_e5_semantic_controls.csv | n_unique_pair_id=192
+2026-09-21 12:07:19,562 [INFO] === Running V2 Stage (model-set: primary_small) ===
+2026-09-21 12:07:19,562 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v2/primary/run_rq1_rq2_cross_decoding.py --models-config configs/models.yaml --model-set primary_small --device cuda:0
+2026-09-21 12:07:24,819 [INFO] Starting V2-RQ1 & RQ2 analysis (dry_run=False, device=cuda:0)
+2026-09-21 12:07:24,828 [INFO] V2-RQ1/RQ2 dataset: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-21 12:07:24,829 [INFO] Dataset loaded: total=1000, train=700, held_out_test=300
+2026-09-21 12:07:24,843 [INFO] --- Processing Family: qwen (Qwen 2.5, 28 layers, dim=1536) ---
+2026-09-21 12:07:24,843 [INFO] Extracting activations for base_reader (model=Qwen/Qwen2.5-1.5B, format=plain)...
+2026-09-21 12:07:24,843 [INFO] Loading weights for Qwen/Qwen2.5-1.5B onto cuda:0...
+2026-09-21 12:07:25,057 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B/tree/8faed761d45a263340a0528343f099c05c9a4323/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:07:25,243 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B/tree/8faed761d45a263340a0528343f099c05c9a4323?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:07:25,584 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B "HTTP/1.1 200 OK"
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:  56%|█████▌    | 189/338 [00:00<00:00, 1888.13it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 1812.57it/s]
+2026-09-21 12:07:39,581 [INFO] Extracting activations for base_self (model=Qwen/Qwen2.5-1.5B, format=plain)...
+2026-09-21 12:07:39,583 [INFO] Loading weights for Qwen/Qwen2.5-1.5B onto cuda:0...
+2026-09-21 12:07:39,777 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B/tree/8faed761d45a263340a0528343f099c05c9a4323/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:07:39,954 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B/tree/8faed761d45a263340a0528343f099c05c9a4323?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:07:40,299 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:  40%|███▉      | 135/338 [00:00<00:00, 1311.25it/s]Loading weights:  93%|█████████▎| 315/338 [00:00<00:00, 1584.59it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 1559.35it/s]
+2026-09-21 12:07:51,435 [INFO] Extracting activations for inst_reader (model=Qwen/Qwen2.5-1.5B-Instruct, format=chat)...
+2026-09-21 12:07:51,436 [INFO] Loading weights for Qwen/Qwen2.5-1.5B-Instruct onto cuda:0...
+2026-09-21 12:07:51,628 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:07:51,808 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/989aa7980e4cf806f80c7fef2b1adb7bc71aa306?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:07:52,156 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:  35%|███▍      | 117/338 [00:00<00:00, 1167.28it/s]Loading weights:  84%|████████▍ | 285/338 [00:00<00:00, 1468.47it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 1473.32it/s]
+2026-09-21 12:08:03,703 [INFO] Extracting activations for inst_self (model=Qwen/Qwen2.5-1.5B-Instruct, format=chat)...
+2026-09-21 12:08:03,704 [INFO] Loading weights for Qwen/Qwen2.5-1.5B-Instruct onto cuda:0...
+2026-09-21 12:08:03,904 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:08:04,098 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/989aa7980e4cf806f80c7fef2b1adb7bc71aa306?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:08:04,449 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:  51%|█████     | 172/338 [00:00<00:00, 1670.57it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 1734.19it/s]
+2026-09-21 12:08:15,829 [INFO] Extracting activations for inst_matched_reader (model=Qwen/Qwen2.5-1.5B-Instruct, format=plain)...
+2026-09-21 12:08:15,830 [INFO] Loading weights for Qwen/Qwen2.5-1.5B-Instruct onto cuda:0...
+2026-09-21 12:08:16,023 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:08:16,194 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/989aa7980e4cf806f80c7fef2b1adb7bc71aa306?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:08:16,542 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:  36%|███▋      | 123/338 [00:00<00:00, 1216.77it/s]Loading weights:  86%|████████▋ | 292/338 [00:00<00:00, 1487.19it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 1491.31it/s]
+2026-09-21 12:08:27,398 [INFO] Extracting activations for inst_matched_self (model=Qwen/Qwen2.5-1.5B-Instruct, format=plain)...
+2026-09-21 12:08:27,400 [INFO] Loading weights for Qwen/Qwen2.5-1.5B-Instruct onto cuda:0...
+2026-09-21 12:08:27,595 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:08:27,766 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct/tree/989aa7980e4cf806f80c7fef2b1adb7bc71aa306?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:08:28,106 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:  36%|███▋      | 123/338 [00:00<00:00, 1227.03it/s]Loading weights:  86%|████████▋ | 292/338 [00:00<00:00, 1491.67it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 1498.28it/s]
+2026-09-21 12:08:38,893 [INFO] Running held-out geometry & cross-decoding analysis across 28 layers (has_matched=True)...
+2026-09-21 12:08:38,894 [INFO]   Evaluating layer 0/27 (d=0.00)...
+2026-09-21 12:08:58,039 [INFO]   Evaluating layer 5/27 (d=0.19)...
+2026-09-21 12:09:17,303 [INFO]   Evaluating layer 10/27 (d=0.37)...
+2026-09-21 12:09:36,774 [INFO]   Evaluating layer 15/27 (d=0.56)...
+2026-09-21 12:09:56,690 [INFO]   Evaluating layer 20/27 (d=0.74)...
+2026-09-21 12:10:16,177 [INFO]   Evaluating layer 25/27 (d=0.93)...
+2026-09-21 12:10:23,557 [INFO]   Evaluating layer 27/27 (d=1.00)...
+2026-09-21 12:10:27,357 [INFO] [v2:v2_rq1_decodability_preservation] Sequentially saved result to v2/results/raw/v2_rq1_decodability_preservation_qwen.json (success=True)
+2026-09-21 12:10:27,359 [INFO] [v2:v2_rq2_geometry_transformation] Sequentially saved result to v2/results/raw/v2_rq2_geometry_transformation_qwen.json (success=True)
+2026-09-21 12:10:27,361 [INFO] Saved family results to v2/results/raw/v2_geometry_qwen.json, v2/results/raw/v2_rq1_decodability_preservation_qwen.json, and v2/results/raw/v2_rq2_geometry_transformation_qwen.json
+2026-09-21 12:10:27,375 [INFO] --- Processing Family: llama (Llama 3.2, 16 layers, dim=2048) ---
+2026-09-21 12:10:27,379 [INFO] Extracting activations for base_reader (model=meta-llama/Llama-3.2-1B, format=plain)...
+2026-09-21 12:10:27,379 [INFO] Loading weights for meta-llama/Llama-3.2-1B onto cuda:0...
+2026-09-21 12:10:27,591 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B/tree/4e20de362430cd3b72f300e6b0f18e50e7166e08/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:10:27,836 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B/tree/4e20de362430cd3b72f300e6b0f18e50e7166e08?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:10:28,571 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/146 [00:00<?, ?it/s]Loading weights:  46%|████▌     | 67/146 [00:00<00:00, 664.23it/s]Loading weights: 100%|██████████| 146/146 [00:00<00:00, 821.22it/s]
+2026-09-21 12:10:37,525 [INFO] Extracting activations for base_self (model=meta-llama/Llama-3.2-1B, format=plain)...
+2026-09-21 12:10:37,525 [INFO] Loading weights for meta-llama/Llama-3.2-1B onto cuda:0...
+2026-09-21 12:10:37,723 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B/tree/4e20de362430cd3b72f300e6b0f18e50e7166e08/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:10:37,908 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B/tree/4e20de362430cd3b72f300e6b0f18e50e7166e08?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:10:38,636 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/146 [00:00<?, ?it/s]Loading weights:  71%|███████   | 103/146 [00:00<00:00, 1028.34it/s]Loading weights: 100%|██████████| 146/146 [00:00<00:00, 1068.63it/s]
+2026-09-21 12:10:45,893 [INFO] Extracting activations for inst_reader (model=meta-llama/Llama-3.2-1B-Instruct, format=chat)...
+2026-09-21 12:10:45,893 [INFO] Loading weights for meta-llama/Llama-3.2-1B-Instruct onto cuda:0...
+2026-09-21 12:10:46,093 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B-Instruct/tree/9213176726f574b556790deb65791e0c5aa438b6/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:10:46,271 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B-Instruct/tree/9213176726f574b556790deb65791e0c5aa438b6?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:10:47,055 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B-Instruct "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/146 [00:00<?, ?it/s]Loading weights:  47%|████▋     | 68/146 [00:00<00:00, 672.68it/s]Loading weights: 100%|██████████| 146/146 [00:00<00:00, 848.68it/s]
+2026-09-21 12:10:54,678 [INFO] Extracting activations for inst_self (model=meta-llama/Llama-3.2-1B-Instruct, format=chat)...
+2026-09-21 12:10:54,679 [INFO] Loading weights for meta-llama/Llama-3.2-1B-Instruct onto cuda:0...
+2026-09-21 12:10:54,875 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B-Instruct/tree/9213176726f574b556790deb65791e0c5aa438b6/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:10:55,127 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B-Instruct/tree/9213176726f574b556790deb65791e0c5aa438b6?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:10:55,961 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B-Instruct "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/146 [00:00<?, ?it/s]Loading weights:  49%|████▊     | 71/146 [00:00<00:00, 707.74it/s]Loading weights: 100%|██████████| 146/146 [00:00<00:00, 857.81it/s]
+2026-09-21 12:11:03,038 [INFO] Extracting activations for inst_matched_reader (model=meta-llama/Llama-3.2-1B-Instruct, format=plain)...
+2026-09-21 12:11:03,038 [INFO] Loading weights for meta-llama/Llama-3.2-1B-Instruct onto cuda:0...
+2026-09-21 12:11:03,242 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B-Instruct/tree/9213176726f574b556790deb65791e0c5aa438b6/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:11:03,425 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B-Instruct/tree/9213176726f574b556790deb65791e0c5aa438b6?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:11:04,220 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B-Instruct "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/146 [00:00<?, ?it/s]Loading weights:  46%|████▌     | 67/146 [00:00<00:00, 660.88it/s]Loading weights: 100%|██████████| 146/146 [00:00<00:00, 841.41it/s]
+2026-09-21 12:11:10,898 [INFO] Extracting activations for inst_matched_self (model=meta-llama/Llama-3.2-1B-Instruct, format=plain)...
+2026-09-21 12:11:10,898 [INFO] Loading weights for meta-llama/Llama-3.2-1B-Instruct onto cuda:0...
+2026-09-21 12:11:11,096 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B-Instruct/tree/9213176726f574b556790deb65791e0c5aa438b6/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:11:11,275 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B-Instruct/tree/9213176726f574b556790deb65791e0c5aa438b6?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:11:12,129 [INFO] HTTP Request: GET https://huggingface.co/api/models/meta-llama/Llama-3.2-1B-Instruct "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/146 [00:00<?, ?it/s]Loading weights:  47%|████▋     | 68/146 [00:00<00:00, 670.16it/s]Loading weights: 100%|██████████| 146/146 [00:00<00:00, 850.38it/s]
+2026-09-21 12:11:18,782 [INFO] Running held-out geometry & cross-decoding analysis across 16 layers (has_matched=True)...
+2026-09-21 12:11:18,784 [INFO]   Evaluating layer 0/15 (d=0.00)...
+2026-09-21 12:11:39,666 [INFO]   Evaluating layer 5/15 (d=0.33)...
+2026-09-21 12:12:01,415 [INFO]   Evaluating layer 10/15 (d=0.67)...
+2026-09-21 12:12:22,025 [INFO]   Evaluating layer 15/15 (d=1.00)...
+2026-09-21 12:12:26,375 [INFO] [v2:v2_rq1_decodability_preservation] Sequentially saved result to v2/results/raw/v2_rq1_decodability_preservation_llama.json (success=True)
+2026-09-21 12:12:26,382 [INFO] [v2:v2_rq2_geometry_transformation] Sequentially saved result to v2/results/raw/v2_rq2_geometry_transformation_llama.json (success=True)
+2026-09-21 12:12:26,383 [INFO] Saved family results to v2/results/raw/v2_geometry_llama.json, v2/results/raw/v2_rq1_decodability_preservation_llama.json, and v2/results/raw/v2_rq2_geometry_transformation_llama.json
+2026-09-21 12:12:26,416 [INFO] --- Processing Family: gemma (Gemma 3, 26 layers, dim=1152) ---
+2026-09-21 12:12:26,417 [INFO] Extracting activations for base_reader (model=google/gemma-3-1b-pt, format=plain)...
+2026-09-21 12:12:26,417 [INFO] Loading weights for google/gemma-3-1b-pt onto cuda:0...
+2026-09-21 12:12:26,691 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-3-1b-pt/tree/fcf18a2a879aab110ca39f8bffbccd5d49d8eb29/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:12:26,868 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-3-1b-pt/tree/fcf18a2a879aab110ca39f8bffbccd5d49d8eb29?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:12:27,994 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-3-1b-pt "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/340 [00:00<?, ?it/s]Loading weights:  64%|██████▍   | 219/340 [00:00<00:00, 2186.67it/s]Loading weights: 100%|██████████| 340/340 [00:00<00:00, 2500.81it/s]
+2026-09-21 12:12:45,594 [INFO] Extracting activations for base_self (model=google/gemma-3-1b-pt, format=plain)...
+2026-09-21 12:12:45,594 [INFO] Loading weights for google/gemma-3-1b-pt onto cuda:0...
+2026-09-21 12:12:45,790 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-3-1b-pt/tree/fcf18a2a879aab110ca39f8bffbccd5d49d8eb29/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:12:45,978 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-3-1b-pt/tree/fcf18a2a879aab110ca39f8bffbccd5d49d8eb29?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:12:47,165 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-3-1b-pt "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/340 [00:00<?, ?it/s]Loading weights:  54%|█████▍    | 185/340 [00:00<00:00, 1836.39it/s]Loading weights: 100%|██████████| 340/340 [00:00<00:00, 2296.06it/s]
+2026-09-21 12:13:02,868 [INFO] Extracting activations for inst_reader (model=google/gemma-3-1b-it, format=chat)...
+2026-09-21 12:13:02,870 [INFO] Loading weights for google/gemma-3-1b-it onto cuda:0...
+2026-09-21 12:13:03,114 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-3-1b-it/tree/dcc83ea841ab6100d6b47a070329e1ba4cf78752/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:13:03,292 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-3-1b-it/tree/dcc83ea841ab6100d6b47a070329e1ba4cf78752?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:13:04,660 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-3-1b-it "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/340 [00:00<?, ?it/s]Loading weights:  59%|█████▊    | 199/340 [00:00<00:00, 1950.22it/s]Loading weights: 100%|██████████| 340/340 [00:00<00:00, 2419.84it/s]
+2026-09-21 12:13:20,399 [INFO] Extracting activations for inst_self (model=google/gemma-3-1b-it, format=chat)...
+2026-09-21 12:13:20,400 [INFO] Loading weights for google/gemma-3-1b-it onto cuda:0...
+2026-09-21 12:13:20,608 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-3-1b-it/tree/dcc83ea841ab6100d6b47a070329e1ba4cf78752/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:13:20,805 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-3-1b-it/tree/dcc83ea841ab6100d6b47a070329e1ba4cf78752?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:13:22,270 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-3-1b-it "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/340 [00:00<?, ?it/s]Loading weights:  58%|█████▊    | 198/340 [00:00<00:00, 1964.40it/s]Loading weights: 100%|██████████| 340/340 [00:00<00:00, 2390.30it/s]
+2026-09-21 12:13:37,876 [INFO] Extracting activations for inst_matched_reader (model=google/gemma-3-1b-it, format=plain)...
+2026-09-21 12:13:37,877 [INFO] Loading weights for google/gemma-3-1b-it onto cuda:0...
+2026-09-21 12:13:39,901 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-3-1b-it/tree/dcc83ea841ab6100d6b47a070329e1ba4cf78752/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:13:40,479 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-3-1b-it/tree/dcc83ea841ab6100d6b47a070329e1ba4cf78752?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:13:43,274 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-3-1b-it "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/340 [00:00<?, ?it/s]Loading weights:  58%|█████▊    | 198/340 [00:00<00:00, 1963.44it/s]Loading weights: 100%|██████████| 340/340 [00:00<00:00, 2390.59it/s]
+2026-09-21 12:13:58,561 [INFO] Extracting activations for inst_matched_self (model=google/gemma-3-1b-it, format=plain)...
+2026-09-21 12:13:58,561 [INFO] Loading weights for google/gemma-3-1b-it onto cuda:0...
+2026-09-21 12:13:58,763 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-3-1b-it/tree/dcc83ea841ab6100d6b47a070329e1ba4cf78752/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:13:58,942 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-3-1b-it/tree/dcc83ea841ab6100d6b47a070329e1ba4cf78752?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:14:00,571 [INFO] HTTP Request: GET https://huggingface.co/api/models/google/gemma-3-1b-it "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/340 [00:00<?, ?it/s]Loading weights:  58%|█████▊    | 198/340 [00:00<00:00, 1943.71it/s]Loading weights: 100%|██████████| 340/340 [00:00<00:00, 2393.63it/s]
+2026-09-21 12:14:15,820 [INFO] Running held-out geometry & cross-decoding analysis across 26 layers (has_matched=True)...
+2026-09-21 12:14:15,821 [INFO]   Evaluating layer 0/25 (d=0.00)...
+2026-09-21 12:14:33,313 [INFO]   Evaluating layer 5/25 (d=0.20)...
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.1725068560508589e-07.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.1725068560508589e-07.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.1725068560508589e-07.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.1725068560508589e-07.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.606912741232037e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.914119194372347e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.606912741232037e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.914119194372347e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.606912741232037e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.914119194372347e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.606912741232037e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.914119194372347e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.2197753029852265e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.546854779467594e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.2197753029852265e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.546854779467594e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.2197753029852265e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.546854779467594e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.2197753029852265e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.546854779467594e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.200944592192002e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.258977865876588e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.200944592192002e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.258977865876588e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.032947818037428e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.1540523082185246e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.032947818037428e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.1540523082185246e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.200944592192002e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.258977865876588e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.200944592192002e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.258977865876588e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.032947818037428e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.1540523082185246e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.032947818037428e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.1540523082185246e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.979953866473096e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.9225482317253295e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.979953866473096e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.9225482317253295e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 7.330448426046132e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.831653985907906e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 7.330448426046132e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.831653985907906e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.4541323639937218e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.9537133627854928e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.4541323639937218e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.9537133627854928e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.979953866473096e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.9225482317253295e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.979953866473096e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.9225482317253295e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 7.330448426046132e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.831653985907906e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 7.330448426046132e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.831653985907906e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.4541323639937218e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.9537133627854928e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.4541323639937218e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.9537133627854928e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+2026-09-21 12:14:54,921 [INFO]   Evaluating layer 10/25 (d=0.40)...
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.401768146003235e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.401768146003235e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.7974488503446082e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.881396892779776e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.7974488503446082e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.881396892779776e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.401768146003235e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.401768146003235e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.7974488503446082e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.881396892779776e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.7974488503446082e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.881396892779776e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 7.684457931089739e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 7.684457931089739e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.967274319118587e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.164731468696118e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.967274319118587e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.164731468696118e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.0384376853144204e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.576775510159223e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.0384376853144204e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.576775510159223e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 7.684457931089739e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 7.684457931089739e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.967274319118587e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.164731468696118e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.967274319118587e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.164731468696118e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.0384376853144204e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.576775510159223e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.0384376853144204e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.576775510159223e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.84502307665602e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.84502307665602e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 6.492001602964592e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.2687286594400575e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 6.492001602964592e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.2687286594400575e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.130847569034813e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.375243906589276e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.130847569034813e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.375243906589276e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.84502307665602e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.84502307665602e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 6.492001602964592e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.2687286594400575e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 6.492001602964592e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.2687286594400575e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.130847569034813e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.375243906589276e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.130847569034813e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.375243906589276e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.343021693855917e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.3629453121666302e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.343021693855917e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.3629453121666302e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.8018049274814985e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.6580967709955985e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.8018049274814985e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.6580967709955985e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.343021693855917e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.3629453121666302e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.343021693855917e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.3629453121666302e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.8018049274814985e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.6580967709955985e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.8018049274814985e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.6580967709955985e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.736346533220967e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.641192426404814e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.736346533220967e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.641192426404814e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.626062726804548e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.062746601832032e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.626062726804548e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.062746601832032e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.736346533220967e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.641192426404814e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.736346533220967e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.641192426404814e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.626062726804548e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.062746601832032e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.626062726804548e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.062746601832032e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+2026-09-21 12:15:20,428 [INFO]   Evaluating layer 15/25 (d=0.60)...
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.2828632173798056e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.2828632173798056e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.85107542814012e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.1411766642765997e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.85107542814012e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.1411766642765997e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.294190780740337e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.091396554883886e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.294190780740337e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.091396554883886e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.2828632173798056e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.2828632173798056e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.85107542814012e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.1411766642765997e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.85107542814012e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.1411766642765997e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.294190780740337e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.091396554883886e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.294190780740337e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.091396554883886e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.6858222243464347e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.6858222243464347e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.728894940190912e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.013417172401887e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.728894940190912e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.013417172401887e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.1562256424800808e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.4265559278878754e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.1562256424800808e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.4265559278878754e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.6858222243464347e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.6858222243464347e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.728894940190912e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.013417172401887e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.728894940190912e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.013417172401887e-08.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.1562256424800808e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.4265559278878754e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.1562256424800808e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.4265559278878754e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.4883940394349047e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.689615981848025e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.4883940394349047e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.689615981848025e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.094944466321749e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.158318217013402e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.094944466321749e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.158318217013402e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.1571111563645218e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.053922835784874e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.1571111563645218e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.053922835784874e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.4883940394349047e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.689615981848025e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.4883940394349047e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.689615981848025e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.094944466321749e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.158318217013402e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.094944466321749e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.158318217013402e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.1571111563645218e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.053922835784874e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.1571111563645218e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 5.053922835784874e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.4896131257132765e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.3543072763819737e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.4896131257132765e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.3543072763819737e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.037873369000522e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.526743064252713e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.037873369000522e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.526743064252713e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.4896131257132765e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.3543072763819737e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.4896131257132765e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.3543072763819737e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.037873369000522e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.526743064252713e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.037873369000522e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.526743064252713e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.2544927730239195e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.2544927730239195e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.933321141540546e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.2226156470850356e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.933321141540546e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.2226156470850356e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 6.281763997861844e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 6.270481356374091e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 6.281763997861844e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 6.270481356374091e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.2544927730239195e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.2544927730239195e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.933321141540546e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.2226156470850356e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.933321141540546e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.2226156470850356e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 6.281763997861844e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 6.270481356374091e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 6.281763997861844e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 6.270481356374091e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+2026-09-21 12:15:43,278 [INFO]   Evaluating layer 20/25 (d=0.80)...
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.0513648071873725e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.8928964298781104e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.0513648071873725e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.8928964298781104e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.6299753768933556e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.144575767497713e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.6299753768933556e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.144575767497713e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.65712848893196e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.65712848893196e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.0513648071873725e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.8928964298781104e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.0513648071873725e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.8928964298781104e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.6299753768933556e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.144575767497713e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.6299753768933556e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.144575767497713e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.65712848893196e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.65712848893196e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 9.713746300377135e-12.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 7.796610579369201e-12.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 9.713746300377135e-12.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 7.796610579369201e-12.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.7376668992596933e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.696480289581359e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.7376668992596933e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.696480289581359e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.5065395032063407e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 6.428351774501184e-12.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.5065395032063407e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 6.428351774501184e-12.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 9.713746300377135e-12.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 7.796610579369201e-12.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 9.713746300377135e-12.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 7.796610579369201e-12.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.7376668992596933e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.696480289581359e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.7376668992596933e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.696480289581359e-09.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.5065395032063407e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 6.428351774501184e-12.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.5065395032063407e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 6.428351774501184e-12.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.5383885965402087e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.8226343137816023e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.5383885965402087e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.8226343137816023e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.255363839078541e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.54604021093985e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.255363839078541e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.54604021093985e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.719990701733238e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.719990701733238e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.5383885965402087e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.8226343137816023e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.5383885965402087e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.8226343137816023e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.255363839078541e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.54604021093985e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.255363839078541e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 4.54604021093985e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.719990701733238e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 8.719990701733238e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.1096458741330935e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.1096458741330935e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.457379577602836e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.1615020056865433e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.457379577602836e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.1615020056865433e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.1096458741330935e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.1096458741330935e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.457379577602836e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.1615020056865433e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 2.457379577602836e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.1615020056865433e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 6.879294356387788e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 6.879294356387788e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.8988019490073782e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.266042409797663e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.8988019490073782e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.266042409797663e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.108680812768938e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.9171516030833686e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.108680812768938e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.9171516030833686e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 6.879294356387788e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 6.879294356387788e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.8988019490073782e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.266042409797663e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.8988019490073782e-11.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 1.266042409797663e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.108680812768938e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.9171516030833686e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.108680812768938e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 3.9171516030833686e-10.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+2026-09-21 12:16:08,120 [INFO]   Evaluating layer 25/25 (d=1.00)...
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 7.2264043707304104e-12.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 7.2264043707304104e-12.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 7.2264043707304104e-12.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:264: LinAlgWarning: An ill-conditioned matrix detected: slice 0 has rcond = 7.2264043707304104e-12.
+  dual_coef = linalg.solve(K, y, assume_a="pos", overwrite_a=False)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/sklearn/linear_model/_ridge.py:266: UserWarning: Singular matrix in solving dual problem. Using least-squares solution instead.
+  warnings.warn(
+2026-09-21 12:16:18,029 [INFO] [v2:v2_rq1_decodability_preservation] Sequentially saved result to v2/results/raw/v2_rq1_decodability_preservation_gemma.json (success=True)
+2026-09-21 12:16:18,034 [INFO] [v2:v2_rq2_geometry_transformation] Sequentially saved result to v2/results/raw/v2_rq2_geometry_transformation_gemma.json (success=True)
+2026-09-21 12:16:18,037 [INFO] Saved family results to v2/results/raw/v2_geometry_gemma.json, v2/results/raw/v2_rq1_decodability_preservation_gemma.json, and v2/results/raw/v2_rq2_geometry_transformation_gemma.json
+2026-09-21 12:16:18,056 [INFO] --- Processing Family: olmo (OLMo 2, 16 layers, dim=2048) ---
+2026-09-21 12:16:18,056 [INFO] Extracting activations for base_reader (model=allenai/OLMo-2-0425-1B, format=plain)...
+2026-09-21 12:16:18,056 [INFO] Loading weights for allenai/OLMo-2-0425-1B onto cuda:0...
+2026-09-21 12:16:18,265 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B/tree/a1847dff35000b4271fa70afc5db10fd29fedbdf/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:16:18,448 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B/tree/a1847dff35000b4271fa70afc5db10fd29fedbdf?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:16:18,961 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/179 [00:00<?, ?it/s]Loading weights:  26%|██▋       | 47/179 [00:00<00:00, 434.62it/s]Loading weights:  94%|█████████▍| 168/179 [00:00<00:00, 872.84it/s]Loading weights: 100%|██████████| 179/179 [00:00<00:00, 839.91it/s]
+2026-09-21 12:16:29,318 [INFO] Extracting activations for base_self (model=allenai/OLMo-2-0425-1B, format=plain)...
+2026-09-21 12:16:29,319 [INFO] Loading weights for allenai/OLMo-2-0425-1B onto cuda:0...
+2026-09-21 12:16:29,523 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B/tree/a1847dff35000b4271fa70afc5db10fd29fedbdf/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:16:29,701 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B/tree/a1847dff35000b4271fa70afc5db10fd29fedbdf?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:16:30,217 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/179 [00:00<?, ?it/s]Loading weights:  33%|███▎      | 59/179 [00:00<00:00, 575.69it/s]Loading weights: 100%|██████████| 179/179 [00:00<00:00, 949.47it/s]
+2026-09-21 12:16:38,553 [INFO] Extracting activations for inst_reader (model=allenai/OLMo-2-0425-1B-Instruct, format=chat)...
+2026-09-21 12:16:38,554 [INFO] Loading weights for allenai/OLMo-2-0425-1B-Instruct onto cuda:0...
+2026-09-21 12:16:38,764 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B-Instruct/tree/48d788eca847d4d7548f375ad03d3c9312f6139e/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:16:38,945 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B-Instruct/tree/48d788eca847d4d7548f375ad03d3c9312f6139e?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:16:39,523 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B-Instruct "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/179 [00:00<?, ?it/s]Loading weights:  20%|█▉        | 35/179 [00:00<00:00, 349.93it/s]Loading weights:  88%|████████▊ | 157/179 [00:00<00:00, 856.76it/s]Loading weights: 100%|██████████| 179/179 [00:00<00:00, 835.58it/s]
+2026-09-21 12:16:49,469 [INFO] Extracting activations for inst_self (model=allenai/OLMo-2-0425-1B-Instruct, format=chat)...
+2026-09-21 12:16:49,470 [INFO] Loading weights for allenai/OLMo-2-0425-1B-Instruct onto cuda:0...
+2026-09-21 12:16:49,670 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B-Instruct/tree/48d788eca847d4d7548f375ad03d3c9312f6139e/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:16:49,852 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B-Instruct/tree/48d788eca847d4d7548f375ad03d3c9312f6139e?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:16:50,383 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B-Instruct "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/179 [00:00<?, ?it/s]Loading weights:  21%|██        | 37/179 [00:00<00:00, 364.85it/s]Loading weights:  93%|█████████▎| 166/179 [00:00<00:00, 903.28it/s]Loading weights: 100%|██████████| 179/179 [00:00<00:00, 847.05it/s]
+2026-09-21 12:16:58,415 [INFO] Extracting activations for inst_matched_reader (model=allenai/OLMo-2-0425-1B-Instruct, format=plain)...
+2026-09-21 12:16:58,415 [INFO] Loading weights for allenai/OLMo-2-0425-1B-Instruct onto cuda:0...
+2026-09-21 12:16:58,614 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B-Instruct/tree/48d788eca847d4d7548f375ad03d3c9312f6139e/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:16:58,791 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B-Instruct/tree/48d788eca847d4d7548f375ad03d3c9312f6139e?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:16:59,404 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B-Instruct "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/179 [00:00<?, ?it/s]Loading weights:  21%|██        | 37/179 [00:00<00:00, 363.16it/s]Loading weights:  88%|████████▊ | 158/179 [00:00<00:00, 856.81it/s]Loading weights: 100%|██████████| 179/179 [00:00<00:00, 839.36it/s]
+2026-09-21 12:17:07,464 [INFO] Extracting activations for inst_matched_self (model=allenai/OLMo-2-0425-1B-Instruct, format=plain)...
+2026-09-21 12:17:07,466 [INFO] Loading weights for allenai/OLMo-2-0425-1B-Instruct onto cuda:0...
+2026-09-21 12:17:07,658 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B-Instruct/tree/48d788eca847d4d7548f375ad03d3c9312f6139e/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:17:07,830 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B-Instruct/tree/48d788eca847d4d7548f375ad03d3c9312f6139e?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:17:08,422 [INFO] HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-2-0425-1B-Instruct "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/179 [00:00<?, ?it/s]Loading weights:  20%|██        | 36/179 [00:00<00:00, 358.67it/s]Loading weights:  89%|████████▉ | 159/179 [00:00<00:00, 865.34it/s]Loading weights: 100%|██████████| 179/179 [00:00<00:00, 842.98it/s]
+2026-09-21 12:17:16,247 [INFO] Running held-out geometry & cross-decoding analysis across 16 layers (has_matched=True)...
+2026-09-21 12:17:16,247 [INFO]   Evaluating layer 0/15 (d=0.00)...
+2026-09-21 12:17:38,606 [INFO]   Evaluating layer 5/15 (d=0.33)...
+2026-09-21 12:17:59,499 [INFO]   Evaluating layer 10/15 (d=0.67)...
+2026-09-21 12:18:20,869 [INFO]   Evaluating layer 15/15 (d=1.00)...
+2026-09-21 12:18:25,062 [INFO] [v2:v2_rq1_decodability_preservation] Sequentially saved result to v2/results/raw/v2_rq1_decodability_preservation_olmo.json (success=True)
+2026-09-21 12:18:25,064 [INFO] [v2:v2_rq2_geometry_transformation] Sequentially saved result to v2/results/raw/v2_rq2_geometry_transformation_olmo.json (success=True)
+2026-09-21 12:18:25,069 [INFO] Saved family results to v2/results/raw/v2_geometry_olmo.json, v2/results/raw/v2_rq1_decodability_preservation_olmo.json, and v2/results/raw/v2_rq2_geometry_transformation_olmo.json
+2026-09-21 12:18:25,228 [INFO] All done! Integrated summary with Bootstrap CIs saved to v2/results/derived/v2_cross_family_summary.json
+2026-09-21 12:18:26,377 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v2/primary/run_rq3_causal_map.py --models-config configs/models.yaml --model-set primary_small --device cuda:0
+2026-09-21 12:18:31,909 [INFO] Starting V2-RQ3 Causal Map analysis (dry_run=False, device=cuda:0)
+2026-09-21 12:18:31,919 [INFO] V2-RQ3 dataset: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-21 12:18:31,926 [INFO] --- Running Causal Maps for Family: qwen (28 layers) ---
+2026-09-21 12:18:31,926 [INFO] Loading weights for Qwen/Qwen2.5-1.5B (plain) onto cuda:0...
+2026-09-21 12:18:32,140 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B/tree/8faed761d45a263340a0528343f099c05c9a4323/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-21 12:18:32,325 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B/tree/8faed761d45a263340a0528343f099c05c9a4323?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-21 12:18:32,664 [INFO] HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B "HTTP/1.1 200 OK"
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:  56%|█████▌    | 189/338 [00:00<00:00, 1888.89it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 1811.23it/s]
+2026-09-21 12:18:33,556 [INFO] Causal patching for base_plain_reader...
+Traceback (most recent call last):
+  File "/mnt/nas/home/hiromi/src/emo2/v2/primary/run_rq3_causal_map.py", line 883, in <module>
+    main()
+  File "/mnt/nas/home/hiromi/src/emo2/v2/primary/run_rq3_causal_map.py", line 596, in main
+    res = run_causal_patching_for_model(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/nas/home/hiromi/src/emo2/v2/primary/run_rq3_causal_map.py", line 230, in run_causal_patching_for_model
+    log_clean, probs_clean = compute_sequence_likelihoods_for_candidates(
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/nas/home/hiromi/src/emo2/src/affective_empathy_eval/likelihood.py", line 450, in compute_sequence_likelihoods_for_candidates
+    full_ids, c_start = prepare_joint_sequence_with_boundary(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/nas/home/hiromi/src/emo2/src/affective_empathy_eval/likelihood.py", line 329, in prepare_joint_sequence_with_boundary
+    raise ValueError(
+ValueError: Strict prefix property violated across boundary for candidate: {"valence":1,"arousa... Prompt ids (98): [2582, 25, 220], Full ids prefix: [2582, 25, 5212]
+2026-09-21 12:18:34,561 [ERROR] Command failed with exit code 1: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v2/primary/run_rq3_causal_map.py --models-config configs/models.yaml --model-set primary_small --device cuda:0

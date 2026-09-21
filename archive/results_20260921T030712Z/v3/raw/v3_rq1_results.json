@@ -1,0 +1,155 @@
+{
+  "pilot": false,
+  "dry_run": false,
+  "sample_size": 192,
+  "target_layer": 14,
+  "requested_relative_depth": 0.5,
+  "resolved_relative_depth": 0.5185185185185185,
+  "relative_depth": 0.5185185185185185,
+  "results": {
+    "affect_direction_grounding": "reader_prediction",
+    "num_random_controls": 5,
+    "alignment_reader_vs_self_directions": {
+      "valence": 0.8413475791804009,
+      "arousal": 0.9493200242611435
+    },
+    "alpha_grid": [
+      -1.0,
+      -0.5,
+      0.0,
+      0.5,
+      1.0
+    ],
+    "dose_response_v": [
+      -0.0015208799606763754,
+      -0.0019945552292408805,
+      0.0,
+      0.0004284448262945223,
+      0.0011443167055317802
+    ],
+    "dose_response_a": [
+      -0.0003739443130045989,
+      -0.00014225463453344561,
+      0.0,
+      0.0001784696493682039,
+      0.00012283600734290187
+    ],
+    "slope_v": 0.0015506786775903428,
+    "slope_a": 0.00026285698491933024,
+    "slope_v_ci": {
+      "point": 0.0015506786775903428,
+      "ci_lower": 0.0007353777065004091,
+      "ci_upper": 0.0023839060028701294
+    },
+    "slope_a_ci": {
+      "point": 0.00026285698491933024,
+      "ci_lower": 4.7781381210879556e-05,
+      "ci_upper": 0.0004961068014856724
+    },
+    "specificity_v": -0.0008916713553690245,
+    "specificity_a": -0.00027718997360392535,
+    "specificity_v_ci": {
+      "point": -0.0008916713553690245,
+      "ci_lower": -0.001895555025715568,
+      "ci_upper": 0.00020516480512830685
+    },
+    "specificity_a_ci": {
+      "point": -0.00027718997360392535,
+      "ci_lower": -0.0005435456992939088,
+      "ci_upper": -6.808128990444792e-06
+    },
+    "specificity_diff": -0.0008916713553690245,
+    "specificity_diff_ci": {
+      "point": -0.0008916713553690245,
+      "ci_lower": -0.001895555025715568,
+      "ci_upper": 0.00020516480512830685
+    },
+    "specificity_vs_random_ci": {
+      "point": -0.00010756640519335076,
+      "ci_lower": -0.0011389937175807635,
+      "ci_upper": 0.0009719488848300446
+    },
+    "specificity_vs_orthogonal_ci": {
+      "point": -3.254428038076735e-07,
+      "ci_lower": -0.0008960084045729156,
+      "ci_upper": 0.0010935705711911225
+    },
+    "attenuation_ratio_v": 0.015649187489380923,
+    "attenuation_ratio_a": 0.005882559101949133,
+    "attenuation_ratio_v_ci": {
+      "point": 0.015649187489380923,
+      "ci_lower": -0.01559707859555012,
+      "ci_upper": 0.046754391246645086
+    },
+    "attenuation_ratio_a_ci": {
+      "point": 0.005882559101949133,
+      "ci_lower": -0.00077952684786142,
+      "ci_upper": 0.01340166600828539
+    },
+    "attenuation_ratio": 0.015649187489380923,
+    "attenuation_ratio_ci": {
+      "point": 0.015649187489380923,
+      "ci_lower": -0.01559707859555012,
+      "ci_upper": 0.046754391246645086
+    },
+    "topic_tvd_v": 0.0037974735402557247,
+    "topic_tvd_a": 0.003349623932589001,
+    "topic_tvd_v_ci": {
+      "point": 0.0037974735402557247,
+      "ci_lower": 0.003144871737315806,
+      "ci_upper": 0.004443760606776953
+    },
+    "topic_tvd_a_ci": {
+      "point": 0.003349623932589001,
+      "ci_lower": 0.002792540951265787,
+      "ci_upper": 0.003991190093567447
+    },
+    "task_selectivity": {
+      "effect_self": 0.0012455611600692494,
+      "effect_control": 0.0037974735402557247,
+      "topic_tvd": 0.0037974735402557247,
+      "topic_tvd_ci": {
+        "point": 0.0037974735402557247,
+        "ci_lower": 0.003144871737315806,
+        "ci_upper": 0.004443760606776953
+      },
+      "self_minus_control_ci": {
+        "point": -0.002551912380186475,
+        "ci_lower": -0.0031703710586432022,
+        "ci_upper": -0.0018751800300168412
+      },
+      "note": "Topic TVD is a non-specific perturbation control, not a same-construct effect size comparable to Self VA shift.",
+      "pattern": "nonspecific_perturbation_small"
+    }
+  },
+  "gate_decision": {
+    "dose_response_v_pass": false,
+    "dose_response_a_pass": false,
+    "dose_response_pass": false,
+    "slope_v_ci_lower": 0.0007353777065004091,
+    "slope_a_ci_lower": 4.7781381210879556e-05,
+    "specificity_v_pass": false,
+    "specificity_a_pass": false,
+    "specificity_pass": false,
+    "specificity_v_ci_lower": -0.001895555025715568,
+    "specificity_a_ci_lower": -0.0005435456992939088,
+    "endogenous_relevance_v_pass": false,
+    "endogenous_relevance_a_pass": false,
+    "endogenous_relevance_pass": false,
+    "endogenous_relevance_v_ci_lower": -0.01559707859555012,
+    "endogenous_relevance_a_ci_lower": -0.00077952684786142,
+    "necessity_v_pass": false,
+    "necessity_a_pass": false,
+    "necessity_pass": false,
+    "necessity_v_ci_lower": -0.01559707859555012,
+    "necessity_a_ci_lower": -0.00077952684786142,
+    "topic_v_pass": true,
+    "topic_a_pass": true,
+    "topic_control_pass": true,
+    "topic_tvd_v_ci_upper": 0.004443760606776953,
+    "topic_tvd_a_ci_upper": 0.003991190093567447,
+    "decision_valence": "NO_GO",
+    "decision_arousal": "NO_GO",
+    "decision": "NO_GO"
+  }
+}

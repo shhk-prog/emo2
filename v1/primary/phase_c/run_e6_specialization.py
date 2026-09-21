@@ -33,6 +33,7 @@ except ImportError:  # --dry-run は transformers 未導入環境でも起動で
     AutoModelForCausalLM = None  # type: ignore[misc, assignment]
     AutoTokenizer = None  # type: ignore[misc, assignment]
 
+from affective_empathy_eval.io import is_experiment_completed, save_experiment_result
 from affective_empathy_eval.intervention import PyTorchActivationPatcher
 from affective_empathy_eval.likelihood import build_vad_candidates
 from affective_empathy_eval.manifests import create_run_manifest
@@ -350,53 +351,6 @@ def main():
     if not aipsy_check_path.exists():
         aipsy_check_path = Path("data/processed/aipsy_4split_all.csv")
 
-    from affective_empathy_eval.manifests import (
-        is_manifest_matching,
-        compute_file_hash,
-        compute_string_or_dict_hash,
-    )
-
-    dataset_hash = compute_file_hash(aipsy_check_path) if aipsy_check_path.exists() else "unknown"
-
-    manifest_config = {
-        "model_prefix": args.model_prefix,
-        "model_id": args.model_id,
-        "model_revision": args.model_revision or "main",
-        "reader_layer": args.reader_layer,
-        "self_layer": args.self_layer,
-        "ablation_type": args.ablation_type,
-        "split_eval": args.split_eval,
-        "split_seed": args.split_seed,
-        "limit": args.limit,
-        "dataset_hash": dataset_hash,
-    }
-    expected_config_hash = compute_string_or_dict_hash(manifest_config)
-
-    # Early skip if already completed and valid
-    from affective_empathy_eval.io import save_experiment_result, is_experiment_completed
-
-    modular_e6_json = os.path.join(model_dir, f"v1_e6_double_dissociation_{args.model_prefix}.json")
-    manifest_path = os.path.join(model_dir, "manifest_e6.json")
-    lmm_path = os.path.join(model_dir, "e6_lmm_results.json")
-
-    if not args.force and not args.dry_run and os.path.exists(manifest_path):
-        manifest_valid = is_manifest_matching(
-            manifest_path=manifest_path,
-            expected_model_name=args.model_id,
-            expected_config_hash=expected_config_hash,
-            expected_dataset_hash=dataset_hash,
-            expected_model_revision=args.model_revision,
-            expected_dry_run=False,
-        )
-        if manifest_valid:
-            target_check = modular_e6_json if os.path.exists(modular_e6_json) else lmm_path
-            if is_experiment_completed(target_check, manifest_path=manifest_path):
-                print(
-                    f"[SKIP] Validated Phase C E6 results matching manifest found in {model_dir}. "
-                    f"Skipping computation for {args.model_prefix}. Use --force to rerun."
-                )
-                return
-
     try:
         num_layers, _ = resolve_architecture_dims(args.model_id)
     except Exception as ex:
@@ -405,8 +359,17 @@ def main():
         )
         raise
 
+    from affective_empathy_eval.manifests import (
+        is_manifest_matching,
+        compute_file_hash,
+        compute_string_or_dict_hash,
+    )
+
+    dataset_hash = compute_file_hash(aipsy_check_path) if aipsy_check_path.exists() else "unknown"
+
     # 動的レイヤー決定 (E3 Discovery 結果または指定)
     e3_csv_path = args.e3_csv or os.path.join(model_dir, "e3_causal_map.csv")
+    e3_hash = compute_file_hash(e3_csv_path) if os.path.exists(e3_csv_path) else "unknown"
     site_selection_method = "manual"
     selectivity_info: Dict[str, Any] = {}
 
@@ -438,7 +401,7 @@ def main():
                 "has_crossover": False,
             }
             save_experiment_result(
-                output_path=modular_e6_json,
+                output_path=os.path.join(model_dir, f"v1_e6_double_dissociation_{args.model_prefix}.json"),
                 payload=negative_result,
                 stage="v1",
                 experiment_id="v1_e6_double_dissociation",
@@ -454,8 +417,12 @@ def main():
                 model_revision=args.model_revision or "main",
                 config={
                     "model_prefix": args.model_prefix,
+                    "model_id": args.model_id,
+                    "model_revision": args.model_revision or "main",
                     "site_selection_method": site_selection_method,
                     "split_eval": args.split_eval,
+                    "dataset_hash": dataset_hash,
+                    "e3_hash": e3_hash,
                     "dry_run": args.dry_run,
                 },
                 metadata=negative_result,
@@ -466,13 +433,52 @@ def main():
                 dry_run=args.dry_run,
             )
             manifest.save(os.path.join(model_dir, "manifest_e6.json"))
-            print(f"Recorded negative result to {model_dir}/e6_lmm_results.json and {modular_e6_json}")
+            print(f"Recorded negative result to {model_dir}/e6_lmm_results.json")
             return
 
         if args.reader_layer is None:
             args.reader_layer = r_l
         if args.self_layer is None:
             args.self_layer = s_l
+
+    manifest_config = {
+        "model_prefix": args.model_prefix,
+        "model_id": args.model_id,
+        "model_revision": args.model_revision or "main",
+        "reader_layer": args.reader_layer,
+        "self_layer": args.self_layer,
+        "site_selection_method": site_selection_method,
+        "ablation_type": args.ablation_type,
+        "split_eval": args.split_eval,
+        "split_seed": args.split_seed,
+        "limit": args.limit,
+        "dataset_hash": dataset_hash,
+        "e3_hash": e3_hash,
+    }
+    expected_config_hash = compute_string_or_dict_hash(manifest_config)
+
+    # Early skip if already completed and valid
+    modular_e6_json = os.path.join(model_dir, f"v1_e6_double_dissociation_{args.model_prefix}.json")
+    manifest_path = os.path.join(model_dir, "manifest_e6.json")
+    lmm_path = os.path.join(model_dir, "e6_lmm_results.json")
+
+    if not args.force and not args.dry_run and os.path.exists(manifest_path):
+        manifest_valid = is_manifest_matching(
+            manifest_path=manifest_path,
+            expected_model_name=args.model_id,
+            expected_config_hash=expected_config_hash,
+            expected_dataset_hash=dataset_hash,
+            expected_model_revision=args.model_revision,
+            expected_dry_run=False,
+        )
+        if manifest_valid:
+            target_check = modular_e6_json if os.path.exists(modular_e6_json) else lmm_path
+            if is_experiment_completed(target_check, manifest_path=manifest_path):
+                print(
+                    f"[SKIP] Validated Phase C E6 results matching manifest found in {model_dir}. "
+                    f"Skipping computation for {args.model_prefix}. Use --force to rerun."
+                )
+                return
 
     print(
         f"=== Starting V1 Phase C E6 Causal Specialization: {args.model_id} ==="
@@ -891,16 +897,8 @@ def main():
         run_type="v1_phase_c_e6_specialization",
         model_name=args.model_id,
         model_revision=args.model_revision or "main",
-        config={
-            "model_prefix": args.model_prefix,
-            "reader_layer": args.reader_layer,
-            "self_layer": args.self_layer,
-            "site_selection_method": site_selection_method,
-            "ablation_type": args.ablation_type,
-            "split_eval": args.split_eval,
-            "split_seed": args.split_seed,
-            "limit": args.limit,
-        },
+        config=manifest_config,
+        dataset_hash=dataset_hash,
         metadata=stat_results,
         candidate_space="VAD_729",
         measurement_space="VA_expectation_from_VAD_729",

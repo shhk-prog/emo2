@@ -1,0 +1,26 @@
+==================================================================
+Starting Production V1 Pipeline Evaluation
+Timestamp : 2026-09-21T02:52:57Z
+Device    : cuda:0
+Python    : /mnt/nas/home/hiromi/src/emo2/.venv/bin/python
+Python Ver: Python 3.12.3
+Pip Ver   : 
+Git SHA   : 6ce8318b3058ff12385dc5b26ebe8c85de2c4d1d
+uv.lock   : 5c6343d85ce02a529c05cb796a7a0cca6bfd1558fef8750d6c692e37258631d9
+Extra Args: --family gemma
+Log File  : results/logs/production_v1_20260921_115257.log
+Cohort    : primary_small (4 families, 8 models)
+Pipeline  : Phase A -> Phase B -> Phase C (E3/E4) -> E6 -> Summarize
+Data Scale: Full production CSVs (actual counts logged by the Python runner)
+Runtime   : unmeasured (do not use pre-benchmark hour estimates)
+==================================================================
+2026-09-21 11:53:02,639 [INFO] Affective Empathy Evaluation Unified Runner
+2026-09-21 11:53:02,640 [INFO] Stage: v1 | Cohort: primary_small | Dry-run: False
+2026-09-21 11:53:02,640 [INFO] Wall-clock estimates are unmeasured until a Qwen-family benchmark is recorded.
+2026-09-21 11:53:02,640 [INFO] Dataset inventory (actual loaded counts; wall-clock time is unmeasured):
+2026-09-21 11:53:02,654 [INFO] EmoBank 3-way: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-21 11:53:02,665 [INFO] AIPsy 4-split: n_rows=480 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=480 | split_counts={'clinical': 192, 'neutral': 192, 'moderate': 48, 'complex_neutral': 48}
+2026-09-21 11:53:02,677 [INFO] V1 Phase B rule-based controls: n_rows=192 | path=v1/data/processed/v1_e5_semantic_controls.csv | n_unique_pair_id=192
+2026-09-21 11:53:02,677 [INFO] === Running V1 Stage Pipeline (model-set: primary_small) ===
+2026-09-21 11:53:02,681 [INFO] --- Running V1 Pipeline for gemma_base (google/gemma-3-1b-pt, revision=fcf18a2a879aab110ca39f8bffbccd5d49d8eb29) ---
+2026-09-21 11:53:02,681 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v1/primary/run_phase_a.py --model-id google/gemma-3-1b-pt --model-prefix gemma_base --device cuda:0 --model-revision fcf18a2a879aab110ca39f8bffbccd5d49d8eb29

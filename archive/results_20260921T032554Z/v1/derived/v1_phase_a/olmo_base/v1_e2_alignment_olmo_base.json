@@ -1,0 +1,241 @@
+{
+  "execution_status": "success",
+  "execution_success": true,
+  "stage": "v1",
+  "experiment_id": "v1_e2_alignment",
+  "completed_at": "2026-09-21T03:09:55.091421+00:00",
+  "metadata": {
+    "model_id": "allenai/OLMo-2-0425-1B",
+    "model_prefix": "olmo_base"
+  },
+  "model_id": "allenai/OLMo-2-0425-1B",
+  "model_prefix": "olmo_base",
+  "results": {
+    "alignment": [
+      {
+        "layer": 0,
+        "relative_depth": 0.0,
+        "target": "Valence_human",
+        "r2_aligned_transfer": 0.04714261213740312,
+        "geometry_pattern": "Operational: Task-Divergent Geometry"
+      },
+      {
+        "layer": 0,
+        "relative_depth": 0.0,
+        "target": "Arousal_human",
+        "r2_aligned_transfer": -0.008693011279842455,
+        "geometry_pattern": "Operational: Task-Divergent Geometry"
+      },
+      {
+        "layer": 1,
+        "relative_depth": 0.06666666666666667,
+        "target": "Valence_human",
+        "r2_aligned_transfer": 0.11185441288016806,
+        "geometry_pattern": "Operational: Task-Divergent Geometry"
+      },
+      {
+        "layer": 1,
+        "relative_depth": 0.06666666666666667,
+        "target": "Arousal_human",
+        "r2_aligned_transfer": 0.023754638365492742,
+        "geometry_pattern": "Operational: Task-Divergent Geometry"
+      },
+      {
+        "layer": 2,
+        "relative_depth": 0.13333333333333333,
+        "target": "Valence_human",
+        "r2_aligned_transfer": 0.09836235556789619,
+        "geometry_pattern": "Operational: Task-Divergent Geometry"
+      },
+      {
+        "layer": 2,
+        "relative_depth": 0.13333333333333333,
+        "target": "Arousal_human",
+        "r2_aligned_transfer": 0.009062712247696836,
+        "geometry_pattern": "Operational: Task-Divergent Geometry"
+      },
+      {
+        "layer": 3,
+        "relative_depth": 0.2,
+        "target": "Valence_human",
+        "r2_aligned_transfer": 0.10455627265087741,
+        "geometry_pattern": "Operational: Task-Divergent Geometry"
+      },
+      {
+        "layer": 3,
+        "relative_depth": 0.2,
+        "target": "Arousal_human",
+        "r2_aligned_transfer": 0.009365383338790001,
+        "geometry_pattern": "Operational: Task-Divergent Geometry"
+      },
+      {
+        "layer": 4,
+        "relative_depth": 0.26666666666666666,
+        "target": "Valence_human",
+        "r2_aligned_transfer": 0.12183312968977533,
+        "geometry_pattern": "Operational: Task-Divergent Geometry"
+      },
+      {
+        "layer": 4,
+        "relative_depth": 0.26666666666666666,
+        "target": "Arousal_human",
+        "r2_aligned_transfer": -0.003121503694905936,
+        "geometry_pattern": "Operational: Task-Divergent Geometry"
+      },
+      {
+        "layer": 5,
+        "relative_depth": 0.3333333333333333,
+        "target": "Valence_human",
+        "r2_aligned_transfer": 0.15322551981489496,
+        "geometry_pattern": "Operational: Task-Divergent Geometry"
+      },
+      {
+        "layer": 5,
+        "relative_depth": 0.3333333333333333,
+        "target": "Arousal_human",
+        "r2_aligned_transfer": 0.0026009706059451076,
+        "geometry_pattern": "Operational: Task-Divergent Geometry"
+      },
+      {
+        "layer": 6,
+        "relative_depth": 0.4,
+        "target": "Valence_human",
+        "r2_aligned_transfer": 0.1476356083701592,
+        "geometry_pattern": "Operational: Task-Divergent Geometry"
+      },
+      {
+        "layer": 6,
+        "relative_depth": 0.4,
+        "target": "Arousal_human",
+        "r2_aligned_transfer": -0.0038099799196777973,
+        "geometry_pattern": "Operational: Task-Divergent Geometry"
+      },
+      {
+        "layer": 7,
+        "relative_depth": 0.4666666666666667,
+        "target": "Valence_human",
+        "r2_aligned_transfer": 0.3633354066310245,
+        "geometry_pattern": "Operational: Alignable Geometry"
+      },
+      {
+        "layer": 7,
+        "relative_depth": 0.4666666666666667,
+        "target": "Arousal_human",
+        "r2_aligned_transfer": 0.05194897816180166,
+        "geometry_pattern": "Operational: Task-Divergent Geometry"
+      },
+      {
+        "layer": 8,
+        "relative_depth": 0.5333333333333333,
+        "target": "Valence_human",
+        "r2_aligned_transfer": 0.34153654694420876,
+        "geometry_pattern": "Operational: Alignable Geometry"
+      },
+      {
+        "layer": 8,
+        "relative_depth": 0.5333333333333333,
+        "target": "Arousal_human",
+        "r2_aligned_transfer": 0.057313925272258315,
+        "geometry_pattern": "Operational: Task-Divergent Geometry"
+      },
+      {
+        "layer": 9,
+        "relative_depth": 0.6,
+        "target": "Valence_human",
+        "r2_aligned_transfer": 0.3483026450417458,
+        "geometry_pattern": "Operational: Alignable Geometry"
+      },
+      {
+        "layer": 9,
+        "relative_depth": 0.6,
+        "target": "Arousal_human",
+        "r2_aligned_transfer": 0.08572486646890076,
+        "geometry_pattern": "Operational: Task-Divergent Geometry"
+      },
+      {
+        "layer": 10,
+        "relative_depth": 0.6666666666666666,
+        "target": "Valence_human",
+        "r2_aligned_transfer": 0.31962372673761197,
+        "geometry_pattern": "Operational: Alignable Geometry"
+      },
+      {
+        "layer": 10,
+        "relative_depth": 0.6666666666666666,
+        "target": "Arousal_human",
+        "r2_aligned_transfer": 0.06139120539234144,
+        "geometry_pattern": "Operational: Task-Divergent Geometry"
+      },
+      {
+        "layer": 11,
+        "relative_depth": 0.7333333333333333,
+        "target": "Valence_human",
+        "r2_aligned_transfer": 0.38925220923279236,
+        "geometry_pattern": "Operational: Alignable Geometry"
+      },
+      {
+        "layer": 11,
+        "relative_depth": 0.7333333333333333,
+        "target": "Arousal_human",
+        "r2_aligned_transfer": 0.07769497149588578,
+        "geometry_pattern": "Operational: Task-Divergent Geometry"
+      },
+      {
+        "layer": 12,
+        "relative_depth": 0.8,
+        "target": "Valence_human",
+        "r2_aligned_transfer": 0.3621924816155191,
+        "geometry_pattern": "Operational: Alignable Geometry"
+      },
+      {
+        "layer": 12,
+        "relative_depth": 0.8,
+        "target": "Arousal_human",
+        "r2_aligned_transfer": 0.04531079325118326,
+        "geometry_pattern": "Operational: Task-Divergent Geometry"
+      },
+      {
+        "layer": 13,
+        "relative_depth": 0.8666666666666667,
+        "target": "Valence_human",
+        "r2_aligned_transfer": 0.3774070047207626,
+        "geometry_pattern": "Operational: Alignable Geometry"
+      },
+      {
+        "layer": 13,
+        "relative_depth": 0.8666666666666667,
+        "target": "Arousal_human",
+        "r2_aligned_transfer": 0.06972161301683799,
+        "geometry_pattern": "Operational: Task-Divergent Geometry"
+      },
+      {
+        "layer": 14,
+        "relative_depth": 0.9333333333333333,
+        "target": "Valence_human",
+        "r2_aligned_transfer": 0.42279320416187316,
+        "geometry_pattern": "Operational: Alignable Geometry"
+      },
+      {
+        "layer": 14,
+        "relative_depth": 0.9333333333333333,
+        "target": "Arousal_human",
+        "r2_aligned_transfer": 0.075384559270807,
+        "geometry_pattern": "Operational: Task-Divergent Geometry"
+      },
+      {
+        "layer": 15,
+        "relative_depth": 1.0,
+        "target": "Valence_human",
+        "r2_aligned_transfer": 0.41068502970327303,
+        "geometry_pattern": "Operational: Alignable Geometry"
+      },
+      {
+        "layer": 15,
+        "relative_depth": 1.0,
+        "target": "Arousal_human",
+        "r2_aligned_transfer": 0.06781580305340984,
+        "geometry_pattern": "Operational: Task-Divergent Geometry"
+      }
+    ]
+  }
+}

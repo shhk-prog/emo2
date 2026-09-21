@@ -61,7 +61,10 @@ Phase C  因果
 - **独立セッション**: Reader と Self は別フォワードパス。
 - **モデル正本**: `configs/models.yaml` の `primary_small`。
   - Qwen 2.5 1.5B / Llama 3.2 1B / Gemma 3 1B / OLMo 2 1B × Base / Instruct
-- **単独実行のモデル指定**: `--model-id` または `--family` が必須。Qwen ID への暗黙 default は禁止。
+  - 各 variant に pinned `*_revision` SHA と `inference_dtype: bfloat16`
+- **実験設定正本**: `configs/v1_experiments.yaml`。`sequence_likelihood.normalize_length: true`、`temperature: 1.0`。Phase A は `cv_folds: 5`、Phase C は `alphas: [0.0, 0.5, 1.0, 2.0]`
+- **単独実行のモデル指定**: `--model-id` または `--family` が必須。Qwen ID への暗黙 default は禁止。本番は `--model-revision` 未指定なら registry から解決し、解決できなければ落ちる。
+- **キャッシュ再計算**: `--force` で有効 manifest があっても再計算する。
 - **データ役割**: EmoBank test1k は連続 VA ラベル（Phase A）。AIPsy は条件ラベルと matched-neutral（Phase A / C / E4）。Phase B は専用統制 CSV。V3 と同じ AIPsy ファイルを使っても、V1 は Reader↔Self の内部比較であり、V3 の状態誘導ゲートとは指標を混ぜない。
 - **Phase A 評価マスク**: `evaluated_mask` を適用し、スキップされた fold のサンプルが暗黙の 0 予測としてメトリクスに混入しないよう評価。
 - **厳密な中断再開とキャッシュ**: E3/E4 の途中 CSV は `checkpoint_manifest.json`（config_hash, model_revision, prompt_hash 等）が完全一致する場合のみ再開。activation cache は全プロンプトの完全ハッシュおよび環境情報と照合。
@@ -123,6 +126,10 @@ Secondary はモデル自身の $E[V], E[A]$ への回帰であり、主結論�
 データ: `v1/data/processed/v1_e5_semantic_controls.csv`（実件数はログ）  
 生成: `v1/primary/prepare_v1_phase_b_controls.py`
 
+統合 CLI / `run_production_v1.sh` は Phase B を **2 回**呼ぶ。`--task-type reader` のあと `--task-type self`。単独実行の `--task-type` 既定は `reader` だけなので、片方だけでは本番と同じ成果物にならない。
+
+出力階層は `v1/results/derived/v1_phase_b/{reader|self}/{prefix}/`。`--dry-run` 時は `v1_phase_b/dry_run/{task_type}/{prefix}/`。
+
 **問い**: Phase A で読めた表現は、語彙ショートカットではなく文脈・構成に追従するか。
 
 統制は **rule-based controlled perturbation** である。LLM による言い換えや大規模な意味空間摂動（semantic perturbation）ではない。論文では後者の語を使わない。
@@ -164,6 +171,8 @@ $$
 補助モジュール: `run_e3_causal_map.py`, `select_e4_sites.py`, `run_e4_interchangeability.py`（`run_phase_c.py` から呼ぶ）。
 
 Discovery / Confirmation は 50:50。pair の derangement を用い、探索で見たペアを確認に再使用しない。
+
+`--all-layers` を付けると E3 は全層を探索する。`run_production_v1.sh` は常にこれを付ける。統合 CLI は明示したときだけ。未指定時の層集合は `run_phase_c.py` の既定（`--layers` / YAML）に従う。`--force` は checkpoint / cache を無視する。
 
 ### 6.1 E3 Shared Causal Map
 
@@ -268,7 +277,7 @@ v1/
 └── results/                 # derived / cache。再実行前は .gitkeep 以外をクリア
     └── derived/
         ├── v1_phase_a/{prefix}/
-        ├── v1_phase_b/{prefix}/
+        ├── v1_phase_b/{reader|self}/{prefix}/
         ├── v1_phase_c_prompt_end/{prefix}/
         └── v1_phase_c_summary/
 ```
@@ -298,21 +307,23 @@ E6 は E3 Discovery CSV を読む。無いときは heuristic 層へ落とさず
 bash scripts/run_production_v1.sh cuda:0
 ```
 
-統合 CLI（`primary_small` の 8 モデルを Phase A → B → C → E6 → summarize）:
+`scripts/run_production_v1.sh` は統制 CSV が無ければ生成し、統合 CLI に **常に `--all-layers`** を付ける。第2引数以降は `EXTRA_ARGS`（`--force` 等）。
+
+統合 CLI（`primary_small` の 8 モデルを Phase A → B(reader) → B(self) → C → E6 → summarize）:
 
 ```bash
-python -m affective_empathy_eval.run --stage v1 --model-set primary_small --device cuda:0
+python -m affective_empathy_eval.run --stage v1 --model-set primary_small --device cuda:0 --all-layers
 ```
 
 1 family だけ:
 
 ```bash
-python -m affective_empathy_eval.run --stage v1 --model-set primary_small --family qwen --device cuda:0
+python -m affective_empathy_eval.run --stage v1 --model-set primary_small --family qwen --device cuda:0 --all-layers
 ```
 
 ### 8.1 単独実行
 
-`--model-id` か `--family` が無いと落ちる。
+`--model-id` か `--family` が無いと落ちる。Phase B は `--task-type` を明示する。Phase C の本番相当は `--all-layers`。
 
 ```bash
 python v1/primary/run_phase_a.py \
@@ -321,18 +332,21 @@ python v1/primary/run_phase_a.py \
 
 python v1/primary/run_phase_b.py \
     --family qwen --is-instruct \
-    --relative-depth 0.5 --device cuda:0
+    --task-type reader --relative-depth 0.5 --device cuda:0
+python v1/primary/run_phase_b.py \
+    --family qwen --is-instruct \
+    --task-type self --relative-depth 0.5 --device cuda:0
 
 python v1/primary/run_phase_c.py \
     --family qwen --is-instruct \
-    --device cuda:0
+    --all-layers --device cuda:0
 
 python v1/primary/phase_c/run_e6_specialization.py \
     --family qwen --is-instruct \
     --device cuda:0
 ```
 
-`--limit` / `--dry-run` は確認用。本番では limit を付けない。
+`--limit` / `--dry-run` は確認用。本番では limit を付けない。`--force` はキャッシュを無視する。
 
 ---
 

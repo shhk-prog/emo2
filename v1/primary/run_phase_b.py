@@ -100,7 +100,9 @@ def format_prompt(
             )
         except Exception:
             return tokenizer.apply_chat_template(
-                messages, tokenize=False, add_generation_prompt=True
+                [{"role": "user", "content": user_content}],
+                tokenize=False,
+                add_generation_prompt=True,
             )
     else:
         return (

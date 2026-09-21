@@ -795,14 +795,7 @@ def main():
         pd.DataFrame(e1_records).to_csv(
             os.path.join(model_dir, "e1_emobank_decodability.csv"), index=False
         )
-        save_experiment_result(
-            os.path.join(model_dir, f"v1_e1_decodability_{args.model_prefix}.json"),
-            {"emobank": e1_records},
-            stage="v1",
-            experiment_id="v1_e1_decodability",
-            success=True,
-            metadata={"model_id": args.model_id, "model_prefix": args.model_prefix, "is_instruct": is_instruct},
-        )
+
 
         e2_cd_records = [
             {"layer": l, "relative_depth": l / (dummy_layers - 1), "target": "Valence_human", "direct_transfer_score": 0.5, "direct_transfer_score_raw": 0.5, "direct_transfer_score_clipped": 0.5}
@@ -911,6 +904,21 @@ def main():
         pd.DataFrame(aipsy_sec_records).to_csv(
             os.path.join(model_dir, "e1_aipsy_emotion_secondary.csv"), index=False
         )
+        e1_dry_payload = {}
+        if args.dataset in {"emobank", "both"}:
+            e1_dry_payload["emobank"] = e1_records
+        if args.dataset in {"aipsy", "both"}:
+            e1_dry_payload["aipsy_primary"] = aipsy_records
+            e1_dry_payload["aipsy_intensity"] = aipsy_intensity_records
+            e1_dry_payload["aipsy_secondary"] = aipsy_sec_records
+        save_experiment_result(
+            os.path.join(model_dir, f"v1_e1_decodability_{args.model_prefix}.json"),
+            e1_dry_payload,
+            stage="v1",
+            experiment_id="v1_e1_decodability",
+            success=True,
+            metadata={"model_id": args.model_id, "model_prefix": args.model_prefix, "is_instruct": is_instruct, "dataset": args.dataset},
+        )
         dry_cfg = dict(manifest_config)
         dry_cfg["dry_run"] = True
         manifest = create_run_manifest(
@@ -959,6 +967,7 @@ def main():
     model.eval()
 
     num_layers = model.config.num_hidden_layers
+    e1_payload = {}
 
     # Part 1: EmoBank
     if args.dataset in ["emobank", "both"]:
@@ -997,7 +1006,13 @@ def main():
         num_layers = len(reps_r)
         y_human_v = df_emobank["reader_V"].values
         y_human_a = df_emobank["reader_A"].values
-        group_ids = df_emobank["id"].values
+        content_groups = (
+            df_emobank["text"]
+            .astype(str)
+            .str.normalize("NFKC")
+            .str.strip()
+        )
+        group_ids = content_groups.values
 
         e1_emobank_records = []
         e2_emobank_records = []
@@ -1069,15 +1084,8 @@ def main():
                 os.path.join(model_dir, "e2_emobank_geometry.csv"), index=False
             )
 
-        from affective_empathy_eval.io import save_experiment_result
-        save_experiment_result(
-            os.path.join(model_dir, f"v1_e1_decodability_{args.model_prefix}.json"),
-            {"emobank": e1_emobank_records},
-            stage="v1",
-            experiment_id="v1_e1_decodability",
-            success=True,
-            metadata={"model_id": args.model_id, "model_prefix": args.model_prefix, "is_instruct": is_instruct},
-        )
+        if e1_emobank_records:
+            e1_payload["emobank"] = e1_emobank_records
 
         e2_cd_records = [
             {"layer": r["layer"], "relative_depth": r["relative_depth"], "target": r["target"], "direct_transfer_score": r.get("direct_transfer_score"), "direct_transfer_score_raw": r.get("direct_transfer_score_raw"), "direct_transfer_score_clipped": r.get("direct_transfer_score_clipped")}
@@ -1289,20 +1297,23 @@ def main():
                     df_e1_sec.to_csv(
                         os.path.join(model_dir, "e1_aipsy_emotion_secondary.csv"), index=False
                     )
-                    print(f"Saved Secondary AIPsy Emotion Decoding to {os.path.join(model_dir, 'v1_e1_aipsy_emotion_secondary.csv')}")
+        if "e1_aipsy_records" in locals() and e1_aipsy_records:
+            e1_payload["aipsy_primary"] = e1_aipsy_records
+        if "e1_intensity_records" in locals() and e1_intensity_records:
+            e1_payload["aipsy_intensity"] = e1_intensity_records
+        if "e1_sec_records" in locals() and e1_sec_records:
+            e1_payload["aipsy_secondary"] = e1_sec_records
 
-        from affective_empathy_eval.io import save_experiment_result
+    # Save aggregated E1 decodability JSON once at the end of Phase A
+    from affective_empathy_eval.io import save_experiment_result
+    if e1_payload:
         save_experiment_result(
             os.path.join(model_dir, f"v1_e1_decodability_{args.model_prefix}.json"),
-            {
-                "aipsy_primary": e1_aipsy_records if "e1_aipsy_records" in locals() else [],
-                "aipsy_intensity": e1_intensity_records if "e1_intensity_records" in locals() else [],
-                "aipsy_secondary": e1_sec_records if "e1_sec_records" in locals() else [],
-            },
+            e1_payload,
             stage="v1",
             experiment_id="v1_e1_decodability",
             success=True,
-            metadata={"model_id": args.model_id, "model_prefix": args.model_prefix, "dataset": args.dataset},
+            metadata={"model_id": args.model_id, "model_prefix": args.model_prefix, "dataset": args.dataset, "is_instruct": is_instruct},
         )
 
     # Save manifest

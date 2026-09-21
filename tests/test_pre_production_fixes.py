@@ -449,3 +449,37 @@ def test_v1_e2_procrustes_pca_n_less_than_d():
         "Operational: Task-Divergent Geometry",
     }
 
+
+# 21. test_chat_template_system_role_fallback
+def test_chat_template_system_role_fallback():
+    """System role を非対応とする tokenizer で user-only への fallback が正常動作することを検証"""
+    from v1.primary.run_phase_b import build_prompt as build_prompt_b
+    from v1.primary.run_phase_c import build_prompt_canonical as build_prompt_c
+
+    class StandardTokenizer:
+        def apply_chat_template(self, messages, tokenize=False, add_generation_prompt=True):
+            return "STANDARD:" + "|".join(m["role"] for m in messages)
+
+    class GemmaLikeTokenizer:
+        def apply_chat_template(self, messages, tokenize=False, add_generation_prompt=True):
+            for m in messages:
+                if m["role"] == "system":
+                    raise ValueError("System role not supported in this chat template!")
+            return "FALLBACK:" + "|".join(m["role"] for m in messages)
+
+    std_tok = StandardTokenizer()
+    gemma_tok = GemmaLikeTokenizer()
+
+    # 1. Standard: Phase B / C ともに system+user
+    p_b_std = build_prompt_b(std_tok, "Hello world", "reader", is_instruct=True)
+    assert p_b_std == "STANDARD:system|user"
+    p_c_std = build_prompt_c(std_tok, "Hello world", "reader", is_instruct=True)
+    assert p_c_std == "STANDARD:system|user"
+
+    # 2. Gemma-like (system 非対応): fallback して user のみで成功
+    p_b_gemma = build_prompt_b(gemma_tok, "Hello world", "reader", is_instruct=True)
+    assert p_b_gemma == "FALLBACK:user"
+    p_c_gemma = build_prompt_c(gemma_tok, "Hello world", "reader", is_instruct=True)
+    assert p_c_gemma == "FALLBACK:user"
+
+

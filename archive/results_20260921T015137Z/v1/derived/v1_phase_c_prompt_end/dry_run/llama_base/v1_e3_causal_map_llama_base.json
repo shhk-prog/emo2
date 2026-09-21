@@ -1,0 +1,39 @@
+{
+  "execution_status": "success",
+  "execution_success": true,
+  "stage": "v1",
+  "experiment_id": "v1_e3_causal_map",
+  "completed_at": "2026-09-21T01:45:35.509535+00:00",
+  "metadata": {
+    "model_id": "meta-llama/Llama-3.2-1B",
+    "model_prefix": "llama_base",
+    "dry_run": true
+  },
+  "model_id": "meta-llama/Llama-3.2-1B",
+  "model_prefix": "llama_base",
+  "dry_run": true,
+  "results": {
+    "causal_map": [
+      {
+        "layer": 0,
+        "relative_depth": 0.0,
+        "delta_h_cosine": 0.85,
+        "magnitude_reader": 0.3,
+        "magnitude_self": 0.25,
+        "discovery_mag_reader": 0.32,
+        "discovery_mag_self": 0.26,
+        "r2_causal_effect": 0.45
+      },
+      {
+        "layer": 14,
+        "relative_depth": 0.5,
+        "delta_h_cosine": 0.92,
+        "magnitude_reader": 0.65,
+        "magnitude_self": 0.7,
+        "discovery_mag_reader": 0.68,
+        "discovery_mag_self": 0.72,
+        "r2_causal_effect": 0.65
+      }
+    ]
+  }
+}

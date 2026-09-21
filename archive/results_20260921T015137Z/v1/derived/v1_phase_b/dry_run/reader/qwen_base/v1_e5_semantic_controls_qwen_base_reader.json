@@ -1,0 +1,37 @@
+{
+  "execution_status": "success",
+  "execution_success": true,
+  "stage": "v1",
+  "experiment_id": "v1_e5_semantic_controls",
+  "completed_at": "2026-09-21T01:44:31.209791+00:00",
+  "metadata": {
+    "model_id": "Qwen/Qwen2.5-1.5B",
+    "model_prefix": "qwen_base",
+    "task_type": "reader",
+    "target_layer": 14,
+    "relative_depth": 0.5,
+    "dry_run": true
+  },
+  "model_id": "Qwen/Qwen2.5-1.5B",
+  "model_prefix": "qwen_base",
+  "task_type": "reader",
+  "target_layer": 14,
+  "relative_depth": 0.5,
+  "dry_run": true,
+  "results": {
+    "acc_original_minimal_pair": 0.85,
+    "acc_pair_aware_held_out_paraphrase": 0.82,
+    "pair_aware_held_out_reversal_drop": 0.58,
+    "n_nonfallback_paraphrase_pairs": 80,
+    "n_nonfallback_reversal_pairs": 80,
+    "n_primary_test_paraphrase_pairs": 80,
+    "n_primary_test_reversal_pairs": 80,
+    "sensitivity_held_out_paraphrase": 0.8,
+    "sensitivity_held_out_reversal_drop": 0.55,
+    "acc_paraphrase_invariance_all": 0.82,
+    "acc_word_shuffle": 0.52,
+    "mean_affective_prob_original": 0.8,
+    "mean_affective_prob_outcome_reversed": 0.2,
+    "outcome_reversal_prob_drop": 0.6
+  }
+}

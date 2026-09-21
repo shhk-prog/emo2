@@ -32,4 +32,5 @@
 - [ ] `pytest -q`
 - [ ] `ruff check src behavioral v1/primary v2/primary v3/primary tests`
 - [ ] 各ステージ dry-run 完走確認
-- [ ] `docs/final_four_pre_production_fixes/walkthrough.md` 作成
+- [x] `docs/final_four_pre_production_fixes/walkthrough.md` 作成
+

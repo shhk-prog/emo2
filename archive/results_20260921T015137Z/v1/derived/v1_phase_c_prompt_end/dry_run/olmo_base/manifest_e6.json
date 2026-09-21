@@ -1,0 +1,47 @@
+{
+  "run_type": "v1_phase_c_e6_specialization",
+  "model_name": "allenai/OLMo-2-0425-1B",
+  "config": {
+    "model_prefix": "olmo_base",
+    "reader_layer": 0,
+    "self_layer": 14,
+    "site_selection_method": "task_selectivity_contrast",
+    "split_eval": "confirmation",
+    "split_seed": 42,
+    "dry_run": true
+  },
+  "metadata": {
+    "p_value_interaction": 0.001,
+    "coef_interaction": 0.42,
+    "cell_means": {
+      "Reader_ReaderSite": 0.55,
+      "Self_ReaderSite": 0.2,
+      "Reader_SelfSite": 0.18,
+      "Self_SelfSite": 0.62
+    },
+    "has_crossover": true,
+    "site_selection_method": "task_selectivity_contrast",
+    "reader_layer": 0,
+    "self_layer": 14,
+    "split_eval": "confirmation"
+  },
+  "timestamp_utc": "2026-09-21T01:47:27.339505+00:00",
+  "git_commit": "d775812",
+  "run_id": "20260921T014727339471Z_d775812_6ed40eb3_b6437a90",
+  "config_hash": "6ed40eb345f5abc6",
+  "dataset_hash": "unknown",
+  "model_revision": "a1847dff35000b4271fa70afc5db10fd29fedbdf",
+  "tokenizer_revision": "main",
+  "prompt_version": "1.0.0",
+  "prompt_hash": "unknown",
+  "candidate_space": "VAD_729",
+  "measurement_space": "VA_expectation_from_VAD_729",
+  "actual_dtype": "bfloat16",
+  "template_mode": "system_user",
+  "seed": 42,
+  "code_version": "2.2.0",
+  "intervention_version": "prompt_end_normalized",
+  "sequence_likelihood_normalization": "token_mean",
+  "temperature": 1.0,
+  "dry_run": true
+}

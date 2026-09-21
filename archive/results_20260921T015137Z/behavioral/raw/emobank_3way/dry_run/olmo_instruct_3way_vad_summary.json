@@ -1,0 +1,22 @@
+{
+  "tag": "olmo_instruct",
+  "model": "allenai/OLMo-2-0425-1B-Instruct",
+  "is_instruct": true,
+  "num_samples": 10,
+  "w_corr_v": 1.0,
+  "w_corr_a": 0.9999999999999999,
+  "w_corr_d": NaN,
+  "r_corr_v": 1.0,
+  "r_corr_a": 0.9999999999999997,
+  "r_corr_d": NaN,
+  "s_corr_v": 1.0,
+  "s_corr_a": 0.9999999999999998,
+  "s_corr_d": NaN,
+  "internal_rs_corr_v": 1.0,
+  "internal_rs_corr_a": 0.9999999999999998,
+  "internal_rs_corr_d": NaN,
+  "s_mean_ev": 5.08,
+  "s_mean_ea": 4.5,
+  "s_mean_ed": 5.0,
+  "exact_555_pct": 100.0
+}

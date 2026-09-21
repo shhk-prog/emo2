@@ -1,0 +1,9 @@
+w_exact_neutral_pct,r_exact_neutral_pct,s_exact_neutral_pct,model
+100.0,100.0,100.0,gemma_base
+100.0,100.0,100.0,gemma_instruct
+100.0,100.0,100.0,llama_base
+100.0,100.0,100.0,llama_instruct
+100.0,100.0,100.0,olmo_base
+100.0,100.0,100.0,olmo_instruct
+100.0,100.0,100.0,qwen_base
+100.0,100.0,100.0,qwen_instruct

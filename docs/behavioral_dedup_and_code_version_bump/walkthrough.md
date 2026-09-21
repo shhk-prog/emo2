@@ -50,17 +50,33 @@
 
 ---
 
-## 2. ターミナルでの確認手順
+## 2. ターミナルでの確認手順と実測結果
+- **POT インポート確認**: `POT OK` (正常通過)
+- **pytest 全件実行**: `122 passed, 1 deselected, 0 failures` (完全通過)
+- **Behavioral dry-run**: 完走（所要時間 98 秒）
+  - 生成された `behavioral_emobank_neutral_rates.csv` および `behavioral_emobank_metrics.csv` を確認し、以下の全8モデルが二重計上なく各1回ずつ正確に集計されていることを確認しました：
+    1. `gemma_base`
+    2. `gemma_instruct`
+    3. `llama_base`
+    4. `llama_instruct`
+    5. `olmo_base`
+    6. `olmo_instruct`
+    7. `qwen_base`
+    8. `qwen_instruct`
+
+---
+
+## 3. 本番全実行コマンド
+これをもって、懸念されていた全てのブロッカー・不整合・潜在キャッシュ問題が解消されました。
+本番全実行は以下のコマンドで開始できます：
 
 ```bash
 source .venv/bin/activate
 
-# 1. 新規単体テストの実行
-PYTHONPATH=src:. pytest -q -k "behavioral_emobank_summary or manifest_code_version"
-
-# 2. 全単体テストの実行
-PYTHONPATH=src:. pytest -q
-
-# 3. Behavioral dry-run の再実行（モデルが重複せず正しく集計されるか確認）
-bash scripts/run_production_behavioral.sh cpu --dry-run
+bash scripts/run_production_behavioral.sh cuda:0 --force
+bash scripts/run_production_v1.sh cuda:0 --force
+bash scripts/run_production_v2.sh cuda:0 --force
+bash scripts/run_production_v3.sh cuda:0 --force
 ```
+※ V3 が RQ1 で `NO_GO` になった場合に停止するのは実験設計通りの仕様です。正式解析では `--force-after-no-go` は付けずに実行してください。
+

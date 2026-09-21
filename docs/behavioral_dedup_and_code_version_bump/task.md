@@ -29,5 +29,6 @@
   - [x] 旧 manifest（`code_version="2.2.0"`）に対して、現在の `DEFAULT_CODE_VERSION`（`"2.3.0"`）下で `is_manifest_matching` が `False` を返すことを検証するテスト
 
 ### 5. 検証とドキュメント作成
-- [ ] `PYTHONPATH=src:. pytest -q`
-- [ ] `docs/behavioral_dedup_and_code_version_bump/walkthrough.md` の作成
+- [x] `PYTHONPATH=src:. pytest -q` (122 passed, 1 deselected)
+- [x] `bash scripts/run_production_behavioral.sh cpu --dry-run` 完走 & モデル重複解消確認
+- [x] `docs/behavioral_dedup_and_code_version_bump/walkthrough.md` の作成

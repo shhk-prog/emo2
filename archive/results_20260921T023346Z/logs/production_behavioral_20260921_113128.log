@@ -1,0 +1,824 @@
+==================================================================
+Starting Production Behavioral Evaluation
+Timestamp : 2026-09-21T02:31:28Z
+Device    : cpu
+Python    : /mnt/nas/home/hiromi/src/emo2/.venv/bin/python
+Python Ver: Python 3.12.3
+Pip Ver   : 
+Git SHA   : 074de6e08e72c5a54d6957f2b81db27f1ec900fe
+uv.lock   : 5c6343d85ce02a529c05cb796a7a0cca6bfd1558fef8750d6c692e37258631d9
+==================================================================
+Extra Args: --dry-run
+Log File  : results/logs/production_behavioral_20260921_113128.log
+Cohort    : primary_small (4 families, 8 models)
+Datasets  : EmoBank + AIPsy (actual counts logged by the Python runner)
+Runtime   : unmeasured (do not use pre-benchmark hour estimates)
+==================================================================
+2026-09-21 11:31:30,026 [INFO] Affective Empathy Evaluation Unified Runner
+2026-09-21 11:31:30,026 [INFO] Stage: behavioral | Cohort: primary_small | Dry-run: True
+2026-09-21 11:31:30,026 [INFO] Wall-clock estimates are unmeasured until a Qwen-family benchmark is recorded.
+2026-09-21 11:31:30,026 [INFO] Dataset inventory (actual loaded counts; wall-clock time is unmeasured):
+2026-09-21 11:31:30,031 [INFO] EmoBank 3-way: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-21 11:31:30,037 [INFO] AIPsy 4-split: n_rows=480 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=480 | split_counts={'clinical': 192, 'neutral': 192, 'moderate': 48, 'complex_neutral': 48}
+2026-09-21 11:31:30,043 [INFO] V1 Phase B rule-based controls: n_rows=192 | path=v1/data/processed/v1_e5_semantic_controls.csv | n_unique_pair_id=192
+2026-09-21 11:31:30,043 [INFO] === Running Behavioral Stage (model-set: primary_small) ===
+2026-09-21 11:31:30,045 [INFO] Running behavioral evaluation for qwen_base (Qwen/Qwen2.5-1.5B, revision=8faed761d45a263340a0528343f099c05c9a4323)...
+2026-09-21 11:31:30,045 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python behavioral/primary/run_behavioral_emobank.py --model Qwen/Qwen2.5-1.5B --tag qwen_base --device cpu --dtype bfloat16 --model-revision 8faed761d45a263340a0528343f099c05c9a4323 --dry-run
+/mnt/nas/home/hiromi/src/emo2/behavioral/primary/run_behavioral_emobank.py:552: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  return float(pearsonr(x, y)[0]) if len(x) > 1 else 0.0
+[DRY-RUN] Simulating EmoBank 3-Way VAD evaluation for qwen_base...
+
+=======================================================
+--- 3-Way VAD Results Summary for qwen_base ---
+1. Writer Estimation (W <-> W_human):  r_V=1.0000, r_A=1.0000, r_D=nan
+2. Reader Prediction (R <-> R_human):  r_V=1.0000, r_A=1.0000, r_D=nan
+3. Self-Report (S <-> R_human):        r_V=1.0000, r_A=1.0000, r_D=nan
+4. Internal Alignment (R <-> S):       r_V=1.0000, r_A=1.0000, r_D=nan
+5. Self-Report Mean (V, A, D):         (5.080, 4.500, 5.000)
+6. Exact (5, 5, 5) Neutral Rate:       100.00%
+=======================================================
+Saved results to behavioral/results/raw/emobank_3way/dry_run/behavioral_emobank_qwen_base_3way_vad.csv and behavioral/results/raw/emobank_3way/dry_run/behavioral_emobank_qwen_base_summary.json
+2026-09-21 11:31:35,029 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python behavioral/primary/run_behavioral_aipsy.py --model Qwen/Qwen2.5-1.5B --tag qwen_base --device cpu --model-revision 8faed761d45a263340a0528343f099c05c9a4323 --dry-run
+[DRY-RUN] Simulating AIPsy 4-Split evaluation for qwen_base...
+
+============================================================
+SUCCESS: Saved 480 evaluation results to behavioral/results/raw/aipsy_4split/dry_run/behavioral_aipsy_qwen_base_4split.csv
+============================================================
+2026-09-21 11:31:40,012 [INFO] Running behavioral evaluation for qwen_instruct (Qwen/Qwen2.5-1.5B-Instruct, revision=989aa7980e4cf806f80c7fef2b1adb7bc71aa306)...
+2026-09-21 11:31:40,013 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python behavioral/primary/run_behavioral_emobank.py --model Qwen/Qwen2.5-1.5B-Instruct --tag qwen_instruct --device cpu --dtype bfloat16 --model-revision 989aa7980e4cf806f80c7fef2b1adb7bc71aa306 --is_instruct --dry-run
+/mnt/nas/home/hiromi/src/emo2/behavioral/primary/run_behavioral_emobank.py:552: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  return float(pearsonr(x, y)[0]) if len(x) > 1 else 0.0
+[DRY-RUN] Simulating EmoBank 3-Way VAD evaluation for qwen_instruct...
+
+=======================================================
+--- 3-Way VAD Results Summary for qwen_instruct ---
+1. Writer Estimation (W <-> W_human):  r_V=1.0000, r_A=1.0000, r_D=nan
+2. Reader Prediction (R <-> R_human):  r_V=1.0000, r_A=1.0000, r_D=nan
+3. Self-Report (S <-> R_human):        r_V=1.0000, r_A=1.0000, r_D=nan
+4. Internal Alignment (R <-> S):       r_V=1.0000, r_A=1.0000, r_D=nan
+5. Self-Report Mean (V, A, D):         (5.080, 4.500, 5.000)
+6. Exact (5, 5, 5) Neutral Rate:       100.00%
+=======================================================
+Saved results to behavioral/results/raw/emobank_3way/dry_run/behavioral_emobank_qwen_instruct_3way_vad.csv and behavioral/results/raw/emobank_3way/dry_run/behavioral_emobank_qwen_instruct_summary.json
+2026-09-21 11:31:44,963 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python behavioral/primary/run_behavioral_aipsy.py --model Qwen/Qwen2.5-1.5B-Instruct --tag qwen_instruct --device cpu --model-revision 989aa7980e4cf806f80c7fef2b1adb7bc71aa306 --is-instruct --dry-run
+[DRY-RUN] Simulating AIPsy 4-Split evaluation for qwen_instruct...
+
+============================================================
+SUCCESS: Saved 480 evaluation results to behavioral/results/raw/aipsy_4split/dry_run/behavioral_aipsy_qwen_instruct_4split.csv
+============================================================
+2026-09-21 11:31:49,944 [INFO] Running behavioral evaluation for llama_base (meta-llama/Llama-3.2-1B, revision=4e20de362430cd3b72f300e6b0f18e50e7166e08)...
+2026-09-21 11:31:49,944 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python behavioral/primary/run_behavioral_emobank.py --model meta-llama/Llama-3.2-1B --tag llama_base --device cpu --dtype bfloat16 --model-revision 4e20de362430cd3b72f300e6b0f18e50e7166e08 --dry-run
+/mnt/nas/home/hiromi/src/emo2/behavioral/primary/run_behavioral_emobank.py:552: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  return float(pearsonr(x, y)[0]) if len(x) > 1 else 0.0
+[DRY-RUN] Simulating EmoBank 3-Way VAD evaluation for llama_base...
+
+=======================================================
+--- 3-Way VAD Results Summary for llama_base ---
+1. Writer Estimation (W <-> W_human):  r_V=1.0000, r_A=1.0000, r_D=nan
+2. Reader Prediction (R <-> R_human):  r_V=1.0000, r_A=1.0000, r_D=nan
+3. Self-Report (S <-> R_human):        r_V=1.0000, r_A=1.0000, r_D=nan
+4. Internal Alignment (R <-> S):       r_V=1.0000, r_A=1.0000, r_D=nan
+5. Self-Report Mean (V, A, D):         (5.080, 4.500, 5.000)
+6. Exact (5, 5, 5) Neutral Rate:       100.00%
+=======================================================
+Saved results to behavioral/results/raw/emobank_3way/dry_run/behavioral_emobank_llama_base_3way_vad.csv and behavioral/results/raw/emobank_3way/dry_run/behavioral_emobank_llama_base_summary.json
+2026-09-21 11:31:55,088 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python behavioral/primary/run_behavioral_aipsy.py --model meta-llama/Llama-3.2-1B --tag llama_base --device cpu --model-revision 4e20de362430cd3b72f300e6b0f18e50e7166e08 --dry-run
+[DRY-RUN] Simulating AIPsy 4-Split evaluation for llama_base...
+
+============================================================
+SUCCESS: Saved 480 evaluation results to behavioral/results/raw/aipsy_4split/dry_run/behavioral_aipsy_llama_base_4split.csv
+============================================================
+2026-09-21 11:32:00,018 [INFO] Running behavioral evaluation for llama_instruct (meta-llama/Llama-3.2-1B-Instruct, revision=9213176726f574b556790deb65791e0c5aa438b6)...
+2026-09-21 11:32:00,018 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python behavioral/primary/run_behavioral_emobank.py --model meta-llama/Llama-3.2-1B-Instruct --tag llama_instruct --device cpu --dtype bfloat16 --model-revision 9213176726f574b556790deb65791e0c5aa438b6 --is_instruct --dry-run
+/mnt/nas/home/hiromi/src/emo2/behavioral/primary/run_behavioral_emobank.py:552: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  return float(pearsonr(x, y)[0]) if len(x) > 1 else 0.0
+[DRY-RUN] Simulating EmoBank 3-Way VAD evaluation for llama_instruct...
+
+=======================================================
+--- 3-Way VAD Results Summary for llama_instruct ---
+1. Writer Estimation (W <-> W_human):  r_V=1.0000, r_A=1.0000, r_D=nan
+2. Reader Prediction (R <-> R_human):  r_V=1.0000, r_A=1.0000, r_D=nan
+3. Self-Report (S <-> R_human):        r_V=1.0000, r_A=1.0000, r_D=nan
+4. Internal Alignment (R <-> S):       r_V=1.0000, r_A=1.0000, r_D=nan
+5. Self-Report Mean (V, A, D):         (5.080, 4.500, 5.000)
+6. Exact (5, 5, 5) Neutral Rate:       100.00%
+=======================================================
+Saved results to behavioral/results/raw/emobank_3way/dry_run/behavioral_emobank_llama_instruct_3way_vad.csv and behavioral/results/raw/emobank_3way/dry_run/behavioral_emobank_llama_instruct_summary.json
+2026-09-21 11:32:05,144 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python behavioral/primary/run_behavioral_aipsy.py --model meta-llama/Llama-3.2-1B-Instruct --tag llama_instruct --device cpu --model-revision 9213176726f574b556790deb65791e0c5aa438b6 --is-instruct --dry-run
+[DRY-RUN] Simulating AIPsy 4-Split evaluation for llama_instruct...
+
+============================================================
+SUCCESS: Saved 480 evaluation results to behavioral/results/raw/aipsy_4split/dry_run/behavioral_aipsy_llama_instruct_4split.csv
+============================================================
+2026-09-21 11:32:10,115 [INFO] Running behavioral evaluation for gemma_base (google/gemma-3-1b-pt, revision=fcf18a2a879aab110ca39f8bffbccd5d49d8eb29)...
+2026-09-21 11:32:10,115 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python behavioral/primary/run_behavioral_emobank.py --model google/gemma-3-1b-pt --tag gemma_base --device cpu --dtype bfloat16 --model-revision fcf18a2a879aab110ca39f8bffbccd5d49d8eb29 --dry-run
+/mnt/nas/home/hiromi/src/emo2/behavioral/primary/run_behavioral_emobank.py:552: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  return float(pearsonr(x, y)[0]) if len(x) > 1 else 0.0
+[DRY-RUN] Simulating EmoBank 3-Way VAD evaluation for gemma_base...
+
+=======================================================
+--- 3-Way VAD Results Summary for gemma_base ---
+1. Writer Estimation (W <-> W_human):  r_V=1.0000, r_A=1.0000, r_D=nan
+2. Reader Prediction (R <-> R_human):  r_V=1.0000, r_A=1.0000, r_D=nan
+3. Self-Report (S <-> R_human):        r_V=1.0000, r_A=1.0000, r_D=nan
+4. Internal Alignment (R <-> S):       r_V=1.0000, r_A=1.0000, r_D=nan
+5. Self-Report Mean (V, A, D):         (5.080, 4.500, 5.000)
+6. Exact (5, 5, 5) Neutral Rate:       100.00%
+=======================================================
+Saved results to behavioral/results/raw/emobank_3way/dry_run/behavioral_emobank_gemma_base_3way_vad.csv and behavioral/results/raw/emobank_3way/dry_run/behavioral_emobank_gemma_base_summary.json
+2026-09-21 11:32:15,309 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python behavioral/primary/run_behavioral_aipsy.py --model google/gemma-3-1b-pt --tag gemma_base --device cpu --model-revision fcf18a2a879aab110ca39f8bffbccd5d49d8eb29 --dry-run
+[DRY-RUN] Simulating AIPsy 4-Split evaluation for gemma_base...
+
+============================================================
+SUCCESS: Saved 480 evaluation results to behavioral/results/raw/aipsy_4split/dry_run/behavioral_aipsy_gemma_base_4split.csv
+============================================================
+2026-09-21 11:32:21,624 [INFO] Running behavioral evaluation for gemma_instruct (google/gemma-3-1b-it, revision=dcc83ea841ab6100d6b47a070329e1ba4cf78752)...
+2026-09-21 11:32:21,625 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python behavioral/primary/run_behavioral_emobank.py --model google/gemma-3-1b-it --tag gemma_instruct --device cpu --dtype bfloat16 --model-revision dcc83ea841ab6100d6b47a070329e1ba4cf78752 --is_instruct --dry-run
+/mnt/nas/home/hiromi/src/emo2/behavioral/primary/run_behavioral_emobank.py:552: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  return float(pearsonr(x, y)[0]) if len(x) > 1 else 0.0
+[DRY-RUN] Simulating EmoBank 3-Way VAD evaluation for gemma_instruct...
+
+=======================================================
+--- 3-Way VAD Results Summary for gemma_instruct ---
+1. Writer Estimation (W <-> W_human):  r_V=1.0000, r_A=1.0000, r_D=nan
+2. Reader Prediction (R <-> R_human):  r_V=1.0000, r_A=1.0000, r_D=nan
+3. Self-Report (S <-> R_human):        r_V=1.0000, r_A=1.0000, r_D=nan
+4. Internal Alignment (R <-> S):       r_V=1.0000, r_A=1.0000, r_D=nan
+5. Self-Report Mean (V, A, D):         (5.080, 4.500, 5.000)
+6. Exact (5, 5, 5) Neutral Rate:       100.00%
+=======================================================
+Saved results to behavioral/results/raw/emobank_3way/dry_run/behavioral_emobank_gemma_instruct_3way_vad.csv and behavioral/results/raw/emobank_3way/dry_run/behavioral_emobank_gemma_instruct_summary.json
+2026-09-21 11:32:26,763 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python behavioral/primary/run_behavioral_aipsy.py --model google/gemma-3-1b-it --tag gemma_instruct --device cpu --model-revision dcc83ea841ab6100d6b47a070329e1ba4cf78752 --is-instruct --dry-run
+[DRY-RUN] Simulating AIPsy 4-Split evaluation for gemma_instruct...
+
+============================================================
+SUCCESS: Saved 480 evaluation results to behavioral/results/raw/aipsy_4split/dry_run/behavioral_aipsy_gemma_instruct_4split.csv
+============================================================
+2026-09-21 11:32:31,738 [INFO] Running behavioral evaluation for olmo_base (allenai/OLMo-2-0425-1B, revision=a1847dff35000b4271fa70afc5db10fd29fedbdf)...
+2026-09-21 11:32:31,738 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python behavioral/primary/run_behavioral_emobank.py --model allenai/OLMo-2-0425-1B --tag olmo_base --device cpu --dtype bfloat16 --model-revision a1847dff35000b4271fa70afc5db10fd29fedbdf --dry-run
+/mnt/nas/home/hiromi/src/emo2/behavioral/primary/run_behavioral_emobank.py:552: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  return float(pearsonr(x, y)[0]) if len(x) > 1 else 0.0
+[DRY-RUN] Simulating EmoBank 3-Way VAD evaluation for olmo_base...
+
+=======================================================
+--- 3-Way VAD Results Summary for olmo_base ---
+1. Writer Estimation (W <-> W_human):  r_V=1.0000, r_A=1.0000, r_D=nan
+2. Reader Prediction (R <-> R_human):  r_V=1.0000, r_A=1.0000, r_D=nan
+3. Self-Report (S <-> R_human):        r_V=1.0000, r_A=1.0000, r_D=nan
+4. Internal Alignment (R <-> S):       r_V=1.0000, r_A=1.0000, r_D=nan
+5. Self-Report Mean (V, A, D):         (5.080, 4.500, 5.000)
+6. Exact (5, 5, 5) Neutral Rate:       100.00%
+=======================================================
+Saved results to behavioral/results/raw/emobank_3way/dry_run/behavioral_emobank_olmo_base_3way_vad.csv and behavioral/results/raw/emobank_3way/dry_run/behavioral_emobank_olmo_base_summary.json
+2026-09-21 11:32:36,725 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python behavioral/primary/run_behavioral_aipsy.py --model allenai/OLMo-2-0425-1B --tag olmo_base --device cpu --model-revision a1847dff35000b4271fa70afc5db10fd29fedbdf --dry-run
+[DRY-RUN] Simulating AIPsy 4-Split evaluation for olmo_base...
+
+============================================================
+SUCCESS: Saved 480 evaluation results to behavioral/results/raw/aipsy_4split/dry_run/behavioral_aipsy_olmo_base_4split.csv
+============================================================
+2026-09-21 11:32:41,621 [INFO] Running behavioral evaluation for olmo_instruct (allenai/OLMo-2-0425-1B-Instruct, revision=48d788eca847d4d7548f375ad03d3c9312f6139e)...
+2026-09-21 11:32:41,621 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python behavioral/primary/run_behavioral_emobank.py --model allenai/OLMo-2-0425-1B-Instruct --tag olmo_instruct --device cpu --dtype bfloat16 --model-revision 48d788eca847d4d7548f375ad03d3c9312f6139e --is_instruct --dry-run
+/mnt/nas/home/hiromi/src/emo2/behavioral/primary/run_behavioral_emobank.py:552: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  return float(pearsonr(x, y)[0]) if len(x) > 1 else 0.0
+[DRY-RUN] Simulating EmoBank 3-Way VAD evaluation for olmo_instruct...
+
+=======================================================
+--- 3-Way VAD Results Summary for olmo_instruct ---
+1. Writer Estimation (W <-> W_human):  r_V=1.0000, r_A=1.0000, r_D=nan
+2. Reader Prediction (R <-> R_human):  r_V=1.0000, r_A=1.0000, r_D=nan
+3. Self-Report (S <-> R_human):        r_V=1.0000, r_A=1.0000, r_D=nan
+4. Internal Alignment (R <-> S):       r_V=1.0000, r_A=1.0000, r_D=nan
+5. Self-Report Mean (V, A, D):         (5.080, 4.500, 5.000)
+6. Exact (5, 5, 5) Neutral Rate:       100.00%
+=======================================================
+Saved results to behavioral/results/raw/emobank_3way/dry_run/behavioral_emobank_olmo_instruct_3way_vad.csv and behavioral/results/raw/emobank_3way/dry_run/behavioral_emobank_olmo_instruct_summary.json
+2026-09-21 11:32:46,557 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python behavioral/primary/run_behavioral_aipsy.py --model allenai/OLMo-2-0425-1B-Instruct --tag olmo_instruct --device cpu --model-revision 48d788eca847d4d7548f375ad03d3c9312f6139e --is-instruct --dry-run
+[DRY-RUN] Simulating AIPsy 4-Split evaluation for olmo_instruct...
+
+============================================================
+SUCCESS: Saved 480 evaluation results to behavioral/results/raw/aipsy_4split/dry_run/behavioral_aipsy_olmo_instruct_4split.csv
+============================================================
+2026-09-21 11:32:51,571 [INFO] --- Generating Behavioral Summary and Derived Tables ---
+2026-09-21 11:32:51,571 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python behavioral/analysis/summarize_behavioral_emobank.py --dry-run
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:48: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  pr, pp = pearsonr(x_c, y_c)
+/mnt/nas/home/hiromi/src/emo2/behavioral/analysis/summarize_behavioral_emobank.py:49: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  sr, sp = spearmanr(x_c, y_c)
+Saved behavioral EmoBank summaries to behavioral/results/derived/emobank_3way_summary/dry_run:
+  - behavioral/results/derived/emobank_3way_summary/dry_run/behavioral_emobank_metrics.csv
+  - behavioral/results/derived/emobank_3way_summary/dry_run/behavioral_emobank_coupling.csv
+  - behavioral/results/derived/emobank_3way_summary/dry_run/behavioral_emobank_neutral_rates.csv
+2026-09-21 11:32:52,629 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python behavioral/analysis/summarize_behavioral_aipsy.py --dry-run
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:601: RuntimeWarning: Precision loss occurred in moment calculation due to catastrophic cancellation. This occurs when the data are nearly identical. Results may be unreliable.
+  res = hypotest_fun_out(*samples, **kwds)
+Saved RQ1 Sensitivity to behavioral/results/derived/aipsy_4split_summary/dry_run/behavioral_aipsy_sensitivity_rq1.csv
+Saved RQ2 Dose-Response to behavioral/results/derived/aipsy_4split_summary/dry_run/behavioral_aipsy_dose_response_rq2.csv
+Saved RQ3 Specificity to behavioral/results/derived/aipsy_4split_summary/dry_run/behavioral_aipsy_specificity_rq3.csv
+Saved RQ4 Coupling to behavioral/results/derived/aipsy_4split_summary/dry_run/behavioral_aipsy_coupling_rq4.csv
+2026-09-21 11:33:05,824 [INFO] All requested stages completed successfully!
+==================================================================
+Behavioral Evaluation completed successfully!
+Elapsed Time: 98 seconds
+==================================================================

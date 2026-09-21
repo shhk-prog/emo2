@@ -1,0 +1,37 @@
+{
+  "execution_status": "success",
+  "execution_success": true,
+  "stage": "behavioral",
+  "experiment_id": "behavioral_emobank_3way",
+  "completed_at": "2026-09-21T02:31:54.154156+00:00",
+  "metadata": {
+    "tag": "llama_base",
+    "model": "meta-llama/Llama-3.2-1B",
+    "is_instruct": false
+  },
+  "tag": "llama_base",
+  "model": "meta-llama/Llama-3.2-1B",
+  "is_instruct": false,
+  "results": {
+    "tag": "llama_base",
+    "model": "meta-llama/Llama-3.2-1B",
+    "is_instruct": false,
+    "num_samples": 10,
+    "w_corr_v": 1.0,
+    "w_corr_a": 0.9999999999999999,
+    "w_corr_d": NaN,
+    "r_corr_v": 1.0,
+    "r_corr_a": 0.9999999999999997,
+    "r_corr_d": NaN,
+    "s_corr_v": 1.0,
+    "s_corr_a": 0.9999999999999998,
+    "s_corr_d": NaN,
+    "internal_rs_corr_v": 1.0,
+    "internal_rs_corr_a": 0.9999999999999998,
+    "internal_rs_corr_d": NaN,
+    "s_mean_ev": 5.08,
+    "s_mean_ea": 4.5,
+    "s_mean_ed": 5.0,
+    "exact_555_pct": 100.0
+  }
+}

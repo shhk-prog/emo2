@@ -1,0 +1,73 @@
+model,task,task_label,dimension,dim_label,n,r_continuous,p_continuous,rho_continuous,r_greedy,p_greedy,mae,rmse,pred_mean,pred_std,human_mean,human_std
+gemma_base,writer,Writer-State Estimation (W),V,Valence,10,1.0,0.0,1.0,,,0.14000000000000012,0.16733200530681525,4.87,1.0798611021793496,4.85,1.2459935794377113
+gemma_base,writer,Writer-State Estimation (W),A,Arousal,10,0.9999999999999999,0.0,1.0,,,0.10000000000000009,0.14142135623730964,4.4,0.3999999999999999,4.5,0.5
+gemma_base,writer,Writer-State Estimation (W),D,Dominance,10,,,,,,0.0,0.0,5.0,0.0,5.0,0.0
+gemma_base,reader,Reader-Response Prediction (R),V,Valence,10,1.0,0.0,1.0,,,0.0,0.0,4.96,1.1629273408085303,4.96,1.1629273408085303
+gemma_base,reader,Reader-Response Prediction (R),A,Arousal,10,0.9999999999999997,1.701605740040155e-61,1.0,,,0.09999999999999964,0.09999999999999964,4.45,0.4500000000000002,4.55,0.4500000000000002
+gemma_base,reader,Reader-Response Prediction (R),D,Dominance,10,,,,,,0.0,0.0,5.0,0.0,5.0,0.0
+gemma_base,self,Self-Report (S),V,Valence,10,1.0,0.0,1.0,,,0.18,0.2049390153191919,5.08,0.9967948635501691,4.96,1.1629273408085303
+gemma_base,self,Self-Report (S),A,Arousal,10,0.9999999999999999,0.0,1.0,,,0.04999999999999982,0.0707106781186545,4.5,0.4000000000000004,4.55,0.4500000000000002
+gemma_base,self,Self-Report (S),D,Dominance,10,,,,,,0.0,0.0,5.0,0.0,5.0,0.0
+gemma_instruct,writer,Writer-State Estimation (W),V,Valence,10,1.0,0.0,1.0,,,0.14000000000000012,0.16733200530681525,4.87,1.0798611021793496,4.85,1.2459935794377113
+gemma_instruct,writer,Writer-State Estimation (W),A,Arousal,10,0.9999999999999999,0.0,1.0,,,0.10000000000000009,0.14142135623730964,4.4,0.3999999999999999,4.5,0.5
+gemma_instruct,writer,Writer-State Estimation (W),D,Dominance,10,,,,,,0.0,0.0,5.0,0.0,5.0,0.0
+gemma_instruct,reader,Reader-Response Prediction (R),V,Valence,10,1.0,0.0,1.0,,,0.0,0.0,4.96,1.1629273408085303,4.96,1.1629273408085303
+gemma_instruct,reader,Reader-Response Prediction (R),A,Arousal,10,0.9999999999999997,1.701605740040155e-61,1.0,,,0.09999999999999964,0.09999999999999964,4.45,0.4500000000000002,4.55,0.4500000000000002
+gemma_instruct,reader,Reader-Response Prediction (R),D,Dominance,10,,,,,,0.0,0.0,5.0,0.0,5.0,0.0
+gemma_instruct,self,Self-Report (S),V,Valence,10,1.0,0.0,1.0,,,0.18,0.2049390153191919,5.08,0.9967948635501691,4.96,1.1629273408085303
+gemma_instruct,self,Self-Report (S),A,Arousal,10,0.9999999999999999,0.0,1.0,,,0.04999999999999982,0.0707106781186545,4.5,0.4000000000000004,4.55,0.4500000000000002
+gemma_instruct,self,Self-Report (S),D,Dominance,10,,,,,,0.0,0.0,5.0,0.0,5.0,0.0
+llama_base,writer,Writer-State Estimation (W),V,Valence,10,1.0,0.0,1.0,,,0.14000000000000012,0.16733200530681525,4.87,1.0798611021793496,4.85,1.2459935794377113
+llama_base,writer,Writer-State Estimation (W),A,Arousal,10,0.9999999999999999,0.0,1.0,,,0.10000000000000009,0.14142135623730964,4.4,0.3999999999999999,4.5,0.5
+llama_base,writer,Writer-State Estimation (W),D,Dominance,10,,,,,,0.0,0.0,5.0,0.0,5.0,0.0
+llama_base,reader,Reader-Response Prediction (R),V,Valence,10,1.0,0.0,1.0,,,0.0,0.0,4.96,1.1629273408085303,4.96,1.1629273408085303
+llama_base,reader,Reader-Response Prediction (R),A,Arousal,10,0.9999999999999997,1.701605740040155e-61,1.0,,,0.09999999999999964,0.09999999999999964,4.45,0.4500000000000002,4.55,0.4500000000000002
+llama_base,reader,Reader-Response Prediction (R),D,Dominance,10,,,,,,0.0,0.0,5.0,0.0,5.0,0.0
+llama_base,self,Self-Report (S),V,Valence,10,1.0,0.0,1.0,,,0.18,0.2049390153191919,5.08,0.9967948635501691,4.96,1.1629273408085303
+llama_base,self,Self-Report (S),A,Arousal,10,0.9999999999999999,0.0,1.0,,,0.04999999999999982,0.0707106781186545,4.5,0.4000000000000004,4.55,0.4500000000000002
+llama_base,self,Self-Report (S),D,Dominance,10,,,,,,0.0,0.0,5.0,0.0,5.0,0.0
+llama_instruct,writer,Writer-State Estimation (W),V,Valence,10,1.0,0.0,1.0,,,0.14000000000000012,0.16733200530681525,4.87,1.0798611021793496,4.85,1.2459935794377113
+llama_instruct,writer,Writer-State Estimation (W),A,Arousal,10,0.9999999999999999,0.0,1.0,,,0.10000000000000009,0.14142135623730964,4.4,0.3999999999999999,4.5,0.5
+llama_instruct,writer,Writer-State Estimation (W),D,Dominance,10,,,,,,0.0,0.0,5.0,0.0,5.0,0.0
+llama_instruct,reader,Reader-Response Prediction (R),V,Valence,10,1.0,0.0,1.0,,,0.0,0.0,4.96,1.1629273408085303,4.96,1.1629273408085303
+llama_instruct,reader,Reader-Response Prediction (R),A,Arousal,10,0.9999999999999997,1.701605740040155e-61,1.0,,,0.09999999999999964,0.09999999999999964,4.45,0.4500000000000002,4.55,0.4500000000000002
+llama_instruct,reader,Reader-Response Prediction (R),D,Dominance,10,,,,,,0.0,0.0,5.0,0.0,5.0,0.0
+llama_instruct,self,Self-Report (S),V,Valence,10,1.0,0.0,1.0,,,0.18,0.2049390153191919,5.08,0.9967948635501691,4.96,1.1629273408085303
+llama_instruct,self,Self-Report (S),A,Arousal,10,0.9999999999999999,0.0,1.0,,,0.04999999999999982,0.0707106781186545,4.5,0.4000000000000004,4.55,0.4500000000000002
+llama_instruct,self,Self-Report (S),D,Dominance,10,,,,,,0.0,0.0,5.0,0.0,5.0,0.0
+olmo_base,writer,Writer-State Estimation (W),V,Valence,10,1.0,0.0,1.0,,,0.14000000000000012,0.16733200530681525,4.87,1.0798611021793496,4.85,1.2459935794377113
+olmo_base,writer,Writer-State Estimation (W),A,Arousal,10,0.9999999999999999,0.0,1.0,,,0.10000000000000009,0.14142135623730964,4.4,0.3999999999999999,4.5,0.5
+olmo_base,writer,Writer-State Estimation (W),D,Dominance,10,,,,,,0.0,0.0,5.0,0.0,5.0,0.0
+olmo_base,reader,Reader-Response Prediction (R),V,Valence,10,1.0,0.0,1.0,,,0.0,0.0,4.96,1.1629273408085303,4.96,1.1629273408085303
+olmo_base,reader,Reader-Response Prediction (R),A,Arousal,10,0.9999999999999997,1.701605740040155e-61,1.0,,,0.09999999999999964,0.09999999999999964,4.45,0.4500000000000002,4.55,0.4500000000000002
+olmo_base,reader,Reader-Response Prediction (R),D,Dominance,10,,,,,,0.0,0.0,5.0,0.0,5.0,0.0
+olmo_base,self,Self-Report (S),V,Valence,10,1.0,0.0,1.0,,,0.18,0.2049390153191919,5.08,0.9967948635501691,4.96,1.1629273408085303
+olmo_base,self,Self-Report (S),A,Arousal,10,0.9999999999999999,0.0,1.0,,,0.04999999999999982,0.0707106781186545,4.5,0.4000000000000004,4.55,0.4500000000000002
+olmo_base,self,Self-Report (S),D,Dominance,10,,,,,,0.0,0.0,5.0,0.0,5.0,0.0
+olmo_instruct,writer,Writer-State Estimation (W),V,Valence,10,1.0,0.0,1.0,,,0.14000000000000012,0.16733200530681525,4.87,1.0798611021793496,4.85,1.2459935794377113
+olmo_instruct,writer,Writer-State Estimation (W),A,Arousal,10,0.9999999999999999,0.0,1.0,,,0.10000000000000009,0.14142135623730964,4.4,0.3999999999999999,4.5,0.5
+olmo_instruct,writer,Writer-State Estimation (W),D,Dominance,10,,,,,,0.0,0.0,5.0,0.0,5.0,0.0
+olmo_instruct,reader,Reader-Response Prediction (R),V,Valence,10,1.0,0.0,1.0,,,0.0,0.0,4.96,1.1629273408085303,4.96,1.1629273408085303
+olmo_instruct,reader,Reader-Response Prediction (R),A,Arousal,10,0.9999999999999997,1.701605740040155e-61,1.0,,,0.09999999999999964,0.09999999999999964,4.45,0.4500000000000002,4.55,0.4500000000000002
+olmo_instruct,reader,Reader-Response Prediction (R),D,Dominance,10,,,,,,0.0,0.0,5.0,0.0,5.0,0.0
+olmo_instruct,self,Self-Report (S),V,Valence,10,1.0,0.0,1.0,,,0.18,0.2049390153191919,5.08,0.9967948635501691,4.96,1.1629273408085303
+olmo_instruct,self,Self-Report (S),A,Arousal,10,0.9999999999999999,0.0,1.0,,,0.04999999999999982,0.0707106781186545,4.5,0.4000000000000004,4.55,0.4500000000000002
+olmo_instruct,self,Self-Report (S),D,Dominance,10,,,,,,0.0,0.0,5.0,0.0,5.0,0.0
+qwen_base,writer,Writer-State Estimation (W),V,Valence,10,1.0,0.0,1.0,,,0.14000000000000012,0.16733200530681525,4.87,1.0798611021793496,4.85,1.2459935794377113
+qwen_base,writer,Writer-State Estimation (W),A,Arousal,10,0.9999999999999999,0.0,1.0,,,0.10000000000000009,0.14142135623730964,4.4,0.3999999999999999,4.5,0.5
+qwen_base,writer,Writer-State Estimation (W),D,Dominance,10,,,,,,0.0,0.0,5.0,0.0,5.0,0.0
+qwen_base,reader,Reader-Response Prediction (R),V,Valence,10,1.0,0.0,1.0,,,0.0,0.0,4.96,1.1629273408085303,4.96,1.1629273408085303
+qwen_base,reader,Reader-Response Prediction (R),A,Arousal,10,0.9999999999999997,1.701605740040155e-61,1.0,,,0.09999999999999964,0.09999999999999964,4.45,0.4500000000000002,4.55,0.4500000000000002
+qwen_base,reader,Reader-Response Prediction (R),D,Dominance,10,,,,,,0.0,0.0,5.0,0.0,5.0,0.0
+qwen_base,self,Self-Report (S),V,Valence,10,1.0,0.0,1.0,,,0.18,0.2049390153191919,5.08,0.9967948635501691,4.96,1.1629273408085303
+qwen_base,self,Self-Report (S),A,Arousal,10,0.9999999999999999,0.0,1.0,,,0.04999999999999982,0.0707106781186545,4.5,0.4000000000000004,4.55,0.4500000000000002
+qwen_base,self,Self-Report (S),D,Dominance,10,,,,,,0.0,0.0,5.0,0.0,5.0,0.0
+qwen_instruct,writer,Writer-State Estimation (W),V,Valence,10,1.0,0.0,1.0,,,0.14000000000000012,0.16733200530681525,4.87,1.0798611021793496,4.85,1.2459935794377113
+qwen_instruct,writer,Writer-State Estimation (W),A,Arousal,10,0.9999999999999999,0.0,1.0,,,0.10000000000000009,0.14142135623730964,4.4,0.3999999999999999,4.5,0.5
+qwen_instruct,writer,Writer-State Estimation (W),D,Dominance,10,,,,,,0.0,0.0,5.0,0.0,5.0,0.0
+qwen_instruct,reader,Reader-Response Prediction (R),V,Valence,10,1.0,0.0,1.0,,,0.0,0.0,4.96,1.1629273408085303,4.96,1.1629273408085303
+qwen_instruct,reader,Reader-Response Prediction (R),A,Arousal,10,0.9999999999999997,1.701605740040155e-61,1.0,,,0.09999999999999964,0.09999999999999964,4.45,0.4500000000000002,4.55,0.4500000000000002
+qwen_instruct,reader,Reader-Response Prediction (R),D,Dominance,10,,,,,,0.0,0.0,5.0,0.0,5.0,0.0
+qwen_instruct,self,Self-Report (S),V,Valence,10,1.0,0.0,1.0,,,0.18,0.2049390153191919,5.08,0.9967948635501691,4.96,1.1629273408085303
+qwen_instruct,self,Self-Report (S),A,Arousal,10,0.9999999999999999,0.0,1.0,,,0.04999999999999982,0.0707106781186545,4.5,0.4000000000000004,4.55,0.4500000000000002
+qwen_instruct,self,Self-Report (S),D,Dominance,10,,,,,,0.0,0.0,5.0,0.0,5.0,0.0

@@ -225,12 +225,21 @@ def analyze_v2_geometry_and_sharing(
             "base_cross_r_to_s": [],
             "base_cross_s_to_r": [],
             "base_sharing": [],  # (R^2_{BR->BS} + R^2_{BS->BR}) / 2
+            # Canonical native keys
+            "inst_native_r2_reader": [],
+            "inst_native_r2_self": [],
+            "inst_native_cross_r_to_s": [],
+            "inst_native_cross_s_to_r": [],
+            "inst_native_sharing": [],
+            "delta_sharing_native": [],
+            "delta_delta_cross_native": [],
+            # Legacy exact aliases (backward compatibility)
             "inst_r2_reader": [],
             "inst_r2_self": [],
             "inst_cross_r_to_s": [],
             "inst_cross_s_to_r": [],
             "inst_sharing": [],  # (R^2_{IR->IS} + R^2_{IS->IR}) / 2
-            "delta_sharing": [],  # Primary: Inst_Sharing - Base_Sharing
+            "delta_sharing": [],  # Inst_Sharing - Base_Sharing
             "delta_delta_cross": [],  # Secondary
         }
         if has_matched:
@@ -345,6 +354,15 @@ def analyze_v2_geometry_and_sharing(
             res_axis["base_cross_s_to_r"].append(base_s_to_r)
             res_axis["base_sharing"].append(base_share)
 
+            # Canonical native keys
+            res_axis["inst_native_r2_reader"].append(inst_r_r2)
+            res_axis["inst_native_r2_self"].append(inst_s_r2)
+            res_axis["inst_native_cross_r_to_s"].append(inst_r_to_s)
+            res_axis["inst_native_cross_s_to_r"].append(inst_s_to_r)
+            res_axis["inst_native_sharing"].append(inst_share)
+            res_axis["delta_sharing_native"].append(delta_share)
+            res_axis["delta_delta_cross_native"].append(dd)
+            # Legacy exact aliases
             res_axis["inst_r2_reader"].append(inst_r_r2)
             res_axis["inst_r2_self"].append(inst_s_r2)
             res_axis["inst_cross_r_to_s"].append(inst_r_to_s)

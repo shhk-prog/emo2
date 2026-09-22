@@ -43,6 +43,32 @@ class ModelAdapter(ABC):
         """言語モデル出力層（線形層）を返す"""
         pass
 
+    @property
+    def hidden_size(self) -> int:
+        """モデルの隠れ層次元数を返す"""
+        # まず model.config から取得
+        cfg = getattr(self.model, "config", None)
+        if cfg is not None:
+            for attr in ("hidden_size", "d_model", "n_embd"):
+                val = getattr(cfg, attr, None)
+                if val is not None:
+                    return int(val)
+        # フォールバック: 最初の層の埋め込み次元から推論
+        try:
+            layers = self.get_layers()
+            if len(layers) > 0:
+                layer = layers[0]
+                # input_layernorm の weight から次元を取得
+                for attr in ("input_layernorm", "post_feedforward_layernorm", "norm"):
+                    mod = getattr(layer, attr, None)
+                    if mod is not None and hasattr(mod, "weight"):
+                        return mod.weight.shape[0]
+        except Exception:
+            pass
+        raise AttributeError(
+            f"Cannot determine hidden_size for model {self.model.__class__.__name__}"
+        )
+
     def get_hook_target(self, layer_idx: int, hook_point: str) -> nn.Module:
         """
         概念名フックポイントから該当モジュールを取得

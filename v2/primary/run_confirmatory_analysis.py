@@ -211,8 +211,14 @@ def run_confirmatory_analysis(
                         )
 
                     # Secondary: native-chat
-                    inst_reader_native = axis_data.get("inst_native_r2_reader", [])
-                    inst_self_native = axis_data.get("inst_native_r2_self", [])
+                    inst_reader_native = axis_data.get(
+                        "inst_native_r2_reader",
+                        axis_data.get("inst_r2_reader", [])
+                    )
+                    inst_self_native = axis_data.get(
+                        "inst_native_r2_self",
+                        axis_data.get("inst_r2_self", [])
+                    )
 
                     L = len(base_reader)
                     if L == 0:
@@ -399,6 +405,10 @@ def run_confirmatory_analysis(
                             base_cv = 1.0 / (1.0 + np.exp(-8.0 * (depth - 0.7)))
                             cv = max(0.0, float(base_cv + (0.2 if align == "inst" else 0.0) + rng.normal(0, 0.05)))
                             ca = max(0.0, float(base_cv * 0.9 + rng.normal(0, 0.05)))
+                            cv_rand = max(0.0, float(0.3 + rng.normal(0, 0.03)))
+                            ca_rand = max(0.0, float(0.25 + rng.normal(0, 0.03)))
+                            cv_perp = max(0.0, float(0.28 + rng.normal(0, 0.03)))
+                            ca_perp = max(0.0, float(0.22 + rng.normal(0, 0.03)))
                             mock_rows.append({
                                  "family": fam,
                                  "alignment": align,
@@ -409,6 +419,16 @@ def run_confirmatory_analysis(
                                  "relative_depth": depth,
                                  "c_v": cv,
                                  "c_a": ca,
+                                 "c_v_raw": cv,
+                                 "c_a_raw": ca,
+                                 "c_v_rand": cv_rand,
+                                 "c_a_rand": ca_rand,
+                                 "c_v_perp": cv_perp,
+                                 "c_a_perp": ca_perp,
+                                 "c_v_net_rand": cv - cv_rand,
+                                 "c_a_net_rand": ca - ca_rand,
+                                 "c_v_net_perp": cv - cv_perp,
+                                 "c_a_net_perp": ca - ca_perp,
                                  "c_v_zero": cv * 1.2,
                                  "c_a_zero": ca * 1.2,
                             })
@@ -441,10 +461,17 @@ def run_confirmatory_analysis(
         "C(alignment)[T.inst]:C(task)[T.self]:relative_depth",
     ]
 
+    PRIMARY_CAUSAL_COLUMNS = {
+        "valence": "c_v_net_rand",
+        "arousal": "c_a_net_rand",
+    }
+
     primary_p_values: List[float] = []
     primary_p_keys: List[str] = []
 
-    for axis_name, col_name in [("valence", "c_v"), ("arousal", "c_a")]:
+    for axis_name in ["valence", "arousal"]:
+        preferred_col = PRIMARY_CAUSAL_COLUMNS[axis_name]
+        col_name = preferred_col if preferred_col in df_pair_primary.columns else ("c_v" if axis_name == "valence" else "c_a")
         formula = f"{col_name} ~ C(family) + C(alignment) * C(task) * relative_depth"
         try:
             lmm_fit = fit_sample_level_lmm(
@@ -481,7 +508,9 @@ def run_confirmatory_analysis(
     # Secondary LMM on native-chat
     secondary_lmm_results: Dict[str, Any] = {}
     if not df_pair_secondary.empty and len(df_pair_secondary["alignment"].unique()) >= 2:
-        for axis_name, col_name in [("valence", "c_v"), ("arousal", "c_a")]:
+        for axis_name in ["valence", "arousal"]:
+            preferred_col = PRIMARY_CAUSAL_COLUMNS[axis_name]
+            col_name = preferred_col if preferred_col in df_pair_secondary.columns else ("c_v" if axis_name == "valence" else "c_a")
             formula = f"{col_name} ~ C(family) + C(alignment) * C(task) * relative_depth"
             try:
                 lmm_fit_sec = fit_sample_level_lmm(
@@ -501,8 +530,8 @@ def run_confirmatory_analysis(
                 logger.warning(f"Secondary LMM {axis_name.capitalize()} fit failed: {e}")
 
     confirmatory_report["hypotheses"]["H3_causal_profile_reorganization_lmm"] = {
-        "interpretation": "post-training-associated alteration of the depth profile of interventionally measured causal leverage (Primary: matched-plain)",
-        "formula": "c ~ C(family) + C(alignment) * C(task) * relative_depth",
+        "interpretation": "post-training-associated alteration of the depth profile of interventionally measured causal leverage (Primary: matched-plain, c_*_net_rand)",
+        "formula": f"c_net_rand ~ C(family) + C(alignment) * C(task) * relative_depth",
         "primary_terms": PRIMARY_TERMS,
         "primary_contrast": "Base plain vs Instruct matched-plain",
         "secondary_contrast": "Base plain vs Instruct native-chat",

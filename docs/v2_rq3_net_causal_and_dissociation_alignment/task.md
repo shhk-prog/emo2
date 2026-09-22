@@ -1,0 +1,27 @@
+# タスクリスト: V2 RQ3 Net Causal & Dissociation 整合化
+
+- [x] 1. `src/affective_empathy_eval/geometry.py` の修正
+  - `compute_decodability_peak()`（全層 $\le 0$ で NaN）
+  - `compute_decodability_center_of_mass()`（正の質量がなければ NaN）
+  - `compute_causal_peak_from_net()`
+  - `compute_causal_center_of_mass_from_net()`
+  - `compute_net_causal_dissociation_metrics()`（双対ガード・NaN-safe）
+- [x] 2. `v2/primary/run_rq3_causal_map.py` の修正
+  - net/perp 配列の追加・サンプルループでの計算・dry-run mock 更新
+  - layer ckpt および condition ckpt の schema v2 移行と自動無効化
+  - conditions_map における `_get_geometry_profile` legacy fallback 実装
+  - axis 別 Primary metric の切り替え（valence: `c_v_net_rand`, arousal: `c_a_net_rand`）
+  - LMM formula の更新
+  - per-family CSV 保存および Combined CSV の再構築ロジック
+- [x] 3. `v2/primary/run_rq1_rq2_cross_decoding.py` の修正
+  - canonical キー（`inst_native_*`）と legacy exact alias（`inst_*`）の両面出力
+- [x] 4. `v2/primary/run_confirmatory_analysis.py` の修正
+  - H1 Secondary native shift の legacy fallback 追加（`inst_native_r2_*` or `inst_r2_*`）
+  - H3 Primary causal columns を `c_v_net_rand` / `c_a_net_rand` に変更
+  - dry-run mock の更新
+- [x] 5. 14件の unit test 実装（`tests/test_rq3_net_causal_effect.py`）
+- [x] 6. テスト実行（14/14 PASS）と dry-run smoke test の完了
+- [ ] 7. 旧 RQ3 成果物・チェックポイントのクリーンアップ（ターミナルコマンド実行）
+- [ ] 8. RQ3 本番実行（qwen, llama, gemma, olmo 全4 family、`--force`）
+- [ ] 9. pair-level CSV 統合確認および Confirmatory 再計算
+- [x] 10. `walkthrough.md` の作成

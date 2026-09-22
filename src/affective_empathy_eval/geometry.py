@@ -227,3 +227,152 @@ def compute_layer_dissociation(
         relative_depths=relative_depths,
     )
 
+
+def compute_decodability_peak(
+    profile: list[float] | np.ndarray,
+    relative_depths: list[float] | np.ndarray | None = None,
+) -> float:
+    """
+    デコーダビリティピーク相対深度 d_D*
+    全層 R^2 <= 0 の場合は NaN（「最も悪くない失敗層」の誤採択を防止）
+    """
+    vals = np.asarray(profile, dtype=np.float64)
+    L = len(vals)
+    if relative_depths is None:
+        depths = np.linspace(0.0, 1.0, L, dtype=np.float64)
+    else:
+        depths = np.asarray(relative_depths, dtype=np.float64)
+
+    valid = np.isfinite(vals) & np.isfinite(depths)
+    if not np.any(valid):
+        return float("nan")
+
+    vals_v = vals[valid]
+    depths_v = depths[valid]
+
+    if np.max(vals_v) <= 0.0:
+        return float("nan")
+
+    return float(depths_v[np.argmax(vals_v)])
+
+
+def compute_decodability_center_of_mass(
+    profile: list[float] | np.ndarray,
+    relative_depths: list[float] | np.ndarray | None = None,
+) -> float:
+    """
+    デコーダビリティ重心 bar_d_D
+    正のデコード質量 sum(max(R^2, 0)) <= 0 の場合は NaN
+    """
+    vals = np.asarray(profile, dtype=np.float64)
+    L = len(vals)
+    if relative_depths is None:
+        depths = np.linspace(0.0, 1.0, L, dtype=np.float64)
+    else:
+        depths = np.asarray(relative_depths, dtype=np.float64)
+
+    valid = np.isfinite(vals) & np.isfinite(depths)
+    if not np.any(valid):
+        return float("nan")
+
+    vals_v = vals[valid]
+    depths_v = depths[valid]
+
+    positive = np.maximum(vals_v, 0.0)
+    total = np.sum(positive)
+    if total <= 0.0:
+        return float("nan")
+
+    return float(np.sum(depths_v * positive) / total)
+
+
+def compute_causal_peak_from_net(
+    c_net: list[float] | np.ndarray,
+    relative_depths: list[float] | np.ndarray | None = None,
+) -> float:
+    """
+    Net 因果効果ピーク相対深度 d_C*
+    全層 C_net <= 0 の場合は NaN（コントロールを上回る正の介入効果なし）
+    """
+    vals = np.asarray(c_net, dtype=np.float64)
+    L = len(vals)
+    if relative_depths is None:
+        depths = np.linspace(0.0, 1.0, L, dtype=np.float64)
+    else:
+        depths = np.asarray(relative_depths, dtype=np.float64)
+
+    valid = np.isfinite(vals) & np.isfinite(depths)
+    if not np.any(valid):
+        return float("nan")
+
+    vals_v = vals[valid]
+    depths_v = depths[valid]
+
+    positive = np.maximum(vals_v, 0.0)
+    if np.max(positive) <= 0.0:
+        return float("nan")
+
+    return float(depths_v[np.argmax(positive)])
+
+
+def compute_causal_center_of_mass_from_net(
+    c_net: list[float] | np.ndarray,
+    relative_depths: list[float] | np.ndarray | None = None,
+) -> float:
+    """
+    Net 因果効果重心 bar_d_C
+    正の因果質量 sum(max(C_net, 0)) <= 0 の場合は NaN
+    """
+    vals = np.asarray(c_net, dtype=np.float64)
+    L = len(vals)
+    if relative_depths is None:
+        depths = np.linspace(0.0, 1.0, L, dtype=np.float64)
+    else:
+        depths = np.asarray(relative_depths, dtype=np.float64)
+
+    valid = np.isfinite(vals) & np.isfinite(depths)
+    if not np.any(valid):
+        return float("nan")
+
+    vals_v = vals[valid]
+    depths_v = depths[valid]
+
+    positive = np.maximum(vals_v, 0.0)
+    total = np.sum(positive)
+    if total <= 0.0:
+        return float("nan")
+
+    return float(np.sum(depths_v * positive) / total)
+
+
+def compute_net_causal_dissociation_metrics(
+    decodability_profile: list[float] | np.ndarray,
+    net_causal_profile: list[float] | np.ndarray,
+    relative_depths: list[float] | np.ndarray | None = None,
+) -> dict[str, float | bool]:
+    """
+    Net 因果効果とデコーダビリティの解離量を算出（完全双対 positive ガード）。
+    有意な decodability peak (R^2 > 0) と positive causal peak (C_net > 0) の両方が
+    存在する場合にのみ Delta d* を定義。
+    """
+    d_d = compute_decodability_peak(decodability_profile, relative_depths)
+    d_c = compute_causal_peak_from_net(net_causal_profile, relative_depths)
+    bar_dd = compute_decodability_center_of_mass(decodability_profile, relative_depths)
+    bar_dc = compute_causal_center_of_mass_from_net(net_causal_profile, relative_depths)
+
+    fin = lambda x: bool(np.isfinite(x)) if x is not None else False
+    delta_d_star = float(d_c - d_d) if fin(d_c) and fin(d_d) else float("nan")
+    delta_bar_d = float(bar_dc - bar_dd) if fin(bar_dc) and fin(bar_dd) else float("nan")
+
+    return {
+        "d_d_star": d_d,
+        "d_c_star": d_c,
+        "delta_d_star": delta_d_star,
+        "bar_d_d": bar_dd,
+        "bar_d_c": bar_dc,
+        "delta_bar_d": delta_bar_d,
+        "no_positive_net_causal_peak": not fin(d_c),
+        "no_positive_decodability_peak": not fin(d_d),
+    }
+
+

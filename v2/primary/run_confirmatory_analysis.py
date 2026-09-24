@@ -577,11 +577,14 @@ def run_confirmatory_analysis(
         reader_aucs_matched = []
         self_aucs_aligned = []
         reader_aucs_aligned = []
+        observed_recovery_families = set()
         for rf in recovery_files:
             try:
+                fam_id = rf.stem.replace("v2_recovery_", "").lower()
                 with open(rf, "r", encoding="utf-8") as f:
                     rdata = json.load(f)
                 if "self" in rdata and "reader" in rdata:
+                    observed_recovery_families.add(fam_id)
                     s_dat = rdata["self"]
                     r_dat = rdata["reader"]
                     # Strict matched-plain metrics for Primary analysis (no native fallback allowed)
@@ -633,11 +636,17 @@ def run_confirmatory_analysis(
                         reader_aucs_aligned.append(r_auc_al)
             except Exception as e:
                 logger.warning(f"Failed to parse recovery file {rf}: {e}")
-        if len(self_aucs_matched) < 2:
-            raise RuntimeError(
-                f"Insufficient valid recovery files found in {raw_dir} (found {len(self_aucs_matched)}). "
-                "Real runs require valid recovery artifacts."
-            )
+
+    expected_families = {"qwen", "llama", "gemma", "olmo"}
+    if is_dry_run:
+        observed_recovery_families = expected_families
+
+    h4_is_complete = (observed_recovery_families == expected_families)
+    if not h4_is_complete:
+        logger.warning(
+            f"H4 4-family coverage incomplete: observed {observed_recovery_families} vs expected {expected_families}. "
+            "Confirmatory evaluation will be marked as INCOMPLETE / descriptive only."
+        )
 
     # Primary: AUC recovery difference on matched-plain
     diffs_auc_matched = np.array(self_aucs_matched) - np.array(reader_aucs_matched)
@@ -720,41 +729,49 @@ def run_confirmatory_analysis(
             logger.warning(f"Failed to fit sample-level LMM for H4: {e}")
             h4_sample_lmm_results = {"converged": False, "error": str(e)}
 
+    h4_supp = bool(am_low > 0.0 or am_high < 0.0) if h4_is_complete else False
+    h4_status = "SUPPORTED" if (h4_is_complete and h4_supp) else ("INCOMPLETE" if not h4_is_complete else "NOT_SUPPORTED")
+
     confirmatory_report["hypotheses"]["H4_recovery_asymmetry"] = {
         "interpretation": "post-training-associated distribution recovery asymmetry (Primary: matched-plain AUC recovery; Secondary: native-chat AUC recovery; Mechanistic control: Procrustes-aligned AUC recovery)",
+        "status": h4_status,
+        "is_complete": h4_is_complete,
+        "expected_families": sorted(list(expected_families)),
+        "observed_families": sorted(list(observed_recovery_families)),
         "primary_auc_recovery": {
             "contrast_type": "primary_matched_plain",
-            "self_mean_auc": float(np.mean(self_aucs_matched)),
-            "reader_mean_auc": float(np.mean(reader_aucs_matched)),
-            "diff_self_minus_reader_mean": float(pt_auc_m),
-            "diff_bootstrap_ci_95": [float(am_low), float(am_high)],
-            "reorganization_supported": bool(am_low > 0.0 or am_high < 0.0),
+            "self_mean_auc": float(np.mean(self_aucs_matched)) if len(self_aucs_matched) > 0 else None,
+            "reader_mean_auc": float(np.mean(reader_aucs_matched)) if len(reader_aucs_matched) > 0 else None,
+            "diff_self_minus_reader_mean": float(pt_auc_m) if not np.isnan(pt_auc_m) else None,
+            "diff_bootstrap_ci_95": [float(am_low), float(am_high)] if (h4_is_complete and not np.isnan(am_low)) else None,
+            "reorganization_supported": h4_supp,
+            "evaluation_note": "Confirmatory inference complete" if h4_is_complete else "Incomplete: 4 prespecified families required for confirmatory claim",
         },
         "secondary_native_chat_auc_recovery": {
             "contrast_type": "secondary_native_chat",
-            "self_mean_auc": float(np.mean(self_aucs)),
-            "reader_mean_auc": float(np.mean(reader_aucs)),
-            "diff_self_minus_reader_mean": float(pt_auc),
-            "diff_bootstrap_ci_95": [float(a_low), float(a_high)],
-            "reorganization_supported": bool(a_low > 0.0 or a_high < 0.0),
+            "self_mean_auc": float(np.mean(self_aucs)) if len(self_aucs) > 0 else None,
+            "reader_mean_auc": float(np.mean(reader_aucs)) if len(reader_aucs) > 0 else None,
+            "diff_self_minus_reader_mean": float(pt_auc) if not np.isnan(pt_auc) else None,
+            "diff_bootstrap_ci_95": [float(a_low), float(a_high)] if (h4_is_complete and not np.isnan(a_low)) else None,
+            "reorganization_supported": bool(a_low > 0.0 or a_high < 0.0) if h4_is_complete else False,
         },
         "mechanistic_control_aligned_auc_recovery": {
             "contrast_type": "mechanistic_control_procrustes_aligned",
             "diff_self_minus_reader_mean": float(pt_auc_al) if not np.isnan(pt_auc_al) else None,
-            "diff_bootstrap_ci_95": [float(al_low), float(al_high)] if not np.isnan(al_low) else None,
+            "diff_bootstrap_ci_95": [float(al_low), float(al_high)] if (h4_is_complete and not np.isnan(al_low)) else None,
         },
         "secondary_max_recovery_ratio": {
-            "self_max_recovery_mean": float(np.mean(self_ratios)),
-            "reader_max_recovery_mean": float(np.mean(reader_ratios)),
-            "diff_self_minus_reader_mean": float(pt_max),
-            "diff_bootstrap_ci_95": [float(m_low), float(m_high)],
-            "reorganization_supported": bool(m_low > 0.0 or m_high < 0.0),
+            "self_max_recovery_mean": float(np.mean(self_ratios)) if len(self_ratios) > 0 else None,
+            "reader_max_recovery_mean": float(np.mean(reader_ratios)) if len(reader_ratios) > 0 else None,
+            "diff_self_minus_reader_mean": float(pt_max) if not np.isnan(pt_max) else None,
+            "diff_bootstrap_ci_95": [float(m_low), float(m_high)] if (h4_is_complete and not np.isnan(m_low)) else None,
+            "reorganization_supported": bool(m_low > 0.0 or m_high < 0.0) if h4_is_complete else False,
         },
         "sample_level_lmm": h4_sample_lmm_results,
         # Backwards compatible top-level fields pointing to Primary
-        "diff_self_minus_reader_mean": float(pt_auc_m),
-        "diff_bootstrap_ci_95": [float(am_low), float(am_high)],
-        "reorganization_supported": bool(am_low > 0.0 or am_high < 0.0),
+        "diff_self_minus_reader_mean": float(pt_auc_m) if not np.isnan(pt_auc_m) else None,
+        "diff_bootstrap_ci_95": [float(am_low), float(am_high)] if h4_is_complete else None,
+        "reorganization_supported": h4_supp,
     }
 
     # Save final report

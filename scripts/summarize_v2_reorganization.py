@@ -65,27 +65,30 @@ def generate_h1_h2_table(df_conf):
 
     metric_labels = [
         ("H1a: Geometric Distortion", [
-            ("reader_distortion", r"Reader Procrustes Distortion"),
-            ("self_distortion", r"Self Procrustes Distortion"),
-            ("rsa_reader", r"RSA Reader ($\rho_{\text{RSA}}$)"),
-            ("rsa_self", r"RSA Self ($\rho_{\text{RSA}}$)"),
+            ("H1a: Geometry Reorganization", "Reader Procrustes Distortion", r"Reader Procrustes Distortion"),
+            ("H1a: Geometry Reorganization", "Self Procrustes Distortion", r"Self Procrustes Distortion"),
+            ("H1a: Geometry Reorganization", "RSA Reader", r"RSA Reader ($\rho_{\text{RSA}}$)"),
+            ("H1a: Geometry Reorganization", "RSA Self", r"RSA Self ($\rho_{\text{RSA}}$)"),
         ]),
         ("H1b: Decodability Peak Shift", [
-            ("valence.reader.shift", r"Valence Reader $\Delta d^*$"),
-            ("valence.self.shift", r"Valence Self $\Delta d^*$"),
-            ("arousal.reader.shift", r"Arousal Reader $\Delta d^*$"),
-            ("arousal.self.shift", r"Arousal Self $\Delta d^*$"),
+            ("H1b: Decodability Peak Shift", "Valence Reader Peak Shift", r"Valence Reader $\Delta d^*$"),
+            ("H1b: Decodability Peak Shift", "Valence Self Peak Shift", r"Valence Self $\Delta d^*$"),
+            ("H1b: Decodability Peak Shift", "Arousal Reader Peak Shift", r"Arousal Reader $\Delta d^*$"),
+            ("H1b: Decodability Peak Shift", "Arousal Self Peak Shift", r"Arousal Self $\Delta d^*$"),
         ]),
         ("H2: Sharing Reorganization", [
-            ("valence", r"$\Delta\text{Sharing}$ (Valence)"),
-            ("arousal", r"$\Delta\text{Sharing}$ (Arousal)"),
+            ("H2: Sharing Reorganization", "Valence Delta Sharing", r"$\Delta\text{Sharing}$ (Valence)"),
+            ("H2: Sharing Reorganization", "Arousal Delta Sharing", r"$\Delta\text{Sharing}$ (Arousal)"),
         ]),
     ]
 
     for h_idx, (h_name, items) in enumerate(metric_labels):
         n_items = len(items)
-        for i_idx, (m_key, m_label) in enumerate(items):
-            row = df_conf[df_conf["metric"] == m_key]
+        for i_idx, (h_query, m_query, m_label) in enumerate(items):
+            row = df_conf[
+                (df_conf["hypothesis"] == h_query)
+                & (df_conf["metric"] == m_query)
+            ]
             if len(row) > 0:
                 est_val = row["estimate"].iloc[0]
                 l_val = row["ci_low"].iloc[0]
@@ -227,48 +230,58 @@ def generate_h3_lmm_table(df_h3_lmm):
         r"\begin{table}[htbp]",
         r"\centering",
         r"\small",
-        r"\caption{V2 H3c（因果再配置の線形混合効果モデル LMM）：control-adjusted causal leverage $C_{\mathrm{net,rand}}$ を目的変数とし、family、alignment、task、relative depth、およびそのinteractionを評価したsample-level regression / mixed-effects analysis。}",
+        r"\caption{V2 H3c（因果再配置の線形混合効果モデル LMM）：control-adjusted causal leverage $C_{\mathrm{net,rand}}$ を目的変数とし、family、alignment、task、relative depth、およびそのinteractionを評価したsample-level regression / mixed-effects analysis。ValenceおよびArousalの両軸におけるPrimary事前登録交互作用項および事後学習主効果。}",
         r"\label{tab:v2_h3_causal_lmm}",
-        r"\begin{tabular}{l cccc c}",
+        r"\begin{tabular}{ll cccc}",
         r"\toprule",
-        r"\textbf{Predictor / Parameter} & \textbf{Estimate ($\beta$)} & \textbf{Std. Error} & $t$ / $z$ & $p$-value & \textbf{95\% CI} \\",
+        r"\textbf{Axis} & \textbf{Predictor / Parameter} & \textbf{Estimate ($\beta$)} & \textbf{95\% CI} & $p$-value & \textbf{FDR $q$} \\",
         r"\midrule",
     ]
 
-    TERM_MAP = [
-        ("Intercept", "Intercept"),
-        ("C(alignment)[T.inst]", r"Post-training ($\text{Instruct} = 1$)"),
-        ("C(task)[T.self]", r"Task ($\text{Self} = 1$)"),
-        ("C(alignment)[T.inst]:C(task)[T.self]", r"$\text{Post-training} \times \text{Task}$"),
-        ("relative_depth", r"Relative Depth"),
-        ("C(alignment)[T.inst]:relative_depth", r"$\text{Post-training} \times \text{Depth}$"),
-        ("C(task)[T.self]:relative_depth", r"$\text{Task} \times \text{Depth}$"),
-        ("C(alignment)[T.inst]:C(task)[T.self]:relative_depth", r"$\text{Post-training} \times \text{Task} \times \text{Depth}$"),
+    TERMS_TO_DISPLAY = [
+        ("C(alignment)[T.inst]:relative_depth", r"$\text{Post-training} \times \text{Depth}$ (\textbf{Primary})"),
+        ("C(alignment)[T.inst]:C(task)[T.self]", r"$\text{Post-training} \times \text{Task}$ (\textbf{Primary})"),
+        ("C(alignment)[T.inst]:C(task)[T.self]:relative_depth", r"$\text{Post-training} \times \text{Task} \times \text{Depth}$ (\textbf{Primary})"),
+        ("C(alignment)[T.inst]", r"Post-training ($\text{Instruct} = 1$) (\textbf{Secondary})"),
     ]
 
     if df_h3_lmm is not None and len(df_h3_lmm) > 0:
-        for source_term, label in TERM_MAP:
-            row = df_h3_lmm[df_h3_lmm["term"] == source_term]
-            if len(row) > 0:
-                r0 = row.iloc[0]
-                b_val = r0.get("beta", r0.get("estimate", np.nan))
-                b_str = format_num(b_val)
-                se_val = r0.get("std_error", np.nan)
-                se_str = format_num(se_val)
-                stat_val = r0.get("stat", np.nan)
-                stat_str = f"{stat_val:.2f}" if pd.notna(stat_val) else "---"
-                p_val = r0.get("p", r0.get("p_value", np.nan))
-                if pd.notna(p_val):
-                    p_str = "< 0.001" if p_val < 0.001 else f"{p_val:.3f}"
+        for a_idx, axis in enumerate(["valence", "arousal"]):
+            axis_label = axis.capitalize()
+            n_terms = len(TERMS_TO_DISPLAY)
+            for t_idx, (source_term, term_label) in enumerate(TERMS_TO_DISPLAY):
+                row = df_h3_lmm[
+                    (df_h3_lmm["axis"] == axis)
+                    & (df_h3_lmm["term"] == source_term)
+                ]
+                if len(row) > 0:
+                    r0 = row.iloc[0]
+                    b_val = r0.get("beta", r0.get("estimate", np.nan))
+                    b_str = format_num(b_val, decimals=6) if pd.notna(b_val) else "---"
+                    l_ci = r0.get("ci_low", np.nan)
+                    u_ci = r0.get("ci_high", np.nan)
+                    if pd.notna(l_ci) and pd.notna(u_ci):
+                        ci_str = f"[{format_num(l_ci, decimals=6)}, {format_num(u_ci, decimals=6)}]"
+                    else:
+                        ci_str = "---"
+                    p_val = r0.get("p", r0.get("p_value", np.nan))
+                    if pd.notna(p_val):
+                        p_str = "< 0.001" if p_val < 0.001 else f"{p_val:.3f}"
+                    else:
+                        p_str = "---"
+                    q_val = r0.get("q", np.nan)
+                    if pd.notna(q_val):
+                        q_str = "< 0.001" if q_val < 0.001 else f"{q_val:.3f}"
+                    else:
+                        q_str = "---"
                 else:
-                    p_str = "---"
-                l_ci = r0.get("ci_low", np.nan)
-                u_ci = r0.get("ci_high", np.nan)
-                if pd.notna(l_ci) and pd.notna(u_ci):
-                    ci_str = f"[{format_num(l_ci)}, {format_num(u_ci)}]"
-                else:
-                    ci_str = "---"
-                tex_lines.append(f"{label:<48} & {b_str:<12} & {se_str:<10} & {stat_str:<8} & {p_str:<10} & {ci_str:<18} \\\\")
+                    b_str, ci_str, p_str, q_str = "---", "---", "---", "---"
+
+                ax_str = f"\\multirow{{{n_terms}}}{{*}}{{\\textbf{{{axis_label}}}}}" if t_idx == 0 else ""
+                tex_lines.append(f"{ax_str:<32} & {term_label:<60} & {b_str:<14} & {ci_str:<26} & {p_str:<10} & {q_str:<10} \\\\")
+
+            if a_idx != 1:
+                tex_lines.append(r"\midrule")
     else:
         tex_lines.append(r"--- & --- & --- & --- & --- & --- \\")
 
@@ -278,7 +291,7 @@ def generate_h3_lmm_table(df_h3_lmm):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} 事後学習の主効果（Post-training: $\beta = 0.181, 95\%\ \text{CI} = [0.145, 0.217], p < 0.001$）は有意であり、モデルファミリー間の個体差を変量効果として制御した後も、$C_{\mathrm{net,rand}}$ の変位が確認された。",
+        r"\textbf{Note:} Primary confirmatory inferenceは、Alignment $\times$ Depth、Alignment $\times$ Task、および Alignment $\times$ Task $\times$ Depth の事前登録された因果交互作用項に基づく。これらはいずれもBH-FDR多重比較補正後の有意水準を満たさなかった。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -321,7 +334,7 @@ def generate_distribution_recovery_table(df_recov):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} Baseモデル内部へInstruct由来の整列ベクトルを注入した場合の出力感情分布の回復度（Matched AUC, $\Delta\text{EMD AUC}$, Max Recovery）。GemmaおよびOLMoの実測値を掲載。事前登録された4ファミリー設計のうちLlamaおよびQwenは未実施であるため、事前登録基準によるH4確証的判定は未完（Incomplete）である。",
+        r"\textbf{Note:} Baseモデル内部へInstruct由来の整列ベクトルを注入した場合の出力感情分布の回復度（Matched AUC, $\Delta\text{EMD AUC}$, Max Recovery）。現時点ではGemma familyのみについてMatched-Plain recoveryの実測値が利用可能である。したがって、事前登録された4ファミリー設計（Qwen, Llama, Gemma, OLMo）に基づくH4確証的統合は未完（Incomplete）であり、H4について確証的判定（Confirmatory conclusion）は行わない。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -345,12 +358,16 @@ def generate_confirmatory_summary_table(df_conf, df_lmm=None, df_recov=None):
 
     # Map of metric keys in table_v2_confirmatory.csv to display names
     CONF_MAP = [
-        ("H1a_geometry_reorganization", "reader_distortion", "H1a: Geometry Reorganization", "Reader Procrustes Distortion"),
-        ("H1a_geometry_reorganization", "self_distortion", "H1a: Geometry Reorganization", "Self Procrustes Distortion"),
-        ("H1b_decodability_peak_reorganization", "valence.reader.shift", "H1b: Decodability Peak Shift", r"Valence Reader Peak Shift $\Delta d^*$"),
-        ("H1b_decodability_peak_reorganization", "arousal.reader.shift", "H1b: Decodability Peak Shift", r"Arousal Reader Peak Shift $\Delta d^*$"),
-        ("H2_representation_sharing_reorganization", "valence", "H2: Sharing Reorganization", r"Valence $\Delta\text{Sharing}$"),
-        ("H2_representation_sharing_reorganization", "arousal", "H2: Sharing Reorganization", r"Arousal $\Delta\text{Sharing}$"),
+        ("H1a: Geometry Reorganization", "Reader Procrustes Distortion", "H1a: Geometry Reorganization", "Reader Procrustes Distortion"),
+        ("H1a: Geometry Reorganization", "Self Procrustes Distortion", "H1a: Geometry Reorganization", "Self Procrustes Distortion"),
+        ("H1a: Geometry Reorganization", "RSA Reader", "H1a: Geometry Reorganization", "RSA Reader"),
+        ("H1a: Geometry Reorganization", "RSA Self", "H1a: Geometry Reorganization", "RSA Self"),
+        ("H1b: Decodability Peak Shift", "Valence Reader Peak Shift", "H1b: Decodability Peak Shift", r"Valence Reader Peak Shift $\Delta d^*$"),
+        ("H1b: Decodability Peak Shift", "Valence Self Peak Shift", "H1b: Decodability Peak Shift", r"Valence Self Peak Shift $\Delta d^*$"),
+        ("H1b: Decodability Peak Shift", "Arousal Reader Peak Shift", "H1b: Decodability Peak Shift", r"Arousal Reader Peak Shift $\Delta d^*$"),
+        ("H1b: Decodability Peak Shift", "Arousal Self Peak Shift", "H1b: Decodability Peak Shift", r"Arousal Self Peak Shift $\Delta d^*$"),
+        ("H2: Sharing Reorganization", "Valence Delta Sharing", "H2: Sharing Reorganization", r"Valence $\Delta\text{Sharing}$"),
+        ("H2: Sharing Reorganization", "Arousal Delta Sharing", "H2: Sharing Reorganization", r"Arousal $\Delta\text{Sharing}$"),
     ]
 
     # If df_conf contains all rows (H1--H4), render directly from df_conf
@@ -432,7 +449,7 @@ def generate_confirmatory_summary_table(df_conf, df_lmm=None, df_recov=None):
                 s_auc = df_recov[df_recov["task"] == "self"]["matched_auc"].dropna().mean()
                 diff_auc = s_auc - r_auc if (pd.notna(s_auc) and pd.notna(r_auc)) else np.nan
                 diff_str = format_num(diff_auc) if pd.notna(diff_auc) else "---"
-                tex_lines.append(f"{'H4: Recovery Asymmetry':<30} & {'Self--Reader AUC diff (\\textbf{Primary})':<42} & {diff_str:<8} & {'---':<22} & {'---':<12} & Not Supported (Incomp.) \\\\")
+                tex_lines.append(f"{'H4: Recovery Asymmetry':<30} & {'Self--Reader AUC diff (\\textbf{Primary})':<42} & {diff_str:<8} & {'---':<22} & {'---':<12} & Incomplete / Not evaluated \\\\")
     else:
         tex_lines.append(r"--- & --- & --- & --- & --- & --- \\")
 
@@ -442,7 +459,7 @@ def generate_confirmatory_summary_table(df_conf, df_lmm=None, df_recov=None):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} H1--H4の事前登録検証結果総括。幾何学的歪み（H1a）、デコードピーク後段シフト（H1b）、および表現共有度再編（H2）において有意差が確認された。一方、H3の事前登録Primary指標である交互作用項（Alignment $\times$ Depth, Alignment $\times$ Task, Alignment $\times$ Task $\times$ Depth）はいずれもFDR補正後有意ではなく（$q > 0.05$）、因果再配置の確証的証拠は得られなかった（主効果のみ有意）。またH4は4ファミリー中2ファミリー（Gemma, OLMo）のみの実測であり、未実施ファミリーが存在するため確証的判定は不成立（未完）である。",
+        r"\textbf{Note:} H1aではBase--Instruct間の幾何学的歪み（Procrustes Distortion）が確認された。一方、H1bの事前定義された正方向のデコードピーク後段シフト、およびH2のReader--Self表現共有度再編（$\Delta\text{Sharing}$）は、4ファミリー統合ブートストラップ95\%信頼区間に基づく事前登録判定基準を満たさなかった。H3のPrimary因果交互作用項もFDR補正後には支持されなかった。H4は4ファミリー結果が揃っていないため確証的判定を行わない。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -454,23 +471,52 @@ def generate_confirmatory_summary_table(df_conf, df_lmm=None, df_recov=None):
 def generate_markdown_summary(df_conf, df_lmm):
     md_lines = [
         "# V2 Stage: Post-training-Associated Reorganization (H1-H4) Complete Summary Report\n",
-        "## 1. Representation Geometry & Peak Shift (H1-H2)\n",
-        "| Hypothesis | Metric | Estimate | 95% CI | Condition |",
-        "|:---|:---|:---:|:---:|:---:|",
-        "| **H1a: Geometric Distortion** | Reader Procrustes Distortion | 0.353 | [0.330, 0.370] | Matched-Plain |",
-        "| **H1a: Geometric Distortion** | Self Procrustes Distortion | 0.425 | [0.402, 0.445] | Matched-Plain |",
-        "| **H1b: Decodability Shift** | Valence Reader Delta d* | 0.112 | [0.090, 0.138] | Matched-Plain |",
-        "| **H1b: Decodability Shift** | Arousal Reader Delta d* | 0.090 | [0.070, 0.110] | Matched-Plain |",
-        "| **H2: Sharing Reorganization** | Valence Delta Sharing | -0.082 | [-0.105, -0.060] | Matched-Plain |",
-        "| **H2: Sharing Reorganization** | Arousal Delta Sharing | -0.055 | [-0.065, -0.045] | Matched-Plain |\n",
-        "## 2. Causal Relocation LMM (H3)\n",
-        "| Predictor | Estimate (beta) | Std. Error | t / z | p-value | 95% CI |",
-        "|:---|:---:|:---:|:---:|:---:|:---:|",
-        "| Intercept | 0.625 | 0.038 | 16.45 | < 0.001 | [0.551, 0.699] |",
-        "| Post-training (Instruct=1) | 0.142 | 0.029 | 4.90 | < 0.001 | [0.085, 0.199] |",
-        "| Task (Self=1) | -0.018 | 0.024 | -0.75 | 0.453 | [-0.065, 0.029] |",
-        "| Post-training x Task | 0.035 | 0.031 | 1.13 | 0.259 | [-0.026, 0.096] |\n",
+        "## 1. Confirmatory Hypotheses Testing Summary\n",
+        "| Hypothesis | Key Pre-registered Metric | Estimate | 95% CI | p / FDR q | Supported? |",
+        "|:---|:---|:---:|:---:|:---:|:---:|",
     ]
+    if df_conf is not None and len(df_conf) > 0:
+        for _, r in df_conf.iterrows():
+            h_name = str(r.get("hypothesis", "---"))
+            m_name = str(r.get("metric", "---"))
+            est_val = r.get("estimate", np.nan)
+            est_str = format_num(est_val, decimals=4) if pd.notna(est_val) else "---"
+            l_ci = r.get("ci_low", np.nan)
+            u_ci = r.get("ci_high", np.nan)
+            ci_str = f"[{format_num(l_ci, decimals=4)}, {format_num(u_ci, decimals=4)}]" if (pd.notna(l_ci) and pd.notna(u_ci)) else "---"
+            q_val = r.get("q", np.nan)
+            p_val = r.get("p", np.nan)
+            if pd.notna(q_val):
+                pq_str = f"q = {q_val:.3f}"
+            elif pd.notna(p_val):
+                pq_str = f"p = {p_val:.3f}" if p_val >= 0.001 else "p < 0.001"
+            else:
+                pq_str = "---"
+            supp_str = str(r.get("supported", "---"))
+            md_lines.append(f"| {h_name} | {m_name} | {est_str} | {ci_str} | {pq_str} | {supp_str} |")
+    else:
+        md_lines.append("| --- | --- | --- | --- | --- | --- |")
+
+    md_lines.append("\n## 2. Causal Relocation LMM (H3)\n")
+    md_lines.append("| Axis | Term | Estimate (beta) | 95% CI | p-value | FDR q |")
+    md_lines.append("|:---|:---|:---:|:---:|:---:|:---:|")
+    if df_lmm is not None and len(df_lmm) > 0:
+        for _, r0 in df_lmm.iterrows():
+            ax = str(r0.get("axis", "---")).capitalize()
+            tm = str(r0.get("term", "---"))
+            b_val = r0.get("beta", np.nan)
+            b_str = format_num(b_val, decimals=6) if pd.notna(b_val) else "---"
+            l_ci = r0.get("ci_low", np.nan)
+            u_ci = r0.get("ci_high", np.nan)
+            ci_str = f"[{format_num(l_ci, decimals=6)}, {format_num(u_ci, decimals=6)}]" if (pd.notna(l_ci) and pd.notna(u_ci)) else "---"
+            p_val = r0.get("p", np.nan)
+            p_str = "< 0.001" if (pd.notna(p_val) and p_val < 0.001) else (f"{p_val:.3f}" if pd.notna(p_val) else "---")
+            q_val = r0.get("q", np.nan)
+            q_str = "< 0.001" if (pd.notna(q_val) and q_val < 0.001) else (f"{q_val:.3f}" if pd.notna(q_val) else "---")
+            md_lines.append(f"| {ax} | {tm} | {b_str} | {ci_str} | {p_str} | {q_str} |")
+    else:
+        md_lines.append("| --- | --- | --- | --- | --- | --- |")
+
     return "\n".join(md_lines) + "\n"
 
 def main():

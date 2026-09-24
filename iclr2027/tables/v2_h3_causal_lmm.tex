@@ -1,25 +1,26 @@
 \begin{table}[htbp]
 \centering
 \small
-\caption{V2 H3c（因果再配置の線形混合効果モデル LMM）：control-adjusted causal leverage $C_{\mathrm{net,rand}}$ を目的変数とし、family、alignment、task、relative depth、およびそのinteractionを評価したsample-level regression / mixed-effects analysis。}
+\caption{V2 H3c（因果再配置の線形混合効果モデル LMM）：control-adjusted causal leverage $C_{\mathrm{net,rand}}$ を目的変数とし、family、alignment、task、relative depth、およびそのinteractionを評価したsample-level regression / mixed-effects analysis。ValenceおよびArousalの両軸におけるPrimary事前登録交互作用項および事後学習主効果。}
 \label{tab:v2_h3_causal_lmm}
-\begin{tabular}{l cccc c}
+\begin{tabular}{ll cccc}
 \toprule
-\textbf{Predictor / Parameter} & \textbf{Estimate ($\beta$)} & \textbf{Std. Error} & $t$ / $z$ & $p$-value & \textbf{95\% CI} \\
+\textbf{Axis} & \textbf{Predictor / Parameter} & \textbf{Estimate ($\beta$)} & \textbf{95\% CI} & $p$-value & \textbf{FDR $q$} \\
 \midrule
-Intercept                                        & 0.000        & ---        & ---      & ---        & ---                \\
-Post-training ($\text{Instruct} = 1$)            & $-$0.000     & ---        & ---      & 0.051      & [$-$0.000, 0.000]  \\
-Task ($\text{Self} = 1$)                         & $-$0.000     & ---        & ---      & 0.024      & [$-$0.000, $-$0.000] \\
-$\text{Post-training} \times \text{Task}$        & 0.000        & ---        & ---      & 0.020      & [0.000, 0.000]     \\
-Relative Depth                                   & $-$0.000     & ---        & ---      & 0.345      & [$-$0.000, 0.000]  \\
-$\text{Post-training} \times \text{Depth}$       & 0.000        & ---        & ---      & 0.144      & [$-$0.000, 0.000]  \\
-$\text{Task} \times \text{Depth}$                & 0.000        & ---        & ---      & 0.138      & [$-$0.000, 0.000]  \\
-$\text{Post-training} \times \text{Task} \times \text{Depth}$ & $-$0.000     & ---        & ---      & 0.133      & [$-$0.000, 0.000]  \\
+\multirow{4}{*}{\textbf{Valence}} & $\text{Post-training} \times \text{Depth}$ (\textbf{Primary}) & 0.000147       & [$-$0.000050, 0.000343]    & 0.144      & 0.287      \\
+                                 & $\text{Post-training} \times \text{Task}$ (\textbf{Primary}) & 0.000192       & [0.000030, 0.000354]       & 0.020      & 0.122      \\
+                                 & $\text{Post-training} \times \text{Task} \times \text{Depth}$ (\textbf{Primary}) & $-$0.000213    & [$-$0.000491, 0.000065]    & 0.133      & 0.287      \\
+                                 & Post-training ($\text{Instruct} = 1$) (\textbf{Secondary})   & $-$0.000114    & [$-$0.000229, 0.000000]    & 0.051      & ---        \\
+\midrule
+\multirow{4}{*}{\textbf{Arousal}} & $\text{Post-training} \times \text{Depth}$ (\textbf{Primary}) & $-$0.000008    & [$-$0.000061, 0.000044]    & 0.760      & 0.796      \\
+                                 & $\text{Post-training} \times \text{Task}$ (\textbf{Primary}) & 0.000006       & [$-$0.000038, 0.000049]    & 0.796      & 0.796      \\
+                                 & $\text{Post-training} \times \text{Task} \times \text{Depth}$ (\textbf{Primary}) & 0.000016       & [$-$0.000058, 0.000090]    & 0.676      & 0.796      \\
+                                 & Post-training ($\text{Instruct} = 1$) (\textbf{Secondary})   & $-$0.000005    & [$-$0.000036, 0.000025]    & 0.740      & ---        \\
 \bottomrule
 \end{tabular}
 \vspace{1ex}
 \begin{minipage}{\linewidth}
 \footnotesize
-\textbf{Note:} 事後学習の主効果（Post-training: $\beta = 0.181, 95\%\ \text{CI} = [0.145, 0.217], p < 0.001$）は有意であり、モデルファミリー間の個体差を変量効果として制御した後も、$C_{\mathrm{net,rand}}$ の変位が確認された。
+\textbf{Note:} Primary confirmatory inferenceは、Alignment $\times$ Depth、Alignment $\times$ Task、および Alignment $\times$ Task $\times$ Depth の事前登録された因果交互作用項に基づく。これらはいずれもBH-FDR多重比較補正後の有意水準を満たさなかった。
 \end{minipage}
 \end{table}

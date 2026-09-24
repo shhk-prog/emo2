@@ -114,7 +114,8 @@ def build_v2_summary(
                 sn = fam_axis_data.get("secondary_native_chat", {})
 
                 dist_key = f"com_distortion_{task}"
-                mean_dist = float(mp.get(dist_key, geom_entry.get(f"{task}_distortion", np.nan)))
+                center_dist = float(mp.get(dist_key, np.nan))
+                mean_dist = float(geom_entry.get(f"{task}_distortion", np.nan))
                 mean_rsa = float(geom_entry.get(f"rsa_{task}", np.nan))
 
                 base_peak = float(mp.get("peak_depth_base_cross", np.nan))
@@ -137,7 +138,8 @@ def build_v2_summary(
                         "delta_peak_depth": delta_peak,
                         "mean_rsa": mean_rsa,
                         "mean_procrustes_distortion": mean_dist,
-                        "distortion_center": mean_dist,
+                        "procrustes_distortion_center": center_dist,
+                        "distortion_center": center_dist,
                         "native_distortion": native_dist,
                     }
                 )
@@ -584,8 +586,14 @@ def build_v2_summary(
     conf_rows = []
     # H1a
     h1a_data = lmm_data.get("hypotheses", {}).get("H1a_geometry_reorganization", {})
-    for mk, label in [("reader_distortion", "Reader Procrustes Distortion"), ("self_distortion", "Self Procrustes Distortion")]:
-        eff = h1a_data.get("effects", {}).get(mk, {})
+    effects = h1a_data.get("effects", {})
+    for mk, label in [
+        ("reader_distortion", "Reader Procrustes Distortion"),
+        ("self_distortion", "Self Procrustes Distortion"),
+        ("rsa_reader", "RSA Reader"),
+        ("rsa_self", "RSA Self"),
+    ]:
+        eff = effects.get(mk, {})
         est = eff.get("mean", np.nan)
         ci = eff.get("bootstrap_ci_95", [np.nan, np.nan])
         supp = bool(ci[0] > 0.0) if not np.isnan(ci[0]) else False
@@ -602,10 +610,16 @@ def build_v2_summary(
 
     # H1b
     h1b_data = lmm_data.get("hypotheses", {}).get("H1b_decodability_peak_reorganization", lmm_data.get("hypotheses", {}).get("H1_decodability_peak_reorganization", {}))
-    for mk, label in [("valence.reader.shift", "Valence Reader Peak Shift Delta d*"), ("arousal.reader.shift", "Arousal Reader Peak Shift Delta d*")]:
+    for mk, label in [
+        ("valence.reader.shift", "Valence Reader Peak Shift"),
+        ("valence.self.shift", "Valence Self Peak Shift"),
+        ("arousal.reader.shift", "Arousal Reader Peak Shift"),
+        ("arousal.self.shift", "Arousal Self Peak Shift"),
+    ]:
         eff = h1b_data.get("primary_effects", {}).get(mk, {})
         est = eff.get("mean_shift", np.nan)
         ci = eff.get("bootstrap_ci_95", [np.nan, np.nan])
+        # Prespecified criterion: positive shift CI[0] > 0.0
         supp = bool(ci[0] > 0.0) if not np.isnan(ci[0]) else False
         conf_rows.append({
             "hypothesis": "H1b: Decodability Peak Shift",
@@ -624,7 +638,7 @@ def build_v2_summary(
         eff = h2_data.get("primary_effects", {}).get(ax, {})
         est = eff.get("mean_delta_sharing", np.nan)
         ci = eff.get("bootstrap_ci_95", [np.nan, np.nan])
-        supp = bool(ci[1] < 0.0 or ci[0] > 0.0) if not np.isnan(ci[0]) else False
+        supp = bool(ci[1] < 0.0) if not np.isnan(ci[1]) else False
         conf_rows.append({
             "hypothesis": "H2: Sharing Reorganization",
             "metric": label,
@@ -636,44 +650,49 @@ def build_v2_summary(
             "supported": "Supported" if supp else "Not Supported",
         })
 
-    # H3
+    # H3: Primary causal relocation LMM (Both Valence and Arousal axes)
     h3_models = h3_lmm.get("models", {})
-    val_model = h3_models.get("valence", {})
-    val_params = val_model.get("params", {})
-    val_conf = val_model.get("conf_int", {})
-    val_p = val_model.get("pvalues", {})
     fdr_q = h3_lmm.get("primary_fdr_adjusted_p_values", {})
-
     terms_h3 = [
         ("C(alignment)[T.inst]:relative_depth", "Alignment x Depth (Primary)"),
         ("C(alignment)[T.inst]:C(task)[T.self]", "Alignment x Task (Primary)"),
         ("C(alignment)[T.inst]:C(task)[T.self]:relative_depth", "Alignment x Task x Depth (Primary)"),
         ("C(alignment)[T.inst]", "Alignment main effect (Secondary)"),
     ]
-    for raw_t, label in terms_h3:
-        b_val = val_params.get(raw_t, np.nan)
-        c0 = val_conf.get("0", {}).get(raw_t, np.nan)
-        c1 = val_conf.get("1", {}).get(raw_t, np.nan)
-        p_val = val_p.get(raw_t, np.nan)
-        q_val = fdr_q.get(f"valence_{raw_t}", np.nan)
-        is_sec = "Secondary" in label
-        supp = "Supported" if (q_val < 0.05 if not np.isnan(q_val) else p_val < 0.05) else "Not Supported"
-        conf_rows.append({
-            "hypothesis": "H3: Alignment Main Effect" if is_sec else "H3: Causal Reorganization",
-            "metric": label,
-            "estimate": b_val,
-            "ci_low": c0,
-            "ci_high": c1,
-            "p": p_val,
-            "q": q_val,
-            "supported": supp,
-        })
+    for ax_name in ["valence", "arousal"]:
+        ax_model = h3_models.get(ax_name, {})
+        ax_params = ax_model.get("params", {})
+        ax_conf = ax_model.get("conf_int", {})
+        ax_p = ax_model.get("pvalues", {})
+        for raw_t, term_label in terms_h3:
+            b_val = ax_params.get(raw_t, np.nan)
+            c0 = ax_conf.get("0", {}).get(raw_t, np.nan)
+            c1 = ax_conf.get("1", {}).get(raw_t, np.nan)
+            p_val = ax_p.get(raw_t, np.nan)
+            q_val = fdr_q.get(f"{ax_name}_{raw_t}", np.nan)
+            is_sec = "Secondary" in term_label
+            supp = "Supported" if (q_val < 0.05 if not np.isnan(q_val) else p_val < 0.05) else "Not Supported"
+            label = f"{ax_name.capitalize()} {term_label}"
+            conf_rows.append({
+                "hypothesis": "H3: Alignment Main Effect" if is_sec else "H3: Causal Reorganization",
+                "metric": label,
+                "estimate": b_val,
+                "ci_low": c0,
+                "ci_high": c1,
+                "p": p_val,
+                "q": q_val,
+                "supported": supp,
+            })
 
-    # H4
+    # H4: Distribution Recovery Asymmetry
     h4_data = lmm_data.get("hypotheses", {}).get("H4_recovery_asymmetry", {})
+    h4_is_comp = h4_data.get("is_complete", False)
     h4_prim = h4_data.get("primary_auc_recovery", {})
     h4_diff = h4_prim.get("diff_self_minus_reader_mean", np.nan)
-    h4_ci = h4_prim.get("diff_bootstrap_ci_95", [np.nan, np.nan])
+    h4_ci = h4_prim.get("diff_bootstrap_ci_95") if h4_is_comp else [np.nan, np.nan]
+    if h4_ci is None:
+        h4_ci = [np.nan, np.nan]
+    h4_supp_label = "Incomplete / Not evaluated" if not h4_is_comp else ("Supported" if h4_prim.get("reorganization_supported", False) else "Not Supported")
     conf_rows.append({
         "hypothesis": "H4: Recovery Asymmetry",
         "metric": "Self--Reader AUC diff (Primary)",
@@ -682,12 +701,12 @@ def build_v2_summary(
         "ci_high": h4_ci[1],
         "p": np.nan,
         "q": np.nan,
-        "supported": "Not Supported (Incomp.)",
+        "supported": h4_supp_label,
     })
     # H4 descriptive
     reader_m = h4_prim.get("reader_mean_auc", np.nan)
     self_m = h4_prim.get("self_mean_auc", np.nan)
-    avg_m = np.nanmean([reader_m, self_m]) if not np.isnan(reader_m) else np.nan
+    avg_m = np.nanmean([reader_m, self_m]) if (reader_m is not None and not np.isnan(reader_m)) else np.nan
     conf_rows.append({
         "hypothesis": "H4: Recovery Asymmetry",
         "metric": "Matched-Plain AUC (Descriptive)",

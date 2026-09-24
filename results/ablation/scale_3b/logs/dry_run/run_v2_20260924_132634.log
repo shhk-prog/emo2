@@ -1,0 +1,14 @@
+2026-09-24 13:26:34,447 [INFO] Affective Empathy Evaluation Unified Runner
+2026-09-24 13:26:34,447 [INFO] Stage: v2 | Cohort: scale_3b | Dry-run: True
+2026-09-24 13:26:34,447 [INFO] Execution log automatically saved to results/ablation/scale_3b/logs/dry_run/run_v2_20260924_132634.log
+2026-09-24 13:26:34,447 [INFO] Wall-clock estimates are unmeasured until a Qwen-family benchmark is recorded.
+2026-09-24 13:26:34,447 [INFO] Dataset inventory (actual loaded counts; wall-clock time is unmeasured):
+2026-09-24 13:26:34,453 [INFO] EmoBank 3-way: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-24 13:26:34,458 [INFO] AIPsy 4-split: n_rows=480 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=480 | split_counts={'clinical': 192, 'neutral': 192, 'moderate': 48, 'complex_neutral': 48}
+2026-09-24 13:26:34,464 [INFO] V1 Phase B rule-based controls: n_rows=192 | path=v1/data/processed/v1_e5_semantic_controls.csv | n_unique_pair_id=192
+2026-09-24 13:26:34,464 [INFO] === Running V2 Stage (model-set: scale_3b) ===
+2026-09-24 13:26:34,464 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v2/primary/run_rq1_rq2_cross_decoding.py --models-config configs/models.yaml --model-set scale_3b --device cpu --dry-run
+2026-09-24 13:26:39,726 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v2/primary/run_rq3_causal_map.py --models-config configs/models.yaml --model-set scale_3b --device cpu --dry-run
+2026-09-24 13:26:45,462 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v2/primary/run_rq4_recovery_patching.py --models-config configs/models.yaml --model-set scale_3b --device cpu --dry-run
+2026-09-24 13:26:50,934 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v2/primary/run_confirmatory_analysis.py --models-config configs/models.yaml --model-set scale_3b --dry-run
+2026-09-24 13:26:53,706 [INFO] All requested stages completed successfully!

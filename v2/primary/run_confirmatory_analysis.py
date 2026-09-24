@@ -34,6 +34,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+from affective_empathy_eval.models.registry import add_model_selection_args
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Run V2 Confirmatory Statistical Analysis (LMM + FDR)"
@@ -45,22 +48,29 @@ def parse_args():
         help="Path to V2 config",
     )
     parser.add_argument(
+        "--models-config",
+        type=str,
+        default="configs/models.yaml",
+        help="Path to models config",
+    )
+    parser.add_argument(
         "--raw-dir",
         type=str,
-        default="v2/results/raw",
-        help="Directory containing raw JSON outputs",
+        default=None,
+        help="Directory containing raw JSON outputs (defaults to resolved dir)",
     )
     parser.add_argument(
         "--derived-dir",
         type=str,
-        default="v2/results/derived",
-        help="Directory for saving derived confirmatory results",
+        default=None,
+        help="Directory for saving derived confirmatory results (defaults to resolved dir)",
     )
     parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Generate synthetic inputs for fast pipeline validation",
     )
+    add_model_selection_args(parser)
     return parser.parse_args()
 
 
@@ -68,6 +78,7 @@ def run_confirmatory_analysis(
     raw_dir: Path,
     derived_dir: Path,
     is_dry_run: bool = False,
+    families: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     if is_dry_run:
         raw_dir = raw_dir / "dry_run" if raw_dir.name != "dry_run" else raw_dir
@@ -76,7 +87,8 @@ def run_confirmatory_analysis(
     raw_dir.mkdir(parents=True, exist_ok=True)
     derived_dir.mkdir(parents=True, exist_ok=True)
 
-    families = ["qwen", "llama", "gemma", "olmo"]
+    if families is None:
+        families = ["qwen", "llama", "gemma", "olmo"]
     confirmatory_report: Dict[str, Any] = {
         "status": "success",
         "dry_run": is_dry_run,
@@ -756,9 +768,38 @@ def run_confirmatory_analysis(
 
 def main():
     args = parse_args()
-    raw_dir = Path(args.raw_dir)
-    derived_dir = Path(args.derived_dir)
-    run_confirmatory_analysis(raw_dir=raw_dir, derived_dir=derived_dir, is_dry_run=args.dry_run)
+    with open(args.config, "r", encoding="utf-8") as f:
+        v2_config = yaml.safe_load(f)
+
+    from affective_empathy_eval.io import resolve_output_dirs
+    from affective_empathy_eval.models.registry import load_model_set
+
+    model_set = getattr(args, "model_set", "primary_small")
+    if args.raw_dir and args.derived_dir:
+        raw_dir = Path(args.raw_dir)
+        derived_dir = Path(args.derived_dir)
+    else:
+        raw_dir, derived_dir = resolve_output_dirs(
+            config=v2_config,
+            model_set=model_set,
+            stage="v2",
+            is_dry_run=args.dry_run,
+        )
+
+    try:
+        registered_models = load_model_set(Path(args.models_config), model_set=model_set)
+        families = list(registered_models.keys())
+    except Exception as e:
+        logger.warning(f"Could not load families for model_set '{model_set}' from {args.models_config}: {e}. Falling back to default.")
+        families = None
+
+    logger.info(f"Running confirmatory analysis for model_set='{model_set}' | families={families} | raw={raw_dir} | derived={derived_dir}")
+    run_confirmatory_analysis(
+        raw_dir=raw_dir,
+        derived_dir=derived_dir,
+        is_dry_run=args.dry_run,
+        families=families,
+    )
 
 
 if __name__ == "__main__":

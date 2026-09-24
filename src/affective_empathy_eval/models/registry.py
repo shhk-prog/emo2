@@ -14,13 +14,19 @@ KNOWN_MODEL_DIMS: Dict[str, Tuple[int, int]] = {
     "Qwen/Qwen2.5-1.5B-Instruct": (28, 1536),
     "Qwen/Qwen2.5-0.5B": (24, 896),
     "Qwen/Qwen2.5-0.5B-Instruct": (24, 896),
+    "Qwen/Qwen2.5-3B": (36, 2048),
+    "Qwen/Qwen2.5-3B-Instruct": (36, 2048),
     "Qwen/Qwen2.5-7B": (28, 3584),
     "Qwen/Qwen2.5-7B-Instruct": (28, 3584),
-    # Llama 3.2
+    # Llama 3.2 & 3.1
     "meta-llama/Llama-3.2-1B": (16, 2048),
     "meta-llama/Llama-3.2-1B-Instruct": (16, 2048),
     "meta-llama/Llama-3.2-3B": (28, 3072),
     "meta-llama/Llama-3.2-3B-Instruct": (28, 3072),
+    "meta-llama/Llama-3.1-8B": (32, 4096),
+    "meta-llama/Llama-3.1-8B-Instruct": (32, 4096),
+    "meta-llama/Meta-Llama-3-8B": (32, 4096),
+    "meta-llama/Meta-Llama-3-8B-Instruct": (32, 4096),
     # Gemma 3 & Gemma 2
     "google/gemma-3-1b-pt": (26, 1152),
     "google/gemma-3-1b-it": (26, 1152),
@@ -29,6 +35,8 @@ KNOWN_MODEL_DIMS: Dict[str, Tuple[int, int]] = {
     # OLMo 2
     "allenai/OLMo-2-0425-1B": (16, 2048),
     "allenai/OLMo-2-0425-1B-Instruct": (16, 2048),
+    "allenai/OLMo-2-1124-7B": (32, 4096),
+    "allenai/OLMo-2-1124-7B-Instruct": (32, 4096),
     # Mistral
     "mistralai/Mistral-7B-v0.1": (32, 4096),
     "mistralai/Mistral-7B-Instruct-v0.2": (32, 4096),
@@ -420,7 +428,7 @@ def add_model_selection_args(parser):
         "--model-set",
         type=str,
         default="primary_small",
-        choices=["primary_small", "scale_validation"],
+        choices=["primary_small", "scale_validation", "scale_3b", "scale_7b"],
         help="Model cohort to evaluate (default: primary_small)",
     )
     group.add_argument(

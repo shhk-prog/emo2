@@ -1,0 +1,85 @@
+{
+  "run_type": "v2_geometry",
+  "model_name": "Qwen 2.5",
+  "config": {
+    "v2_config": {
+      "experiment_name": "v2_2x2_cross_decoding",
+      "seed": 42,
+      "dataset": {
+        "path": "v1/data/processed/stimuli_vad_3way_test1k.csv",
+        "train_ratio": 0.7,
+        "text_column": "text",
+        "id_column": "id",
+        "external_labels": {
+          "valence": "reader_V",
+          "arousal": "reader_A"
+        }
+      },
+      "families": [
+        "Qwen",
+        "Llama",
+        "Gemma",
+        "OLMo"
+      ],
+      "formats": [
+        "native",
+        "matched_plain"
+      ],
+      "decoding": {
+        "ridge_alpha": 1.0,
+        "metrics": [
+          "r2",
+          "procrustes",
+          "rsa"
+        ]
+      },
+      "bootstrap": {
+        "n_boot": 1000,
+        "ci_level": 0.95
+      },
+      "sequence_likelihood": {
+        "normalize_length": true,
+        "temperature": 1.0
+      },
+      "rq4": {
+        "procrustes_pca_dim": 64
+      },
+      "output": {
+        "raw_dir": "v2/results/raw",
+        "derived_dir": "v2/results/derived"
+      }
+    },
+    "family_id": "qwen",
+    "base_model": "Qwen/Qwen2.5-3B",
+    "base_revision": null,
+    "instruct_model": "Qwen/Qwen2.5-3B-Instruct",
+    "instruct_revision": null,
+    "seed": 42,
+    "max_samples": null,
+    "dry_run": true,
+    "dtype": "bfloat16"
+  },
+  "metadata": {
+    "num_layers": 4,
+    "hidden_dim": 64
+  },
+  "timestamp_utc": "2026-09-24T04:26:38.579291+00:00",
+  "git_commit": "8326758",
+  "run_id": "20260924T042638579248Z_8326758_6c272f33_73ab837d",
+  "config_hash": "6c272f33b1bb2aa7",
+  "dataset_hash": "110d14a871220379",
+  "model_revision": "main",
+  "tokenizer_revision": "main",
+  "prompt_version": "1.0.0",
+  "prompt_hash": "unknown",
+  "candidate_space": "N/A",
+  "measurement_space": "prompt_end_hidden_state",
+  "actual_dtype": "bfloat16",
+  "template_mode": "system_user",
+  "seed": 42,
+  "code_version": "2.3.0",
+  "intervention_version": "none",
+  "sequence_likelihood_normalization": "token_mean",
+  "temperature": 1.0,
+  "dry_run": true
+}

@@ -70,3 +70,62 @@ model_sets:
       role: "scale_validation"
       inference_dtype: "bfloat16"
       enabled: true
+
+  scale_3b:
+    description: "Scale ablation 3B cohort (Qwen 3B, Llama 3.2 3B)"
+    inference_dtype: "bfloat16"
+    qwen:
+      family: "qwen"
+      family_name: "Qwen 2.5"
+      scale: "3B"
+      base: "Qwen/Qwen2.5-3B"
+      instruct: "Qwen/Qwen2.5-3B-Instruct"
+      adapter: "qwen"
+      role: "scale_ablation"
+      inference_dtype: "bfloat16"
+      enabled: true
+    llama:
+      family: "llama"
+      family_name: "Llama 3.2"
+      scale: "3B"
+      base: "meta-llama/Llama-3.2-3B"
+      instruct: "meta-llama/Llama-3.2-3B-Instruct"
+      adapter: "llama"
+      role: "scale_ablation"
+      inference_dtype: "bfloat16"
+      enabled: true
+
+  scale_7b:
+    description: "Scale ablation 7B cohort (Qwen 7B, Llama 3.1 8B, OLMo 2 7B)"
+    inference_dtype: "bfloat16"
+    qwen:
+      family: "qwen"
+      family_name: "Qwen 2.5"
+      scale: "7B"
+      base: "Qwen/Qwen2.5-7B"
+      instruct: "Qwen/Qwen2.5-7B-Instruct"
+      adapter: "qwen"
+      role: "scale_ablation"
+      inference_dtype: "bfloat16"
+      enabled: true
+    llama:
+      family: "llama"
+      family_name: "Llama 3.1"
+      scale: "8B"
+      base: "meta-llama/Llama-3.1-8B"
+      instruct: "meta-llama/Llama-3.1-8B-Instruct"
+      adapter: "llama"
+      role: "scale_ablation"
+      inference_dtype: "bfloat16"
+      enabled: true
+    olmo:
+      family: "olmo"
+      family_name: "OLMo 2"
+      scale: "7B"
+      base: "allenai/OLMo-2-1124-7B"
+      instruct: "allenai/OLMo-2-1124-7B-Instruct"
+      adapter: "olmo2"
+      role: "scale_ablation"
+      inference_dtype: "bfloat16"
+      enabled: true
+

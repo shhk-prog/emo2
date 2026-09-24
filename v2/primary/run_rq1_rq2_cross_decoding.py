@@ -491,17 +491,20 @@ def main():
     logger.info(f"Dataset loaded: total={len(dataset_df)}, train={len(train_df)}, held_out_test={len(test_df)}")
 
     target_families = list(target_models.keys())
-    raw_dir = Path(v2_config["output"]["raw_dir"])
-    derived_dir = Path(v2_config["output"]["derived_dir"])
-    if args.dry_run:
-        raw_dir = raw_dir / "dry_run"
-        derived_dir = derived_dir / "dry_run"
-    raw_dir.mkdir(parents=True, exist_ok=True)
-    derived_dir.mkdir(parents=True, exist_ok=True)
+    from affective_empathy_eval.io import (
+        is_experiment_completed,
+        resolve_output_dirs,
+        save_experiment_result,
+    )
+    raw_dir, derived_dir = resolve_output_dirs(
+        config=v2_config,
+        model_set=getattr(args, "model_set", "primary_small"),
+        stage="v2",
+        is_dry_run=args.dry_run,
+    )
+    logger.info(f"Target model-set: {getattr(args, 'model_set', 'primary_small')} | Output raw: {raw_dir} | derived: {derived_dir}")
 
     all_family_results = {}
-
-    from affective_empathy_eval.io import save_experiment_result, is_experiment_completed
 
     for fam_id, fam_cfg in target_models.items():
         fam_out_path = raw_dir / f"v2_geometry_{fam_id}.json"

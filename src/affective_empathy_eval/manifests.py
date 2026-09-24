@@ -5,6 +5,7 @@ import pandas as pd
 from typing import Dict, Any, List, Optional
 
 from dataclasses import dataclass, asdict
+from affective_empathy_eval.io import json_serializable_default
 
 @dataclass
 class ExtractionManifest:
@@ -44,7 +45,7 @@ class ManifestManager:
             
         with open(self.manifest_path, "a") as f:
             for manifest in self.manifests:
-                f.write(json.dumps(asdict(manifest)) + "\n")
+                f.write(json.dumps(asdict(manifest), default=json_serializable_default) + "\n")
         
         self.manifests = []
         
@@ -85,7 +86,7 @@ def compute_file_hash(path: str | Path) -> str:
 def compute_string_or_dict_hash(obj: Any) -> str:
     """オブジェクト（辞書、文字列、パス等）の SHA256 ハッシュを算出。パスの場合はファイル内容から算出。"""
     if isinstance(obj, dict):
-        s = json.dumps(obj, sort_keys=True)
+        s = json.dumps(obj, sort_keys=True, default=json_serializable_default)
     elif isinstance(obj, (str, Path)):
         if os.path.isfile(str(obj)):
             return compute_file_hash(obj)
@@ -153,7 +154,7 @@ class RunManifest:
     def save(self, filepath: str):
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         with open(filepath, "w", encoding="utf-8") as f:
-            json.dump(self.to_dict(), f, indent=2)
+            json.dump(self.to_dict(), f, indent=2, default=json_serializable_default)
 
 
 def compute_prompt_hash(prompt_text_or_template: str) -> str:

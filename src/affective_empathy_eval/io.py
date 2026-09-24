@@ -14,8 +14,25 @@ from pathlib import Path
 import shutil
 import tempfile
 from typing import Any, Dict, Optional
+import numpy as np
 
 logger = logging.getLogger(__name__)
+
+
+def json_serializable_default(o: Any) -> Any:
+    if isinstance(o, np.integer):
+        return int(o)
+    if isinstance(o, np.floating):
+        return float(o)
+    if isinstance(o, np.bool_):
+        return bool(o)
+    if isinstance(o, np.ndarray):
+        return o.tolist()
+    if isinstance(o, Path):
+        return str(o)
+    raise TypeError(
+        f"Object of type {o.__class__.__name__} is not JSON serializable"
+    )
 
 
 def save_experiment_result(
@@ -51,7 +68,7 @@ def save_experiment_result(
     # 一時ファイルへ書き込み後に置換（書き込み途中クラッシュによる破損防止）
     tmp_dir = path.parent
     with tempfile.NamedTemporaryFile("w", dir=tmp_dir, delete=False, encoding="utf-8") as tf:
-        json.dump(envelope, tf, indent=indent, ensure_ascii=False)
+        json.dump(envelope, tf, indent=indent, ensure_ascii=False, default=json_serializable_default)
         temp_name = tf.name
 
     os.replace(temp_name, path)
@@ -145,8 +162,65 @@ def record_latest_run(stage_dir: Path | str, run_id: str, metadata: Optional[Dic
     }
     try:
         with open(latest_file, "w", encoding="utf-8") as f:
-            json.dump(payload, f, indent=2)
+            json.dump(payload, f, indent=2, default=json_serializable_default)
         logger.info(f"Recorded latest run {run_id} to {latest_file}")
     except Exception as e:
         logger.warning(f"Failed to record latest run to {latest_file}: {e}")
+
+
+def resolve_output_dirs(
+    config: Optional[Dict[str, Any]] = None,
+    model_set: str = "primary_small",
+    stage: str = "v2",
+    is_dry_run: bool = False,
+) -> tuple[Path, Path]:
+    """
+    model_set および stage に応じた (raw_dir, derived_dir) を決定して作成・返却する。
+    - primary_small の場合は config の output 設定（デフォルト: f"{stage}/results/raw", f"{stage}/results/derived"）
+    - それ以外の model_set（例: scale_3b, scale_7b, scale_validation）は
+      results/ablation/{model_set}/raw, results/ablation/{model_set}/derived
+    - is_dry_run の場合は末尾に dry_run を付与
+    """
+    if model_set != "primary_small":
+        raw_dir = Path(f"results/ablation/{model_set}/raw")
+        derived_dir = Path(f"results/ablation/{model_set}/derived")
+    else:
+        out_cfg = config.get("output", {}) if config else {}
+        default_raw = f"{stage}/results/raw"
+        default_derived = f"{stage}/results/derived"
+        raw_dir = Path(out_cfg.get("raw_dir", default_raw))
+        derived_dir = Path(out_cfg.get("derived_dir", default_derived))
+
+    if is_dry_run:
+        raw_dir = raw_dir / "dry_run"
+        derived_dir = derived_dir / "dry_run"
+
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    derived_dir.mkdir(parents=True, exist_ok=True)
+    return raw_dir, derived_dir
+
+
+def resolve_log_dir(
+    model_set: str = "primary_small",
+    stage: str = "v2",
+    is_dry_run: bool = False,
+) -> Path:
+    """
+    model_set に応じたログディレクトリを決定して作成・返却する。
+    - primary_small: results/logs/
+    - その他 (scale_3b, scale_7b, scale_validation 等): results/ablation/{model_set}/logs/
+    - is_dry_run の場合は末尾に dry_run を付与
+    """
+    if model_set != "primary_small":
+        log_dir = Path(f"results/ablation/{model_set}/logs")
+    else:
+        log_dir = Path("results/logs")
+
+    if is_dry_run:
+        log_dir = log_dir / "dry_run"
+
+    log_dir.mkdir(parents=True, exist_ok=True)
+    return log_dir
+
+
 

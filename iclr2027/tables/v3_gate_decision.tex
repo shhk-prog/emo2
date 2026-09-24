@@ -1,0 +1,21 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{V3 事前登録 Gate 判定結果：因果介入パイプライン継続可否の評価規約。各判定軸の信頼区間下限／上限が 1--9 raw scale 閾値（0.05 / 0.10）および TVD 上限（0.15）を満たすかを判定。}
+\label{tab:v3_gate_decision}
+\begin{tabular}{l ccc ccc c}
+\toprule
+\textbf{Axis} & \multicolumn{2}{c}{\textbf{Sufficiency ($\beta_1$)}} & \multicolumn{2}{c}{\textbf{Specificity ($\beta_1$)}} & \multicolumn{2}{c}{\textbf{Topic Control (TVD)}} & \textbf{Gate Decision} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+ & \textbf{CI Low} & \textbf{Pass?} & \textbf{CI Low} & \textbf{Pass?} & \textbf{CI High} & \textbf{Pass?} & \\
+\midrule
+Valence & 4.34e-04 & $\times$ & -0.0025 & $\times$ & 0.0043 & \checkmark & \textbf{NO\_GO} \\
+Arousal & -5.13e-05 & $\times$ & -4.18e-04 & $\times$ & 0.0045 & \checkmark & \textbf{NO\_GO} \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} 事前登録規約に従い、$\text{CI}_{\text{low}} > 0.05$（Sufficiency / Specificity）未達のため、パイプライン判定は \textbf{NO\_GO}（\texttt{pipeline\_continues = False}）となり、以降の分析は探索的・定性的分析として位置づけられる。
+\end{minipage}
+\end{table}

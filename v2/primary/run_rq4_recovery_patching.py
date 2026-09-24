@@ -30,6 +30,7 @@ from affective_empathy_eval.manifests import (
     compute_string_or_dict_hash,
     DEFAULT_CODE_VERSION,
 )
+from affective_empathy_eval.io import json_serializable_default
 
 from affective_empathy_eval.models.registry import (
     add_model_selection_args,
@@ -171,7 +172,7 @@ def run_recovery_patching_for_task(
             sample_records.append({
                 "family": fam_id,
                 "task": task.value,
-                "sample_idx": i,
+                "sample_idx": int(i),
                 "pair_id": pair_id,
                 "item_id": item_id,
                 "initial_emd": sample_initial_emds[i],
@@ -361,7 +362,7 @@ def run_recovery_patching_for_task(
                 raise ValueError("Independent evaluation split could not be constructed.")
             assert train_pairs.isdisjoint(eval_pairs), "Train and eval pair sets must be disjoint!"
         else:
-            perm = list(rng_split.permutation(N))
+            perm = [int(x) for x in rng_split.permutation(N)]
             n_train = max(1, int(train_ratio * N))
             train_indices = perm[:n_train]
             eval_indices = perm[n_train:]
@@ -522,7 +523,7 @@ def run_recovery_patching_for_task(
         sample_records.append({
             "family": fam_id,
             "task": task.value,
-            "sample_idx": i,
+            "sample_idx": int(i),
             "pair_id": pair_id,
             "item_id": item_id,
             "initial_emd": sample_initial_emds[i],
@@ -635,7 +636,7 @@ def run_recovery_patching_for_family(
             raise ValueError("Independent evaluation split could not be constructed.")
         assert train_pairs.isdisjoint(eval_pairs), "Train and eval pair sets must be disjoint!"
     else:
-        perm = list(rng_split.permutation(N))
+        perm = [int(x) for x in rng_split.permutation(N)]
         n_train = max(1, int(train_ratio * N))
         train_indices = perm[:n_train]
         eval_indices = perm[n_train:]
@@ -780,13 +781,14 @@ def main():
         v2_config = yaml.safe_load(f)
 
     target_models = resolve_models_from_args(args, Path(args.models_config))
-    raw_dir = Path(v2_config["output"]["raw_dir"])
-    derived_dir = Path(v2_config["output"]["derived_dir"])
-    if args.dry_run:
-        raw_dir = raw_dir / "dry_run"
-        derived_dir = derived_dir / "dry_run"
-    raw_dir.mkdir(parents=True, exist_ok=True)
-    derived_dir.mkdir(parents=True, exist_ok=True)
+    from affective_empathy_eval.io import resolve_output_dirs
+    raw_dir, derived_dir = resolve_output_dirs(
+        config=v2_config,
+        model_set=getattr(args, "model_set", "primary_small"),
+        stage="v2",
+        is_dry_run=args.dry_run,
+    )
+    logger.info(f"Target model-set: {getattr(args, 'model_set', 'primary_small')} | Output raw: {raw_dir} | derived: {derived_dir}")
 
     df = pd.read_csv(v2_config["dataset"]["path"])
     logger.info(describe_loaded_frame(df, "V2-RQ4 dataset", v2_config["dataset"]["path"]))
@@ -886,7 +888,7 @@ def main():
         out_path = raw_dir / f"v2_recovery_{fam_id}.json"
         out_path.parent.mkdir(parents=True, exist_ok=True)
         with open(out_path, "w", encoding="utf-8") as f:
-            json.dump(res, f, indent=2)
+            json.dump(res, f, indent=2, default=json_serializable_default)
 
         save_experiment_result(
             output_path=str(modular_rq4_path),
@@ -1006,7 +1008,7 @@ def main():
 
     summary_path = derived_dir / "v2_distribution_recovery_summary.json"
     with open(summary_path, "w", encoding="utf-8") as f:
-        json.dump(summary_data, f, indent=2)
+        json.dump(summary_data, f, indent=2, default=json_serializable_default)
     logger.info(f"All recovery experiments completed! Summary saved to {summary_path}")
 
 

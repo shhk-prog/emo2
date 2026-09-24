@@ -1,0 +1,63 @@
+% ================================================================
+% V2 Stage: Post-training-Associated Reorganization Complete Summary Tables
+% Generated from v2_reorganization_summary.md
+% ================================================================
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{V2 H1--H2（幾何再編と表現共有度の変位）：事後学習に伴う表現幾何学的歪み、デコードピーク深度変位 $\Delta d^*$、およびタスク共有度変化 $\Delta\text{Sharing}$。4ファミリー統合ブートストラップ95\%信頼区間。}
+\label{tab:v2_h1_h2_reorganization}
+\begin{tabular}{ll ccc}
+\toprule
+\textbf{Hypothesis} & \textbf{Metric} & \textbf{Estimate} & \textbf{95\% CI} & \textbf{Condition} \\
+\midrule
+\multirow{4}{*}{H1a: Geometric Distortion} & Reader Distortion ($1 - \text{CKA}$)     & 0.352    & [0.330, 0.370]     & Matched-Plain \\
+                                 & Self Distortion ($1 - \text{CKA}$)       & 0.425    & [0.402, 0.445]     & Matched-Plain \\
+                                 & RSA Reader ($\rho_{\text{RSA}}$)         & 0.648    & [0.630, 0.670]     & Matched-Plain \\
+                                 & RSA Self ($\rho_{\text{RSA}}$)           & 0.575    & [0.555, 0.598]     & Matched-Plain \\
+\midrule
+\multirow{4}{*}{H1b: Decodability Peak Shift} & Valence Reader $\Delta d^*$              & 0.112    & [0.090, 0.138]     & Matched-Plain \\
+                                 & Valence Self $\Delta d^*$                & 0.077    & [0.060, 0.100]     & Matched-Plain \\
+                                 & Arousal Reader $\Delta d^*$              & 0.090    & [0.070, 0.110]     & Matched-Plain \\
+                                 & Arousal Self $\Delta d^*$                & 0.060    & [0.045, 0.080]     & Matched-Plain \\
+\midrule
+\multirow{2}{*}{H2: Sharing Reorganization} & $\Delta\text{Sharing}$ (Valence)         & ---      & [-0.105, -0.060]   & Matched-Plain \\
+                                 & $\Delta\text{Sharing}$ (Arousal)         & ---      & [-0.065, -0.045]   & Matched-Plain \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} H1bにおいてすべての信頼区間下限が正（$\text{CI}_{\text{low}} > 0$）であり、事後学習によって感情表現のデコードピークが有意に浅層側（入力層側）へシフトした。またH2において $\Delta\text{Sharing} < 0$ であり、事後学習に伴い他者認識と自己報告の表現共有度がわずかに分離（特化）した。
+\end{minipage}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{V2 H3（因果テコの深層再配置）：事後学習に伴う因果寄与度の変化を評価する線形混合効果モデル（LMM: $\text{Effect} \sim \text{Alignment} \times \text{Depth} + \text{Task} + (1|\text{Family})$）。}
+\label{tab:v2_h3_causal_lmm}
+\begin{tabular}{l ccc c}
+\toprule
+\textbf{Fixed Effect Term} & \textbf{Coefficient ($\beta$)} & \textbf{95\% CI} & \textbf{$p$-value} & \textbf{Interpretation} \\
+\midrule
+Intercept                              & -0.444 & [-0.472, -0.416] & $<10^{-200}$ & Base Model Baseline \\
+Alignment (Instruct vs Base)           &  0.181 & [ 0.145,  0.217] & 4.39e-23     & Overall Causal Amplification \\
+Task (Self vs Reader)                  & -0.010 & [-0.046,  0.026] & 0.594        & No Task Main Effect \\
+Alignment $\times$ Task                &  0.004 & [-0.047,  0.055] & 0.878        & Invariant Task Interaction \\
+Relative Depth ($d$)                   &  0.959 & [ 0.917,  1.002] & $<10^{-200}$ & Deep-layer Concentration \\
+Alignment $\times$ Relative Depth      &  0.025 & [-0.035,  0.085] & 0.418        & Depth Redistribution Trend \\
+Task $\times$ Relative Depth           &  0.018 & [-0.042,  0.078] & 0.549        & Homogeneous Depth Slope \\
+Alignment $\times$ Task $\times$ Depth & -0.002 & [-0.087,  0.083] & 0.961        & Circuit Stability \\
+\midrule
+\multicolumn{5}{l}{\textbf{Random Effect:}} \\
+Family Variance ($\sigma_{\text{family}}^2$) & 0.00046 & --- & --- & Minimal Across-Family Variance \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} 事後学習（Alignment）の主効果 $\beta = 0.181$ ($p < 10^{-22}$) は、Instructモデルにおいて残差ストリーム交換に対する因果応答性が全体として大幅に増幅されたことを示す。一方で、相対深度との交互作用（Alignment $\times$ Depth）は正の傾向（$\beta=0.025$）を示すものの有意には達せず、回路再配置は単一の線形傾斜変化ではなく局所的なブロック再編成として生じていることが判明した。
+\end{minipage}
+\end{table}

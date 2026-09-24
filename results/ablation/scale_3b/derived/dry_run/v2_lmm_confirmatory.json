@@ -1,0 +1,617 @@
+{
+  "status": "success",
+  "dry_run": true,
+  "families": [
+    "qwen",
+    "Qwen",
+    "llama",
+    "Llama"
+  ],
+  "n_families": 4,
+  "inference_scope": "descriptive_cross_family_bootstrap",
+  "sample_inference_scope": "lmm_with_family_fixed_effects",
+  "hypotheses": {
+    "H1a_geometry_reorganization": {
+      "interpretation": "post-training-associated geometric distortion and representational similarity under matched-plain conditions",
+      "rsa_metric_type": "rsa_similarity",
+      "per_family_geometry": {
+        "qwen": {
+          "reader_distortion": 0.35,
+          "self_distortion": 0.42,
+          "rsa_reader": 0.65,
+          "rsa_self": 0.58
+        },
+        "llama": {
+          "reader_distortion": 0.38,
+          "self_distortion": 0.45,
+          "rsa_reader": 0.62,
+          "rsa_self": 0.55
+        },
+        "gemma": {
+          "reader_distortion": 0.32,
+          "self_distortion": 0.39,
+          "rsa_reader": 0.68,
+          "rsa_self": 0.61
+        },
+        "olmo": {
+          "reader_distortion": 0.36,
+          "self_distortion": 0.44,
+          "rsa_reader": 0.64,
+          "rsa_self": 0.56
+        }
+      },
+      "effects": {
+        "reader_distortion": {
+          "mean": 0.35250000000000004,
+          "bootstrap_ci_95": [
+            0.32999999999999996,
+            0.37
+          ]
+        },
+        "self_distortion": {
+          "mean": 0.425,
+          "bootstrap_ci_95": [
+            0.40249999999999997,
+            0.445
+          ]
+        },
+        "rsa_reader": {
+          "mean": 0.6475000000000001,
+          "bootstrap_ci_95": [
+            0.63,
+            0.67
+          ]
+        },
+        "rsa_self": {
+          "mean": 0.575,
+          "bootstrap_ci_95": [
+            0.555,
+            0.5975
+          ]
+        }
+      }
+    },
+    "H1b_decodability_peak_reorganization": {
+      "interpretation": "post-training-associated reorganization of decodability peak (Primary: matched-plain)",
+      "per_family_shifts": {
+        "qwen": {
+          "valence.reader.shift": 0.12,
+          "valence.self.shift": 0.08,
+          "arousal.reader.shift": 0.1,
+          "arousal.self.shift": 0.05
+        },
+        "llama": {
+          "valence.reader.shift": 0.08,
+          "valence.self.shift": 0.05,
+          "arousal.reader.shift": 0.06,
+          "arousal.self.shift": 0.04
+        },
+        "gemma": {
+          "valence.reader.shift": 0.15,
+          "valence.self.shift": 0.11,
+          "arousal.reader.shift": 0.12,
+          "arousal.self.shift": 0.09
+        },
+        "olmo": {
+          "valence.reader.shift": 0.1,
+          "valence.self.shift": 0.07,
+          "arousal.reader.shift": 0.08,
+          "arousal.self.shift": 0.06
+        }
+      },
+      "primary_effects": {
+        "valence.reader.shift": {
+          "mean_shift": 0.11249999999999999,
+          "bootstrap_ci_95": [
+            0.09000000000000001,
+            0.1375
+          ],
+          "reorganization_supported": true
+        },
+        "valence.self.shift": {
+          "mean_shift": 0.0775,
+          "bootstrap_ci_95": [
+            0.06,
+            0.1
+          ],
+          "reorganization_supported": true
+        },
+        "arousal.reader.shift": {
+          "mean_shift": 0.09000000000000001,
+          "bootstrap_ci_95": [
+            0.07,
+            0.11
+          ],
+          "reorganization_supported": true
+        },
+        "arousal.self.shift": {
+          "mean_shift": 0.06,
+          "bootstrap_ci_95": [
+            0.045,
+            0.08
+          ],
+          "reorganization_supported": true
+        }
+      },
+      "secondary_native_effects": {
+        "valence.reader.native_shift": {
+          "mean_shift": 0.12375,
+          "bootstrap_ci_95": [
+            0.09900000000000002,
+            0.15125000000000002
+          ]
+        },
+        "valence.self.native_shift": {
+          "mean_shift": 0.08525,
+          "bootstrap_ci_95": [
+            0.066,
+            0.11000000000000001
+          ]
+        },
+        "arousal.reader.native_shift": {
+          "mean_shift": 0.09900000000000002,
+          "bootstrap_ci_95": [
+            0.07700000000000001,
+            0.12100000000000001
+          ]
+        },
+        "arousal.self.native_shift": {
+          "mean_shift": 0.066,
+          "bootstrap_ci_95": [
+            0.0495,
+            0.088
+          ]
+        }
+      }
+    },
+    "H1_decodability_peak_reorganization": {
+      "interpretation": "post-training-associated reorganization of decodability peak (Primary: matched-plain)",
+      "per_family_shifts": {
+        "qwen": {
+          "valence.reader.shift": 0.12,
+          "valence.self.shift": 0.08,
+          "arousal.reader.shift": 0.1,
+          "arousal.self.shift": 0.05
+        },
+        "llama": {
+          "valence.reader.shift": 0.08,
+          "valence.self.shift": 0.05,
+          "arousal.reader.shift": 0.06,
+          "arousal.self.shift": 0.04
+        },
+        "gemma": {
+          "valence.reader.shift": 0.15,
+          "valence.self.shift": 0.11,
+          "arousal.reader.shift": 0.12,
+          "arousal.self.shift": 0.09
+        },
+        "olmo": {
+          "valence.reader.shift": 0.1,
+          "valence.self.shift": 0.07,
+          "arousal.reader.shift": 0.08,
+          "arousal.self.shift": 0.06
+        }
+      },
+      "primary_effects": {
+        "valence.reader.shift": {
+          "mean_shift": 0.11249999999999999,
+          "bootstrap_ci_95": [
+            0.09000000000000001,
+            0.1375
+          ],
+          "reorganization_supported": true
+        },
+        "valence.self.shift": {
+          "mean_shift": 0.0775,
+          "bootstrap_ci_95": [
+            0.06,
+            0.1
+          ],
+          "reorganization_supported": true
+        },
+        "arousal.reader.shift": {
+          "mean_shift": 0.09000000000000001,
+          "bootstrap_ci_95": [
+            0.07,
+            0.11
+          ],
+          "reorganization_supported": true
+        },
+        "arousal.self.shift": {
+          "mean_shift": 0.06,
+          "bootstrap_ci_95": [
+            0.045,
+            0.08
+          ],
+          "reorganization_supported": true
+        }
+      },
+      "secondary_native_effects": {
+        "valence.reader.native_shift": {
+          "mean_shift": 0.12375,
+          "bootstrap_ci_95": [
+            0.09900000000000002,
+            0.15125000000000002
+          ]
+        },
+        "valence.self.native_shift": {
+          "mean_shift": 0.08525,
+          "bootstrap_ci_95": [
+            0.066,
+            0.11000000000000001
+          ]
+        },
+        "arousal.reader.native_shift": {
+          "mean_shift": 0.09900000000000002,
+          "bootstrap_ci_95": [
+            0.07700000000000001,
+            0.12100000000000001
+          ]
+        },
+        "arousal.self.native_shift": {
+          "mean_shift": 0.066,
+          "bootstrap_ci_95": [
+            0.0495,
+            0.088
+          ]
+        }
+      }
+    },
+    "H2_representation_sharing_reorganization": {
+      "interpretation": "post-training-associated reorganization of Reader-Self representation sharing",
+      "per_family_sharing": {
+        "qwen": {
+          "valence.primary_delta_sharing": -0.08,
+          "valence.secondary_delta_sharing": -0.06,
+          "arousal.primary_delta_sharing": -0.05,
+          "arousal.secondary_delta_sharing": -0.04
+        },
+        "llama": {
+          "valence.primary_delta_sharing": -0.12,
+          "valence.secondary_delta_sharing": -0.1,
+          "arousal.primary_delta_sharing": -0.07,
+          "arousal.secondary_delta_sharing": -0.06
+        },
+        "gemma": {
+          "valence.primary_delta_sharing": -0.05,
+          "valence.secondary_delta_sharing": -0.04,
+          "arousal.primary_delta_sharing": -0.04,
+          "arousal.secondary_delta_sharing": -0.03
+        },
+        "olmo": {
+          "valence.primary_delta_sharing": -0.09,
+          "valence.secondary_delta_sharing": -0.08,
+          "arousal.primary_delta_sharing": -0.06,
+          "arousal.secondary_delta_sharing": -0.05
+        }
+      },
+      "primary_contrast": "Base plain vs Instruct matched-plain",
+      "secondary_contrast": "Base plain vs Instruct native-chat",
+      "primary_effects": {
+        "valence": {
+          "contrast_type": "primary_matched_plain",
+          "mean_delta_sharing": -0.08499999999999999,
+          "bootstrap_ci_95": [
+            -0.105,
+            -0.06
+          ],
+          "sharing_alteration_supported": true
+        },
+        "arousal": {
+          "contrast_type": "primary_matched_plain",
+          "mean_delta_sharing": -0.055,
+          "bootstrap_ci_95": [
+            -0.065,
+            -0.045
+          ],
+          "sharing_alteration_supported": true
+        }
+      },
+      "secondary_effects": {
+        "valence": {
+          "contrast_type": "secondary_native_chat",
+          "mean_delta_sharing": -0.07,
+          "bootstrap_ci_95": [
+            -0.09,
+            -0.05
+          ]
+        },
+        "arousal": {
+          "contrast_type": "secondary_native_chat",
+          "mean_delta_sharing": -0.045,
+          "bootstrap_ci_95": [
+            -0.055,
+            -0.035
+          ]
+        }
+      }
+    },
+    "H3_causal_profile_reorganization_lmm": {
+      "interpretation": "post-training-associated alteration of the depth profile of interventionally measured causal leverage (Primary: matched-plain, c_*_net_rand)",
+      "formula": "c_net_rand ~ C(family) + C(alignment) * C(task) * relative_depth",
+      "primary_terms": [
+        "C(alignment)[T.inst]:relative_depth",
+        "C(alignment)[T.inst]:C(task)[T.self]",
+        "C(alignment)[T.inst]:C(task)[T.self]:relative_depth"
+      ],
+      "primary_contrast": "Base plain vs Instruct matched-plain",
+      "secondary_contrast": "Base plain vs Instruct native-chat",
+      "models": {
+        "valence": {
+          "converged": false,
+          "formula": "c_v_net_rand ~ C(family) + C(alignment) * C(task) * relative_depth",
+          "contrast": "primary_matched_plain",
+          "params": {
+            "Intercept": -0.43998570759107236,
+            "C(family)[T.Qwen]": 9.226252360535729e-05,
+            "C(family)[T.llama]": -0.003868908617843426,
+            "C(family)[T.qwen]": -0.006503052828353628,
+            "C(alignment)[T.inst]": 0.18082178154990278,
+            "C(task)[T.self]": -0.009735495124070851,
+            "C(alignment)[T.inst]:C(task)[T.self]": 0.003963004895380888,
+            "relative_depth": 0.9593539052352025,
+            "C(alignment)[T.inst]:relative_depth": 0.02475666980587939,
+            "C(task)[T.self]:relative_depth": 0.018329493489376323,
+            "C(alignment)[T.inst]:C(task)[T.self]:relative_depth": -0.0021048075950708474,
+            "Group Var": 0.00045811661650113736
+          },
+          "pvalues": {
+            "Intercept": 4.3642336374446926e-207,
+            "C(family)[T.Qwen]": 0.9926455218216521,
+            "C(family)[T.llama]": 0.6991055808291069,
+            "C(family)[T.qwen]": 0.5158888867860549,
+            "C(alignment)[T.inst]": 4.3878826959088314e-23,
+            "C(task)[T.self]": 0.5942169806700537,
+            "C(alignment)[T.inst]:C(task)[T.self]": 0.8781280972936406,
+            "relative_depth": 0.0,
+            "C(alignment)[T.inst]:relative_depth": 0.41817443896021933,
+            "C(task)[T.self]:relative_depth": 0.5488988528618797,
+            "C(alignment)[T.inst]:C(task)[T.self]:relative_depth": 0.9611813648273099,
+            "Group Var": NaN
+          },
+          "conf_int": {
+            "0": {
+              "Intercept": -0.4680675811848335,
+              "C(family)[T.Qwen]": -0.01952577082159715,
+              "C(family)[T.llama]": -0.023486941963045932,
+              "C(family)[T.qwen]": -0.026121086173556133,
+              "C(alignment)[T.inst]": 0.1450043168930496,
+              "C(task)[T.self]": -0.04555295978092401,
+              "C(alignment)[T.inst]:C(task)[T.self]": -0.0466905393921598,
+              "relative_depth": 0.9169741095275437,
+              "C(alignment)[T.inst]:relative_depth": -0.03517741205449276,
+              "C(task)[T.self]:relative_depth": -0.041604588370995815,
+              "C(alignment)[T.inst]:C(task)[T.self]:relative_depth": -0.08686439901038837,
+              "Group Var": NaN
+            },
+            "1": {
+              "Intercept": -0.41190383399731123,
+              "C(family)[T.Qwen]": 0.01971029586880786,
+              "C(family)[T.llama]": 0.01574912472735908,
+              "C(family)[T.qwen]": 0.013114980516848878,
+              "C(alignment)[T.inst]": 0.21663924620675595,
+              "C(task)[T.self]": 0.02608196953278231,
+              "C(alignment)[T.inst]:C(task)[T.self]": 0.054616549182921574,
+              "relative_depth": 1.0017337009428613,
+              "C(alignment)[T.inst]:relative_depth": 0.08469075166625155,
+              "C(task)[T.self]:relative_depth": 0.07826357534974847,
+              "C(alignment)[T.inst]:C(task)[T.self]:relative_depth": 0.08265478382024666,
+              "Group Var": NaN
+            }
+          }
+        },
+        "arousal": {
+          "converged": false,
+          "error": "Singular matrix",
+          "formula": "c_a_net_rand ~ C(family) + C(alignment) * C(task) * relative_depth"
+        }
+      },
+      "secondary_models": {},
+      "primary_fdr_adjusted_p_values": {
+        "valence_C(alignment)[T.inst]:relative_depth": 0.9611813648273099,
+        "valence_C(alignment)[T.inst]:C(task)[T.self]": 0.9611813648273099,
+        "valence_C(alignment)[T.inst]:C(task)[T.self]:relative_depth": 0.9611813648273099
+      }
+    },
+    "H3_causal_dissociation_lmm": {
+      "interpretation": "post-training-associated alteration of the depth profile of interventionally measured causal leverage (Primary: matched-plain, c_*_net_rand)",
+      "formula": "c_net_rand ~ C(family) + C(alignment) * C(task) * relative_depth",
+      "primary_terms": [
+        "C(alignment)[T.inst]:relative_depth",
+        "C(alignment)[T.inst]:C(task)[T.self]",
+        "C(alignment)[T.inst]:C(task)[T.self]:relative_depth"
+      ],
+      "primary_contrast": "Base plain vs Instruct matched-plain",
+      "secondary_contrast": "Base plain vs Instruct native-chat",
+      "models": {
+        "valence": {
+          "converged": false,
+          "formula": "c_v_net_rand ~ C(family) + C(alignment) * C(task) * relative_depth",
+          "contrast": "primary_matched_plain",
+          "params": {
+            "Intercept": -0.43998570759107236,
+            "C(family)[T.Qwen]": 9.226252360535729e-05,
+            "C(family)[T.llama]": -0.003868908617843426,
+            "C(family)[T.qwen]": -0.006503052828353628,
+            "C(alignment)[T.inst]": 0.18082178154990278,
+            "C(task)[T.self]": -0.009735495124070851,
+            "C(alignment)[T.inst]:C(task)[T.self]": 0.003963004895380888,
+            "relative_depth": 0.9593539052352025,
+            "C(alignment)[T.inst]:relative_depth": 0.02475666980587939,
+            "C(task)[T.self]:relative_depth": 0.018329493489376323,
+            "C(alignment)[T.inst]:C(task)[T.self]:relative_depth": -0.0021048075950708474,
+            "Group Var": 0.00045811661650113736
+          },
+          "pvalues": {
+            "Intercept": 4.3642336374446926e-207,
+            "C(family)[T.Qwen]": 0.9926455218216521,
+            "C(family)[T.llama]": 0.6991055808291069,
+            "C(family)[T.qwen]": 0.5158888867860549,
+            "C(alignment)[T.inst]": 4.3878826959088314e-23,
+            "C(task)[T.self]": 0.5942169806700537,
+            "C(alignment)[T.inst]:C(task)[T.self]": 0.8781280972936406,
+            "relative_depth": 0.0,
+            "C(alignment)[T.inst]:relative_depth": 0.41817443896021933,
+            "C(task)[T.self]:relative_depth": 0.5488988528618797,
+            "C(alignment)[T.inst]:C(task)[T.self]:relative_depth": 0.9611813648273099,
+            "Group Var": NaN
+          },
+          "conf_int": {
+            "0": {
+              "Intercept": -0.4680675811848335,
+              "C(family)[T.Qwen]": -0.01952577082159715,
+              "C(family)[T.llama]": -0.023486941963045932,
+              "C(family)[T.qwen]": -0.026121086173556133,
+              "C(alignment)[T.inst]": 0.1450043168930496,
+              "C(task)[T.self]": -0.04555295978092401,
+              "C(alignment)[T.inst]:C(task)[T.self]": -0.0466905393921598,
+              "relative_depth": 0.9169741095275437,
+              "C(alignment)[T.inst]:relative_depth": -0.03517741205449276,
+              "C(task)[T.self]:relative_depth": -0.041604588370995815,
+              "C(alignment)[T.inst]:C(task)[T.self]:relative_depth": -0.08686439901038837,
+              "Group Var": NaN
+            },
+            "1": {
+              "Intercept": -0.41190383399731123,
+              "C(family)[T.Qwen]": 0.01971029586880786,
+              "C(family)[T.llama]": 0.01574912472735908,
+              "C(family)[T.qwen]": 0.013114980516848878,
+              "C(alignment)[T.inst]": 0.21663924620675595,
+              "C(task)[T.self]": 0.02608196953278231,
+              "C(alignment)[T.inst]:C(task)[T.self]": 0.054616549182921574,
+              "relative_depth": 1.0017337009428613,
+              "C(alignment)[T.inst]:relative_depth": 0.08469075166625155,
+              "C(task)[T.self]:relative_depth": 0.07826357534974847,
+              "C(alignment)[T.inst]:C(task)[T.self]:relative_depth": 0.08265478382024666,
+              "Group Var": NaN
+            }
+          }
+        },
+        "arousal": {
+          "converged": false,
+          "error": "Singular matrix",
+          "formula": "c_a_net_rand ~ C(family) + C(alignment) * C(task) * relative_depth"
+        }
+      },
+      "secondary_models": {},
+      "primary_fdr_adjusted_p_values": {
+        "valence_C(alignment)[T.inst]:relative_depth": 0.9611813648273099,
+        "valence_C(alignment)[T.inst]:C(task)[T.self]": 0.9611813648273099,
+        "valence_C(alignment)[T.inst]:C(task)[T.self]:relative_depth": 0.9611813648273099
+      }
+    },
+    "H4_recovery_asymmetry": {
+      "interpretation": "post-training-associated distribution recovery asymmetry (Primary: matched-plain AUC recovery; Secondary: native-chat AUC recovery; Mechanistic control: Procrustes-aligned AUC recovery)",
+      "primary_auc_recovery": {
+        "contrast_type": "primary_matched_plain",
+        "self_mean_auc": 0.49,
+        "reader_mean_auc": 0.37249999999999994,
+        "diff_self_minus_reader_mean": 0.1175,
+        "diff_bootstrap_ci_95": [
+          0.0925,
+          0.13499999999999998
+        ],
+        "reorganization_supported": true
+      },
+      "secondary_native_chat_auc_recovery": {
+        "contrast_type": "secondary_native_chat",
+        "self_mean_auc": 0.47,
+        "reader_mean_auc": 0.3524999999999999,
+        "diff_self_minus_reader_mean": 0.11750000000000001,
+        "diff_bootstrap_ci_95": [
+          0.09250000000000001,
+          0.135
+        ],
+        "reorganization_supported": true
+      },
+      "mechanistic_control_aligned_auc_recovery": {
+        "contrast_type": "mechanistic_control_procrustes_aligned",
+        "diff_self_minus_reader_mean": 0.11,
+        "diff_bootstrap_ci_95": [
+          0.0825,
+          0.13
+        ]
+      },
+      "secondary_max_recovery_ratio": {
+        "self_max_recovery_mean": 0.7474999999999999,
+        "reader_max_recovery_mean": 0.5875,
+        "diff_self_minus_reader_mean": 0.16,
+        "diff_bootstrap_ci_95": [
+          0.125,
+          0.18000000000000005
+        ],
+        "reorganization_supported": true
+      },
+      "sample_level_lmm": {
+        "sample_size": 128,
+        "group_column": "pair_id",
+        "primary_auc_lmm": {
+          "formula": "auc_recovery_matched_plain ~ C(family) + C(task)",
+          "converged": true,
+          "params": {
+            "Intercept": 0.29957945791923973,
+            "C(family)[T.qwen]": 0.0,
+            "C(task)[T.self]": 0.054926913805542765,
+            "Group Var": 0.31838629514507255
+          },
+          "pvalues": {
+            "Intercept": 0.0,
+            "C(family)[T.qwen]": 1.0,
+            "C(task)[T.self]": 7.12336410066486e-14,
+            "Group Var": 0.05582109862085799
+          },
+          "conf_int": {
+            "0": {
+              "Intercept": 0.2847142092581206,
+              "C(family)[T.qwen]": -0.014381627111677175,
+              "C(task)[T.self]": 0.04054528669386559,
+              "Group Var": -0.007913627998232475
+            },
+            "1": {
+              "Intercept": 0.3144447065803589,
+              "C(family)[T.qwen]": 0.014381627111677175,
+              "C(task)[T.self]": 0.06930854091721994,
+              "Group Var": 0.6446862182883776
+            }
+          }
+        },
+        "max_recovery_lmm": {
+          "formula": "recovery_ratio_matched_plain ~ C(family) + C(task)",
+          "converged": true,
+          "params": {
+            "Intercept": 0.6669581230825633,
+            "C(family)[T.qwen]": 0.0,
+            "C(task)[T.self]": 0.14280538436164925,
+            "Group Var": 0.45500476093562214
+          },
+          "pvalues": {
+            "Intercept": 0.0,
+            "C(family)[T.qwen]": 1.0,
+            "C(task)[T.self]": 1.6446516962419566e-26,
+            "Group Var": 0.027563516610332933
+          },
+          "conf_int": {
+            "0": {
+              "Intercept": 0.6381234077072707,
+              "C(family)[T.qwen]": -0.02626765402445404,
+              "C(task)[T.self]": 0.11653773033719521,
+              "Group Var": 0.05027779129819404
+            },
+            "1": {
+              "Intercept": 0.6957928384578559,
+              "C(family)[T.qwen]": 0.02626765402445404,
+              "C(task)[T.self]": 0.1690730383861033,
+              "Group Var": 0.8597317305730503
+            }
+          }
+        }
+      },
+      "diff_self_minus_reader_mean": 0.1175,
+      "diff_bootstrap_ci_95": [
+        0.0925,
+        0.13499999999999998
+      ],
+      "reorganization_supported": true
+    }
+  }
+}

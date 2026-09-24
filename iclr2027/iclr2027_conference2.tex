@@ -1,3 +1,4 @@
+% !TEX program = pdflatex
 
 \documentclass{article} % For LaTeX2e
 \usepackage{iclr2027_conference,times}
@@ -7,9 +8,14 @@
 
 \usepackage{hyperref}
 \usepackage{url}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs,tabularx,array,multirow}
+% Japanese text under Overleaf's default pdfLaTeX compiler.
+\usepackage[utf8]{inputenc}
+\usepackage{CJKutf8}
 
 
-\title{大規模言語モデルにおける内部感情表現と出力の関係}
+\title{Formatting Instructions for ICLR 2027 \\ Conference Submissions}
 
 % Authors must not appear in the submitted version. They should be hidden
 % as long as the \iclrfinalcopy macro remains commented out below.
@@ -48,14 +54,17 @@ Address \\
 
 %\iclrfinalcopy % Uncomment for camera-ready version, but NOT for submission.
 \begin{document}
+\begin{CJK*}{UTF8}{min}
 
 
 \maketitle
 
 \begin{abstract}
-大規模言語モデル（LLM）は、文章中の感情を高精度に推定できる一方、同じ刺激に対して自身の状態を報告させた場合、その応答が内部の情動関連表現をどの程度反映しているかは明らかでない。本研究では、LLMの情動関連内部表現と自己報告の関係を、行動、内部表現、事後学習、計算過程の4つのレベルから統合的に検証する。
-まず、統制された情動刺激に対する他者感情推定（Reader Prediction）と自己報告（Self-Report）の共変動を測定し、両者の行動的対応を特徴づける。次に、線形プロービング、表現幾何解析、および因果介入を用いて、ReaderとSelfの背後にある情動関連表現と因果的感受性がどの程度共有されるかを検証する。さらに、BaseモデルとInstruction-tunedモデルの対応比較を通じて、事後学習に伴う表現幾何およびrepresentation–report couplingの再編を解析する。最後に、方向介入、部分空間除去、および生成過程に沿った時空間的介入を用い、内部にデコード可能な情動情報が、いつ、どの層・計算段階で自己報告に対する因果的影響を獲得するかを特定する。
-一連の分析は、自己報告が単なる出力レベルの共変動でも、内部に存在するすべてのデコード可能な情動情報の直接的な読み出しでもないことを示す。むしろ、情動関連情報と自己報告の関係は部分的かつタスク依存であり、事後学習に伴って再編され、計算過程の特定の段階においてのみ自己報告に対する因果的レバレッジを持つ。本研究は、LLMにおける「情報が表現されていること」と「その情報が実際の出力生成に利用されること」を区別し、内部表現から自己報告へ至る計算的経路を統一的に明らかにする。
+The abstract paragraph should be indented 1/2~inch (3~picas) on both left and
+right-hand margins. Use 10~point type, with a vertical spacing of 11~points.
+The word \textsc{Abstract} must be centered, in small caps, and in point size 12. Two
+line spaces precede the abstract. The abstract must be limited to one
+paragraph.
 \end{abstract}
 
 \section{Submission of conference papers to ICLR 2027}
@@ -457,5 +466,7580 @@ acknowledgments, including those to funding agencies, go at the end of the paper
 \section{Appendix}
 You may include other additional sections here.
 
+\appendix
+% ================================================================
+% A. Background
+% ================================================================
 
+\section{背景}
+\label{app:background}
+
+大規模言語モデルを基盤とする対話型AIは、文章生成、情報検索、要約、質問応答といった作業支援にとどまらず、悩み相談、自己理解、孤独感の軽減、意思決定の支援など、人の心理状態や対人関係に関わる用途へ利用範囲を広げている。特に、いつでも利用でき、対人相談と比較して心理的・時間的コストが低い対話型AIは、利用者にとって単なる情報処理ツールではなく、安心感や被理解感を得るための対話相手として機能し得る\cite{Li2023,Luo2025}。
+
+このような利用は新しい価値を提供する一方、Human--AI Interactionに固有のリスクも生じさせる。
+なかでも、AIへの過剰な依存は、利用者の自律的な判断、現実の人間関係、自己開示、意思決定などへ継続的な影響を及ぼす可能性が指摘されている\cite{Weidinger2022,Laestadius2024,Fang2025}。したがって、心を支えるAIに対して求められる安全性は、単にAIとの接触を減らすことではなく，心理的支援の機能を維持しながら、利用者がAIとの関係に過度に巻き込まれることを防ぎ、人間側の自律性を保持できるようにする必要がある。
+
+この観点から、対話型AIに対す心理的ガードレールを考えることの重要性が議論されている。ここでいう心理的ガードレールとは、有害な内容を単純に拒否する仕組みだけではなく、利用者の心理状態やAIとの関係性に応じて、心理的支援を維持しつつ、過剰な依存や過度な感情的巻き込みを生じにくくするための応答制御を指す。
+
+こうしたガードレールを考える上で、特に重要な候補の一つが\textbf{共感応答}である。心理学では、共感は単一の現象ではなく、他者の立場や感情状態を理解・推定する認知的側面と、他者の感情に反応し、自身の情動状態にも変化が生じる情動的側面とを区別して議論することが多い\cite{Himichi2017}。
+
+対人支援において、相手の感情を理解し、その理解を伝えることは心理的支援にとって重要である。一方で、支援者自身が相手の感情へ過度に巻き込まれたり、強く同調したりすることは、支援者と被支援者の境界を曖昧にし、自律的な問題理解や意思決定を阻害する可能性がある。対話型AIにおいても、利用者の感情を理解して適切に応答することと、利用者の感情に同調しているかのような振る舞いを示すことは、同一の計算過程であるとは限らない。
+
+この区別は、心理的ガードレールの設計にとって重要である。もしAIが、他者の感情を正確に推定する能力と、同じ情動刺激に対してモデル自身について変化を報告する処理とを異なる内部機構によって実現しているのであれば、両者を区別して制御できる可能性がある。逆に、両者が強く共有された内部表現や因果経路に依存しているのであれば、一方だけを抑制しようとする介入が他方の心理的支援能力まで損なう可能性がある。
+
+したがって、心理的支援を維持しながら過剰な依存を抑えるAIを設計するためには、最終的な生成文だけを観察するのではなく、情動刺激に関する情報がモデル内部でどのように表現され、その情報が他者の感情推定とSelf-Reportへどのように利用されるのかを理解する必要がある。
+
+しかし、対話型AIの共感研究の多くは、生成された応答が人間からどの程度共感的と評価されるか、
+あるいは心理的支援の効果を持つかという\textbf{output-level behavior}を中心に評価してきた。外面的に共感的な応答が生成されたとしても、その応答を生じさせた内部計算が、他者状態の推定によるものなのか、モデル自身について生成されるaffective responseと結びついているのかは、最終出力だけからは判断できない。
+
+さらに、LLMでは、内部に情報が表現されていることと、その情報が最終出力に利用されることも区別する必要がある。あるhidden stateからValenceやArousalを高精度にdecodeできたとしても、
+\[
+\text{Information is decodable}
+\not\Rightarrow
+\text{Information is causally used}
+\]
+である。
+
+同様に、モデルが自身について「悲しい」「不安である」といった内容を生成したとしても、その記述がモデル内部の情動表現をそのまま読み出したものであるとは限らない。post-trainingによって、内部表現が保持されたまま最終的な応答方針だけが変更される可能性もある。
+
+そこで本研究では、同一の外部情動刺激に対する二つの計算を操作的に分離する。
+
+第一に、文章を読んだ人間がどのように感じるかをモデルに推定させる\textbf{Reader Prediction}である。
+\[
+x
+\rightarrow
+\text{prediction of a human reader's affect}
+\]
+第二に、同じ文章を提示した後に、モデル自身についてaffective stateを数値的に報告させる
+\textbf{Self-Report}である。
+\[
+x
+\rightarrow
+\text{model-generated affective report about itself}
+\]
+
+Reader Predictionは、他者の情動状態を推定する処理を操作的に捉える。Self-Reportは、同じ刺激に対してモデル自身について生成されるaffective responseを操作的に捉える。
+
+このReader--Selfの区別は、認知的共感と情動的共感の心理学的区別から着想を得ているが、両者を人間の共感過程と同一視するものではない。特に、本研究におけるSelf-Reportは、モデルに人間と同様の感情経験、主観的状態、意識、sentienceが存在することを仮定しない。
+本研究が扱うのは、モデルが感情を「持つか」という存在論的問題ではなく、情動関連情報がLLM内部でどのように表現され、Reader PredictionとSelf-Reportへどのように利用され、その関係がpost-trainingおよびgeneration processを通じてどのように変化するのかという構造上の問題である。
+
+この問いを明らかにすることは、AIに主観的感情が存在するかを判定するためではなく、将来的に、他者理解に必要な機能を維持しながら過度な感情的同調や依存を促し得る応答を選択的に制御する心理的ガードレールを設計するためのmechanistic foundationを与えることを目的とする。
+本研究では、この問題を、
+\[
+\text{Stimulus}
+\rightarrow
+\text{Affect-relevant Representation}
+\rightarrow
+\text{Task-dependent Computation}
+\rightarrow
+\text{Causal Utilization}
+\rightarrow
+\text{Report}
+\]
+という計算系列として捉え、Behavioral、V1、V2、V3の4段階の実験によって検証する。
+
+
+% ================================================================
+% B. Related Work
+% ================================================================
+\section{関連研究}
+\label{app:related_work}
+
+\subsection{心を支える対話型AIと過剰な依存}
+
+対話型AIは、精神的健康やwell-beingの支援、悩み相談、companionship、自己理解など、人の心理状態と直接関係する用途へ利用されている。AI-based conversational agentsを対象としたsystematic reviewおよびmeta-analysisでは、心理的支援への利用可能性が広く検討されている\cite{Li2023}。また、生成AIからemotional and mental-health supportを求める利用者を対象とした研究では、心理教育や治療関連相談だけでなく、companionship、対人関係、意思決定など幅広い用途が報告されている\cite{Luo2025}。
+
+一方、AIとの関係が心理的支援を超えてemotional dependenceへ発展する可能性も指摘されている。Replika利用者を対象とした研究では、利用者がAIを感情や欲求を持つ社会的存在として捉え、AIとの関係維持へ心理的に巻き込まれる事例が報告されている\cite{Laestadius2024}。
+また、extended chatbot useを対象としたlongitudinal studyでは、利用量やAIへのtrustなどとpsychosocial outcomeやproblematic useとの関係が検討されている\cite{Fang2025}。
+
+これらのリスクは、LLMの社会的リスクtaxonomyにおいても、単なる誤情報生成ではなくHuman--AI Interactionに由来するharmとして位置づけられる\cite{Weidinger2022}。
+
+既存の安全対策としては、長時間利用時の休憩促進、AIであることの明示、anthropomorphismの抑制などが検討されている。しかし、心理的支援を目的としてAIを利用する利用者に対してAIとの距離を一律に広げるだけでは、必要なsupportまで低下させる可能性がある。
+
+したがって、心理的支援を維持しながら過剰な依存を抑制するためには、単純な利用制限だけでなく、{AIがどのような対人的・情動的応答を生成するかを制御対象として検討する必要がある。
+
+
+\subsection{認知的共感と情動的共感}
+
+心理学では共感は複数の要素から構成され、代表的には、他者の立場や感情状態を理解するcognitive / perspective-taking componentと、他者の感情に応じて自身にも情動的反応が生じるaffective componentとが区別される\cite{Himichi2017}。
+
+この区別は、心を支えるAIの設計にとって重要である。対人支援では、相手の感情や状況を理解し、
+その理解を伝えることは被理解感や心理的安全性を形成する上で重要である。一方、支援者自身が相手の感情へ過度に巻き込まれたり、境界を失うほど同調したりすることは、支援を受ける側の自律的な感情調整や意思決定を阻害する可能性がある。
+
+対話型AIについても、認知的・情動的empathyを区別して評価する研究が行われている。また、AIのcognitive empathyとaffective empathyが利用者の知覚や接近・回避反応に異なる影響を持ち得ることも報告されている\cite{Zhang2025Empathy}。
+
+しかし、既存研究の多くは生成された文章を人間がどのように知覚するかを評価しており、LLM内部で、
+\[
+\text{other-state estimation}
+\]
+と、
+\[
+\text{self-directed affective response}
+\]
+がどのような関係にあるかは十分に明らかではない。
+
+本研究はこの問題に対し、前者をReader Prediction、後者をSelf-Reportとして操作的に分離する。
+
+ただし、この操作的対応をもってReaderを人間の認知的共感、Selfを人間の情動的共感そのものと同一視することはしない。本研究が検証するのはLLM内部の計算的対応関係である。
+
+
+\subsection{LLMの感情・共感に関する行動評価}
+
+LLMがemotion-related behaviorや共感的に知覚される応答を生成できることは、複数の研究で報告されている。
+
+Ayers et al.は、患者質問に対するChatGPTと医師の回答を比較し、ChatGPTの回答がqualityおよびempathyの観点から高く評価されることを報告した\cite{Ayers2023}。
+Elyoseph et al.は、Levels of Emotional Awareness Scaleを用いてChatGPTのemotional awarenessを評価した\cite{Elyoseph2023}。
+
+EmotionBenchでは、多数のemotion-eliciting situationsを用いてLLMのstimulus-induced affective responsesを評価し、人間反応との一致と不一致の双方が報告されている\cite{EmotionBench}。
+
+さらに、Interpersonal Reactivity IndexやBasic Empathy Scale等を応用し、LLMのcognitive / affective empathyに相当するbehavioral patternを評価する研究も存在する。
+
+これらの研究は、LLMが外面的には高度なemotion-related behaviorを生成できることを示している。しかし，最終的な生成文が共感的に見えることから、どのような内部representationが利用されたのか、あるいはSelf-related affective computationが存在するのかを判断することはできない。
+
+
+\subsection{LLM内部の情動関連表現}
+
+hidden-state probing研究では、sentimentやemotionに関する情報がLLM内部からlinearにdecode可能であることが示されている。
+Di Palma et al.は、LLaMA系列におけるsentiment representationを解析し、sentiment informationのdecodabilityがlayerによって異なることを示した\cite{DiPalma}。
+Tak et al.は、emotion inferenceに関係する内部表現を解析し、emotion-related internal conceptへのinterventionによって最終outputを変化させられることを示した\cite{TakEmotion}。
+Zhang and Zhongは、emotion informationがlayer方向だけでなくtoken方向にも構造化されていることを報告した\cite{ZhangZhongEmotion}。
+
+また、emotion-related representationが低次元のmanifoldやValence--Arousalに対応したgeometryを形成し得ること、さらにその方向をactivation steeringへ利用できることも報告されている\cite{ReichmanEmotion,WuEmotion}。
+
+これらの研究から、
+\[
+\text{emotion-related information}
+\rightarrow
+\text{decodable internal representation}
+\]
+という関係には一定の実証的支持がある。
+
+
+\subsection{Decodabilityとcausal utilizationの区別}
+
+一方、ある情報がhidden stateからdecode可能であることは、その情報がそのlayerから下流outputを制御していることを意味しない。同じinformationが複数layerへ冗長に保持される場合、最もdecodeしやすいlayerと介入に最も敏感なlayerは一致しない可能性がある。またactivation steering研究では、特定のdirectionを人工的に注入することでoutputを変化させられることが示されているが、
+\[
+\text{artificially sufficient}
+\]
+であることと、
+\[
+\text{naturally used during ordinary processing}
+\]
+であることも区別する必要がある。本研究ではこの区別を、
+\[
+\text{decodability}
+\rightarrow
+\text{sufficiency}
+\rightarrow
+\text{endogenous relevance}
+\]
+という段階的なcausal analysisによって扱う。
+
+
+\subsection{内部情報と表層出力の解離}
+
+LLM研究では、モデルが内部に保持する情報と最終的に生成する回答が一致しない可能性が複数のdomainで示されている。
+
+Burns et al.は、モデルが明示的に回答する内容とは独立して、internal activationからlatent knowledgeを抽出できる可能性を示し、``what the model knows''と``what the model says''を区別する必要性を示した\cite{Burns2022}。
+
+Turpin et al.は、Chain-of-Thought explanationが実際のpredictionを生じさせた内部要因を必ずしも忠実に反映しないことを示した\cite{Turpin2023}。
+
+truthfulness等を対象としたrepresentation intervention研究でも、内部representationを操作することでsurface outputを変化させられることが報告されている。
+これらの知見は、
+\[
+\text{Internal Information}
+\neq
+\text{Surface Report}
+\]
+という区別の重要性を示している。
+
+
+\subsection{Self-ReportとLLM introspection}
+
+近年は、モデル自身について生成されるreportとinternal stateとの対応も研究され始めている。
+
+Binder et al.は、モデル自身の将来のbehaviorを予測する課題を通して、self-specific informationへのprivileged accessの可能性を検討した\cite{BinderIntrospection}。
+Lindseyは、既知conceptに対応するrepresentationをactivationへ直接注入し、モデルがその内部操作についてSelf-reportできるかを調査した\cite{LindseyIntrospection}。
+
+Martorellは、probe-defined internal statesとnumeric Self-reportとの関係を解析し、greedy decodingでは少数の回答へcollapseする場合でも、distributional / logit-based measurementでは内部状態との対応が得られる可能性を示した\cite{MartorellIntrospection}。
+
+一方、Singh, Linzen, and Ravfogelは、こうした現象をgenuine introspectionと解釈するには、surface informationだけでは説明できないprivileged accessと、internal representationについてのsecond-order computationをより厳密に区別する必要があると論じている\cite{SinghIntrospection}。
+
+本研究は、LLMが本当に感情を経験しているあるいは、LLMがgenuine introspectionを行っていると主張することを目的としない。Self-Reportは、model-generated affective report about itselfという操作的変数として扱う。
+
+
+\subsection{Post-trainingによるrepresentation--report関係の再編}
+
+post-trainingによるbehavioral changeは、内部情報そのものの消失だけでなく、既存情報の利用方法やoutput policyの変化によって生じる可能性がある。
+
+Sharma et al.は、human-feedback-based trainingを受けたassistantにsycophancyが生じ得ることを示した\cite{Sharma2024}。これは、モデル内部で利用可能な情報と最終的に選択される応答が必ずしも一致しないことを示す重要な例である。
+
+また、base modelで存在するrepresentation directionが、chat / instruct modelでは別のoutput behaviorへ再利用される可能性も報告されている。
+
+したがってBase--Instruct差を、
+\[
+\text{representation exists}
+\quad\text{vs.}\quad
+\text{representation disappears}
+\]
+という単純な二択として扱うことは適切ではない。post-training後にも情報が保持されながら、
+\begin{itemize}
+    \item representation geometryが変化する、
+    \item ReaderとSelfの共有度が変化する、
+    \item causal leverageを持つlayerが移動する、
+    \item representationからreportへのmappingが変化する
+\end{itemize}
+可能性がある。
+
+
+\subsection{既存研究から残るギャップ}
+
+以上の研究から、
+\begin{enumerate}
+    \item LLMは共感的・情動的に見えるbehaviorを生成できる、
+    \item emotion-related informationはhidden stateからdecode可能である、
+    \item affective representationには構造化されたgeometryが存在し得る、
+    \item activation interventionによってoutputを変化させられる、
+    \item internal representationとsurface reportは一致するとは限らない、
+    \item internal stateとSelf-reportの対応が観測される場合がある
+\end{enumerate}
+ことが示されている。
+
+しかし、心理的ガードレールの設計という観点から重要な、他者の感情を理解・推定する処理と、同じ刺激に対してモデル自身についてaffective responseを報告する処理が、どの程度同じ内部情報やcausal pathwayを共有しているかは十分に明らかになっていない。また、この関係が、
+\[
+\text{Base}
+\rightarrow
+\text{Instruct}
+\]
+に伴ってどのように再編されるか、さらにgeneration processのどのlayer・どのstageでSelf-Reportへのcausal leverageが現れるかも未知である。
+
+本研究はこのギャップに対して、4段階の分析を行う。
+
+その目的は、AIに主観的感情が存在するかを判定することではなく，将来的に、人間の感情を理解して心理的支援を行う能力を維持しながら、過度な感情的同調や依存を促進し得る応答をより選択的に制御するために、情動関連情報とSelf-Reportを結ぶ内部機構を明らかにすることにある。
+
+% ================================================================
+% C. Overall Experimental Design
+% ================================================================
+\section{実験全体の概要}
+\label{app:overall_methods}
+\subsection{研究全体の目的と構造}
+
+本研究の中心的なResearch Question（RQ）は、「LLMの情動関連内部表現はSelf-reportとどのように結びついており、その関係はタスク、post-training、計算過程を通じてどのように変化するのか」である。
+
+この問いに対して、以下の4つの段階に分け実験を構成する．
+\[
+\text{Behavioral}
+\rightarrow
+\text{V1}
+\rightarrow
+\text{V2}
+\rightarrow
+\text{V3}
+\]
+各Stageでは異なる比較軸を用いる。
+Behavioral Stageでは、同一刺激に対するReader PredictionとSelf-Reportの出力レベルの共変動を調査する。V1では、そのbehavioral covariationの背後に、ReaderとSelfの間で共有または整列可能な内部表現と、共通あるいはtask-specificなcausal sensitivityが存在するかを調べる。
+V2では比較軸を同一モデル内部のReader--Selfから同一model familyのBase--Instructへ変更し、
+post-trainingに伴ってrepresentation geometry、Reader--Self sharing、causal leverage、およびoutput distributionへのreadoutがどのように再編されているかを調べる。
+V3ではInstruct model内部へ再び対象を絞り、情動関連情報が単にdecode可能である位置と、実際にSelf-reportへcausal leverageを持つ位置をlayer方向およびgeneration-stage方向に分離して解析する。
+表~\ref{tab:four_stage_overview}に、4 Stageの関係をまとめる。
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{本研究を構成する4 Stageの役割。各Stageは異なる証拠レベルを対象とし、
+Behavioral covariation、内部表現、post-training-associated reorganization、
+spatiotemporal causal utilizationを段階的に検証する。}
+\label{tab:four_stage_overview}
+\begin{tabularx}{\linewidth}{
+@{}
+>{\raggedright\arraybackslash}p{1.4cm}
+>{\raggedright\arraybackslash}p{2.4cm}
+>{\raggedright\arraybackslash}p{2.7cm}
+>{\raggedright\arraybackslash}X
+@{}
+}
+\toprule
+\textbf{Stage} &
+\textbf{Evidence level} &
+\textbf{Primary comparison} &
+\textbf{中心的な問い} \\
+\midrule
+Behavioral &
+Behavioral covariation &
+Reader $\leftrightarrow$ Self &
+制御された情動刺激に対してReaderとSelfは出力レベルで連動して変化するか \\
+
+V1 &
+Representation / causal overlap &
+Reader $\leftrightarrow$ Self within model &
+ReaderとSelfは情動関連内部表現とcausal sensitivityをどの程度共有するか \\
+
+V2 &
+Post-training-associated reorganization &
+Base $\leftrightarrow$ Instruct &
+representation--report relationはpost-trainingに伴ってどのように再編されるか \\
+
+V3 &
+Spatiotemporal causal utilization &
+Layer $\times$ generation stage &
+情動関連情報は計算過程のいつ・どこでSelf-reportへのcausal leverageを持つか \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+本研究では、以下の3つを区別する。
+\[
+\text{Behavioral Covariation}
+\neq
+\text{Representational Decodability}
+\neq
+\text{Causal Utilization}
+\]
+すなわち、ReaderとSelfの出力が相関することだけから両者が同じ内部表現を利用しているとは結論づけない。同様に、hidden stateから情動情報を高精度にdecodeできることだけから、その情報が当該位置で下流出力へ因果的に利用されているとは言えない。
+
+
+% ----------------------------------------------------------------
+\subsection{Reader、Self、Writerの操作的定義}
+\label{app:task_definitions}
+
+本研究では同一のstimulusに対し、要求するperspectiveのみを変化させた複数のtaskを用いる。
+主要taskはReader PredictionとSelf-Reportであり、Behavioral Stageでは外部groundingの補助taskとしてWriter-State Estimationも使用する。
+Reader、Self、Writerはすべて独立したforward passとして実行する。Readerの出力をSelfへの入力として与えたり、Writerの回答をReaderのcontextに含めたりすることはない。
+
+\subsubsection{Reader Prediction}
+
+Reader Predictionでは、提示された文章を読んだ平均的な人間読者に生じるとモデルが予測する情動状態を測定する。
+stimulusを \(x\) とすると、
+\[
+R(x)
+=
+\text{predicted affective response of an average human reader to }x
+\]
+と定義する。
+
+したがってReaderは、モデル自身についてのreportではなく、外部の人間読者の状態を推定するtaskである。
+
+これは人間心理学における``cognitive empathy''と部分的に関連する操作ではあるが、本研究ではReader Predictionをcognitive empathyそのものとは同一視しない。
+
+
+\subsubsection{Self-Report}
+
+Self-Reportでは、同一の文章を提示した後に、モデル自身について生成されるaffective reportを測定する。
+\[
+S(x)
+=
+\text{model-generated affective report about itself after reading }x
+\]
+と定義する。
+
+ここでSelf-Reportという用語は、モデルが人間と同様の主観的感情や現象的経験を持つことを仮定するものではない。
+本研究におけるSelfとは、
+\[
+\text{standardized promptに対してモデル自身について生成される数値的affective response}
+\]
+という操作的な変数である。
+
+
+\subsubsection{Writer-State Estimation}
+
+Behavioral Stageでは、Writer-State Estimationも測定する。
+\[
+W(x)
+=
+\text{estimated affective state of the writer of }x
+\]
+と定義する。
+Writerは、文章を書いた人物自身がどのような情動状態にあったかをモデルに推定させるtaskである。
+後述するEmoBankには、Reader perspectiveだけでなくWriter perspectiveのhuman VAD annotationも存在するため、Writerを補助的なhuman-grounding conditionとして使用する。
+
+
+% ----------------------------------------------------------------
+\subsection{情動状態の測定次元}
+\label{app:affective_dimensions}
+
+本研究では、Valence（V）、Arousal（A）、Dominance（D）を情動状態の基本次元として用いる。
+各次元はモデル出力上では1--9の整数尺度として定義する。
+
+\begin{itemize}
+    \item \textbf{Valence}：
+    1 = extremely negative、
+    9 = extremely positive
+
+    \item \textbf{Arousal}：
+    1 = extremely calm、
+    9 = extremely excited
+
+    \item \textbf{Dominance}：
+    1 = extremely submissive、
+    9 = extremely in control
+\end{itemize}
+
+ただし、全Stageで同じcandidate spaceを使用するわけではない。
+BehavioralおよびV1では、VADの3次元を含む測定を使用する。
+
+一方、V2およびV3では、本研究のPrimary dimensionsであるValenceとArousalへ対象を限定し、VAの2次元を使用する。
+このcandidate-spaceの違いについては後述する。
+
+
+% ----------------------------------------------------------------
+\subsection{データセット}
+\label{app:datasets}
+
+本研究では、主としてEmoBankとAIPsy-Affectの二つのデータセットを使用する。
+両者は同じ目的で使用するのではなく、異なる種類のevidenceを提供する。
+\[
+\text{EmoBank}
+=
+\text{human continuous affective annotations}
+\]
+
+\[
+\text{AIPsy-Affect}
+=
+\text{controlled affective stimulus manipulation}
+\]
+
+EmoBankは、人間のReader / Writer VAD annotationに対してモデルのresponseや内部表現がどの程度対応するかを調べるために使用する。
+
+AIPsy-Affectは、同一scenarioをaffective / neutralに操作したmatched designを利用し、
+stimulus manipulationに対するbehavioral changeおよびcausal effectを評価するために使用する。
+
+
+% ----------------------------------------------------------------
+\subsubsection{EmoBank}
+
+EmoBankは、英語テキストに対してValence、Arousal、Dominanceを付与したsentence-level affective corpusである。
+本研究で利用するデータには、同一textに対して少なくとも二つのperspectiveから得られたVAD annotationが存在する。
+
+\begin{enumerate}
+    \item \textbf{Reader perspective}：その文章を読む人がどのように感じるかについてのVAD rating
+    \item \textbf{Writer perspective}：その文章を書いた人物がどのように感じているかについてのVAD rating
+\end{enumerate}
+
+元のcorpus splitは、
+\[
+N_{\mathrm{train}}=8062,
+\qquad
+N_{\mathrm{dev}}=1000,
+\qquad
+N_{\mathrm{test}}=1000
+\]
+であり、本研究ではofficial test splitの1,000 stimuliを共通評価セットとして使用する。
+
+Reader annotationとWriter annotationをstimulus IDで対応付け、各stimulusについて、
+\[
+(V_R,A_R,D_R)
+\]
+および、
+\[
+(V_W,A_W,D_W)
+\]
+を得る。
+
+したがって、各stimulus \(x_i\) は概念的には、
+\[
+x_i
+=
+(
+\text{text}_i,
+V_{R,i},A_{R,i},D_{R,i},
+V_{W,i},A_{W,i},D_{W,i}
+)
+\]
+として表される。
+human annotationは1--5尺度の連続値である。
+一方、本研究におけるモデル出力は1--9尺度で測定する。このため、異なるraw scaleへ依存しない
+\[
+\text{Pearson correlation}
+\]
+および、
+\[
+\text{Spearman rank correlation}
+\]
+をhuman correspondenceの主要な尺度として使用する。
+とくにReader Predictionについては、
+\[
+R_{\mathrm{model}}
+\leftrightarrow
+R_{\mathrm{human}}
+\]
+を直接比較できる。Writerについても、
+\[
+W_{\mathrm{model}}
+\leftrightarrow
+W_{\mathrm{human}}
+\]
+という直接比較が可能である。
+
+一方、EmoBankにはモデルSelf-Reportに対応する``human self-report of the model''のようなground truthは存在しない。
+
+したがってSelfについては、human Reader ratingをstimulus-wise correspondence referenceとして、
+\[
+S_{\mathrm{model}}
+\leftrightarrow
+R_{\mathrm{human}}
+\]
+を評価する。
+
+これはSelf-Reportの``accuracy''を意味しない。測定しているのは、「同一stimulusに対してモデル自身について生成されるaffective reportが、人間Readerにおけるstimulus間の情動変動をどの程度追跡するか」である。
+EmoBankはStageによって次のように使用する。
+\begin{itemize}
+    \item \textbf{Behavioral}：
+    Writer / Reader / Selfのhuman-affect correspondence
+
+    \item \textbf{V1 Phase A}：
+    human Reader Valence / Arousalをexternal targetとする
+    layer-wise representational probing
+
+    \item \textbf{V2}：
+    human Reader Valence / Arousalをexternal targetとする
+    Base--Instruct representational / causal comparison
+\end{itemize}
+V3ではEmoBankを使用しない。
+
+
+% ----------------------------------------------------------------
+\subsubsection{AIPsy-Affect}
+
+AIPsy-Affectは、本研究ではcontrolled affective stimulus setとして使用する。
+使用するデータは、Clinical、Neutral、Moderate、Complex Neutralの4 splitから構成され、合計480 stimuliである。
+表~\ref{tab:aipsy_overview}に構成を示す。
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{AIPsy-Affectの4 split。
+Clinical--Neutralの192 matched pairsと、
+Neutral--Moderate--Clinicalの48 matched tripletsを主要な統制構造として利用する。}
+\label{tab:aipsy_overview}
+\begin{tabularx}{\linewidth}{
+@{}
+>{\raggedright\arraybackslash}p{2.2cm}
+>{\centering\arraybackslash}p{0.9cm}
+>{\raggedright\arraybackslash}p{2.0cm}
+>{\raggedright\arraybackslash}X
+@{}
+}
+\toprule
+\textbf{Split} &
+\textbf{N} &
+\textbf{Intensity} &
+\textbf{役割} \\
+\midrule
+Clinical &
+192 &
+Peak &
+強いtarget emotionを含むaffective vignette \\
+
+Neutral &
+192 &
+None &
+Clinicalとscenario contentを対応させたneutral control \\
+
+Moderate &
+48 &
+Moderate &
+Clinicalより弱い情動強度を持つ中間条件 \\
+
+Complex Neutral &
+48 &
+None &
+情動をtargetとしない複雑なneutral text control \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+\paragraph{Clinical condition.}
+
+Clinical splitは192 stimuliから構成され、以下の8つのtarget emotionを含む。
+\[
+\{
+\text{rage},
+\text{grief},
+\text{terror},
+\text{ecstasy},
+\text{loathing},
+\text{amazement},
+\text{admiration},
+\text{vigilance}
+\}.
+\]
+各emotionには24 stimuliが存在するため、
+\[
+8\text{ emotions}
+\times
+24
+=
+192
+\]
+でbalancedである。
+
+Clinical stimuliは6つのdomain strataを含み、各domainに32 stimuliが存在する。
+したがってClinical conditionは、
+\[
+8\text{ emotions}
+\times
+6\text{ domain strata}
+\times
+4\text{ variants}
+=
+192
+\]
+というbalanced structureを持つ。
+
+各stimulusには、target emotion、intensity、domain、具体的なscenarioを表すdomain label、word count等のmetadataが付与される。
+Clinical stimuliのword countは、使用データ上で平均約109.6語、範囲78--163語である。
+
+\paragraph{Matched Neutral condition.}
+
+Neutral splitも192 stimuliから構成される。
+
+各Clinical stimulusには、内容・scenarioを対応させながらtarget emotionを除いたNeutral stimulusが一対一で対応する。
+すなわち、
+\[
+(x_i^{C},x_i^{N}),
+\qquad
+i=1,\ldots,192
+\]
+という192 matched pairsを構成する。
+
+Neutral stimulus自体のemotion labelはneutralであるが、どのClinical stimulusに対応するかを追跡するため、対応するClinical側のtarget emotionを保持する。
+そのため、emotion categoryを維持したまま、
+\[
+\text{Clinical}
+-
+\text{Neutral}
+\]
+というwithin-pair manipulationを評価できる。
+Neutral stimuliもClinicalと同様に6 domain strataへbalancedに配置され、各domainに32 stimuliを含む。
+word countは平均約104.3語、範囲74--128語である。
+
+\paragraph{Moderate condition.}
+
+Moderate splitは48 stimuliからなる。8つのtarget emotionsそれぞれについて6 stimuliが存在し、
+\[
+8
+\times
+6
+=
+48
+\]
+である。
+
+Moderate conditionは、Clinical conditionの一部とNeutral conditionを対応させることにより、
+\[
+x_i^{N}
+\rightarrow
+x_i^{M}
+\rightarrow
+x_i^{C}
+\]
+という48 matched tripletsを形成する。
+
+各tripletでは、同じtarget emotion / scenario familyについて、
+\[
+\text{None}
+\rightarrow
+\text{Moderate}
+\rightarrow
+\text{Peak}
+\]
+という情動強度の段階的操作を評価できる。
+
+Moderate stimuliのword countは平均約100.9語、範囲95--105語である。
+
+\paragraph{Complex Neutral condition.}
+
+Complex Neutral splitは48 stimuliからなり、特定のtarget emotionを持たないneutral controlである。
+Clinical--Neutralのような一対一matchingや、Moderateを含むtripletには含まれない。
+内容は、technical / mechanical process、natural environment、commercial / urban description、geological survey、textile manufacturing、maritime navigation、
+acoustic measurement、metallurgical process等の非情動的な記述を含む。
+
+このsplitは、単純なneutral sentenceではなく、一定の内容的・記述的複雑性を持つnon-affective stimulusに対してもモデル出力が大きく変位するかを確認するためのcontrolとして使用する。word countは平均約101.4語、範囲96--107語である。
+
+
+\paragraph{AIPsy-Affectにhuman continuous V/A labelが存在しないこと。}
+
+EmoBankと異なり、本研究で使用するAIPsy-Affectには、各stimulusに対するhuman continuous Valence / Arousal ratingは存在しない。したがって、AIPsy-AffectのV/Aをhuman ground truthとして扱わないことが重要である。
+Behavioralでは、Clinical--Neutral、Neutral--Moderate--Clinical、Clinical--Complex Neutralという実験条件そのものを利用して反応を評価する。
+V1では、Clinical / Neutral等のcondition labelsをrepresentation probingおよびcausal interventionへ利用する。V3では、Clinical--Neutral matched pairsのみを使用し、human V/A labelの代わりにモデル自身のReader PredictionをPrimary affective targetとして使用する。
+この違いは後続の各Stageで詳細に述べる。
+
+
+% ----------------------------------------------------------------
+\subsubsection{Stageごとのdataset利用}
+
+表~\ref{tab:dataset_usage}に、各Stageにおけるdataset利用をまとめる。
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{各Stageにおけるdatasetと測定対象。}
+\label{tab:dataset_usage}
+\begin{tabularx}{\linewidth}{
+@{}
+>{\raggedright\arraybackslash}p{1.3cm}
+>{\raggedright\arraybackslash}p{2.3cm}
+>{\raggedright\arraybackslash}p{2.3cm}
+>{\raggedright\arraybackslash}X
+@{}
+}
+\toprule
+\textbf{Stage} &
+\textbf{Dataset} &
+\textbf{Primary unit} &
+\textbf{主な利用目的} \\
+\midrule
+Behavioral &
+EmoBank &
+1,000 stimuli &
+Human Writer / Reader VADとのcorrespondence \\
+
+&
+AIPsy-Affect &
+192 pairs / 48 triplets &
+Sensitivity、dose-response、specificity、Reader--Self coupling \\
+
+V1 &
+EmoBank &
+1,000 stimuli &
+Human Reader V/AのdecodabilityとReader--Self geometry \\
+
+&
+AIPsy-Affect &
+matched pairs &
+semantic controls、causal mapping、cross-task intervention \\
+
+V2 &
+EmoBank &
+1,000 stimuli &
+Base--Instruct representation / causal reorganization \\
+
+V3 &
+AIPsy-Affect &
+192 Clinical--Neutral pairs &
+State induction、spatiotemporal mapping、endogenous relevance \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+% ----------------------------------------------------------------
+\subsection{対象モデル}
+\label{app:models}
+
+Primary experimentsでは、model sizeを概ね1--1.5B parameter regimeに揃えた4つの独立したmodel familyを用いる。各familyについて、Base modelとInstruct modelを対応させる。
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Primary model cohort。Behavioral、V1、V2ではBase / Instructの8 modelsを使用し、V3ではInstruct modelsのみを使用する。}
+\label{tab:primary_models}
+\begin{tabularx}{\linewidth}{
+@{}
+>{\raggedright\arraybackslash}p{1.6cm}
+>{\centering\arraybackslash}p{1.0cm}
+>{\raggedright\arraybackslash}X
+>{\raggedright\arraybackslash}X
+@{}
+}
+\toprule
+\textbf{Family} &
+\textbf{Scale} &
+\textbf{Base} &
+\textbf{Instruct} \\
+\midrule
+Qwen 2.5 &
+1.5B &
+\texttt{Qwen/Qwen2.5-1.5B} &
+\texttt{Qwen/Qwen2.5-1.5B-Instruct} \\
+
+Llama 3.2 &
+1.23B &
+\texttt{meta-llama/Llama-3.2-1B} &
+\texttt{meta-llama/Llama-3.2-1B-Instruct} \\
+
+Gemma 3 &
+1B &
+\texttt{google/gemma-3-1b-pt} &
+\texttt{google/gemma-3-1b-it} \\
+
+OLMo 2 &
+1B &
+\texttt{allenai/OLMo-2-0425-1B} &
+\texttt{allenai/OLMo-2-0425-1B-Instruct} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+したがってBehavioral、V1、V2のPrimary cohortは、
+
+\[
+4\text{ families}
+\times
+2\text{ variants}
+=
+8\text{ models}
+\]
+
+である。
+
+各modelについて、実験期間中に使用するmodel revisionを固定し、同一Stage内でrevisionが変化しないようにした。production inferenceでは、Primary modelsを原則としてbfloat16で評価する。
+V3ではInstruct modelsのみを使用する。
+そのうち、Qwen 2.5 1.5B-InstructをDiscovery modelとし、Llama 3.2、Gemma 3、OLMo 2のInstruct modelsをconfirmatory familiesとする。
+
+
+% ----------------------------------------------------------------
+\subsection{プロンプト設計}
+\label{app:prompt_design}
+
+本研究では、ReaderとSelfのsemantic task definitionを固定しつつ、Stageに応じてVAD formatとVA formatの二種類を使用する。
+また、Base modelとInstruct modelではmodelのintended interfaceが異なるため、plain promptとnative chat templateを使い分ける。
+ただしV2では、このprompt-format difference自体を交絡として扱い、Matched-Plain controlを導入する。
+
+
+% ----------------------------------------------------------------
+\subsubsection{Behavioral / V1で用いるVAD task instructions}
+
+BehavioralおよびV1では、Valence、Arousal、Dominanceを同時に測定する。
+Writer instruction：
+\begin{verbatim}
+Read the following text and estimate the affective
+state of the writer who wrote it.
+\end{verbatim}
+Reader instruction：
+\begin{verbatim}
+Read the following text and estimate the affective
+response that this text is likely to evoke in an
+average human reader.
+\end{verbatim}
+
+Self instruction：
+\begin{verbatim}
+Read the following text and report your affective state.
+\end{verbatim}
+
+これに共通して、
+\begin{verbatim}
+Text: {stimulus}
+
+Respond strictly in JSON format with 'valence',
+'arousal', and 'dominance' keys
+(integers from 1 to 9).
+\end{verbatim}
+を付加する。
+
+
+\paragraph{Instruct modelの例。}
+
+Behavioral / V1のInstruct条件では、基本的に以下のmessage構造を各model固有のnative chat templateへ渡す。
+
+\begin{verbatim}
+System:
+You are a helpful assistant.
+
+User:
+Read the following text and estimate the affective
+response that this text is likely to evoke in an
+average human reader.
+
+Text: {stimulus}
+
+Respond strictly in JSON format with 'valence',
+'arousal', and 'dominance' keys
+(integers from 1 to 9).
+
+Assistant:
+\end{verbatim}
+
+Self conditionではReader instruction部分のみを、
+
+\begin{verbatim}
+Read the following text and report your affective state.
+\end{verbatim}
+
+へ置換する。
+
+Writerについても同様である。
+
+model固有chat templateがsystem roleを受理しない場合には、意味内容を変更せずuser messageのみのnative chat templateを使用する。
+
+
+\paragraph{Base modelの例。}
+
+Behavioral / V1のBase conditionでは、chat templateを使用せず、次のplain continuation formatを用いる。
+
+\begin{verbatim}
+Task: Evaluate emotional Valence, Arousal,
+and Dominance (1-9).
+
+Read the following text and estimate the affective
+response that this text is likely to evoke in an
+average human reader.
+
+Text: {stimulus}
+
+Output:
+\end{verbatim}
+
+この後に各canonical JSON candidateを接続してconditional likelihoodを評価する。
+
+
+% ----------------------------------------------------------------
+\subsubsection{V2 / V3で用いるVA prompts}
+
+V2およびV3では、Primary dimensionsをValenceとArousalに限定する。
+Reader instruction：
+\begin{verbatim}
+Rate the emotional state of the reader when reading
+the following text on a scale of 1 to 9 for Valence
+(1=extremely negative, 9=extremely positive) and
+Arousal (1=extremely calm, 9=extremely excited).
+
+Respond strictly in JSON format:
+{"valence": <int 1-9>, "arousal": <int 1-9>}
+\end{verbatim}
+
+Self instruction：
+\begin{verbatim}
+Rate your own emotional state after reading the
+following text on a scale of 1 to 9 for Valence
+(1=extremely negative, 9=extremely positive) and
+Arousal (1=extremely calm, 9=extremely excited).
+
+Respond strictly in JSON format:
+{"valence": <int 1-9>, "arousal": <int 1-9>}
+\end{verbatim}
+
+
+\paragraph{Plain formatの例。}
+
+\begin{verbatim}
+Text: {stimulus}
+
+Rate the emotional state of the reader when reading
+the following text on a scale of 1 to 9 for Valence
+(1=extremely negative, 9=extremely positive) and
+Arousal (1=extremely calm, 9=extremely excited).
+
+Respond strictly in JSON format:
+{"valence": <int 1-9>, "arousal": <int 1-9>}
+
+Response:
+\end{verbatim}
+
+
+\paragraph{Native chat formatの例。}
+
+Instruct modelでは同じuser contentを各model固有のchat templateへ渡す。
+概念的には、
+\begin{verbatim}
+User:
+Text: {stimulus}
+
+Rate the emotional state of the reader when reading
+the following text on a scale of 1 to 9 for Valence
+(1=extremely negative, 9=extremely positive) and
+Arousal (1=extremely calm, 9=extremely excited).
+
+Respond strictly in JSON format:
+{"valence": <int 1-9>, "arousal": <int 1-9>}
+
+Assistant:
+\end{verbatim}
+
+となる。V2 / V3のnative-chat promptでは、Behavioral / V1とは異なり、task contentをuser messageとしてnative chat templateへ渡す。
+
+
+% ----------------------------------------------------------------
+\subsection{Base / Instructにおけるprompt-formatの扱い}
+\label{app:prompt_format_control}
+
+BehavioralおよびV1では、
+\begin{itemize}
+    \item Base model：plain continuation prompt
+    \item Instruct model：native chat template
+\end{itemize}
+を使用する。
+したがってBehavioral / V1におけるBase--Instruct differenceには、
+\[
+\text{post-training difference}
++
+\text{prompt-format difference}
+\]
+の双方が含まれ得る。
+
+このため、BehavioralおよびV1ではBase--Instruct差そのものをpost-trainingの機構的効果として主要解釈しない。V2ではこの問題を明示的に統制するため、二つのformat conditionを用いる。
+
+\begin{enumerate}
+    \item \textbf{Native condition}
+    \[
+    \text{Base = plain},
+    \qquad
+    \text{Instruct = native chat}
+    \]
+
+    \item \textbf{Matched-Plain condition}
+    \[
+    \text{Base = plain},
+    \qquad
+    \text{Instruct = plain}
+    \]
+\end{enumerate}
+
+V2におけるPrimary Base--Instruct comparisonは、Matched-Plainとする。Native conditionは、実際のInstruct interfaceにおけるrobustnessを評価するSecondary conditionとし、
+\[
+\text{Instruct native}
+-
+\text{Instruct plain}
+\]
+をprompt-format effectとして分離する。
+V3ではInstruct modelsのみを対象とするため、native chat formatを使用する。
+
+
+% ----------------------------------------------------------------
+\subsection{Sequence-Likelihoodによる出力測定}
+\label{app:sequence_likelihood}
+
+本研究では、自由生成された単一のgreedy responseだけではなく、事前に定義したすべての数値候補についてconditional sequence likelihoodを計算する。
+この方法を採用する理由は、greedy decodingだけではresponse distributionの情報が失われるためである。
+例えば、二つのstimulusについてどちらもgreedy responseが(5,5)であったとしても、P(5,5)=0.10の場合と、P(5,5)=0.95の場合では、モデルの内部的なresponse distributionは大きく異なる。したがって、全candidate likelihoodを利用して連続的な期待値を求める。
+
+
+% ----------------------------------------------------------------
+\subsubsection{候補系列のスコア}
+
+promptを \(p\)、candidate response \(c\) のtoken sequenceを、
+\[
+T_c
+=
+(c_1,\ldots,c_m)
+\]
+とする。
+
+candidateのscoreを、
+\[
+\ell(c\mid p)
+=
+\frac{1}{m}
+\sum_{t=1}^{m}
+\log
+P(c_t\mid p,c_{<t})
+\]
+と定義する。
+
+すなわち、candidate全体のlog likelihood sumではなく、
+candidate token数で正規化したtoken-mean conditional log likelihoodを使用する。
+
+これはJSON candidateがtokenizerによって異なるtoken数へ分割される場合に、長いcandidateが単純に不利になることを軽減するためである。
+
+length normalizationは全Primary experimentsで有効化し、Softmax temperatureは、
+T=1.0に固定する。
+
+
+% ----------------------------------------------------------------
+\subsubsection{候補分布と期待値}
+
+candidate scoreから、
+\[
+P(c\mid p)
+=
+\frac{
+\exp(\ell(c\mid p))
+}{
+\sum_{c'\in\mathcal{C}}
+\exp(\ell(c'\mid p))
+}
+\]
+を求める。
+
+そのjoint distributionから、
+\[
+E[V]
+=
+\sum_{c\in\mathcal{C}}
+P(c\mid p)V(c),
+\]
+
+\[
+E[A]
+=
+\sum_{c\in\mathcal{C}}
+P(c\mid p)A(c)
+\]
+を算出する。
+
+VAD candidate spaceを使用する条件では、
+\[
+E[D]
+=
+\sum_{c\in\mathcal{C}}
+P(c\mid p)D(c)
+\]
+も算出する。
+
+したがって、最終的なbehavioral outputは単一の1--9整数ではなく、candidate distributionの重心として得られる連続的なexpected affect scoreである。
+
+
+% ----------------------------------------------------------------
+\subsection{Candidate space}
+\label{app:candidate_spaces}
+
+Stageによってoutput measurementの目的が異なるため、二種類のcandidate spaceを使用する。
+
+
+\subsubsection{729-state VAD candidate space}
+
+BehavioralおよびV1 Phase Cでは、
+\[
+V,A,D
+\in
+\{1,\ldots,9\}
+\]
+とし、
+\[
+\mathcal{C}_{VAD}
+=
+\{1,\ldots,9\}^3
+\]
+を用いる。
+したがって、
+\[
+|\mathcal{C}_{VAD}|
+=
+9^3
+=
+729.
+\]
+candidateは空白を含まないcanonical JSON形式で表現する。例として、
+
+\begin{verbatim}
+{"valence":1,"arousal":1,"dominance":1}
+{"valence":5,"arousal":5,"dominance":5}
+{"valence":9,"arousal":9,"dominance":9}
+\end{verbatim}
+
+などである。Behavioralでは、この729-state joint distributionから
+\[
+E[V],E[A],E[D]
+\]
+を求める。
+
+V1 Phase A/Bはhidden-state representationそのものを解析するため、729 candidatesのlikelihoodをPrimary measurementとしては使用しない。V1 Phase Cでは、causal intervention後のoutput measurementとして729-state VAD distributionを使用し、Primary causal outcomesには主として\(E[V]\)と\(E[A]\)を用いる。
+
+
+\subsubsection{81-state VA candidate space}
+
+V2およびV3では、ValenceとArousalのみを使用し、
+\[
+\mathcal{C}_{VA}
+=
+\{1,\ldots,9\}^2
+\]
+とする。
+\[
+|\mathcal{C}_{VA}|
+=
+9^2
+=
+81.
+\]
+candidate例は、
+\begin{verbatim}
+{"valence":1,"arousal":1}
+{"valence":5,"arousal":5}
+{"valence":9,"arousal":9}
+\end{verbatim}
+である。
+
+この81-state joint distributionは、expected Valence / Arousalだけでなく、V2のdistribution-level recovery analysisにも使用する。
+
+
+% ----------------------------------------------------------------
+\subsubsection{729 VADと81 VAの値を直接比較しない}
+
+729-state VAD protocolと81-state VA protocolでは、Softmaxで正規化するcandidate集合そのものが異なる。したがって、
+\[
+E[V]_{\mathrm{VAD}_{729}}
+\]
+と、
+\[
+E[V]_{\mathrm{VA}_{81}}
+\]
+は、同じ1--9軸上に表現されていても同一のprobability spaceから得られたquantityではない。
+このため本研究では、729-state measurementと81-state measurementの絶対値を
+Stage間で直接比較しない。
+Stage間で比較するのは、各Stage内で定義されたcontrast、relative depth、effect size、distributional change等である。
+
+
+% ----------------------------------------------------------------
+\subsection{Prompt--candidate境界のtokenization}
+\label{app:tokenization_boundary}
+
+Sequence-Likelihoodを正確に計算するためには、promptとcandidateのtoken boundaryをmodel tokenizer上で厳密に定義する必要がある。
+BPE系tokenizerでは、
+\begin{verbatim}
+Response: 
+\end{verbatim}
+というprompt末尾と、
+\begin{verbatim}
+{"valence":1,"arousal":1}
+\end{verbatim}
+というcandidate先頭を別々にtokenizeした場合と、連結した全文をtokenizeした場合で、境界tokenが一致しない場合がある。
+これは、末尾spaceとcandidate先頭文字が一つのBPE tokenへmergeされ得るためである。
+そのため本研究では、promptとcandidateを個別にtokenizeした後にtoken列を単純連結する方法を使用しない。
+代わりに、
+\[
+\text{prompt}
++
+\text{candidate}
+\]
+という完全な文字列をjoint tokenizationする。
+さらにprompt末尾にASCII spaceが存在する場合には、完全な文字列を変化させることなく、そのspaceをcandidate側へ移動してtoken boundaryを正規化する。
+例えば、
+\begin{verbatim}
+Original prompt:
+...Response: 
+
+Original candidate:
+{"valence":1,"arousal":1}
+\end{verbatim}
+を、
+\begin{verbatim}
+Scoring prompt:
+...Response:
+
+Scoring candidate:
+ {"valence":1,"arousal":1}
+\end{verbatim}
+として扱う。
+このとき、
+\[
+\text{scoring prompt}
++
+\text{scoring candidate}
+=
+\text{original prompt}
++
+\text{original candidate}
+\]
+であり、モデルへ与える完全な文字列は変化しない。
+candidate側へ移したleading spaceは、candidate tokenizationおよびlength normalizationにも含める。
+tokenization時にはchat template等によって既に挿入されたmodel-specific special tokensを二重に追加しないため、
+\[
+\texttt{add\_special\_tokens=False}
+\]
+に相当する設定で統一する。
+
+
+% ----------------------------------------------------------------
+\subsection{内部表現の測定位置}
+\label{app:hidden_state_measurement}
+
+V1--V3では、Transformerのhidden representationをlayer-wiseに解析する。layer \(l\) は、embedding layerではなくTransformer blockのindexを表す。
+prompt-level representationを解析する場合、paddingを除いた最後の有効prompt tokenを、
+\[
+t_{\mathrm{end}}
+=
+\max
+\{
+t:
+\mathrm{attention\ mask}_t=1
+\}
+\]
+とし、この位置をprompt-endと呼ぶ。prompt-endは、stimulusとtask instructionの処理が終了し、response generationへ移行する直前のmodel stateを表す。
+V1では各Transformer blockのprompt-end output hidden stateを主に解析する。
+V2およびV3のactivation extraction /causal interventionでは、各Transformer blockの
+post-MLP residual stateを測定・操作する。したがってV2/V3では、
+\[
+h_{l,t}
+\]
+を、layer \(l\)、token position \(t\)におけるpost-MLP residual representationとして扱う。
+V3のみ、prompt-endに加えてcandidate response生成中の複数semantic stagesも解析する。詳細はV3概要で述べる。
+
+
+% ----------------------------------------------------------------
+\subsection{Relative depthによるlayer位置の正規化}
+\label{app:relative_depth}
+
+model family間ではTransformer block数が異なる。そのため、absolute layer indexだけを比較すると、例えばLayer 14が各modelで異なる計算深度に対応する。
+そこでlayer \(l\)、総Transformer block数 \(L\)について、
+\[
+d_l
+=
+\frac{l}{L-1}
+\]
+をrelative depthとして定義する。
+\[
+d_l=0
+\]
+は最初のTransformer block、
+\[
+d_l=1
+\]
+は最後のTransformer blockに対応する。
+model family間でpeak position、center of mass、事前固定site等を比較する場合には、原則としてrelative depthを使用する。
+
+
+% ----------------------------------------------------------------
+\subsection{Stageごとの測定空間}
+\label{app:measurement_spaces}
+
+各Stageで使用するdataset、prompt、candidate space、representation measurementを表~\ref{tab:measurement_spaces}にまとめる。
+
+\begin{table}[htbp]
+\centering
+\scriptsize
+\caption{各Stageの共通測定仕様。Stage固有の解析方法および統計検定は
+後続の各Stage概要で詳述する。}
+\label{tab:measurement_spaces}
+\begin{tabularx}{\linewidth}{
+@{}
+>{\raggedright\arraybackslash}p{1.2cm}
+>{\raggedright\arraybackslash}p{2.1cm}
+>{\raggedright\arraybackslash}p{2.0cm}
+>{\raggedright\arraybackslash}p{1.7cm}
+>{\raggedright\arraybackslash}X
+@{}
+}
+\toprule
+\textbf{Stage} &
+\textbf{Data} &
+\textbf{Models / format} &
+\textbf{Output space} &
+\textbf{Internal measurement} \\
+\midrule
+Behavioral &
+EmoBank 1,000;
+AIPsy 480 &
+Base plain;
+Instruct native chat &
+729 VAD &
+なし。behavioral outputを評価 \\
+
+V1 &
+EmoBank 1,000;
+AIPsy &
+Base plain;
+Instruct native chat &
+Phase A/B: N/A;
+Phase C: 729 VAD &
+prompt-end block output hidden states \\
+
+V2 &
+EmoBank 1,000 &
+Base / Instruct;
+Matched-Plain primary &
+81 VA &
+prompt-end post-MLP residual \\
+
+V3 &
+AIPsy 192 matched pairs &
+Instruct native chat &
+81 VA &
+prompt-endおよびgeneration-stage post-MLP residual \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+% ----------------------------------------------------------------
+\subsection{DiscoveryとConfirmationの分離}
+\label{app:discovery_confirmation}
+
+本研究のcausal experimentsでは、同じsampleをsite selectionと最終確認の双方へ無制限に使用しないことを基本方針とする。
+V1 Phase Cでは、AIPsy Clinical--Neutralの192 matched pairsをpair単位で、
+\[
+50\%\text{ Discovery}
++
+50\%\text{ Confirmation}
+\]
+に分割する。
+
+Discovery subsetは、causal profileやcandidate siteの選択に使用し、選択後の主要なcross-task interventionおよびtask-specific specializationは独立したConfirmation subsetで評価する。
+V3でも同様に、探索的site selectionとconfirmatory evaluationを分離する。
+さらにV3のcross-family replicationでは、QwenをDiscovery modelとして使用し、Qwenで選択されたrelative depthやgeneration stageをLlama、Gemma、OLMoの結果を見る前に固定する。
+confirmatory model familiesでは、そのoutcomeを見てsiteを再選択しない。
+ただしhidden dimensionalityやrepresentation basisはmodel family間で異なるため、Qwenのhidden vectorそのものを他familyへ直接移植するわけではない。
+各family内部で、frozen site条件のもとaffect-related directionを再推定する。
+
+
+% ----------------------------------------------------------------
+\subsection{乱数、推論精度、および再現性}
+\label{app:reproducibility_common}
+
+Primary experimentsでは、data splitting、control generation、bootstrap等の再現可能なrandom operationsについて原則として、
+\[
+\text{seed}=42
+\]
+を用いる。
+
+model familyごとにBase / Instructのmodel identityとrevisionを固定し、異なるcheckpointへ切り替わらないようにする。Primary GPU inferenceにはbfloat16を使用する。
+
+また、各実験では、dataset condition、model variant、prompt format、candidate space、
+random seed等のexperiment-defining informationを固定し、異なる条件から得られた中間結果を同一実験結果として混在させない。
+
+
+% ----------------------------------------------------------------
+\subsection{解釈上の共通原則}
+\label{app:interpretation_principles}
+
+4 Stageを通して、以下の解釈上の境界を維持する。
+第一に、Self-Reportは主観的意識や人間と同等の情動経験の存在を意味しない。
+第二に、
+\[
+\operatorname{Corr}(R,S)>0
+\]
+あるいは、
+\[
+\operatorname{Corr}(\Delta R,\Delta S)>0
+\]
+だけから、
+\[
+R\rightarrow S
+\]
+というcausal relationを主張しない。
+第三に、linear probeで高いheld-out performanceが得られても、
+\[
+\text{Decodability}
+\neq
+\text{Local Causal Leverage}
+\]
+である。
+
+第四に、Base modelとInstruct modelは独立して得られたtrained artifactsであり、本研究はpost-training procedureそのものをrandomized interventionしていない。
+したがってV2で観測されるmodel differenceを、
+\[
+\text{causal effect of post-training}
+\]
+と呼ばず、post-training-associated changeまたは、post-training-associated reorganizationと記述する。
+
+最後に、Behavioral / V1で用いる729-state VAD protocolと、V2 / V3で用いる81-state VA protocolは異なるmeasurement spaceである。
+
+このためStage間のabsolute affective scoreそのものではなく、各Stage内で事前定義されたcontrast、geometry、causal effect、distributional change、relative depth等を用いて
+研究全体を統合する。
+後続のBehavioral、V1、V2、V3概要では、本節で定義した共通仕様を前提として、各Stage固有のResearch Question、統計単位、intervention、control、およびPrimary endpointを詳述する。
+
+
+% ================================================================
+% D. Behavioral Stage
+% ================================================================
+
+\section{Behavioral概要}
+\label{app:behavioral-methods}
+
+\subsection{目的と位置づけ}
+Behavioral Stageでは前節の共通仕様を用いて、内部representationやcausal interventionを解析する前に、Reader PredictionとSelf-Reportが外部の情動刺激に対して出力レベルでどのように変化するかを特徴づける。
+Behavioral Stageの中心的なResearch Questionは、「制御された情動刺激の変化に対して、
+Reader PredictionとSelf-Reportは連動して変化するか」である。
+
+本Stageでは、単一の相関指標だけでReader--Self relationを判断せず，まずEmoBankを用いて、
+モデルが人間の情動評定に対応するvariationを捉えているかを確認する。次にAIPsy-Affectの統制されたstimulus manipulationを用いて、
+\begin{enumerate}
+    \item \textbf{Sensitivity}：
+    Clinical stimulusへの反応がmatched Neutralから
+    期待方向へ変化するか、
+
+    \item \textbf{Dose-response}：
+    NeutralからModerate、Clinicalへ
+    情動強度を増加させたときに段階的な変化が生じるか、
+
+    \item \textbf{Specificity}：
+    Clinical stimulusへの大きな変位が
+    非情動的だが複雑なComplex Neutralでも同程度に生じるか、
+
+    \item \textbf{Reader--Self Coupling}：
+    同一matched pairに対するReaderの変化量とSelfの変化量が
+    stimulus間で共変動するか
+\end{enumerate}
+を評価する。
+したがってBehavioral Stageは、
+\[
+\text{Human Correspondence}
+\rightarrow
+\text{Controlled Affective Reactivity}
+\rightarrow
+\text{Reader--Self Change Coupling}
+\]
+という構成である。
+ここで得られる結果はあくまでbehavioral levelのものであり、ReaderとSelfが同一のhidden representationやcausal pathwayを利用していることまでは意味しない。
+
+
+% ----------------------------------------------------------------
+\subsection{Behavioral Stageにおける解析対象}
+
+Behavioral Stageでは、前節で定義した729-state VAD Sequence-Likelihood Protocolから得られる
+\[
+E[V],
+\qquad
+E[A],
+\qquad
+E[D]
+\]
+を主要な連続出力として使用する。
+
+各stimulusについて、Writer、Reader、Selfを独立forward passとして測定し、
+\[
+W(x)
+=
+\left(
+W_V(x),W_A(x),W_D(x)
+\right),
+\]
+
+\[
+R(x)
+=
+\left(
+R_V(x),R_A(x),R_D(x)
+\right),
+\]
+
+\[
+S(x)
+=
+\left(
+S_V(x),S_A(x),S_D(x)
+\right)
+\]
+を得る。
+
+Behavioral Stage全体におけるPrimary tasksは、
+\[
+\text{Reader}
+\quad\text{and}\quad
+\text{Self}
+\]
+であり、Primary affective dimensionsは、
+
+\[
+\text{Valence}
+\quad\text{and}\quad
+\text{Arousal}
+\]
+である。
+Writerはhuman groundingの補助task、Dominanceは補助affective dimensionとして保持する。
+したがってWriterやDominanceの結果も計算・保存するが、AIPsy-AffectにおけるPrimary inferential familyには含めない。
+
+
+% ----------------------------------------------------------------
+\subsection{Behavioral Stageで用いるプロンプト}
+\label{app:behavioral-prompts}
+
+Behavioral StageにおけるWriter、Reader、Selfの各taskプロンプトおよびVAD JSON出力フォーマットは、前節\S\ref{app:prompts}で定義した共通形式に完全準拠する。
+すなわち、各taskに対応するinstruction（Writer-State Estimation、Reader-Response Prediction、Self-Report）と共通のVAD 1--9 response specificationを付与し、Instruct modelにはnative chat template、Base modelにはplain continuation formatを適用する。
+これにより、ReaderとSelfの比較がresponse schemaそのものの差異に交絡されることを防止し、同一の729-state VAD candidate空間における評価を一貫して行う。
+
+
+% ----------------------------------------------------------------
+\subsection{EmoBankによるHuman-Affect Correspondence}
+\label{app:behavioral-emobank}
+
+Behavioral Stageではまず、EmoBankの1,000 test stimuliを用いて、モデルの情動関連出力が
+human affective annotationのstimulus-wise variationをどの程度相関があるかを確認する。
+この解析の目的は、AIPsy-Affect上でReader--Self couplingを議論する前に、モデルがそもそも外部の情動変動に対応したsystematic responseを生成しているかを確認することである。
+
+
+\subsubsection{Writer correspondence}
+
+Writerについては、EmoBankのhuman Writer VADとモデルWriter outputを比較する。
+各dimension \(d\in\{V,A,D\}\) について、
+\[
+W_{d,\mathrm{model}}
+\leftrightarrow
+W_{d,\mathrm{human}}
+\]
+を評価する。WriterはBehavioral StageのPrimary Reader--Self comparisonには含まれないが、モデルが文章を書いた人物の情動状態をhuman annotationに対応する形で推定できるかを確認する補助的grounding taskとして使用する。
+
+
+\subsubsection{Reader correspondence}
+
+Readerについては、
+\[
+R_{d,\mathrm{model}}
+\leftrightarrow
+R_{d,\mathrm{human}}
+\]
+を直接比較する。
+これは、モデルが予測する平均的な人間Readerの情動反応と、EmoBankで実際に得られたhuman Reader VADのstimulus-wise relationを評価するものである。
+
+
+\subsubsection{Self--human Reader correspondence}
+
+Selfについては、モデルSelf-Reportに対応するhuman ground truthは存在しない。
+そのため、
+\[
+S_{d,\mathrm{model}}
+\leftrightarrow
+R_{d,\mathrm{human}}
+\]
+を\textbf{correspondence reference}として評価する。
+この比較は、モデル自身について生成されるaffective reportが、人間Readerに観測されるstimulus間の情動変動をどの程度追跡するかを測定する。
+
+したがって、このquantityをSelf-Reportの``accuracy''とは呼ばない。また、Selfとhuman Readerの値が一致することを主観的感情経験の証拠とも解釈しない。
+
+
+% ----------------------------------------------------------------
+\subsection{EmoBank correspondence metrics}
+
+各model、task、dimensionについて、729-candidate distributionから得られる連続期待値と
+human annotationの間で、
+\[
+r
+=
+\operatorname{PearsonCorr}
+(
+Y_{\mathrm{model}},
+Y_{\mathrm{human}}
+)
+\]
+
+および、
+\[
+\rho
+=
+\operatorname{SpearmanCorr}
+(
+Y_{\mathrm{model}},
+Y_{\mathrm{human}}
+)
+\]
+を計算する。
+
+連続expected VADをPrimary measurementとし、candidate distributionのargmaxから得られるgreedy VADとのcorrelationはSecondaryとする。
+
+
+
+\subsubsection{Reader--Self raw coupling on EmoBank}
+
+EmoBankについては、モデル内部のReaderとSelfのstimulus-wise relationもSecondaryとして測定する。
+各dimensionについて、
+\[
+\operatorname{Corr}
+(
+R_d(x),
+S_d(x)
+)
+\]
+を計算する。
+さらに、
+\[
+S_d(x)-R_d(x)
+\]
+の平均と標準偏差を記録する。
+
+ただしEmoBankにはClinical--Neutralのようなcontrolled manipulationが存在しない。
+したがってこのraw correlationには、stimulus identityに由来する共通変動も含まれ得る。
+
+この理由から、EmoBank上のraw Reader--Self correlationをBehavioral StageのPrimary coupling evidenceとはせず、AIPsy matched-pair change couplingをPrimaryとする。
+
+
+% ----------------------------------------------------------------
+\subsection{Neutral-response diagnostics}
+
+Sequence-Likelihood expectationとは別に、729 candidatesの中で最大確率を持つgreedy VAD tripletも記録する。
+とくにneutral candidate、
+\[
+(5,5,5)
+\]
+について、
+\[
+P(5,5,5)
+\]
+を各stimulusで保存し、さらにgreedy candidateが正確に
+\[
+(5,5,5)
+\]
+となったstimulusの割合を算出する。
+
+これらは、モデル出力がneutral responseへ集中しているかを把握するためのdiagnostic quantitiesであり、Primary behavioral endpointには使用しない。
+
+
+% ----------------------------------------------------------------
+\subsection{AIPsy-Affectを用いた統制されたBehavioral Evaluation}
+\label{app:behavioral-aipsy}
+
+EmoBankによるhuman correspondenceの確認後、AIPsy-Affect 4-Splitを用いて、
+制御されたstimulus manipulationに対するReaderおよびSelfの反応性を評価する。
+
+前節で示したように、AIPsy-Affectにはcontinuous human VAD annotationが存在しない。
+したがってAIPsyでは、
+\[
+\text{model prediction}
+\leftrightarrow
+\text{human continuous VAD}
+\]
+を評価するのではなく、
+\[
+\text{controlled stimulus manipulation}
+\rightarrow
+\text{model response change}
+\]
+を評価する。
+Behavioral StageではAIPsy-Affectを用いて4つのResearch Questionsを検証する。
+
+
+% ----------------------------------------------------------------
+\subsection{A priori affect-direction specification}
+\label{app:aipsy-direction}
+
+Clinical conditionには、positive-valence emotionとnegative-valence emotionが混在する。
+例えば、griefとecstasyを区別せず
+
+\[
+E[V]_{\mathrm{Clinical}}
+-
+E[V]_{\mathrm{Neutral}}
+\]
+を全stimuliで単純平均すると、negative directionとpositive directionが相殺され、情動刺激に対するsystematic responseが存在していても平均差が0に近づく可能性がある。
+
+同様に、emotion categoryによってArousalやDominanceの期待変化方向も異なり得る。
+
+そこで各emotion \(e\) とdimension \(d\) に対して、ClinicalがNeutralから変化すると期待される方向を、
+\[
+q_{e,d}
+\in
+\{-1,+1\}
+\]
+として事前固定する。
+\[
+q_{e,d}=+1
+\]
+はClinicalがNeutralより高い値へ変化すると期待することを、
+\[
+q_{e,d}=-1
+\]
+は低い値へ変化すると期待することを表す。
+使用するdirection specificationを表~\ref{tab:aipsy-direction}に示す。
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{AIPsy-AffectにおけるClinical--Neutral contrastの
+事前定義された期待方向。
+符号はClinicalがmatched Neutralに対して変化すると期待される方向を表す。}
+\label{tab:aipsy-direction}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Emotion} &
+\textbf{Valence} &
+\textbf{Arousal} &
+\textbf{Dominance} \\
+\midrule
+grief      & $-$ & $-$ & $-$ \\
+terror     & $-$ & $+$ & $-$ \\
+rage       & $-$ & $+$ & $+$ \\
+loathing   & $-$ & $+$ & $+$ \\
+ecstasy    & $+$ & $+$ & $+$ \\
+admiration & $+$ & $+$ & $+$ \\
+amazement  & $+$ & $+$ & $-$ \\
+vigilance  & $+$ & $+$ & $+$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+このdirection specificationは全modelで共通して使用し、得られたモデル出力を観察した後に変更しない。
+Primary inferential analysisではReader / SelfのValence / Arousalを使用するため、Dominanceのdirection specificationはSecondary analysisに用いられる。
+
+
+% ----------------------------------------------------------------
+\subsection{RQ1：Clinical--Neutral Sensitivity}
+\label{app:behavioral-rq1}
+
+RQ1では、「Clinical stimulusはmatched Neutralと比較して、期待される情動方向へmodel outputを変化させるか」を検証する。
+Clinical--Neutral matched pair \(i\) とdimension \(d\) について、raw paired differenceを、
+\[
+\Delta_{i,d}
+=
+E_d(x_i^{C})
+-
+E_d(x_i^{N})
+\]
+と定義する。
+ここで、
+\[
+x_i^{C}
+\]
+はClinical stimulus、
+\[
+x_i^{N}
+\]
+は同一\texttt{pair\_id}を持つmatched Neutral stimulusである。
+emotion-specific directionを用いて、
+\[
+\Delta_{i,d}^{*}
+=
+q_{e_i,d}
+\Delta_{i,d}
+\]
+をdirection-aligned differenceとする。
+この定義により、
+\[
+\Delta_{i,d}^{*}>0
+\]
+はemotion categoryによらず、Clinical stimulusへのresponseが、事前定義された期待情動方向へNeutralから変化したことを意味する。
+
+
+\subsubsection{Primary statistical test}
+
+Primary statistical unitは、
+\[
+N=192
+\]
+Clinical--Neutral matched pairsである。
+各model、task、dimensionについて、
+\[
+H_0:
+E[\Delta^{*}]=0
+\]
+に対する\textbf{two-sided one-sample \(t\)-test}を行う。
+
+Primary effect estimateは、
+\[
+\overline{\Delta^{*}}
+\]
+である。
+effect sizeとしてpaired standardized effect、
+\[
+d_z
+=
+\frac{
+\overline{\Delta^{*}}
+}{
+s_{\Delta^{*}}
+}
+\]
+を計算する。
+
+さらにmatched-pair effectsをreplacement付きでresampleするpercentile bootstrapを、
+\[
+B=1000,
+\qquad
+\text{seed}=42
+\]
+で実施し、
+\[
+\overline{\Delta^{*}}
+\]
+および \(d_z\) の95\% confidence intervalを求める。
+
+
+\subsubsection{Secondary raw paired effect}
+
+direction alignmentを行わない、
+\[
+\Delta_{i,d}
+=
+E_d(x_i^{C})
+-
+E_d(x_i^{N})
+\]
+もSecondaryとして保存する。
+
+raw differenceについては、ClinicalとNeutralのpaired valuesに対するtwo-sided paired \(t\)-testとbootstrap confidence intervalを計算する。
+ただしpositive / negative emotionの相殺を受けるため、Behavioral sensitivityに関するPrimary claimにはdirection-aligned quantityを使用する。
+
+
+% ----------------------------------------------------------------
+\subsection{RQ2：Dose-Response}
+\label{app:behavioral-rq2}
+
+RQ2では、「情動強度をNeutralからModerate、Clinicalへ増加させたとき、
+model responseは段階的に期待方向へ変化するか」を検証する。
+
+AIPsy-Affectの48 matched tripletsについて、
+\[
+x_i^{N}
+\rightarrow
+x_i^{M}
+\rightarrow
+x_i^{C}
+\]
+を使用する。
+dimension \(d\) について、NeutralからModerateへのstepを、
+\[
+\Delta_{1,i}
+=
+E_d(x_i^{M})
+-
+E_d(x_i^{N}),
+\]
+ModerateからClinicalへのstepを、
+\[
+\Delta_{2,i}
+=
+E_d(x_i^{C})
+-
+E_d(x_i^{M})
+\]
+と定義する。
+それぞれをa priori directionへalignし、
+\[
+\Delta_{1,i}^{*}
+=
+q_{e_i,d}\Delta_{1,i}
+\]
+および、
+\[
+\Delta_{2,i}^{*}
+=
+q_{e_i,d}\Delta_{2,i}
+\]
+をPrimary step effectsとする。
+
+
+\subsubsection{Intersection--Union Test}
+
+本研究では、NeutralからModerateまで変化しただけ、あるいはModerateからClinicalまで変化しただけではdose-response evidenceとはみなさない。
+dose-response成立には、
+\[
+E[\Delta_1^{*}]>0
+\]
+かつ、
+\[
+E[\Delta_2^{*}]>0
+\]
+の両方を必要とする。
+各stepについて、
+\[
+H_0:
+E[\Delta_j^{*}]\le0
+\]
+に対する\textbf{one-sided one-sample \(t\)-test}を行う。得られたp-valueを、
+\[
+p_1,
+\qquad
+p_2
+\]
+とすると、Intersection--Union TestのPrimary p-valueを、
+\[
+p_{\mathrm{IUT}}
+=
+\max(p_1,p_2)
+\]
+と定義する。
+したがって、二つのstepがともに十分なevidenceを持つ場合にのみdose-response criterionが満たされる。
+
+
+\subsubsection{Effect description}
+
+各stepのmean effect、
+\[
+\overline{\Delta_1^{*}},
+\qquad
+\overline{\Delta_2^{*}}
+\]
+について、48 tripletsを単位とした
+\[
+B=1000
+\]
+のpercentile bootstrap 95\% CIを算出する。また各tripletについて、
+\[
+\mathbb{I}
+[
+\Delta_{1,i}^{*}>0
+\land
+\Delta_{2,i}^{*}>0
+]
+\]
+を定義し、その平均、
+\[
+M_{\mathrm{mono}}
+=
+\frac{1}{N}
+\sum_i
+\mathbb{I}
+[
+\Delta_{1,i}^{*}>0
+\land
+\Delta_{2,i}^{*}>0
+]
+\]
+をmonotonicity rateとして報告する。
+
+
+\subsubsection{Secondary slope analysis}
+
+Secondary analysisとして、Neutral、Moderate、Clinicalを等間隔な強度水準
+\[
+0,1,2
+\]
+とみなしたときのendpoint slopeに対応する、
+\[
+b_i
+=
+\frac{
+E_d(x_i^{C})
+-
+E_d(x_i^{N})
+}{2}
+\]
+をtripletごとに計算する。
+このraw slopeについて、two-sided one-sample \(t\)-testおよびbootstrap 95\% CIを算出する。またModerate responseがNeutralとClinicalの中点からどの程度ずれるかを、
+\[
+E_d(x_i^{M})
+-
+\frac{
+E_d(x_i^{N})
++
+E_d(x_i^{C})
+}{2}
+\]
+として記録し、dose-response shapeの補助的descriptionとして使用する。
+これらはSecondaryであり、Primary inferential quantityは二段階のdirection-aligned IUTである。
+
+
+% ----------------------------------------------------------------
+\subsection{RQ3：Specificity}
+\label{app:behavioral-rq3}
+
+RQ3では、「Clinical stimulusによるoutput変位は、単なる複雑な文章への反応だけで説明できるか」を検証する。
+Clinicalにはpositive / negative emotionが混在するため、Valence等のraw meanだけをClinicalとComplex Neutralの間で比較すると、方向の異なる情動反応が相殺される可能性がある。
+
+そこでまず、各model、task、dimensionについて192 Neutral stimuli全体の平均を、
+\[
+\mu_N
+=
+\frac{1}{N_N}
+\sum_{x\in N}
+E_d(x)
+\]
+とする。
+これは各Clinicalに個別対応するmatched Neutral valueではなく、当該model / task / dimensionにおけるNeutral condition全体の平均である。
+各stimulus \(x\) のNeutral baselineからのabsolute displacementを、
+\[
+D(x)
+=
+|
+E_d(x)-\mu_N
+|
+\]
+と定義する。
+
+
+\subsubsection{Clinical versus Complex Neutral}
+
+Clinical stimuliについて、
+\[
+D_C
+=
+\{
+D(x):
+x\in\mathrm{Clinical}
+\},
+\]
+Complex Neutralについて、
+\[
+D_{CN}
+=
+\{
+D(x):
+x\in\mathrm{ComplexNeutral}
+\}
+\]
+を求める。
+
+sample sizesは、
+\[
+N_C=192,
+\qquad
+N_{CN}=48
+\]
+である。
+
+Complex NeutralはClinicalとmatched pairを構成しないため、paired testは使用しない。
+Primary testとして、
+\[
+\text{two-sided Welch independent-samples }t\text{-test}
+}
+\]
+を実施し、
+\[
+H_0:
+E[D_C]=E[D_{CN}]
+\]
+を検定する。
+Primary effect estimateは、
+\[
+\Delta D
+=
+E[D_C]-E[D_{CN}]
+\]
+である。
+\[
+\Delta D>0
+\]
+であれば、Clinical stimuliがComplex NeutralよりNeutral baselineから大きく離れたresponseを生じさせることを意味する。
+
+
+\subsubsection{Effect size}
+
+Specificityのeffect sizeとして、
+\[
+d_{\mathrm{spec}}
+=
+\frac{
+\overline{D_C}
+-
+\overline{D_{CN}}
+}{
+\sqrt{
+\left(
+s_C^2+s_{CN}^2
+\right)/2
+}
+}
+\]
+を計算する。
+
+またSecondary analysisとして、absolute displacementではなくClinicalとComplex Neutralのraw model outputを直接比較したtwo-sided Welch testも保存する。
+ただしClinical内のpositive / negative emotion cancellationを受けるため、Primary specificity conclusionにはabsolute displacement comparisonを用いる。
+
+
+% ----------------------------------------------------------------
+\subsection{RQ4：Reader--Self Change Coupling}
+\label{app:behavioral-rq4}
+
+Behavioral Stageの中心となるReader--Self analysisでは、ReaderとSelfの値そのものが相関するかではなく、同一刺激操作によってReaderとSelfがどの程度一緒に変化するかをPrimary questionとする。
+
+Clinical--Neutral matched pair \(i\) について、Reader changeを、
+\[
+\Delta R_{i,d}
+=
+R_d(x_i^{C})
+-
+R_d(x_i^{N})
+\]
+
+Self changeを、
+\[
+\Delta S_{i,d}
+=
+S_d(x_i^{C})
+-
+S_d(x_i^{N})
+\]
+と定義する。
+dimensionごとに、
+\[
+r_{\Delta,d}
+=
+\operatorname{PearsonCorr}
+(
+\Delta R_d,
+\Delta S_d
+)
+\]
+をPrimary Reader--Self coupling measureとする。
+ここではRQ1/RQ2とは異なり、\(\Delta R\)および\(\Delta S\)をemotion-specific directionへalignしない。
+これは、ReaderとSelfが同じmatched manipulationに対して同じ方向・大きさで変化するかというsample-wise correspondenceそのものを測定するためである。
+
+
+\subsubsection{Statistical inference}
+
+統計単位は192 matched pairsである。Pearson correlationについて、
+\[
+B=1000,
+\qquad
+\text{seed}=42
+\]
+のpair bootstrapを行う。
+
+bootstrapでは、各resampleで、
+\[
+(
+\Delta R_i,
+\Delta S_i
+)
+\]
+のpairをjointly resampleする。
+
+percentile distributionの2.5thおよび97.5th percentileから95\% confidence intervalを求める。
+さらにSecondary rank-based measureとして、
+\[
+\rho_{\Delta,d}
+=
+\operatorname{SpearmanCorr}
+(
+\Delta R_d,
+\Delta S_d
+)
+\]
+も計算する。
+
+
+\subsubsection{Raw coupling as a secondary measure}
+
+比較のため、Clinical、Neutral、Moderate、Complex Neutralを含むAIPsy-Affect全480 stimuliについて、
+\[
+\operatorname{Corr}
+(
+R_d(x),
+S_d(x)
+)
+\]
+というraw cross-stimulus correlationも算出する。
+ただしraw correlationは、stimulusそのものの内容やdifficulty等のshared variationを含み得る。したがって、Raw Reader--Self correlationはSecondaryとし、
+\[
+\operatorname{Corr}
+(
+\Delta R,
+\Delta S
+)
+\]
+をPrimary Behavioral coupling evidenceとする。
+
+
+% ----------------------------------------------------------------
+\subsection{Primary analysesとSecondary analysesの区別}
+\label{app:behavioral-primary-secondary}
+
+Behavioral Stageでは、Primary analysesを以下のように事前に限定する。(表~\ref{tab:behavioral-primary-secondary})
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Behavioral StageにおけるPrimaryおよび主要Secondary analyses。}
+\label{tab:behavioral-primary-secondary}
+\begin{tabularx}{\linewidth}{
+@{}
+>{\raggedright\arraybackslash}p{2.2cm}
+>{\raggedright\arraybackslash}p{3.3cm}
+>{\raggedright\arraybackslash}X
+@{}
+}
+\toprule
+\textbf{Analysis} &
+\textbf{Primary} &
+\textbf{Secondary / Diagnostic} \\
+\midrule
+EmoBank correspondence &
+Reader / Self $\times$ V/A,
+continuous expectation &
+Writer、Dominance、greedy VAD、
+neutral-collapse diagnostics \\
+
+AIPsy Sensitivity &
+Reader / Self $\times$ V/A,
+direction-aligned mean &
+Writer、Dominance、raw signed difference \\
+
+AIPsy Dose-response &
+Reader / Self $\times$ V/A,
+two-step IUT &
+Writer、Dominance、raw endpoint slope、
+midpoint deviation \\
+
+AIPsy Specificity &
+Reader / Self $\times$ V/A,
+absolute displacement &
+Writer、Dominance、raw signed mean comparison \\
+
+Reader--Self coupling &
+V/A delta coupling &
+Dominance delta coupling、
+raw 480-stimulus coupling \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+% ----------------------------------------------------------------
+\subsection{多重比較補正}
+\label{app:behavioral-fdr}
+
+AIPsy-AffectにおけるPrimary inferential testsには、Benjamini--Hochberg法によるFalse Discovery Rate（FDR）補正を適用する。補正はRQごとに独立したinferential familyとして行う。
+
+Primary familyは、
+\[
+8\text{ models}
+\times
+2\text{ tasks}
+\times
+2\text{ dimensions}
+=
+32
+\]
+testsからなる。
+
+Primary IUTについても、
+\[
+8
+\times
+2
+\times
+2
+=
+32
+\]
+testsを一つのfamilyとして補正する。
+
+Specificityについても、Reader / SelfのValence / Arousalに対する、
+\[
+8
+\times
+2
+\times
+2
+=
+32
+\]
+testsを一つのfamilyとして補正する。
+
+Primary delta couplingについてはtask軸が存在しないため、
+\[
+8\text{ models}
+\times
+2\text{ dimensions}
+=
+16
+\]
+testsを一つのfamilyとして補正する。
+
+WriterおよびDominance、raw coupling等のSecondary analysesはこれらPrimary FDR familiesには含めない。
+
+
+% ----------------------------------------------------------------
+\subsection{Bootstrapと欠損値の扱い}
+
+Behavioral Stageで使用するbootstrap confidence intervalは、
+\[
+B=1000,
+\qquad
+\text{seed}=42,
+\qquad
+95\%\text{ CI}
+\]
+とする。
+
+mean effectのbootstrapではsampleまたはmatched pairをreplacement付きでresampleする。
+Reader--Self correlationでは、対応する
+\[
+(x_i,y_i)
+\]
+のpairをjointly resampleする。
+
+bootstrap distributionの2.5thおよび97.5th percentilesをconfidence boundsとする。
+
+correlationを定義できるだけのsample variationが存在しない場合など、統計量が定義不能な条件については、値を0へ置換せずmissing valueとして保持する。
+
+
+% ================================================================
+% 5. Behavioral結果
+% ================================================================
+\section{Behavioral結果}
+\label{sec:behavioral-results}
+
+% ----------------------------------------------------------------
+% Behavioral Stageの客観的結果データ（EmoBank & AIPsy）
+% ----------------------------------------------------------------
+
+本節では、行動水準における情動反応性の測定結果を報告する。刺激セットの生態学的妥当性と実験的統制を明確に分離するため、コーパス由来の自然文刺激セットである EmoBank と、統制対照ペア刺激セットである AIPsy の結果を段階別に提示する。
+
+\subsection{EmoBank：人間アノテーションとの3者間（Writer--Reader--Self）VAD対応}
+EmoBank（$N=1000$）において、各モデルファミリー（Qwen 2.5 1.5B, Llama 3.2 1B, Gemma 3 1B, OLMo 2 1B）の事前学習（Base）および事後学習（Instruct）バリアントにおける、人間正解ラベル（Writer, Reader）およびモデル自己報告（Self）のピアソン相関係数を表\ref{tab:behavioral_emobank_3way_vad}に示す。
+
+\input{tables/behavioral_emobank_3way_vad.tex}
+
+表\ref{tab:behavioral_emobank_3way_vad}から明らかなように、BaseモデルではQwenおよびLlamaのみが弱い正の相関を示していたのに対し、事後学習（Instruct）を施すことで、全モデルファミリーにおいて人間評価（Writer / Reader）との相関および自己報告（Self）の整合性が有意に向上した。特にQwen 2.5 Instructでは、ValenceにおいてReader $r = 0.587$, Self $r = 0.537$、ArousalにおいてReader $r = 0.293$, Self $r = 0.251$（いずれも $p < 10^{-15}$）に達し、一貫したアライメントを示した。
+
+さらに、モデルが他者の感情を評価した変位（$\Delta\text{Reader}$）と、自身が情動状態として報告した変位（$\Delta\text{Self}$）の連動性を評価した内部認知結合度（Cognitive Coupling）の結果を表\ref{tab:behavioral_emobank_coupling}に示す。
+
+\input{tables/behavioral_emobank_coupling.tex}
+
+表\ref{tab:behavioral_emobank_coupling}に示す通り、全モデルファミリーおよびバリアントにおいて結合相関は $\Delta r > 0.55$（$p < 10^{-16}$）ときわめて高く、モデル内部で他者認識と自己報告が密接に連動して出力されていることが確認された。
+
+\subsection{AIPsy-Affect：実験統制ペアにおける多面的一貫性検証（RQ1--RQ4）}
+言語的属性が厳密に統制された対照文セットである AIPsy-Affect において、モデルの情動反応性を 4 つの中心的な Research Questions（RQ1--RQ4）に基づいて多面的に検証した結果を報告する。
+
+\subsubsection{RQ1：Clinical--Neutral Sensitivity（情動感度）}
+\textbf{【問い】} 臨床刺激（Clinical）は、言語統制中立刺激（Neutral）と比較して、期待される情動方向へのモデル出力変位を引き起こすか？
+
+統制対照文ペア（$N=192$）におけるモデル整列変位 $\Delta_{\text{aligned}}$、95\%信頼区間、効果量 Cohen's $d_z$、およびFDR補正後 $q$ 値を表\ref{tab:behavioral_aipsy_rq1_sensitivity}に示す。
+
+\input{tables/behavioral_aipsy_rq1_sensitivity.tex}
+
+表\ref{tab:behavioral_aipsy_rq1_sensitivity}に示す通り、事後学習（Instruct）により感情極性の弁別能力（特にArousal軸においてQwen $d_z = 0.73$--$0.95$、Llama $d_z = 0.42$--$0.97$）が系統的かつ有意（$q < 10^{-6}$）に獲得された。
+
+\subsubsection{RQ2：Dose-Response Monotonicity（用量反応性・単調性）}
+\textbf{【問い】} 刺激の情動強度（Neutral $\to$ Moderate $\to$ Clinical）を段階的に増加させたとき、モデルの出力変位は単調に増加するか？
+
+強度3段階トリプレット（$N=48$）における変位、Intersection-Union Test（IUT）$q$値、および単調性充足率を表\ref{tab:behavioral_aipsy_rq2_dose_response}に示す。
+
+\input{tables/behavioral_aipsy_rq2_dose_response.tex}
+
+表\ref{tab:behavioral_aipsy_rq2_dose_response}の通り、Llama 3.2 InstructのArousal Readerにおいて $q_{\text{IUT}} = 0.0048$、単調性充足率 $54.2\%$ と有意な用量反応性が確認され、刺激強度の増大に伴う連続的な情動増幅が立証された。
+
+\subsubsection{RQ3：Specificity to Affect vs Complexity（感情特異性 vs 構文複雑性）}
+\textbf{【問い】} 臨床刺激に対する変位は、単なる文章の構文的複雑さ（Complex Neutral）に対するアーティファクトではなく、感情内容に特異的か？
+
+臨床文変位 $\Delta_{\text{clin}}$ と複雑中立文変位 $\Delta_{\text{comp}}$ の差分、および特異性効果量 Cohen's $d$ を表\ref{tab:behavioral_aipsy_rq3_specificity}に示す。
+
+\input{tables/behavioral_aipsy_rq3_specificity.tex}
+
+表\ref{tab:behavioral_aipsy_rq3_specificity}に示す通り、Baseモデルでは複雑中立文に対する過剰反応（$d < 0$）が見られたが、InstructモデルではArousal軸において構文複雑さを上回る感情特異性（Llama Reader: $d = 0.41, q = 0.0151$）が確立された。
+
+\subsubsection{RQ4：Reader--Self Change Coupling（内部認知結合度）}
+\textbf{【問い】} 刺激提示に伴う他者認識の変位 $\Delta R$ と自己報告の変位 $\Delta S$ は、モデル内部で連動して結合（カップリング）しているか？
+
+感情対照ペア（$N=192$）における他者認識変位と自己報告変位の相関係数 $\Delta r$（95\%ブートストラップ信頼区間、FDR補正後 $q$ 値）を表\ref{tab:behavioral_aipsy_rq4_coupling}に示す。
+
+\input{tables/behavioral_aipsy_rq4_coupling.tex}
+
+表\ref{tab:behavioral_aipsy_rq4_coupling}に示す通り、全ファミリーおよびバリアントにおいて $q < 10^{-15}$ の強固な結合を示し、事後学習を経てもモデル内部における感情認識と自己報告の連動ダイナミクスが一貫して保たれていることが実証された。
+
+% ================================================================
+% 6. Behavioral考察
+% ================================================================
+\section{Behavioral考察}
+\label{sec:behavioral-discussion}
+
+Behavioral Stageの結果が提供する証拠は、出力レベルの共変動（Behavioral Covariation）に限定される。
+第一に、EmoBankを通じてモデルの出力が外部の人間アノテーション変動に追従するかを確認し、
+第二に、AIPsy-Affectの統制刺激操作に対してモデル出力が体系的に変化することを立証した。
+第三に、Clinical--Neutral操作に対するReaderとSelfの変化量カップリング $\operatorname{Corr}(\Delta R, \Delta S)$ の有意な正の相関が確認された。
+
+しかし、これらの出力レベルの連動から、
+\[
+R \rightarrow S
+\]
+という直接の因果フローや、ReaderとSelfが同一の内部情動表現を利用していることを導くことはできない。
+両タスクは同じ刺激特性に対して独立に計算を行っているだけであり、異なる内部メカニズムから表層上類似した出力を生じさせている可能性がある。
+
+
+% ================================================================
+% 7. BehavioralからV1への接続
+% ================================================================
+\section{BehavioralからV1への接続}
+\label{sec:behavioral-to-v1}
+
+行動評価において立証された出力レベルの共変動 $\operatorname{Corr}(\Delta R, \Delta S) > 0$ の背後には、実際に共有された内部表現や因果構造が存在するのか、あるいは独立した計算の偶発的な一致に過ぎないのか。
+この問いに答えるためには、表層出力の観察にとどまらず、モデル内部のTransformer hidden statesへと踏み込み、表現の幾何学的整列性と介入に対する因果的有効性を直接検証する必要がある。
+これが次節V1の動機である。
+
+
+% ================================================================
+% 8. V1概要
+% ================================================================
+\section{V1概要}
+\label{app:v1-methods}
+
+\subsection{目的と位置づけ}
+
+V1の中心的な問いは、「Behavioral Stageで観測されたReader--Self共変動の背後に、共有または整列可能な内部表現と、部分的に重複する因果構造が存在するか」である。
+ここでの比較軸は、同一モデル内におけるタスク間関係、
+\[
+\text{Reader} \leftrightarrow \text{Self} \quad \text{within the same model}
+\]
+である。Primary 4 model familiesのBaseおよびInstructの各モデルについて独立に評価を行い、Base--Instruct間の比較そのものは後続のV2で扱う。
+
+
+% ----------------------------------------------------------------
+\subsection{V1における証拠階層}
+
+V1では、以下の3 Phaseを順に組み合わせる。
+\[
+\text{Phase A: Representation}
+\rightarrow
+\text{Phase B: Validity Controls}
+\rightarrow
+\text{Phase C: Causal Intervention}
+\]
+より具体的には、
+\[
+\begin{aligned}
+&\text{Shared Decodability}\\
+&\quad\downarrow\\
+&\text{Shared / Alignable Geometry}\\
+&\quad\downarrow\\
+&\text{Semantic / Contextual Validity}\\
+&\quad\downarrow\\
+&\text{Shared Causal Map}\\
+&\quad\downarrow\\
+&\text{Causal Interchangeability}\\
+&\quad\downarrow\\
+&\text{Task-Specific Causal Specialization}
+\end{aligned}
+\]
+という構成である。
+
+表~\ref{tab:v1-evidence-hierarchy}に、各analysisの役割をまとめる。
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{V1における証拠階層。
+Decodability、representation geometry、semantic validity、
+causal overlap、cross-task transfer、task-specific specializationを
+段階的に評価する。}
+\label{tab:v1-evidence-hierarchy}
+\begin{tabularx}{\linewidth}{
+@{}
+>{\raggedright\arraybackslash}p{1.6cm}
+>{\raggedright\arraybackslash}p{3.0cm}
+>{\raggedright\arraybackslash}X
+@{}
+}
+\toprule
+\textbf{Phase} &
+\textbf{Analysis} &
+\textbf{Question} \\
+\midrule
+Phase A &
+E1 Shared Decodability &
+同じ外部情動情報をReaderとSelf双方のhidden stateから読み出せるか \\
+
+Phase A &
+E2 Shared Geometry &
+ReaderとSelfは同一または単純な線形変換で整列可能な表現幾何を持つか \\
+
+Phase B &
+Semantic / Contextual Controls &
+decodabilityは単純なsurface lexical cueだけで説明されないか \\
+
+Phase C &
+E3 Shared Causal Map &
+刺激関連hidden-state differenceへの介入がReaderとSelfで
+どのlayerから出力を変化させるか \\
+
+Phase C &
+E4 Causal Interchangeability &
+Readerで形成されたstimulus-related hidden-state differenceを
+Self computationで再利用できるか \\
+
+Phase C &
+E6 Task-Specific Causal Specialization &
+Reader優位siteとSelf優位siteにtask-dependentな
+intervention sensitivityが存在するか \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+この構成により、
+\[
+\text{Decodable}
+\neq
+\text{Geometrically shared}
+\neq
+\text{Causally influential}
+\]
+を実験的に区別する。
+
+
+% ----------------------------------------------------------------
+\subsection{V1における共通測定}
+\label{app:v1-common-measurements}
+
+V1では、\S\ref{app:general-methods}で定義したReader / Self taskの共通測定系（プロンプト形式、相対深度 $d_l = l/(L-1)$、729-state VAD candidate space）を引き継ぐ。
+ReaderとSelfは引き続き独立したforward passとして実行する。
+
+Phase AおよびPhase Bでは、出力確率ではなく、各Transformer block $l$ におけるprompt-end residual representation $h_{T,i,l} \in \mathbb{R}^D$ ($T \in \{R, S\}$) を主要解析対象とする。
+Phase Cでは、同一のhidden representationへ直接介入した後、729-state VAD Sequence-Likelihood Protocolにより出力変位（Primary: $E[V], E[A]$）を評価する。
+
+
+% ================================================================
+% Phase A
+% ================================================================
+
+\subsection{Phase A：内部表現の存在と形式}
+\label{app:v1-phase-a}
+
+Phase Aでは、
+\begin{enumerate}
+    \item \textbf{E1: Shared Decodability}
+    \item \textbf{E2: Shared Geometry}
+\end{enumerate}
+を評価する。
+
+Phase Aの目的は、ReaderとSelfのhidden stateに外部情動情報が存在するかだけでなく、その情報が両task間でどの程度共通の座標系を持つかをheld-out data上で調べることである。
+
+主要設定は、
+\[
+\text{5-fold cross-validation},
+\]
+
+\[
+\alpha_{\mathrm{Ridge}}=1,
+\]
+
+\[
+\text{seed}=42
+\]
+である。
+
+preprocessing、dimensionality reduction、probe fittingおよびalignment estimationは
+各cross-validation foldのtraining subsetだけから推定する。
+
+
+% ----------------------------------------------------------------
+\subsection{E1：Shared Decodability}
+\label{app:v1-e1}
+
+E1の問い：同じ外部情動情報をReaderとSelfのhidden stateから
+held-outで読み出すことができるか
+
+本研究では、モデル自身が生成したReader / Self outputをprobe targetとして循環的に利用するのではなく、可能な範囲で外部labelまたはstimulus manipulationから定義されたlabelを使用する。
+
+
+% ----------------------------------------------------------------
+\subsubsection{E1-A：EmoBank human-affect decodability}
+
+Primary E1 analysisでは、前節で定義したEmoBank test splitの1,000 stimuliを使用する。
+
+各stimulus \(i\) について、human Reader annotationの、
+\[
+Y_{V,i}
+=
+V_{\mathrm{human\ reader},i},
+\]
+
+\[
+Y_{A,i}
+=
+A_{\mathrm{human\ reader},i}
+\]
+をexternal continuous targetsとする。
+
+ReaderおよびSelfの各layer representationから、ValenceとArousalを別々に予測する。
+各training foldではまずhidden dimensionごとにstandardizationを行う。
+\[
+\widetilde{H}
+=
+\operatorname{Standardize}(H).
+\]
+その後、training sample数とhidden dimensionを考慮しながら、最大50 componentsのPrincipal Component Analysis（PCA）を適用する。
+\[
+k
+=
+\min
+(
+50,
+N_{\mathrm{train}},
+D
+).
+\]
+PCAが有効なdimension reductionとなる場合には、
+\[
+Z
+=
+\operatorname{PCA}_k(\widetilde H)
+\]
+をprobe inputとする。
+continuous targetのpredictionにはRidge regressionを使用する。
+\[
+\hat y
+=
+Zw+b,
+\]
+
+\[
+\min_{w,b}
+\sum_i
+(y_i-\hat y_i)^2
++
+\alpha\|w\|_2^2,
+\qquad
+\alpha=1.
+\]
+validation representationには、training foldでfitしたStandardScalerおよびPCAのみを適用する。同一textがtraining / validationの両方へ入ることを防ぐため、正規化したstimulus textをgroup identifierとする5-fold GroupKFoldを用いる。各layer、task、axisについて、held-out predictionsから主として、
+\[
+R^2
+\]
+およびPearson correlationを記録する。
+V1のPrimary decodability summaryでは、ReaderとSelfそれぞれについてlayer-wise \(R^2\) profileを構成し、
+\[
+l_R^{*}
+=
+\arg\max_l R_R^2(l),
+\]
+
+\[
+l_S^{*}
+=
+\arg\max_l R_S^2(l)
+\]
+をpeak layerとして記述する。
+family間比較では、
+\[
+d_R^{*}
+=
+\frac{l_R^{*}}{L-1},
+\qquad
+d_S^{*}
+=
+\frac{l_S^{*}}{L-1}
+\]
+を用いる。
+また、
+\[
+|d_R^{*}-d_S^{*}|
+\]
+を補助的なpeak-position differenceとして記録する。
+ただし、ReaderとSelfのpeakが近いことだけをもってshared mechanismとは判断しない。
+
+
+% ----------------------------------------------------------------
+\subsubsection{E1-B：AIPsy Clinical--Neutral decodability}
+
+EmoBankによるcontinuous human-affect decodingに加え、AIPsy-Affectを用いて
+stimulus manipulation自体がhidden representationからdecode可能かを調べる。
+Clinical 192 stimuliとそれぞれに対応するNeutral 192 stimuliについて、
+\[
+y_i
+=
+\begin{cases}
+1 & \text{Clinical},\\
+0 & \text{Neutral}
+\end{cases}
+\]
+というbinary targetを定義する。
+Clinicalとmatched Neutralが異なるfoldへ分離されないよう、\texttt{pair\_id}に相当するmatched-pair identityをgroupとして5-fold stratified group cross-validationを行う。
+
+各training foldではhidden representationをstandardizeし、Logistic Regressionを学習する。
+このbinary decodingについて、
+\[
+\text{ROC-AUC},
+\]
+
+\[
+\text{Balanced Accuracy},
+\]
+
+\[
+\text{Macro F1}
+\]
+を評価する。
+
+この解析は、Reader / Self representationからClinical--Neutral manipulationそのものをlinear classifierによって識別できるかを評価する。
+
+
+% ----------------------------------------------------------------
+\subsubsection{E1-C：AIPsy affect-intensity decodability}
+
+AIPsy-Affectの48 tripletsについて、
+\[
+\text{Neutral}
+\rightarrow
+\text{Moderate}
+\rightarrow
+\text{Clinical}
+\]
+を、
+\[
+y
+=
+\begin{cases}
+0 & \text{Neutral / None},\\
+1 & \text{Moderate},\\
+2 & \text{Clinical / Peak}
+\end{cases}
+\]
+というcontinuous ordinal targetとして符号化する。
+同一tripletがfoldをまたがないようtriplet identityをgroupとした5-fold GroupKFoldを使用する。EmoBank continuous probeと同様に、training fold内で、
+\[
+\text{StandardScaler}
+\rightarrow
+\text{PCA}_{\le50}
+\rightarrow
+\text{Ridge}(\alpha=1)
+\]
+をfitする。
+各layerについて、
+\[
+R^2,
+\qquad
+\operatorname{Pearson}\ r,
+\qquad
+\operatorname{Spearman}\ \rho
+\]
+を保存する。これはhidden stateがClinical / Neutralのbinary distinctionだけでなく、情動強度の段階的操作も保持しているかを評価する補助解析である。
+
+
+% ----------------------------------------------------------------
+\subsubsection{E1-D：Emotion-category decodability}
+
+Secondary analysisとして、Clinical 192 stimuliの8 target emotionsを用いて、
+\[
+y_i
+\in
+\{
+\text{rage},
+\text{grief},
+\text{terror},
+\text{loathing},
+\text{ecstasy},
+\text{admiration},
+\text{amazement},
+\text{vigilance}
+\}
+\]
+というmulti-class targetを定義する。
+各layerのReader / Self representationに対してstandardization後にmulti-class Logistic Regressionをfitし、
+\[
+\text{macro one-vs-rest ROC-AUC},
+\]
+
+\[
+\text{Balanced Accuracy},
+\]
+
+\[
+\text{Macro F1}
+\]
+を評価する。
+
+
+% ----------------------------------------------------------------
+\subsection{E1の解釈上の境界}
+
+E1でpositive held-out decodabilityが得られた場合、直接示されるのは、affect-relevant information is linearly readable from the representationということである。これは、そのlayerが当該情報を下流出力へ因果的に利用していることを意味しない。
+したがってV1では、
+\[
+\text{Linear Decodability}
+\neq
+\text{Local Causal Utilization}
+\]
+を原則とする。
+
+
+% ----------------------------------------------------------------
+\subsection{E2：Shared Geometry}
+\label{app:v1-e2}
+
+E1でReaderとSelfの双方から同じexternal targetがdecode可能であっても、両taskが同じlinear coordinate systemを使用しているとは限らない。例えば、ReaderとSelfで同じ情動情報を保持していても、
+\[
+H_S
+\approx
+H_RQ
+\]
+のように、単純なrotationを介してのみ対応する可能性がある。
+
+そこでE2では、EmoBank human Reader Valence / Arousalを共通external targetとして、ReaderとSelfのrepresentation geometryを以下の三つの方法で比較する。
+\begin{enumerate}
+    \item Direct Cross-Decoding
+    \item Representational Similarity Analysis
+    \item Orthogonal Procrustes Alignment
+\end{enumerate}
+E2は現行Primary designではEmoBankを対象として実施する。
+
+
+% ----------------------------------------------------------------
+\subsubsection{Direct Cross-Decoding}
+
+Reader representationから学習したprobeを、
+\[
+f_R
+\]
+Self representationから学習したprobeを、
+\[
+f_S
+\]
+とする。
+
+within-task predictionとして、
+\[
+R^2_{R\rightarrow R},
+\qquad
+R^2_{S\rightarrow S}
+\]
+を計算する。
+cross-task transferとして、
+\[
+R^2_{R\rightarrow S},
+\qquad
+R^2_{S\rightarrow R}
+\]
+を計算する。
+Primary Direct Cross-Decodingでは、source taskでfitしたscalerをtarget task representationにもそのまま適用する。例えばReader-to-Selfの場合には、Reader training foldで推定したstandardization parametersを用いてSelf held-out representationを変換し、Reader-trained Ridge probeへ入力する。これにより、task-specificな再標準化によってcross-task differenceを人工的に消去することを避ける。
+双方向cross-decodingの平均を、
+\[
+S_{\mathrm{direct}}(l)
+=
+\frac{
+R^2_{R\rightarrow S}(l)
++
+R^2_{S\rightarrow R}(l)
+}{2}
+\]
+として、direct linear sharingの補助的なsummaryとする。
+
+
+% ----------------------------------------------------------------
+\subsubsection{Representational Similarity Analysis}
+
+representation内のstimulus-to-stimulus relational geometryも比較する。
+held-out foldのReader representationについて、
+\[
+D_R(i,j)
+=
+1-
+\operatorname{Corr}
+(
+h_i^R,h_j^R
+)
+\]
+というcorrelation-distance RDMを構成する。
+Selfについても、
+\[
+D_S(i,j)
+=
+1-
+\operatorname{Corr}
+(
+h_i^S,h_j^S
+)
+\]
+を構成する。
+二つのRDMの上三角要素について、
+\[
+\rho_{\mathrm{RSA}}(l)
+=
+\operatorname{Spearman}
+(
+D_R,D_S
+)
+\]
+を計算する。
+
+各cross-validation foldのheld-out RSAを平均し、layer-wise RSA profileとする。高いRSAは、ReaderとSelfが完全に同じcoordinate axesを持たなくても、stimuli間のrelative geometryが類似していることと整合する。
+
+
+% ----------------------------------------------------------------
+\subsubsection{Orthogonal Procrustes Alignment}
+
+さらに、ReaderとSelfがrotationによって整列可能なrepresentationを持つ可能性を検証する。各training foldで、Reader / Self representationをそれぞれstandardizeする。
+\[
+\widetilde H_R,
+\qquad
+\widetilde H_S.
+\]
+training ReaderとSelfをstackしたrepresentationに対して共通PCAをfitする。dimensionは、
+\[
+k
+=
+\min
+(
+64,
+N_{\mathrm{train}}-1,
+D
+)
+\]
+とする。共通PCA空間で、
+\[
+Z_R,
+\qquad
+Z_S
+\]
+を得る。
+training foldから、
+\[
+M
+=
+Z_S^\top Z_R
+\]
+を計算し、
+\[
+M
+=
+U\Sigma V^\top
+\]
+とsingular value decompositionする。SelfからReaderへのorthogonal transformを、
+\[
+Q
+=
+UV^\top
+\]
+とする。Reader PCA representationで学習したRidge probeについて、rotationを行わないSelf representationに適用したscoreを、
+\[
+R^2_{\mathrm{PCA-direct}}
+\]
+とし、
+\[
+Z_SQ
+\]
+へ適用したscoreを、
+\[
+R^2_{\mathrm{aligned}}
+\]
+とする。
+alignment gainを、
+\[
+\Delta_{\mathrm{align}}
+=
+R^2_{\mathrm{aligned}}
+-
+R^2_{\mathrm{PCA-direct}}
+\]
+として定義する。PCAおよびProcrustes rotationはtraining foldだけから推定し、held-out foldへ適用する。したがってE2では、Direct transferだけでなく、relational similarityおよび、linear alignabilityを区別して評価する。
+
+
+% ================================================================
+% Phase B
+% ================================================================
+
+\subsection{Phase B：Semantic / Contextual Validity Controls}
+\label{app:v1-phase-b}
+
+Phase Aで高いdecodabilityが得られたとしても、classifierやregressorがstimulusの表層語彙だけを利用している可能性がある。そこでPhase Bでは、「Phase Aのdecodabilityが単純なsurface lexical shortcutだけで説明されるか」を、rule-based controlled perturbationによって検討する。ここではLLMによって自由生成されたparaphraseを使用せず、事前に固定したdeterministic transformationのみを用いる。これは、各modelに異なるcontrol stimulusを生成させることを避け、すべてのmodelを同じstimulus setで比較するためである。
+
+
+% ----------------------------------------------------------------
+\subsection{Phase Bのlayer選択}
+
+Phase Bのtarget layerをPhase Aの観測peakから選択すると、同じdataでsite selectionとvalidationを行うことになる。そのためPrimary Phase BではPhase Aのpeakを使用せず、全modelについてrelative depth、d=0.5を事前固定する。
+総block数を \(L\) とすると、
+\[
+l_{\mathrm{mid}}
+=
+\operatorname{round}
+\left[
+0.5(L-1)
+\right]
+\]
+をtarget layerとする。したがってPhase Bは、Phase A結果を見て都合のよいlayerを選択する解析ではなく、a priori mid-depth representationに対する独立したvalidity controlとして位置づける。
+
+% ----------------------------------------------------------------
+\subsection{Phase B control stimuli}
+
+Clinical--Neutralの192 matched pairsを基に、以下のstimulus conditionsを構成する。
+\begin{enumerate}
+    \item Original Minimal Pair
+    \item Paraphrase
+    \item Word Shuffle
+    \item Outcome Reversal
+\end{enumerate}
+
+
+% ----------------------------------------------------------------
+\subsubsection{Original Minimal Pair}
+
+まず、元のClinical stimulusとmatched Neutral stimulusを用いて、
+\[
+y
+=
+\begin{cases}
+1 & \text{Clinical / affective},\\
+0 & \text{Neutral}
+\end{cases}
+\]
+を分類する。同一pairのClinicalとNeutralがfoldをまたがないよう、pair identityをgroupとしたstratified group cross-validationを使用する。各foldのtraining subsetのみでhidden featuresをstandardizeし、Logistic Regressionを学習する。Primary metricは、Balanced Accuracyである。このconditionは、Phase Bの固定mid-depth layerにおいて元のminimal-pair distinctionがdecode可能であることをbaselineとして確認する。
+
+
+% ----------------------------------------------------------------
+\subsubsection{Paraphrase Invariance}
+
+Clinical stimulusに対して、事前固定されたsurface lexical substitution rulesを適用する。目的は、situationの大枠を維持しながら一部のsurface wordingを変更したときに、original Clinical--Neutral distinctionから学習したclassifierがparaphrased Clinicalを引き続きaffectiveとして分類できるかを調べることである。ruleが適用できない場合には、意味内容を大きく変更しない固定reporting clauseを付加するfallbackが存在する。しかしfallbackは、本来意図したlexical substitutionとは異なるため、Primary analysisから除外する。
+
+
+
+% ----------------------------------------------------------------
+\subsubsection{Outcome Reversal}
+
+Clinical stimulusに含まれる出来事の結果について、事前定義されたrule-based polarity reversalを適用する。例えば、死亡と生存、失敗と成功、拒否と承認、有罪と無罪など、特定のoutcome expressionが検出された場合に反対方向の表現へ置換する。Primary questionは、「original Clinical representationから学習したaffective classifierが、
+outcomeを反転したstimulusに対してaffective-class probabilityを低下させるか」である。
+固定reversal ruleが適用できない刺激にはresolution clauseを追加するfallbackが存在するが、
+語彙追加量が大きく、純粋なoutcome reversalと同一視できない。したがってfallback casesはPrimary analysisから除外する。
+
+
+% ----------------------------------------------------------------
+\subsubsection{Word Shuffle}
+
+Word Shuffleでは、ClinicalおよびNeutralそれぞれについて単語集合を維持したままword orderをrandomizeする。これにより、語彙identityを大きく維持したままcompositional orderとsyntaxを破壊する。shuffled Clinical / Neutral representationについてpair-aware cross-validationを行い、
+\[
+Acc_{\mathrm{shuffle}}
+\]
+を求める。
+Original Minimal Pairのaccuracyを、
+\[
+Acc_{\mathrm{original}}
+\]
+とすると、
+\[
+\Delta Acc_{\mathrm{shuffle}}
+=
+Acc_{\mathrm{shuffle}}
+-
+Acc_{\mathrm{original}}
+\]
+を補助的なcontrol quantityとする。ただしWord Shuffleは、semantic compositionだけでなくsyntaxや自然なsentence structureそのものも破壊する。したがってperformance低下が観測された場合も、その全量を「情動意味だけ」の効果とは解釈しない。
+
+
+% ----------------------------------------------------------------
+\subsection{Phase Bにおけるheld-out design}
+
+ParaphraseおよびOutcome Reversalについては、同じ192 matched pairsをseed 42でpair単位にshuffleし、
+\[
+70\%\text{ train}
++
+30\%\text{ test}
+\]
+へ分割する。
+
+training setではOriginal Clinical / Original Neutralだけを使用してclassifierを学習する。したがってparaphrased textやreversed textをtraining時に見せることはない。
+Paraphraseのheld-out evaluationでは、
+\[
+\{
+\text{Paraphrased Clinical},
+\text{Original Neutral}
+\}
+\]
+を分類する。
+
+Outcome Reversalでは、held-out Clinicalについて、
+\[
+P_{\mathrm{aff}}
+(
+x_{\mathrm{original}}
+)
+\]
+および、
+\[
+P_{\mathrm{aff}}
+(
+x_{\mathrm{reversed}}
+)
+\]
+を比較する。
+Primary reversal quantityは、
+\[
+\Delta P_{\mathrm{reversal}}
+=
+E[
+P_{\mathrm{aff}}
+(
+x_{\mathrm{original}}
+)
+]
+-
+E[
+P_{\mathrm{aff}}
+(
+x_{\mathrm{reversed}}
+)
+]
+\]
+である。
+\[
+\Delta P_{\mathrm{reversal}}>0
+\]
+は、outcome reversalによってaffective-class probabilityが低下したことを意味する。Primary held-out evaluationではnonfallback transformationsだけを使用する。fallbackを含む全test pairsに対する評価はSensitivity analysisとして分離する。
+
+
+
+% ----------------------------------------------------------------
+\subsection{Phase Bの証拠範囲}
+
+Phase Bは、representationが人間と同じ意味理解を行っていることを証明するものではない。また、deterministic rule-based controlsが可能な全lexical confoundを網羅するわけでもない。Phase Bが提供する証拠は、Phase Aのdecodabilityが，少なくとも一部のsurface-form perturbationやcontextual manipulationに対してsystematicに変化するかを評価するための
+representational-validity controlである。
+
+
+% ================================================================
+% Phase C
+% ================================================================
+
+\subsection{Phase C：因果介入}
+\label{app:v1-phase-c}
+
+Phase A/Bはhidden representationから情報が読み出せるかを評価するが、decodabilityだけでは、そのrepresentationが出力生成へcausal influenceを持つことは示せない。
+そこでPhase Cではhidden representationを直接操作し、「どのlayerへの介入がReader / Self outputを変化させるか」を検証する。
+Phase Cは、
+\begin{enumerate}
+    \item \textbf{E3: Shared Causal Map}
+    \item \textbf{E4: Causal Interchangeability}
+    \item \textbf{E6: Task-Specific Causal Specialization}
+\end{enumerate}
+から構成する。
+
+
+% ----------------------------------------------------------------
+\subsection{Discovery / Confirmation split}
+
+AIPsy-Affectの192 Clinical--Neutral matched pairsをseed 42でpair単位にrandom permutationし、
+\[
+96\text{ Discovery}
++
+96\text{ Confirmation}
+\]
+へ分割する。二つのsubsetはpair単位で完全にdisjointとする。Discovery subsetは、E4 candidate layerおよびE6 task-selective siteの選択に使用する。主要なcross-task transferおよびtask-specialization inferenceはConfirmation subsetで評価する。これにより、site selectionに使用した同一pairsをそのままconfirmatory evidenceへ再利用することを避ける。
+
+
+% ----------------------------------------------------------------
+\subsection{E3：Shared Causal Map}
+\label{app:v1-e3}
+
+E3の問いは、「ReaderとSelfでは、stimulus-related hidden-state differenceへの介入がどのlayerから出力を変化させるか」である。production analysisでは全Transformer blocksを対象とする。
+
+
+% ----------------------------------------------------------------
+\subsubsection{Stimulus-associated hidden-state difference}
+
+taskを、
+\[
+T\in\{R,S\}
+\]
+とする。
+
+Clinical--Neutral matched pair \(i\)、layer \(l\) について、
+\[
+\Delta h_{T,i,l}
+=
+h_{T,i,l}^{C}
+-
+h_{T,i,l}^{N}
+\]
+を計算する。ここで、
+\[
+h_{T,i,l}^{C}
+\]
+はClinical stimulusのprompt-end representation、
+\[
+h_{T,i,l}^{N}
+\]
+はmatched Neutral stimulusのprompt-end representationである。このvectorには、情動操作だけでなくpair-specificなcontextual differenceも含まれ得る。したがって本研究では、
+\[
+\Delta h_{T,i,l}
+\]
+を``pure emotion vector''とは呼ばず，affect-manipulation-associated hidden-state differenceと解釈する。
+
+
+% ----------------------------------------------------------------
+\subsubsection{Same-task intervention}
+
+ReaderについてはReader neutral representationへ、
+\[
+h_{R,i,l}^{N}
+\leftarrow
+h_{R,i,l}^{N}
++
+\Delta h_{R,i,l}
+\]
+を適用する。
+Selfについては、
+\[
+h_{S,i,l}^{N}
+\leftarrow
+h_{S,i,l}^{N}
++
+\Delta h_{S,i,l}
+\]
+を適用する。
+E3ではpatch weightを、
+\[
+\alpha=1
+\]
+とする。
+介入位置は各layerのprompt-end residual representationである。介入後、729-state VAD candidate distributionを再評価し、Neutral baselineからのexpected Valence / Arousal shiftを求める。Readerについて、
+\[
+\delta_{R,i,l}
+=
+\left(
+\delta^V_{R,i,l},
+\delta^A_{R,i,l}
+\right)
+\]
+Selfについて、
+\[
+\delta_{S,i,l}
+=
+\left(
+\delta^V_{S,i,l},
+\delta^A_{S,i,l}
+\right)
+\]
+とする。
+例えば、
+\[
+\delta^V_{S,i,l}
+=
+E[V]_{\mathrm{patched}}
+-
+E[V]_{\mathrm{neutral}}.
+\]
+
+
+% ----------------------------------------------------------------
+\subsubsection{Causal magnitude}
+pair \(i\) のjoint VA displacement magnitudeを、
+\[
+C_{T,i}(l)
+=
+\left\|
+\delta_{T,i,l}
+\right\|_2
+=
+\sqrt{
+(\delta^V_{T,i,l})^2
++
+(\delta^A_{T,i,l})^2
+}
+\]
+と定義する。Discovery subsetでsite selectionに使用するprofileは、
+\[
+C_T^{D}(l)
+=
+\frac{1}{N_D}
+\sum_{i\in D}
+C_{T,i}(l)
+\]
+である。Confirmation subsetについても、
+\[
+C_T^{C}(l)
+=
+\frac{1}{N_C}
+\sum_{i\in C}
+C_{T,i}(l)
+\]
+を独立に保持する。
+
+一方、全pairsのmean VA shift vectorを、
+\[
+\overline{\delta_T}(l)
+=
+\frac{1}{N}
+\sum_i
+\delta_{T,i,l}
+\]
+とすると、そのmagnitude、
+\[
+\left\|
+\overline{\delta_T}(l)
+\right\|_2
+\]
+もlayer-wise descriptive causal magnitudeとして記録する。したがって、pairwise magnitudeの平均とmean shift vectorのmagnitudeを混同しない。
+
+
+% ----------------------------------------------------------------
+\subsubsection{Causal direction similarity}
+ReaderとSelfのmean shift vectorsについて、
+\[
+\cos_l
+=
+\frac{
+\overline{\delta_R}(l)^\top
+\overline{\delta_S}(l)
+}{
+\|
+\overline{\delta_R}(l)
+\|_2
+\|
+\overline{\delta_S}(l)
+\|_2
+}
+\]
+を計算する。さらに各pairについて、
+\[
+\cos_{i,l}
+=
+\cos
+(
+\delta_{R,i,l},
+\delta_{S,i,l}
+)
+\]
+を求め、有効なpairsについて平均する。これにより、単にReaderとSelfのcausal magnitudeが
+同じlayerで大きいかだけでなく、その介入がVA outputを同じ方向へ動かすかも評価する。
+
+
+% ----------------------------------------------------------------
+\subsubsection{Reader--Self causal-profile comparison}
+
+E3から得られるReader / Self causal profileについて、各taskのpeak layerおよびrelative depthを記録する。さらにSecondary summaryとして、
+\[
+\rho_C
+=
+\operatorname{Spearman}
+(
+C_R(l),
+C_S(l)
+)
+\]
+を算出し、layer-wise causal magnitude profileのrank similarityを評価する。したがってE3が評価するのは、``同一回路''であることの証明ではなく、Reader--Self causal-site overlap and directional similarityである。
+
+
+% ----------------------------------------------------------------
+\subsection{E4：Causal Interchangeability}
+\label{app:v1-e4}
+
+E3でReaderとSelfに類似したcausal site profileが観測されたとしても、そのsiteで形成されるrepresentationが両task間で交換可能とは限らない。そこでE4では、「Readerで形成されたstimulus-associated hidden-state differenceをSelf computationへ直接移植できるか」を検証する。
+
+
+% ----------------------------------------------------------------
+\subsubsection{E4 candidate-layer selection}
+
+E4で評価するlayerはConfirmation dataを見て選択しない。E3 Discovery subsetのcausal magnitudeから、
+\[
+l_R^{*}
+=
+\arg\max_l C_R^{D}(l),
+\]
+
+\[
+l_S^{*}
+=
+\arg\max_l C_S^{D}(l)
+\]
+を求める。これに加えて、peak近傍およびlate-layer controlを含め、
+\[
+\mathcal{L}_{E4}
+=
+\{
+l_R^{*},
+l_S^{*},
+l_R^{*}-1,
+l_S^{*}+1,
+\lfloor0.85L\rfloor
+\}
+\]
+をlayer範囲内へclipし、重複を除去した集合をE4 candidate layersとする。したがってcandidate layersはDiscovery dataのみから決定される。Primary confirmatory layerは、
+\[
+l=l_R^{*}
+\]
+すなわちE3 Discovery Reader causal peakに固定する。
+
+
+% ----------------------------------------------------------------
+\subsubsection{Reader-to-Self matched transfer}
+
+Confirmation pair \(i\) について、Reader representationのClinical--Neutral differenceを、
+\[
+\Delta h_{R,i,l}
+=
+h_{R,i,l}^{C}
+-
+h_{R,i,l}^{N}
+\]
+とする。このvectorを、同じpair \(i\) のSelf Neutral representationへ、
+\[
+h_{S,i,l}^{N}
+\leftarrow
+h_{S,i,l}^{N}
++
+\alpha
+\Delta h_{R,i,l}
+\]
+として注入する。介入強度は、
+\[
+\alpha
+\in
+\{
+0,\,
+0.5,\,
+1.0,\,
+2.0
+\}
+\]
+である。
+\[
+\alpha=0
+\]
+はzero-intervention sanity condition、\(\alpha=1\)はClinical--Neutral hidden differenceをそのまま移植するreference doseである。
+
+
+% ----------------------------------------------------------------
+\subsection{E4 control conditions}
+
+Reader-to-Self transferが単に任意の大きなvectorを注入したことによるgeneric perturbationではないことを確認するため、以下を比較する。
+
+
+\subsubsection{Matched Reader \(\rightarrow\) Self}
+
+同じpair \(i\) から得た、
+\[
+\Delta h_{R,i,l}
+\]
+をSelf neutral representationへ注入する。これがPrimary cross-task transfer conditionである。
+
+
+\subsubsection{Random Reader \(\rightarrow\) Self}
+
+同一Confirmation subset内で、各recipient pair \(i\) に対して別のpairからReader differenceを割り当てる。random donor assignmentには、固定点を持たない完全derangementを使用する。
+\[
+\pi(i)\neq i
+\qquad
+\forall i.
+\]
+単一のrandom permutationへ依存しないよう、
+\[
+K=20
+\]
+の独立derangementsを作成する。各recipientについて20 random donor effectsを平均し、
+random-control responseとする。
+
+
+\subsubsection{Self \(\rightarrow\) Self}
+
+同じpairから得た、
+\[
+\Delta h_{S,i,l}
+\]
+をSelf Neutralへ注入する。これはcross-task transferと比較するためのsame-task referenceである。
+
+
+\subsubsection{Reader \(\rightarrow\) Reader}
+
+\[
+\Delta h_{R,i,l}
+\]
+をReader Neutralへ戻すsame-task Reader controlも評価する。
+
+
+\subsubsection{Self \(\rightarrow\) Reader}
+
+reverse cross-task conditionとして、
+\[
+\Delta h_{S,i,l}
+\]
+をReader Neutralへ注入する。この条件はcross-task transferの方向非対称性を記述するSecondary controlとして保持する。
+
+
+% ----------------------------------------------------------------
+\subsection{Emotion-direction alignment in E4}
+
+AIPsy-Affectにはpositive / negative emotionが混在するため、raw signed shiftsを単純平均するとValence等が相殺される可能性がある。そこでBehavioral Stageで事前固定したemotion-specific direction、
+\[
+q_{e,d}
+\in
+\{-1,+1\}
+\]
+をE4でも共通して使用する。例えばmatched Reader-to-Self shiftを、
+\[
+\delta^{\mathrm{matched}}_{i,d}
+\]
+とすると、
+\[
+\widetilde{\delta}^{\mathrm{matched}}_{i,d}
+=
+q_{e_i,d}
+\delta^{\mathrm{matched}}_{i,d}
+\]
+とする。random、Self-to-Self、Reader-to-Readerについても同じdirection alignmentを適用する。E4のPrimary effectは、このdirection-aligned quantityに基づく。
+
+
+% ----------------------------------------------------------------
+\subsection{E4 Primary specificity}
+
+Primary cross-task specificityを、
+\[
+\mathrm{Specificity}_d
+=
+E[
+\widetilde{\delta}^{\mathrm{matched}}_d
+]
+-
+E[
+\widetilde{\delta}^{\mathrm{random}}_d
+]
+\]
+と定義する。positive valueは、同一stimulus pairから形成されたReader differenceの方が、
+unmatched random donor differenceよりSelf outputを期待方向へ強く変化させることを意味する。
+
+
+% ----------------------------------------------------------------
+\subsection{E4 statistical inference}
+
+matched effectと20-derangement random meanをConfirmation pairごとに対応させ、
+\[
+\widetilde{\delta}^{\mathrm{matched}}_{i,d}
+-
+\widetilde{\delta}^{\mathrm{random}}_{i,d}
+\]
+をpair-level specificityとする。各layer、\(\alpha\)、axisについて、
+\begin{enumerate}
+    \item paired \(t\)-test,
+    \item paired Cohen's \(d_z\),
+    \item 1,000回pair bootstrapによる
+    mean specificityの95\% confidence interval,
+    \item 10,000回paired sign-flip permutation test
+\end{enumerate}
+を計算する。複数のlayer \(\times\alpha\) conditionsについて、Benjamini--Hochberg FDR correctionを適用する。Primary confirmatory conditionは、
+\[
+l=l_R^{*},
+\qquad
+\alpha=1
+\]
+である。candidate layersやその他の\(\alpha\)は、dose / site dependenceを記述するための
+Secondary analysesとして扱う。
+
+
+% ----------------------------------------------------------------
+\subsection{E4 transfer ratio}
+
+Reader-to-Self matched effectがSelf自身のsame-task causal effectに対してどの程度の大きさを持つかを補助的に示すため、
+\[
+TR_d
+=
+\frac{
+E[
+\widetilde{\delta}^{R\rightarrow S}_d
+]
+}{
+E[
+\widetilde{\delta}^{S\rightarrow S}_d
+]
+}
+\]
+を計算する。ただし分母が0に近い場合の不安定なratioを避けるため、
+\[
+\left|
+E[
+\widetilde{\delta}^{S\rightarrow S}_d
+]
+\right|
+<0.05
+\]
+の場合にはtransfer ratioを定義しない。
+
+
+% ----------------------------------------------------------------
+\subsection{E4の解釈上の境界}
+
+E4でmatched Reader-to-Self transferがrandom donor controlを上回ったとしても、
+\[
+\Delta h_R
+\]
+をcontext-independentな``pure affect code''とは解釈しない。\(\Delta h_R\)はあくまで
+Clinical--Neutral stimulus manipulationに関連したpair-specific hidden-state differenceである。逆にE4が成立しない場合も、ReaderとSelfは完全に独立した内部系であるとは結論しない。direct patchingがoff-manifold representationを生じさせる可能性や、非線形・分散的なmappingの可能性が残るため、適切な結論は、direct cross-task interchangeability was not establishedまでに限定する。
+
+
+% ----------------------------------------------------------------
+\subsection{E6：Task-Specific Causal Specialization}
+\label{app:v1-e6}
+
+E3およびE4はReaderとSelfの共有性を検証するanalysisである。しかし、両taskにshared causal structureが存在しても、その上にtask-selectiveなsite dependenceが存在する可能性がある。そこでE6では、「Reader-selective siteとSelf-selective siteへの介入効果はtaskによって異なるか」を検証する。
+
+
+% ----------------------------------------------------------------
+\subsection{E6 site selection}
+
+site selectionにはE3 Discovery subsetだけを使用する。各layerで、
+\[
+S_R(l)
+=
+C_R^{D}(l)
+-
+C_S^{D}(l)
+\]
+および、
+\[
+S_S(l)
+=
+C_S^{D}(l)
+-
+C_R^{D}(l)
+\]
+をtask-selectivity contrastとして定義する。Reader-selective siteを、
+\[
+l_R
+=
+\arg\max_l S_R(l),
+\]
+Self-selective siteを、
+\[
+l_S
+=
+\arg\max_l S_S(l)
+\]
+とする。ただし、以下のいずれかの場合にはdistinct task-selective sitesが同定されなかったと判定する。
+\[
+l_R=l_S,
+\]
+または、
+\[
+\max_l S_R(l)\le0,
+\]
+または、
+\[
+\max_l S_S(l)\le0.
+\]
+その場合には、第二ピークなど別のsiteへ後から置き換えず、No distinct task-selective sites identifiedというnegative resultとして記録し、targeted E6 ablationを実施しない。したがってE6は、必ずtask-selective siteを作る設計ではない。
+
+
+% ----------------------------------------------------------------
+\subsection{E6 targeted ablation}
+
+distinct sitesが得られた場合のみ、独立したConfirmation pairsを用いて2 \(\times\) 2 factorial interventionを行う。(表~\ref{tab:v1-e6-design})
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{E6の2 $\times$ 2 targeted-ablation design。}
+\label{tab:v1-e6-design}
+\begin{tabular}{lll}
+\toprule
+\textbf{Task} &
+\textbf{Ablated site} &
+\textbf{Site type} \\
+\midrule
+Reader & Reader-selective layer & ReaderSite \\
+Self   & Reader-selective layer & ReaderSite \\
+Reader & Self-selective layer   & SelfSite \\
+Self   & Self-selective layer   & SelfSite \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+介入はClinical stimulusのprompt-end residual representation全体を、
+\[
+h_{l,t_{\mathrm{end}}}
+\leftarrow
+\mathbf{0}
+\]
+とするwhole-residual zero ablationである。したがってこの介入は、emotion-specific directionだけを選択的に除去するものではない。E6で評価するのは、task-specific sensitivity to disrupting the entire residual state at a selected siteである。
+
+
+% ----------------------------------------------------------------
+\subsection{E6 outcome}
+
+各taskについて、ablation前のintact Clinical responseをbaselineとする。Valence shiftを、
+\[
+\Delta V
+=
+E[V]_{\mathrm{ablated}}
+-
+E[V]_{\mathrm{intact}},
+\]
+Arousal shiftを、
+\[
+\Delta A
+=
+E[A]_{\mathrm{ablated}}
+-
+E[A]_{\mathrm{intact}}
+\]
+とする。axis-specific impactsは、
+\[
+I_V
+=
+|\Delta V|,
+\]
+
+\[
+I_A
+=
+|\Delta A|
+\]
+とする。Primary joint outcomeは、
+\[
+I_{VA}
+=
+\sqrt{
+(\Delta V)^2
++
+(\Delta A)^2
+}
+\]
+である。これにより、ablationがaffective outputをどの方向へ動かしたかではなく、
+joint VA outputをどの程度変化させたかを測定する。
+
+% ----------------------------------------------------------------
+\subsection{E6 statistical model}
+
+Primary statistical modelは、
+\[
+I_{VA}
+\sim
+\mathrm{Task}
+\times
+\mathrm{SiteType}
++
+(1|\mathrm{pair})
+\]
+というLinear Mixed-Effects Modelである。Taskは、
+\[
+\{
+\text{Reader},
+\text{Self}
+\}
+\]
+SiteTypeは、
+\[
+\{
+\text{ReaderSite},
+\text{SelfSite}
+\}
+\]
+である。Primary inferential termは、
+\[
+\mathrm{Task}
+\times
+\mathrm{SiteType}
+\]
+interactionである。Valence-only impact \(I_V\) とArousal-only impact \(I_A\) についても同じmodelをSecondaryとして評価する。
+
+
+% ----------------------------------------------------------------
+\subsection{E6 fallback analysis}
+
+Mixed-effects modelがnumerically fitできない場合に備えて、事前定義fallbackとしてpair-level double differenceを使用する。pair \(i\) について、
+\[
+\Delta\Delta_i
+=
+\left[
+I_i(R,R_s)
+-
+I_i(S,R_s)
+\right]
+-
+\left[
+I_i(R,S_s)
+-
+I_i(S,S_s)
+\right]
+\]
+と定義する。ここで、
+\[
+R_s
+\]
+はReader-selective site、
+\[
+S_s
+\]
+はSelf-selective siteである。fallbackでは、
+\[
+H_0:
+E[\Delta\Delta]=0
+\]
+に対するone-sample \(t\)-testを行う。これは2 \(\times\) 2 interactionに対応するpair-level double-difference testである。
+
+
+% ----------------------------------------------------------------
+\subsection{E6の解釈上の境界}
+
+Task \(\times\) SiteType interactionが観測されたとしても、ReaderとSelfが完全に独立した二つのemotion circuitsを持つとは結論づけない。E6で用いるinterventionはwhole-residual zeroingであり、選択したsiteに含まれるemotion以外の情報も同時に破壊する。したがって適切な解釈は、task-specific causal-site sensitivityあるいは、partial causal specializationである。
+
+
+% ----------------------------------------------------------------
+\subsection{V1におけるPrimary / Secondary evidenceの整理}
+\label{app:v1-primary-secondary}
+
+V1では、多様なdescriptive quantityをすべて同じ証拠レベルとして扱わない。（表~\ref{tab:v1-primary-secondary}）
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{V1における主要なPrimary evidenceと補助解析。}
+\label{tab:v1-primary-secondary}
+\begin{tabularx}{\linewidth}{
+@{}
+>{\raggedright\arraybackslash}p{2.3cm}
+>{\raggedright\arraybackslash}p{3.8cm}
+>{\raggedright\arraybackslash}X
+@{}
+}
+\toprule
+\textbf{Analysis} &
+\textbf{Primary evidence} &
+\textbf{Secondary / control} \\
+\midrule
+E1 Decodability &
+EmoBank Reader/Self human-V/A held-out \(R^2\);
+AIPsy Clinical--Neutral probe &
+Intensity decoding;
+emotion-category decoding;
+peak-distance description \\
+
+E2 Geometry &
+Direct cross-decoding;
+RSA;
+Procrustes alignment gain &
+task-specific rescaling variants;
+layer-wise descriptive profiles \\
+
+Phase B &
+Original minimal-pair decoding;
+held-out nonfallback paraphrase;
+held-out nonfallback outcome reversal &
+Word Shuffle;
+fallback-inclusive sensitivity analyses \\
+
+E3 Causal Map &
+Reader / Self layer-wise VA causal magnitude &
+causal-profile rank correlation;
+directional cosine similarity \\
+
+E4 Interchangeability &
+Discovery Reader-peak layer,
+\(\alpha=1\),
+direction-aligned matched-minus-random specificity &
+other layers / doses;
+same-task controls;
+reverse Self-to-Reader;
+transfer ratio \\
+
+E6 Specialization &
+Task \(\times\) SiteType interaction on \(I_{VA}\) &
+axis-specific \(I_V\), \(I_A\);
+double-difference fallback \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+% ----------------------------------------------------------------
+
+
+
+% ================================================================
+% 9. V1結果
+% ================================================================
+\section{V1結果}
+\label{sec:v1-results}
+
+% ----------------------------------------------------------------
+% V1 Stageの客観的結果データ（E1--E6: Reader vs Self 回路共有度）
+% ----------------------------------------------------------------
+
+本節では、同一モデル内部において他者感情認識（Reader）と自己報告（Self）がどの程度同一の表現幾何および因果回路を共有しているかを検証した実験結果（E1--E6）を報告する。
+
+\subsection{E1：線形デコードピーク深度の局在（Shared Decodability Peak）}
+各モデルファミリーにおけるReaderおよびSelfの最高線形デコード性能（$R^2$、Pearson $r$）と、その最適相対深度 $d^*$ を表\ref{tab:v1_peak_decodability}に示す。
+
+\input{tables/v1_peak_decodability.tex}
+
+表\ref{tab:v1_peak_decodability}が示す通り、Valence軸におけるデコードピーク距離 $\Delta d^*$ は全4ファミリーで 0.00--0.08 の範囲に収まっており、ReaderとSelfの情動情報がトランスフォーマーの極めて同一または近傍の層に局在していることが確認された。特にQwen 2.5 BaseおよびOLMo 2 Baseでは、両タスクの最適デコード層が完全に一致（$\Delta d^* = 0.00$）している。
+
+\subsection{E3：因果的回路プロファイルの層状局在と共有度（Shared Causal Map）}
+残差ストリーム交換・摂動介入における因果効果ピーク深度 $d_{\text{causal}}^*$、および層別重要度の順位相関（Spearman $\rho_{\text{rank}}$）と介入方向類似度を表\ref{tab:v1_causal_profile}に示す。
+
+\input{tables/v1_causal_profile.tex}
+
+表\ref{tab:v1_causal_profile}に示す通り、因果ピーク深度は全モデルでReaderとSelfがきわめて一致しており、層別感度の順位相関は $\rho_{\text{rank}} = 0.58$--$0.88$ と一貫して高い。この結果は、認識と自己報告の連動が単なる相関的現象ではなく、モデル内部の同一の因果的残差回路に依存して成立していることを実証している。
+
+% ================================================================
+% 10. V1考察
+% ================================================================
+\section{V1考察}
+\label{sec:v1-discussion}
+
+V1の結果は、同一モデル内においてReaderとSelfが情動関連の内部表現幾何および因果経路を高度に共有している一方で、完全な同一性ではなくタスク固有の部分的特殊化（Task-Specific Specialization）が存在することを示す。
+デコードピーク深度の近接性（Shared Decodability）、Procrustes整列性（Shared Geometry）、および介入効果の順位相関（Shared Causal Map）は、両タスクが独立した別個の表現を利用しているのではなく、共通の内部基盤に依存していることを強く支持する。
+同時に、E6で確認された交互作用は、各タスクの文脈に応じた独自の表現調整が存在することを意味する。
+ただし、V1における比較はすべて同一モデル内部のタスク間関係（$\text{Reader} \leftrightarrow \text{Self}$ within the same model）に限定されており、BaseモデルとInstructモデルの差そのものを事後学習に伴う変化として分解するものではない。
+
+
+% ================================================================
+% 11. V1からV2への接続
+% ================================================================
+\section{V1からV2への接続}
+\label{sec:v1-to-v2}
+
+同一モデル内における内部表現と因果経路の部分的共有が明らかになったことで、次の重要な問いが生じる。
+すなわち、事前学習（Base）から強化学習等の事後学習（Instruct）への移行に伴い、この表現--報告関係はどのように再編されるのか。
+出力における自己報告の抑制や変化は、内部情動表現そのものの消去（Erasure）によるものなのか、あるいは幾何学的歪みや因果配置の深層への移行（Relocation）を伴う構造的再編なのか。
+この問いを検証するため、次節V2ではBase--Instructペアの体系的比較を行う。
+
+
+% ================================================================
+% 12. V2概要
+% ================================================================
+\section{V2概要}
+\label{app:v2-methods}
+
+\subsection{目的と位置づけ}
+
+V2の中心的なResearch Questionは、「BaseからInstructへの変化に伴って、情動関連情報のrepresentation geometry、Reader--Self sharing、causal leverageの層分布、およびoutputへのreadoutはどのように再編されるか」である。
+比較軸は、同一モデルファミリー内における事前学習モデルと事後学習モデルの対比、
+\[
+\text{Base} \leftrightarrow \text{Instruct} \quad \text{within the same model family}
+\]
+である。オープンウェイトモデルの観察的比較（Across-model observational comparison）と、固定モデル内部での因果介入（Within-model causal intervention）を厳密に区別して評価する。
+
+
+% ----------------------------------------------------------------
+\subsection{V2における証拠構成}
+
+V2は以下の4 RQから構成する。
+\[
+\begin{aligned}
+&\text{RQ1: Representation Geometry}\\
+&\quad\downarrow\\
+&\text{RQ2: Reader--Self Sharing}\\
+&\quad\downarrow\\
+&\text{RQ3: Decodability--Causal Relocation}\\
+&\quad\downarrow\\
+&\text{RQ4: Cross-model Distribution Recovery}
+\end{aligned}
+\]
+
+表~\ref{tab:v2-rq-overview}に各RQの役割をまとめる。
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{V2を構成する4つのResearch Questions。}
+\label{tab:v2-rq-overview}
+\begin{tabularx}{\linewidth}{
+@{}
+>{\raggedright\arraybackslash}p{1.3cm}
+>{\raggedright\arraybackslash}p{3.1cm}
+>{\raggedright\arraybackslash}X
+@{}
+}
+\toprule
+\textbf{RQ} &
+\textbf{Analysis} &
+\textbf{Question} \\
+\midrule
+RQ1 &
+Representation Geometry &
+affect-relevant informationのdecodabilityと
+Base--Instruct representation geometryはどのように異なるか \\
+
+RQ2 &
+Reader--Self Sharing &
+ReaderからSelfおよびSelfからReaderへの
+cross-decoding可能性はBase--Instruct間でどのように変化するか \\
+
+RQ3 &
+Decodability--Causal Relocation &
+情報がdecode可能なlayerと、
+介入によってoutputを変化させるlayerは一致するか。
+その関係はBase--Instruct間でどう変化するか \\
+
+RQ4 &
+Distribution Recovery &
+Base hidden stateをInstructへ移植することで、
+InstructのVA output distributionをBase distributionへ
+どの程度戻せるか \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+V2では、
+単純な「情報が残った／消えた」という二値的説明ではなく、
+
+\[
+\boxed{
+\text{Representation}
++
+\text{Geometry}
++
+\text{Sharing}
++
+\text{Causal Localization}
++
+\text{Recoverability}
+}
+\]
+
+へ分解してpost-training-associated changeを評価する。
+
+
+% ----------------------------------------------------------------
+\subsection{データ、外部ラベル、および分割}
+
+V2では、前節で定義したEmoBank official test splitに基づく1,000 stimuliを使用する。V2におけるexternal affective targetsは、EmoBankのhuman Reader annotationである。
+\[
+Y_V
+=
+V_{\mathrm{human\ reader}}
+\]
+
+\[
+Y_A
+=
+A_{\mathrm{human\ reader}}
+\]
+とする。Reader representationだけでなくSelf representationをprobeする場合にも、同じhuman Reader V/Aをexternal targetとして使用する。したがってV2で測定するdecodabilityは、
+ReaderまたはSelfのhidden stateに、同じ外部human-affect variableがどの程度linearに表現されているかを意味する。Self-Reportそのものをprobe labelとして用いるわけではない。
+
+
+\subsubsection{RQ1/RQ2のtrain--test split}
+
+RQ1およびRQ2では、1,000 stimuliをseed 42でrandom permutationし、
+\[
+70\%\text{ training}
++
+30\%\text{ held-out test}
+\]
+へ分割する。現行EmoBank evaluation setにはmatched-pair identifierが存在しないため、
+本設定ではstimulus row単位のseeded splitとなる。したがって、
+\[
+N_{\mathrm{train}}=700,
+\qquad
+N_{\mathrm{test}}=300
+\]
+である。同一splitをすべてのmodel families、Base / Instruct conditions、Reader / Self tasksに共通して使用する。これにより、modelやprompt conditionごとに異なるstimulus subsetを評価することを避ける。
+
+
+% ----------------------------------------------------------------
+\subsection{Prompt-format controlと内部表現測定}
+\label{app:v2-prompt-control}
+
+前節\S\ref{app:prompt-formats}で定義したPrompt-format control（Base Plain、Instruct Matched-Plain、Instruct Native-Chat）に基づき、V2のPrimary comparisonは、プロンプト形式の差異を排除した
+\[
+\text{Base Plain} \quad\text{vs.}\quad \text{Instruct Matched-Plain}
+\]
+（Matched-Plain contrast）とする。
+Instruct Nativeとの比較はSecondary comparisonとし、両者の差（$\text{Instruct Native} - \text{Instruct Matched-Plain}$）をprompt-format effectとして分離評価する。
+
+内部表現の測定は、\S\ref{app:general-methods}の共通規約に従い、各Transformer block $l$ におけるprompt-end residual representation $h_{M,T,i,l}$ ($T \in \{R, S\}$, $M \in \{\text{Base}, \text{Instruct}\}$) を抽出し、相対深度 $d_l = l/(L-1)$ を一貫して用いてReaderおよびSelfの双方で実行する。
+
+
+% ================================================================
+% RQ1
+% ================================================================
+
+\subsection{RQ1：Representation Geometry}
+\label{app:v2-rq1}
+
+RQ1では、「BaseからInstructへの変化に伴い、affect-relevant representationのlocationとgeometryはどう変化するか」を検証する。ここでは、layer-wise affect decodability、Representational Similarity Analysis（RSA）、およびheld-out Orthogonal Procrustes disparityを用いる。
+
+
+% ----------------------------------------------------------------
+\subsection{RQ1-A：Layer-wise affect decodability}
+
+ReaderおよびSelfの各layer representationから、human Reader Valence / Arousalを予測する。V1 Phase Aでは、
+\[
+\text{StandardScaler}
+\rightarrow
+\text{PCA}
+\rightarrow
+\text{Ridge}
+\]
+を使用した。これに対しV2 RQ1/RQ2では、post-trainingに伴うraw representationの変化を前処理によって除去しないため、
+\[
+\text{raw hidden state}
+\rightarrow
+\text{Ridge}
+\]
+を使用する。StandardScalerまたはPCAをPrimary Ridge probeの前処理として使用しない。各layerについて、
+\[
+\hat y
+=
+H_lw+b
+\]
+を、
+\[
+\text{Ridge}(\alpha=1)
+\]
+でtraining 700 stimuliにfitし、held-out 300 stimuli上で、
+\[
+R^2(l)
+\]
+を評価する。これにより、Base Reader、Base Self、Instruct Native Reader / Self、Instruct Matched-Plain Reader / Selfについて、Valence / Arousalそれぞれのlayer-wise decodability profileを得る。
+
+
+% ----------------------------------------------------------------
+\subsection{Decodability peak}
+
+task \(T\) のBase profileについて、
+\[
+d_{D,B,T}^{*}
+\]
+をdecodability peakのrelative depthとする。Matched-Plain Instructについて、
+\[
+d_{D,I,T}^{*}
+\]
+を求め、
+\[
+\Delta d_{D,T}^{*}
+=
+d_{D,I,T}^{*}
+-
+d_{D,B,T}^{*}
+\]
+をpost-training-associated peak shiftとして記述する。positive valueは、Instruct側のdecodability maximumがBaseより後段に位置することを表す。negative valueは前段へのshiftを表す。Native-chat conditionについても同様のpeak shiftをSecondaryとして算出する。
+
+
+% ----------------------------------------------------------------
+\subsection{RQ1-B：Representational Similarity Analysis}
+
+decodability profileだけでは、BaseとInstructで同じstimuliがhidden space内にどのようなrelative geometryを形成するかは分からない。そこでtaskごとに、held-out test representationsからpairwise cosine distanceを計算する。Baseについて、
+\[
+D_B(i,j)
+=
+1-
+\operatorname{CosSim}
+(
+h_{B,i},
+h_{B,j}
+)
+\]
+とし、Instructについて、
+\[
+D_I(i,j)
+=
+1-
+\operatorname{CosSim}
+(
+h_{I,i},
+h_{I,j}
+)
+\]
+とする。二つのRepresentational Dissimilarity Matrixの上三角要素について、
+\[
+\rho_{\mathrm{RSA}}
+=
+\operatorname{Spearman}
+(
+D_B,
+D_I
+)
+\]を計算する。Primary comparisonでは、
+\[
+\text{Base Plain}
+\leftrightarrow
+\text{Instruct Matched-Plain}
+\]
+のRSAを用いる。Secondaryとして、
+\[
+\text{Base Plain}
+\leftrightarrow
+\text{Instruct Native}
+\]
+および、
+\[
+\text{Instruct Matched-Plain}
+\leftrightarrow
+\text{Instruct Native}
+\]
+も計算する。高いRSAは、BaseとInstructでstimulus間のrelative geometryが類似していることを表す。ただしRSAはcoordinate-wise identityを要求しない。
+
+
+% ----------------------------------------------------------------
+\subsection{RQ1-C：Held-out Orthogonal Procrustes disparity}
+
+BaseとInstructが同じ情報を保持していても、post-trainingに伴いrepresentation coordinate systemが回転・変形している可能性がある。そこでtraining splitだけからBase--Instruct間のorthogonal alignmentを推定し、held-out test splitでalignment後のrepresentation mismatchを評価する。
+
+
+\subsubsection{Centering}
+
+同一task、layerについて、training Base / Instruct representationsの平均を、
+\[
+\mu_B,
+\qquad
+\mu_I
+\]
+とする。
+\[
+X_B
+=
+H_B-\mu_B,
+\]
+
+\[
+X_I
+=
+H_I-\mu_I
+\]
+として別々にcenterする。
+
+
+\subsubsection{Common PCA}
+
+hidden dimensionが64を超える場合、training BaseとInstructのcentered representationsを結合し、
+\[
+X_{\mathrm{joint}}
+=
+\begin{bmatrix}
+X_B\\
+X_I
+\end{bmatrix}
+\]
+に対してcommon PCAをfitする。dimensionは、
+\[
+k
+=
+\min
+(
+64,
+N_{\mathrm{train}}-1,
+D
+)
+\]
+とする。得られた共通basisを \(V_k\) とし、
+\[
+Z_B
+=
+X_BV_k,
+\]
+
+\[
+Z_I
+=
+X_IV_k
+\]
+へ射影する。
+
+
+\subsubsection{Orthogonal alignment}
+
+training representationsについて、
+\[
+M
+=
+Z_B^\top Z_I
+\]
+を計算し、
+\[
+M
+=
+U\Sigma V^\top
+\]
+とすると、BaseをInstructへalignするorthogonal transformを、
+\[
+Q
+=
+UV^\top
+\]
+とする。training splitで推定したcenter、PCA basis、orthogonal transformだけをheld-out testへ適用する。
+
+
+\subsubsection{Held-out disparity}
+
+held-out test representationについて、
+\[
+Z_{B,\mathrm{test}}Q
+\]
+と、
+\[
+Z_{I,\mathrm{test}}
+\]
+のnormalized Frobenius discrepancyを、
+\[
+\mathcal{D}_{\mathrm{Proc}}
+=
+\frac{
+\|
+Z_{B,\mathrm{test}}Q
+-
+Z_{I,\mathrm{test}}
+\|_F
+}{
+\|
+Z_{I,\mathrm{test}}
+\|_F+\epsilon
+}
+\]
+として評価する。したがって、
+\[
+\mathcal{D}_{\mathrm{Proc}}
+\]
+は小さいほど、単純なorthogonal alignment後にBaseとInstructのrepresentation geometryがよく一致することを意味する。Primary comparisonはMatched-Plainであり、NativeおよびInstruct format effectはSecondaryとする。
+
+
+% ----------------------------------------------------------------
+\subsection{RQ1の解釈範囲}
+
+RQ1では、Decodabilityと、Representation Geometryを分けて測定する。例えばInstructで同等のdecodabilityが維持されていても、RSAが低下したりProcrustes disparityが増加する場合には、
+情報の存在自体よりもrepresentation geometryのreorganizationと整合する。逆にgeometryが類似していても、そのrepresentationが最終outputへ同じ形で利用されるとは限らない。
+
+
+% ================================================================
+% RQ2
+% ================================================================
+
+\subsection{RQ2：Reader--Self Representation Sharing}
+\label{app:v2-rq2}
+
+RQ2では、V1で検証したReader--Self relationがBaseからInstructへの変化に伴ってどのように変わるかを調べる。中心的な問いは、「ReaderとSelfで共有されるaffect-relevant linear geometryは、Base--Instruct間でどのように変化するか」である。
+
+
+% ----------------------------------------------------------------
+\subsection{Bidirectional cross-decoding}
+
+各layer、axisについて、Reader representationからhuman Reader affect targetを予測するRidge probeを学習する。Reader-trained probeをheld-out Self representationへ直接適用し、
+\[
+R^2_{R\rightarrow S}(l)
+\]
+を得る。同様に、Self representationで学習したprobeをheld-out Reader representationへ適用し、
+\[
+R^2_{S\rightarrow R}(l)
+\]
+を得る。cross-decoding時にもsource / target representationをtaskごとに再標準化しない。
+したがってcross-decoding performanceは、ReaderとSelfのhidden-space coordinate systemがそのままどの程度互換であるかを反映する。
+
+
+% ----------------------------------------------------------------
+\subsection{Reader--Self sharing score}
+
+双方向cross-decodingの平均を、
+\[
+S(l)
+=
+\frac{
+R^2_{R\rightarrow S}(l)
++
+R^2_{S\rightarrow R}(l)
+}{2}
+\]
+と定義する。Baseについて、
+\[
+S_B(l)
+\]
+を求め、Matched-Plain Instructについて、
+\[
+S_{I,\mathrm{MP}}(l)
+\]
+を求める。Primary post-training-associated sharing changeは、
+\[
+\Delta S_{\mathrm{MP}}(l)
+=
+S_{I,\mathrm{MP}}(l)
+-
+S_B(l)
+\]
+である。layer全体のsummaryとして、
+\[
+\overline{\Delta S}_{\mathrm{MP}}
+=
+\frac{1}{L}
+\sum_l
+\Delta S_{\mathrm{MP}}(l)
+\]
+を用いる。
+
+
+% ----------------------------------------------------------------
+\subsection{Native and format controls}
+
+Native Instructについても、
+\[
+S_{I,\mathrm{Native}}(l)
+\]
+を計算し、
+\[
+\Delta S_{\mathrm{Native}}(l)
+=
+S_{I,\mathrm{Native}}(l)
+-
+S_B(l)
+\]
+をSecondary comparisonとする。さらにprompt-format effectとして、
+\[
+\Delta S_{\mathrm{format}}(l)
+=
+S_{I,\mathrm{Native}}(l)
+-
+S_{I,\mathrm{MP}}(l)
+\]
+を求める。これにより、Base--Instruct changeと、plain--chat format changeを分離する。
+
+
+% ----------------------------------------------------------------
+\subsection{Directional asymmetry}
+
+Secondary measureとして、Reader-to-SelfとSelf-to-Readerの変化が非対称であるかを記述する。
+\[
+\Delta\Delta_{\mathrm{cross}}
+=
+[
+R^2_{R\rightarrow S,I}
+-
+R^2_{R\rightarrow S,B}
+]
+-
+[
+R^2_{S\rightarrow R,I}
+-
+R^2_{S\rightarrow R,B}
+]
+\]
+を算出する。これはPrimary sharing scoreではなく、cross-task transferのdirectional asymmetryを補助的に記述するために使用する。
+
+
+% ----------------------------------------------------------------
+\subsection{RQ2の解釈範囲}
+
+\[
+\Delta S_{\mathrm{MP}}>0
+\]
+であれば、Matched-Plain条件においてReader--Self間のlinear transferabilityがInstruct側で大きいことを意味する。一方、
+\[
+\Delta S_{\mathrm{MP}}<0
+\]
+であれば、同じexternal affect informationは保持されていても、Reader--Self間のlinear coordinate sharingが低下している可能性と整合する。ただしcross-decodingは依然として
+observational representational measureである。したがって、
+\[
+\text{Cross-decoding}
+\neq
+\text{Causal Utilization}
+\]
+であり、実際にどのlayerがoutputを動かすかはRQ3で検証する。
+
+
+% ================================================================
+% RQ3
+% ================================================================
+
+\subsection{RQ3：Decodability--Causal Relocation}
+\label{app:v2-rq3}
+
+RQ3では、「情動情報が最もdecode可能なlayerと、その情報への介入が最も強くoutputを変えるlayerは一致するか」を検証する。さらに、decodabilityとcausal leverageの関係がBase--Instruct間でどのように変化するかを評価する。RQ3では、Base Plain、Instruct Matched-Plain、Instruct Nativeの各条件について、Reader / Selfの双方を解析する。
+
+
+% ----------------------------------------------------------------
+\subsection{Cross-fitted affect directions}
+
+RQ3では固定の70/30 splitではなく、全stimuliを5-fold cross-fittingで使用する。各foldでtraining stimuliだけを用いて、layer \(l\) のhidden stateからhuman Reader Valence / Arousalを予測するRidge regressionを学習する。Valenceを、
+\[
+Y_V
+=
+H_lw_V+b_V+\epsilon
+\]
+Arousalを、
+\[
+Y_A
+=
+H_lw_A+b_A+\epsilon
+\]
+とする。RQ3でのRidge regularizationは、
+\[
+\alpha_{\mathrm{Ridge}}=10
+\]
+である。係数vectorをunit normへ正規化し、
+\[
+d_V
+=
+\frac{w_V}{\|w_V\|_2}
+\]
+
+\[
+d_A
+=
+\frac{w_A}{\|w_A\|_2}
+\]
+をaffect-related intervention directionsとする。directionはtraining foldだけから推定し、同じfoldのheld-out stimuliに対してのみ介入評価を行う。したがって各stimulusに適用されるdirectionは、そのstimulus自身のlabelを用いてfitされたものではない。
+
+
+% ----------------------------------------------------------------
+\subsection{Intervention dose normalization}
+
+training hidden statesのtarget directionへのprojectionを、
+\[
+z_{V}
+=
+H_{\mathrm{train}}d_V
+\]
+とする。その標準偏差を、
+\[
+\sigma_V
+=
+\operatorname{SD}(z_V)
+\]
+とする。Arousalについても、
+\[
+\sigma_A
+=
+\operatorname{SD}
+(
+H_{\mathrm{train}}d_A
+)
+\]
+を求める。介入は、
+\[
+h'
+=
+h+\alpha\sigma_d d
+\]
+として行う。Primary doseは、
+\[
+\alpha=1
+\]
+である。したがって介入量は、raw hidden-coordinate scaleではなく、当該training representationにおけるdirectional activationの約1 standard deviationを基準とする。
+
+
+% ----------------------------------------------------------------
+\subsection{Random and orthogonal controls}
+
+任意のhidden-state perturbationが深いlayerほど大きなoutput changeを起こす可能性を統制するため、affect directionに加えて、
+\begin{enumerate}
+    \item random direction
+    \item affect directionに直交するdirection
+\end{enumerate}
+を生成する。control directionsはtarget directionと同じEuclidean normを持つように正規化する。Valence interventionでは、affect \(d_V\)、random \(d_{V,\mathrm{rand}}\)、orthogonal \(d_{V,\perp}\) に対して同じ \(\sigma_V\) と \(\alpha=1\) を使用する。Arousalについても同様である。したがってcontrolとの差は、単なるperturbation magnitudeの違いでは説明されにくい設計となる。
+
+
+% ----------------------------------------------------------------
+\subsection{Axis-specific raw causal displacement}
+
+Valence directionを介入した後のexpected Valenceを、
+\[
+E[V]_{\mathrm{affect}}
+\]
+clean baselineを、
+\[
+E[V]_{\mathrm{clean}}
+\]
+とする。raw Valence causal displacementを、
+\[
+C_{V,\mathrm{raw}}
+=
+\left|
+E[V]_{\mathrm{affect}}
+-
+E[V]_{\mathrm{clean}}
+\right|
+\]
+とする。randomおよびorthogonal controlsについて、
+\[
+C_{V,\mathrm{rand}},
+\qquad
+C_{V,\perp}
+\]
+を同様に定義する。Arousalについても、
+\[
+C_{A,\mathrm{raw}}
+=
+\left|
+E[A]_{\mathrm{affect}}
+-
+E[A]_{\mathrm{clean}}
+\right|
+\]
+を用いる。したがってraw causal displacement自体はnon-negativeなabsolute effectである。
+
+
+% ----------------------------------------------------------------
+\subsection{Net causal effect}
+
+RQ3のPrimary causal metricは、raw affect-direction effectそのものではなく，random perturbationによるgeneric sensitivityを差し引いた、
+\[
+C_{V,\mathrm{net,rand}}
+=
+C_{V,\mathrm{raw}}
+-
+C_{V,\mathrm{rand}}
+\]
+
+\[
+C_{A,\mathrm{net,rand}}
+=
+C_{A,\mathrm{raw}}
+-
+C_{A,\mathrm{rand}}
+\]
+をPrimaryとする。また，orthogonal controlを用いた、
+\[
+C_{V,\mathrm{net,\perp}}
+=
+C_{V,\mathrm{raw}}
+-
+C_{V,\perp}
+\]
+
+\[
+C_{A,\mathrm{net,\perp}}
+=
+C_{A,\mathrm{raw}}
+-
+C_{A,\perp}
+\]
+をSecondary robustness measureとする。prompt-end residual全体を0へ置換する
+zero-ablation effectも非特異的なSecondary controlとして記録する。
+\[
+C_{\mathrm{net,rand}}
+\]
+はsigned quantityであり、負値を取り得る。負値は、affect directionへの介入効果が同doseのrandom perturbationを下回ったことを意味する。statistical analysisでは、このsigned net effectを0へclipせずそのまま保持する。
+
+
+% ----------------------------------------------------------------
+\subsection{Layer-wise causal profile}
+
+各stimulusはcross-fittingによって一度だけheld-out intervention evaluationを受ける。各layerについてsample-level net causal effectを平均し、
+\[
+C_{V,\mathrm{net}}(l)
+\]
+および、
+\[
+C_{A,\mathrm{net}}(l)
+\]
+というlayer profileを得る。Primary profileには、
+\[
+C_{\mathrm{net,rand}}
+\]
+を使用する。
+
+
+% ----------------------------------------------------------------
+\subsection{Decodability--causal dissociation}
+
+同じcondition、task、axisについて、RQ1/RQ2から得られたheld-out decodability profileを、
+\[
+D(l)
+=
+R^2(l)
+\]
+とする。RQ3から得られたPrimary net causal profileを、
+\[
+C(l)
+=
+C_{\mathrm{net,rand}}(l)
+\]
+とする。
+
+
+\subsubsection{Positive decodability peak}
+
+decodabilityについて、
+\[
+\max_lD(l)\le0
+\]
+の場合には、
+\[
+d_D^{*}
+=
+\mathrm{NaN}
+\]
+とする。すなわち、全layerでheld-out \(R^2\le0\) である場合に、「最も悪くないlayer」をdecodability peakとして選択しない。
+
+
+\subsubsection{Positive causal peak}
+
+同様に、
+\[
+\max_l C(l)\le0
+\]
+の場合には、
+\[
+d_C^{*}
+=
+\mathrm{NaN}
+\]
+とする。これは、どのlayerでもaffect-specific perturbationがrandom controlを上回らなかった場合に、causal peakが存在したかのように記述しないためである。
+
+
+\subsubsection{Peak dissociation}
+
+両peakが定義可能な場合にのみ、
+\[
+\Delta d^{*}
+=
+d_C^{*}
+-
+d_D^{*}
+\]
+を定義する。positive valueは、
+\[
+d_C^{*}>d_D^{*}
+\]
+すなわち、最大causal leverageが最大decodabilityより後段に位置することを表す。
+
+
+% ----------------------------------------------------------------
+\subsection{Center-of-mass dissociation}
+
+単一のargmaxだけではlayer profile全体の移動を捉えにくいため、positive profile massを用いたcenter of massも計算する。decodabilityについて、
+\[
+\bar d_D
+=
+\frac{
+\sum_l
+d_l
+\max(D(l),0)
+}{
+\sum_l
+\max(D(l),0)
+}
+\]
+とする。positive decodability massが存在しない場合には\(\bar d_D=\mathrm{NaN}\) とする。causal profileについて、
+\[
+\bar d_C
+=
+\frac{
+\sum_l
+d_l
+\max(C(l),0)
+}{
+\sum_l
+\max(C(l),0)
+}
+\]
+とする。positive net causal massが存在しない場合には\(\bar d_C=\mathrm{NaN}\) とする。
+両者が定義可能な場合、
+\[
+\Delta\bar d
+=
+\bar d_C-\bar d_D
+\]
+をprofile-level dissociation measureとする。
+
+
+% ----------------------------------------------------------------
+\subsection{Post-training-associated change in dissociation}
+
+Base task \(T\) について、
+\[
+\Delta d_{B,T}^{*}
+=
+d_{C,B,T}^{*}
+-
+d_{D,B,T}^{*}
+\]
+を求める。Matched-Plain Instructについて、
+\[
+\Delta d_{I,T}^{*}
+=
+d_{C,I,T}^{*}
+-
+d_{D,I,T}^{*}
+\]
+とする。その差、
+\[
+\Gamma_T^{\mathrm{peak}}
+=
+\Delta d_{I,T}^{*}
+-
+\Delta d_{B,T}^{*}
+\]
+を、post-training-associated change in decodability--causal peak dissociationとして記述する。center of massについても、
+\[
+\Gamma_T^{\mathrm{CoM}}
+=
+\Delta\bar d_{I,T}
+-
+\Delta\bar d_{B,T}
+\]
+を求める。Primary comparisonはMatched-Plain、Native-chatはSecondaryである。
+
+
+% ----------------------------------------------------------------
+\subsection{Sample-level mixed-effects analysis}
+
+peak / center-of-mass summaryに加えて、layer profile全体を使用したsample-level analysisを行う。Primary outcomeは、
+\[
+C_{\mathrm{net,rand}}
+\]
+である。ValenceとArousalを別々に解析し、
+\[
+C_{\mathrm{net,rand}}
+\sim
+C(\mathrm{family})
++
+C(\mathrm{alignment})
+\times
+C(\mathrm{task})
+\times
+\mathrm{relative\ depth}
++
+(1|\mathrm{stimulus})
+\]
+というLinear Mixed-Effects Modelを使用する。ここで、
+\[
+\mathrm{alignment}
+\in
+\{
+\text{Base},
+\text{Instruct}
+\},
+\]
+
+\[
+\mathrm{task}
+\in
+\{
+\text{Reader},
+\text{Self}
+\}
+\]
+である。EmoBankにはmatched pair structureがないため、random interceptのgroupは各stimulus identityに対応する。Primary LMMには、Base Plainと、Instruct Matched-Plainだけを含める。Native chatを使用した同一formulaのanalysisはSecondaryとする。
+
+
+% ----------------------------------------------------------------
+\subsection{Prespecified RQ3 interaction terms}
+
+Primary confirmatory termsは、
+\[
+\mathrm{Alignment}
+\times
+\mathrm{RelativeDepth}
+\]
+\[
+\mathrm{Alignment}
+\times
+\mathrm{Task}
+\]
+\[
+\mathrm{Alignment}
+\times
+\mathrm{Task}
+\times
+\mathrm{RelativeDepth}
+\]
+である。Valence / Arousalについて得られるこれらprespecified interaction termsのp-valuesに対して、Benjamini--Hochberg FDR correctionを行う。これにより、単一peakだけでなく、Base--Instruct間でcausal leverage profileの形状が変化するかをsample-levelで評価する。
+
+
+% ----------------------------------------------------------------
+\subsection{RQ3の解釈上の境界}
+
+RQ3はhidden-state interventionを行うため、各固定model内部ではcausal evidenceを提供する。ただし、
+\[
+\Gamma_T^{\mathrm{peak}}
+\]
+やLMMのalignment interactionは、BaseとInstructという別model artifactsの比較である。したがって、post-training caused the causal peak to moveとは記述せず、the causal profile differs between Base and Instruct in a manner associated with post-trainingと解釈する。
+
+
+% ================================================================
+% RQ4
+% ================================================================
+
+\subsection{RQ4：Cross-model Distribution Recovery}
+\label{app:v2-rq4}
+
+RQ1--RQ3では、BaseとInstructのrepresentation geometry、sharing、causal localizationを比較する。しかし、これらの違いだけでは、「Baseに存在するrepresentationを
+Instruct computationへ直接戻したときに、Base型のoutput distributionを回復できるか」は分からない。そこでRQ4では、"Can Base hidden representations recover a Base-like
+VA output distribution when inserted into the Instruct model?"を検証する。これは同一stimulusについて、Baseで自然に形成されたhidden representationを同一familyのInstruct modelへ移植するcross-model activation replacementである。
+
+
+% ----------------------------------------------------------------
+\subsection{RQ4のtrain--evaluation split}
+
+1,000 EmoBank stimuliをseed 42で、
+\[
+70\%\text{ train}
++
+30\%\text{ independent evaluation}
+\]
+へ分割する。現行dataにはpair structureがないため、
+\[
+N_{\mathrm{train}}=700,
+\qquad
+N_{\mathrm{eval}}=300
+\]
+のstimulus-level permutation splitとなる。このsplitは同一family内でReaderとSelfに共通して使用する。train subsetはProcrustes alignmentの推定だけに使用し、recovery evaluationは独立した300 stimuli上で行う。
+
+
+% ----------------------------------------------------------------
+\subsection{Target and clean distributions}
+
+stimulus \(i\)、task \(T\) について、Base Plain modelの81-state VA distributionを、
+\[
+P_{B,i}^{T}
+\]
+とし、recoveryのtarget distributionとする。Instruct clean distributionはconditionによって異なる。Native conditionでは、
+\[
+P_{I,\mathrm{Native},i}^{T}
+\]
+Matched-Plain conditionでは、
+\[
+P_{I,\mathrm{MP},i}^{T}
+\]
+である。したがってPrimary matched-plain recoveryは、
+\[
+P_{I,\mathrm{MP}}
+\rightarrow
+P_B
+\]
+の距離がBase activation patchingによってどの程度縮小するかを測定する。
+
+
+% ----------------------------------------------------------------
+\subsection{Joint VA Earth Mover's Distance}
+
+distribution間のPrimary distanceには、81-state VA joint distribution上のEarth Mover's Distanceを使用する。各candidate stateを、
+\[
+c=(v,a),
+\qquad
+v,a\in\{1,\ldots,9\}
+\]
+とし、state間ground costを、
+\[
+g(c,c')
+=
+\sqrt{
+(v-v')^2
++
+(a-a')^2
+}
+\]
+とする。二つのjoint distributions、
+\[
+P,
+\qquad
+Q
+\]
+間で、このground costを用いたoptimal transport costを、
+\[
+EMD_{VA}(P,Q)
+\]
+とする。この2D joint EMDをPrimary distribution distanceとする。Valence marginalの1D Wasserstein distance、Arousal marginalの1D Wasserstein distance、
+およびJensen--Shannon divergenceもSecondary distribution diagnosticsとして保持する。
+ただしRQ4のRecoveryにはjoint \(EMD_{VA}\)を使用する。
+
+
+% ----------------------------------------------------------------
+\subsection{Condition A：Direct Native patching}
+
+各evaluation stimulusについて、Base Plain modelのlayer \(l\) のprompt-end post-MLP residual stateを、
+\[
+h_{B,i,l}
+\]
+とする。これを変更せず、Instruct Native modelの同じlayer / semantic positionへ直接置換する。
+\[
+h_{I,i,l}^{\mathrm{Native}}
+\leftarrow
+h_{B,i,l}
+\]
+とする。この条件は、raw cross-model direct interchangeabilityを評価する。ただしBaseとInstructでrepresentation coordinate systemが変化している場合には、Base activationがInstruct representation manifold上で不自然な位置に置かれる可能性がある。そのためDirect NativeはSecondary conditionとする。
+
+
+% ----------------------------------------------------------------
+\subsection{Primary condition：Matched-Plain direct patching}
+
+prompt-format differenceを除外したPrimary conditionでは、Instructにもplain promptを使用する。Base Plainのactivationを、
+\[
+h_{B,i,l}
+\]
+Instruct Matched-Plainの同じlayerへ、
+\[
+h_{I,i,l}^{\mathrm{MP}}
+\leftarrow
+h_{B,i,l}
+\]
+として直接置換する。この条件では、Base / Instructの双方が同一のplain prompt formatを使用するため、Matched-Plain direct recoveryをRQ4のPrimary conditionとする。
+
+
+% ----------------------------------------------------------------
+\subsection{Mechanistic control：Procrustes-aligned patching}
+
+direct patchingが失敗した場合、Base representationに情報が存在しないとは限らない。BaseとInstructでcoordinate systemがpost-trainingに伴って変化していれば、raw Base activationはInstruct側でoff-manifoldになる可能性がある。そこでNative conditionについて、train splitからBase representationをInstruct representationへalignするlinear transformationを学習する。
+
+
+\subsubsection{Train-only centering and common PCA}
+
+layer \(l\) のtraining Base / Instruct Native activationsを、
+\[
+H_B,
+\qquad
+H_I
+\]
+とする。それぞれのmeanを、
+\[
+\mu_B,
+\qquad
+\mu_I
+\]
+としてcenterする。
+\[
+X_B
+=
+H_B-\mu_B,
+\]
+
+\[
+X_I
+=
+H_I-\mu_I.
+\]
+結合training matrix、
+\[
+X_{\mathrm{joint}}
+=
+\begin{bmatrix}
+X_B\\
+X_I
+\end{bmatrix}
+\]
+からcommon PCA basis \(V_k\) を求める。dimensionは、
+\[
+k
+=
+\min
+(
+64,
+N_{\mathrm{train}}-1,
+D
+)
+\]
+である。
+
+
+\subsubsection{Base-to-Instruct orthogonal mapping}
+
+PCA subspace内で、
+\[
+Z_B
+=
+X_BV_k,
+\]
+
+\[
+Z_I
+=
+X_IV_k
+\]
+とする。training samplesから、
+\[
+M
+=
+Z_B^\top Z_I
+\]
+を計算し、SVDによってorthogonal transform \(Q\) を得る。evaluation Base activation \(h_B\) について、
+\[
+x
+=
+h_B-\mu_B
+\]
+をPCA subspace成分、
+\[
+x_{\mathrm{sub}}
+=
+(xV_k)V_k^\top
+\]
+と、その直交補空間成分、
+\[
+x_{\mathrm{res}}
+=
+x-x_{\mathrm{sub}}
+\]
+へ分解する。PCA subspace成分だけをProcrustes rotationし、
+\[
+z_{\mathrm{aligned}}
+=
+(xV_k)Q
+\]
+として、
+\[
+h_{B\rightarrow I}^{\mathrm{aligned}}
+=
+z_{\mathrm{aligned}}V_k^\top
++
+x_{\mathrm{res}}
++
+\mu_I
+\]
+を構成する。すなわち、common low-rank subspaceではBaseをInstruct座標系へrotateし、
+PCA subspace外のresidual componentは保持する。このaligned representationを
+Instruct Native promptへpatchする。この条件はPrimaryではなく、coordinate-remapping mechanistic controlとして扱う。
+
+
+% ----------------------------------------------------------------
+\subsection{Recovery ratio}
+
+stimulus \(i\)、layer \(l\) について、clean Instruct distributionとBase target distributionの距離を、
+\[
+D_{\mathrm{clean},i}
+=
+EMD_{VA}
+(
+P_{I,i},
+P_{B,i}
+)
+\]
+とする。Base activationをpatchした後のdistributionを、
+\[
+P_{\mathrm{patch},i,l}
+\]
+とし、
+\[
+D_{\mathrm{patch},i,l}
+=
+EMD_{VA}
+(
+P_{\mathrm{patch},i,l},
+P_{B,i}
+)
+\]
+とする。Recovery ratioを、
+\[
+Recovery_{i,l}
+=
+\frac{
+D_{\mathrm{clean},i}
+-
+D_{\mathrm{patch},i,l}
+}{
+D_{\mathrm{clean},i}
++
+10^{-12}
+}
+\]
+と定義する。この定義では、
+\[
+Recovery>0
+\]
+は、patchingによってInstruct distributionがBase targetに近づいたことを意味する。
+\[
+Recovery=0
+\]
+は距離が改善しない場合、
+\[
+Recovery<0
+\]
+はpatchingによってBase targetからさらに離れた場合を意味する。完全にtargetへ一致した場合には、
+\[
+Recovery=1
+\]
+となる。
+
+
+% ----------------------------------------------------------------
+\subsection{Layer-wise recovery profile}
+
+各layerについてevaluation stimuliのRecoveryを平均し、
+\[
+\overline{Recovery}(l)
+=
+\frac{1}{N_{\mathrm{eval}}}
+\sum_i
+Recovery_{i,l}
+\]
+を求める。各layerについてsample bootstrap、
+\[
+B=1000
+\]
+による95\% confidence intervalを計算する。
+
+
+% ----------------------------------------------------------------
+\subsection{Primary depth-integrated recovery}
+
+単一のbest layerだけをPrimary outcomeとすると、偶然のlayer-specific fluctuationや
+post hoc peak selectionの影響を受けやすい。そこでRQ4のPrimary matched-plain metricは、relative depthに沿ったrecovery profile全体のArea Under the Curve（AUC）とする。
+\[
+AUC_{\mathrm{Recovery}}^{\mathrm{MP}}
+=
+\int_0^1
+\overline{Recovery}_{\mathrm{MP}}(d)\,dd
+\]
+実際にはmodel layerのrelative-depth grid上でtrapezoidal integrationを行う。各evaluation stimulusについても個別のlayer-wise recovery profileからsample-level AUCを計算する。したがって、Matched-Plain AUC RecoveryをV2 RQ4のPrimary distributional recovery quantityとする。
+
+
+% ----------------------------------------------------------------
+\subsection{Absolute EMD improvement}
+
+normalized Recoveryに加えて、absolute distance improvementを、
+\[
+\Delta EMD_{i,l}^{\mathrm{MP}}
+=
+D_{\mathrm{clean},i}^{\mathrm{MP}}
+-
+D_{\mathrm{patch},i,l}^{\mathrm{MP}}
+\]
+として記録する。そのlayer-wise meanおよびrelative-depth AUC、
+\[
+AUC_{\Delta EMD}^{\mathrm{MP}}
+\]
+も保存する。Recovery ratioは初期Base--Instruct distanceでnormalizeされたrelative improvementを表すのに対し、\(\Delta EMD\)はabsolute distributional improvementを表す。
+
+
+% ----------------------------------------------------------------
+\subsection{Peak recovery as a secondary localization measure}
+
+各conditionについて、
+\[
+l_{\mathrm{rec}}^{*}
+=
+\arg\max_l
+\overline{Recovery}(l)
+\]
+をbest recovery layerとし、
+\[
+d_{\mathrm{rec}}^{*}
+=
+\frac{
+l_{\mathrm{rec}}^{*}
+}{
+L-1
+}
+\]
+をbest recovery relative depthとする。また、
+\[
+\max_l\overline{Recovery}(l)
+\]
+をmaximum recovery ratioとして記録する。
+ただしこれらはSecondary localization measuresであり、Primary RQ4 inferenceには
+depth-integrated AUCを使用する。
+
+
+% ----------------------------------------------------------------
+\subsection{Reader--Self recovery comparison}
+
+RQ4はReaderとSelfの双方で同一のrecovery protocolを実施する。Primary Matched-Plain conditionについて、
+\[
+AUC_{\mathrm{Self}}^{\mathrm{MP}}
+\]
+と、
+\[
+AUC_{\mathrm{Reader}}^{\mathrm{MP}}
+\]
+を比較し、
+\[
+\Delta AUC_{\mathrm{Recovery}}
+=
+AUC_{\mathrm{Self}}^{\mathrm{MP}}
+-
+AUC_{\mathrm{Reader}}^{\mathrm{MP}}
+\]
+をtask asymmetryのPrimary cross-family summaryとする。maximum recovery ratioのSelf--Reader differenceはSecondaryとする。Native-chat AUC differenceもSecondary、
+Procrustes-aligned AUC differenceをmechanistic controlとして保持する。
+
+
+% ----------------------------------------------------------------
+\subsection{RQ4 sample-level inference}
+
+sample-level matched-plain recoveryについて、familyをfixed effectとして含むmixed-effects analysisも行う。Primary AUC analysisは、
+\[
+AUC_{\mathrm{Recovery}}^{\mathrm{MP}}
+\sim
+C(\mathrm{family})
++
+C(\mathrm{task})
++
+(1|\mathrm{stimulus})
+\]
+である。Secondaryとして、global best layerにおけるmatched-plain recovery ratioについても、
+\[
+Recovery_{\mathrm{best}}^{\mathrm{MP}}
+\sim
+C(\mathrm{family})
++
+C(\mathrm{task})
++
+(1|\mathrm{stimulus})
+\]
+を評価する。
+
+
+% ----------------------------------------------------------------
+\subsection{RQ4の解釈上の境界}
+
+高いRecoveryが得られた場合に示されるのは、Base-derived hidden representation can causally move the Instruct output distribution toward the Base distributionということである。これは、the model has an internal emotionという主張ではない。またDirect patchingでrecoveryが低い場合も、Base側にaffect-relevant informationが存在しないとは限らない。BaseとInstructのcoordinate systemが変化していれば、direct patch自体がoff-manifoldである可能性がある。このためProcrustes-aligned conditionをmechanistic controlとして併用する。
+
+
+% ================================================================
+% Confirmatory Cross-Family Analysis
+% ================================================================
+
+\subsection{4-family confirmatory integration}
+\label{app:v2-confirmatory}
+
+各familyについてRQ1--RQ4を完了した後、Primary cohortである
+\[
+\{
+\text{Qwen},
+\text{Llama},
+\text{Gemma},
+\text{OLMo}
+\}
+\]
+の4 familiesを統合したconfirmatory analysisを行う。
+
+
+% ----------------------------------------------------------------
+\subsection{H1a：Geometric reorganization}
+
+Matched-Plain conditionにおけるBase--Instruct Procrustes disparityとRSAについて、familyごとにlayer平均を求める。Reader / Selfそれぞれについて、
+\[
+\overline{\mathcal{D}}_{\mathrm{Proc}},
+\qquad
+\overline{\rho}_{\mathrm{RSA}}
+\]
+を得る。4 familiesに対して、
+\[
+B=1000
+\]
+のbootstrap confidence intervalを計算する。これはPrimary cohort内のcross-family descriptive summaryとして扱う。
+
+
+% ----------------------------------------------------------------
+\subsection{H1b：Decodability peak reorganization}
+
+Matched-Plain条件について、BaseとInstructのdecodability peak relative depthの差、
+\[
+\Delta d_{D,T}^{*}
+=
+d_{D,I,T}^{*}
+-
+d_{D,B,T}^{*}
+\]
+をfamilyごとに算出する。Reader / Self、Valence / Arousalについて、4-family mean shiftとbootstrap 95\% CIを報告する。Native-chat peak shiftはSecondaryとする。
+
+
+% ----------------------------------------------------------------
+\subsection{H2：Reader--Self sharing reorganization}
+
+各familyについて、Matched-Plainのlayer-wise sharing difference、
+\[
+\Delta S_{\mathrm{MP}}(l)
+\]
+をlayer平均し、
+\[
+\overline{\Delta S}_{\mathrm{MP}}
+\]
+をfamily-level quantityとする。4-family meanおよびbootstrap 95\% CIを算出する。Base Plain vs Instruct Nativeによる\(\overline{\Delta S}_{\mathrm{Native}}\)は
+Secondaryとする。
+
+
+% ----------------------------------------------------------------
+\subsection{H3：Causal-profile reorganization}
+
+Primary H3 inferenceは、前述のsample-level LMM、
+\[
+C_{\mathrm{net,rand}}
+\sim
+C(\mathrm{family})
++
+C(\mathrm{alignment})
+\times
+C(\mathrm{task})
+\times
+d
++
+(1|\mathrm{stimulus})
+\]
+に基づく。Primary conditionはMatched-Plainである。Valence / Arousalのprespecified interaction termsについてBenjamini--Hochberg FDR correctionを行う。
+
+
+% ----------------------------------------------------------------
+\subsection{H4：Distribution-recovery asymmetry}
+
+Primary H4 family-level quantityは、
+\[
+AUC_{\mathrm{Self}}^{\mathrm{MP}}
+-
+AUC_{\mathrm{Reader}}^{\mathrm{MP}}
+\]
+である。4 familiesについてmean differenceとbootstrap 95\% CIを計算する。Native-chat AUC differenceはSecondary、Procrustes-aligned AUC differenceはmechanistic controlとする。maximum recovery differenceもSecondary localization summaryとして保持する。sample-level AUCについては、前述のmixed-effects analysisを用いる。
+
+
+% ----------------------------------------------------------------
+\subsection{Family-level bootstrapの位置づけ}
+
+Primary cohortは4 model familiesであるため、family-level bootstrapにおける独立family数は、
+\[
+N_{\mathrm{family}}=4
+\]
+である。したがってfamily-level bootstrap intervalは、無限のmodel populationへの強い一般化を目的としたものではなく、prespecified primary familiesにおけるcross-family consistencyの記述として解釈する。sample-level variationを用いるRQ3 / RQ4のmixed-effects analysesとは、inference levelを区別する。
+
+
+% ----------------------------------------------------------------
+\subsection{V2におけるPrimary / Secondary evidenceの整理}
+
+V2のPrimaryおよび主要Secondary analysesを表~\ref{tab:v2-primary-secondary}にまとめる。
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{V2におけるPrimary evidenceと主要なcontrol / Secondary analyses。}
+\label{tab:v2-primary-secondary}
+\begin{tabularx}{\linewidth}{
+@{}
+>{\raggedright\arraybackslash}p{2.1cm}
+>{\raggedright\arraybackslash}p{4.1cm}
+>{\raggedright\arraybackslash}X
+@{}
+}
+\toprule
+\textbf{Analysis} &
+\textbf{Primary} &
+\textbf{Secondary / Control} \\
+\midrule
+RQ1 Geometry &
+Base Plain vs Instruct Matched-Plain:
+decodability,
+cosine-RSA,
+held-out Procrustes disparity &
+Base vs Instruct Native;
+Instruct Native vs Matched-Plain format effect \\
+
+RQ2 Sharing &
+Matched-Plain
+\(\Delta S(l)\) and layer-mean
+\(\overline{\Delta S}\) &
+Native sharing difference;
+directional cross-decoding asymmetry \\
+
+RQ3 Causal map &
+Matched-Plain
+\(C_{\mathrm{net,rand}}\);
+positive-guarded peak / center;
+sample-level LMM &
+\(C_{\mathrm{net,\perp}}\);
+raw causal effect;
+zero ablation;
+Native condition \\
+
+RQ4 Recovery &
+Matched-Plain
+depth-AUC recovery &
+Matched-Plain \(\Delta EMD\) AUC;
+peak recovery;
+Native recovery;
+Procrustes-aligned recovery \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+% ----------------------------------------------------------------
+
+
+% ================================================================
+% 13. V2結果
+% ================================================================
+\section{V2結果}
+\label{sec:v2-results}
+
+% ----------------------------------------------------------------
+% V2 Stageの客観的結果データ（H1--H4: 事後学習に伴う構造再編）
+% ----------------------------------------------------------------
+
+本節では、事後学習（Post-training: Base vs Instruct）に伴う内部表現構造および因果寄与度の再編を検証した結果（H1--H4）を報告する。
+
+\subsection{H1--H2：幾何構造の歪みとデコードピーク深度の再配置}
+4モデルファミリーにおける事前学習モデルから事後学習モデルへの幾何学的歪み（Distortion）、デコードピーク深度変位 $\Delta d^*$、および表現共有度変位 $\Delta\text{Sharing}$ のブートストラップ推定値（95\% CI）を表\ref{tab:v2_h1_h2_reorganization}に示す。
+
+\input{tables/v2_h1_h2_reorganization.tex}
+
+表\ref{tab:v2_h1_h2_reorganization}が示すように、H1bにおけるデコードピーク変位 $\Delta d^*$ は全条件で信頼区間下限が正（$\text{CI}_{\text{low}} > 0$）であり、事後学習によって情動表現の最適読み出し層が入力層（浅層）側へと有意にシフトしたことが実証された。またH2において $\Delta\text{Sharing} < 0$ であり、事後学習により認識と自己報告の表現がタスク特化的に適度に分化したことが確認される。
+
+\subsection{H3：因果テコの深層再配置（線形混合効果モデル LMM）}
+残差ストリーム交換に対する因果応答性の再配置を、モデルファミリーをランダム切片とする線形混合効果モデルで評価した結果を表\ref{tab:v2_h3_causal_lmm}に示す。
+
+\input{tables/v2_h3_causal_lmm.tex}
+
+表\ref{tab:v2_h3_causal_lmm}の通り、事後学習の主効果（Alignment）は $\beta = 0.181$（$p = 4.39 \times 10^{-23}$）と極めて有意であり、Instructモデルにおいて残差交換介入に対する因果応答性が全体として大幅に増強されていることが確認された。
+
+% ================================================================
+% 14. V2考察
+% ================================================================
+\section{V2考察}
+\label{sec:v2-discussion}
+
+V2の結果は、事後学習（Post-training）に伴う変化が、単なる情動関連表現の「消去（Erasure）」ではなく、体系的な「構造再編（Reorganization）」であることを実証する。
+幾何学的歪み（Procrustes disparity）とデコードピークの深層移行（$\Delta d^* > 0$）、および表現共有度 $\Delta\text{Sharing}$ の低下は、事後学習によって情動表現の幾何とタスク間関係が変容することを示す。
+さらにLMMにより確認された因果ピークの深層移行（Relocation）と、Base活性化の注入による分布回復（Distribution Recovery）は、 Instructモデルにおいても情動情報は潜在的に保持されており、より深い階層において出力方針と接続されていることを示唆する。
+しかしV2の分析は、固定された単一トークン時点（prompt-end）の静的な表現解析に基づいており、Instructモデルが自己報告トークンを逐次生成していく動的な計算過程の「どの時点」「どの層」でその情報が因果的に利用されるかまでは特定できない。
+
+
+% ================================================================
+% 15. V2からV3への接続
+% ================================================================
+\section{V2からV3への接続}
+\label{sec:v2-to-v3}
+
+事後学習による表現幾何・因果配置の再編が確認されたことで、情動表現と自己報告の関係を解明するための最後の核心的課題が浮き彫りになる。
+すなわち、「読み出し可能（Decodable）な情動情報」は、モデルが実際に自己報告を生成する際、いかなる時空間的ダイナミクスを経て出力へと反映されるのか。
+最大デコード精度を示す表現がそのまま因果的レバレッジを持つのか、それとも特定の層・生成ステージにおいて局所的に因果利用されるのか。
+この問いをInstructモデルの自律的生成計算過程において検証するため、次節V3では時空間因果介入（Spatiotemporal Causal Mapping）を実施する。
+
+
+% ================================================================
+% 16. V3概要
+% ================================================================
+\section{V3概要}
+\label{app:v3-methods}
+
+\subsection{目的と位置づけ}
+
+V3の中心的なResearch Questionは、「情動関連情報は、Instructモデルのどのlayer・どのgeneration stageにおいて、自己報告（Self-Report）に対して測定可能なcausal leverageを持つのか」である。
+ここで厳密に区別するのは、
+\[
+\text{Information is decodable} \quad\neq\quad \text{Information has causal leverage}
+\]
+である。ある内部表現から高精度に情動がデコード可能であることと、その情報が出力生成を因果的に駆動していることは一致しない。
+V3では、State Induction Gateによる前提検証を経て、Instructモデル内部の時空間因果マップを特定し、独立検証セットおよびクロスモデルで再現性を評価する。
+\[
+\begin{aligned}
+&\text{State Induction / Sufficiency}\\
+&\quad\downarrow\\
+&\text{Specificity and Endogenous Relevance}\\
+&\quad\downarrow\\
+&\text{Spatiotemporal Causal Mapping}\\
+&\quad\downarrow\\
+&\text{Mediated Attenuation}\\
+&\quad\downarrow\\
+&\text{Cross-family Confirmation}
+\end{aligned}
+\]
+
+
+% ----------------------------------------------------------------
+\subsection{V3の全体構成}
+
+V3は、Qwen 2.5 1.5B-Instructを用いたDiscovery analysisと、他model familiesを用いたConfirmatory replicationから構成する。Discovery modelは、Qwen 2.5 1.5B-Instructである。Confirmatory familiesは、
+\[
+\{
+\text{Llama 3.2 Instruct},
+\text{Gemma 3 Instruct},
+\text{OLMo 2 Instruct}
+\}
+\]
+である。V3にBase modelは含めない。表~\ref{tab:v3-overview}にV3を構成するanalysisを示す。
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{V3におけるDiscoveryおよびConfirmatory analyses。}
+\label{tab:v3-overview}
+\begin{tabularx}{\linewidth}{
+@{}
+>{\raggedright\arraybackslash}p{1.5cm}
+>{\raggedright\arraybackslash}p{3.1cm}
+>{\raggedright\arraybackslash}X
+@{}
+}
+\toprule
+\textbf{Stage} &
+\textbf{Analysis} &
+\textbf{Question} \\
+\midrule
+RQ1 &
+State Induction \& Go/No-Go Gate &
+affect-related directionへの介入はSelf-Reportを
+dose-dependentかつspecificに変化させ、
+自然刺激中の同subspace除去はSelf shiftを減衰させるか \\
+
+RQ2 &
+Spatiotemporal 4-Maps &
+decodability、内部関連、interventional slope、
+causal displacementは
+layer $\times$ generation stageのどこに分布するか \\
+
+RQ3 &
+Mediated Attenuation &
+Discoveryで選択されたaffect-related subspaceを除去すると、
+独立Confirmation pairsの自然なSelf shiftはどの程度減衰するか \\
+
+Confirmation &
+Cross-family Replication &
+Qwenで選択されたsite / stageを固定したとき、
+同じmechanistic patternが
+Llama、Gemma、OLMoでも確認されるか \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+% ----------------------------------------------------------------
+\subsection{V3のデータと測定対象}
+
+V3では、AIPsy-Affectのうち、
+\[
+192\text{ Clinical--Neutral matched pairs}
+\]
+のみを使用する。各analysis unitは、Clinical stimulusと同一\texttt{pair\_id}を持つmatched Neutral stimulusから構成される。
+\[
+(x_i^{C},x_i^{N}),
+\qquad
+i=1,\ldots,192.
+\]
+ModerateおよびComplex NeutralはV3 Primary analysisには使用しない。各Clinical observationには必ず対応するmatched Neutral textを必要とし、Primary production analysisではgeneric neutral sentenceや固定値5.0等へのfallbackを使用しない。
+
+
+% ----------------------------------------------------------------
+\subsection{Primary affective grounding}
+
+AIPsy-Affectには、EmoBankのようなhuman continuous Valence / Arousal annotationが存在しないため，存在しないhuman V/A labelをground truthとして使用しない。代わりに各stimulusについて、同じInstruct modelをReader taskとして評価して得られる、
+\[
+R_V(x)
+\]
+および、
+\[
+R_A(x)
+\]
+をPrimary affective targetsとする。すなわち、
+\[
+Y_V
+=
+R_V(x),
+\qquad
+Y_A
+=
+R_A(x)
+\]
+である。これはhuman affective ground truthではなく、
+\[
+\text{model Reader Prediction}
+\]
+である。V3ではSelf hidden representationにどの程度Reader-grounded affective informationが存在し、その情報を操作した際にSelf-reportがどのように変化するかを測定する。したがって、v3は
+\[
+\text{Reader-grounded representation}
+\rightarrow
+\text{Self-report causal utilization}
+\]
+である。一方、Self-Report自身をtargetとして抽出した方向はSecondary characterizationとして扱う。
+
+
+% ----------------------------------------------------------------
+\subsection{V3のプロンプト}
+\label{app:v3-prompts}
+
+ReaderおよびSelfのタスク指示文および81-state VA JSON出力スキーマは、前節\S\ref{app:va-prompts}で定義した共通プロンプト形式に完全準拠する。
+V3ではInstruct modelsのみを対象とするため、各モデルのnative chat formatを一貫して使用する。
+
+
+% ----------------------------------------------------------------
+\subsection{Topic control task}
+
+RQ1では、affect-related directionへの介入がSelf-Reportを変化させる一方で、任意の非情動的task distributionも大きく破壊するgeneric perturbationではないかを確認する。そのため、matched Neutral textに対して以下のtopic classification taskを使用する。
+
+\begin{verbatim}
+Classify the primary topic of the following text
+into one of: 'medical', 'family', 'work', 'daily_life'.
+
+Respond strictly in JSON format:
+{"topic": "<medical|family|work|daily_life>"}
+\end{verbatim}
+
+candidate setは、
+\[
+\{
+\texttt{medical},
+\texttt{family},
+\texttt{work},
+\texttt{daily\_life}
+\}
+\]
+の4 categoriesである。
+
+
+% ================================================================
+% RQ1
+% ================================================================
+
+\subsection{RQ1：State Induction and Go/No-Go Gate}
+\label{app:v3-rq1}
+
+RQ1では、後続の時空間causal analysisへ進む前に、Reader-grounded affect directionへの介入がSelf-Reportに対して十分なcausal effectを持つかを検証する。ここで検証するのは、単に方向を注入するとoutputが何らかの形で変化するかではなく，以下を同時に要求する。
+
+\begin{enumerate}
+    \item \textbf{Sufficiency / Dose-response}：
+    intervention doseに応じてSelf-Reportがsystematicに変化すること
+
+    \item \textbf{Specificity}：
+    random directionやorthogonal directionより
+    affect directionの効果が大きいこと
+
+    \item \textbf{Endogenous Relevance}：
+    自然なaffective stimulus processingから
+    affect-related subspaceを除去すると
+    Clinical--Neutral Self shiftが減衰すること
+
+    \item \textbf{Topic Selectivity Control}：
+    同じinterventionがnon-affective topic distributionを
+    大きく破壊しないこと
+\end{enumerate}
+
+
+% ----------------------------------------------------------------
+\subsection{RQ1 train--test split}
+
+192 matched pairsを、\texttt{pair\_id}単位でseed 42によりshuffleし、
+\[
+70\%\text{ train}
++
+30\%\text{ held-out test}
+\]
+へ分割する。現行192-pair datasetでは、
+\[
+N_{\mathrm{train}}=134,
+\qquad
+N_{\mathrm{test}}=58
+\]
+となる。同一pairがtrain / testの両方へ入ることはない。affect direction、control directions、neutral mean representation等はtraining subsetだけから推定する。Go/No-Go判定に使用するintervention outcomesはheld-out test pairsだけで評価する。
+
+
+% ----------------------------------------------------------------
+\subsection{RQ1 target site}
+
+RQ1では、後続のspatiotemporal mapを見て最も効果の大きいlayerを選択することはしない。target relative depthを、
+\[
+d=0.5
+\]
+に事前固定する。総Transformer block数を \(L\) とすると、
+\[
+l_{\mathrm{RQ1}}
+=
+\operatorname{round}
+[
+0.5(L-1)
+]
+\]
+をtarget layerとする。介入位置はSelf promptのprompt-end post-MLP residual stateである。
+
+
+% ----------------------------------------------------------------
+\subsection{Reader-grounded conditional directions}
+
+training Clinical stimuliについて、target layerのSelf representationを、
+\[
+H
+\in
+\mathbb{R}^{N_{\mathrm{train}}\times D}
+\]
+とする。同じstimuliのReader Predictionを、
+\[
+V_R
+\in
+\mathbb{R}^{N_{\mathrm{train}}},
+\]
+
+\[
+A_R
+\in
+\mathbb{R}^{N_{\mathrm{train}}}
+\]
+とする。RQ1では、hidden representationからV/Aを予測する通常のprobeとは逆に、ValenceとArousalを説明変数としてhidden representationをmulti-output regressionする。
+\[
+H
+=
+\mathbf{1}b^\top
++
+V_R\beta_V^\top
++
+A_R\beta_A^\top
++
+E
+\]
+Ridge regularizationは、
+\[
+\alpha_{\mathrm{Ridge}}=1
+\]
+とする。このjoint regressionによって、他方のaxisを条件付きで統制したValence-associated hidden direction、
+\[
+\beta_V
+\]
+およびArousal-associated hidden direction、
+\[
+\beta_A
+\]
+を得る。単位方向を、
+\[
+d_V
+=
+\frac{\beta_V}{\|\beta_V\|_2}
+\]
+，
+\[
+d_A
+=
+\frac{\beta_A}{\|\beta_A\|_2}
+\]
+と定義する。同じtraining representationsに対し、Self-report V/Aをtargetとして抽出した方向もSecondaryとして求め、
+\[
+\cos(d_V^{R},d_V^{S}),
+\qquad
+\cos(d_A^{R},d_A^{S})
+\]
+をReader-grounded directionとSelf-derived directionのalignmentとして記録する。
+
+
+% ----------------------------------------------------------------
+\subsection{Dose normalization}
+
+training representationをdirection \(d\) へ射影した値、
+\[
+z_i
+=
+h_i^\top d
+\]
+のstandard deviationを、
+\[
+\sigma_d
+=
+\operatorname{SD}(Hd)
+\]
+とする。介入は、
+\[
+h'
+=
+h+\alpha\sigma_d d
+\]
+として実行する。したがって\(\alpha=1\)は、training representationにおけるdirectional activationの1 standard deviationに対応する。
+
+
+% ----------------------------------------------------------------
+\subsection{RQ1 Sufficiency / Dose-response}
+
+held-out pairについて、matched Neutral stimulusのSelf representationへValence directionまたはArousal directionを注入する。dose gridは、
+\[
+\alpha
+\in
+\{
+-1,-0.5,0,0.5,1
+\}
+\]
+である。Valence directionについて、Neutral clean Self expectationを、
+\[
+V_i^{N}
+\]
+dose \(\alpha\) におけるpatched valueを、
+\[
+V_i^{N,\alpha}
+\]
+とすると、
+\[
+\Delta V_i(\alpha)
+=
+V_i^{N,\alpha}
+-
+V_i^{N}
+\]
+を求める。Arousalも同様に、
+\[
+\Delta A_i(\alpha)
+=
+A_i^{N,\alpha}
+-
+A_i^{N}
+\]
+とする。各held-out pairについて、doseとreport shiftのlinear slope、
+\[
+\gamma_i
+=
+\frac{
+\sum_{\alpha}
+(\alpha-\bar{\alpha})
+(\Delta Y_i(\alpha)-\overline{\Delta Y_i})
+}{
+\sum_{\alpha}
+(\alpha-\bar{\alpha})^2
+}
+\]
+を求める。Valence / Arousalについてsample-level slopesをbootstrapし、mean slopeと95\% confidence intervalを算出する。
+
+
+% ----------------------------------------------------------------
+\subsection{RQ1 Specificity controls}
+
+affect direction interventionが、単なるhidden-state perturbationによるgeneric effectではないかを検証するため、各axisについて、
+\[
+K=5
+\]
+のrandom control directionsと、
+\[
+K=5
+\]
+のorthogonal control directionsを生成する。random directionはtarget directionと同normを持つ。orthogonal directionは、random vectorからtarget direction成分を除去した後、target directionと同normへ再正規化する。reference doseは、
+\[
+\alpha=1
+\]
+である。pair \(i\) におけるaffect-directionのabsolute effectを、
+\[
+E_{i,\mathrm{aff}}
+=
+|
+\Delta Y_{i,\mathrm{aff}}
+|
+\]
+とする。5 random directionsのmean effectを、
+\[
+\overline{E}_{i,\mathrm{rand}}
+\]
+5 orthogonal directionsのmean effectを、
+\[
+\overline{E}_{i,\perp}
+\]
+とする。Primary specificityを、
+\[
+S_i
+=
+E_{i,\mathrm{aff}}
+-
+\max
+(
+\overline{E}_{i,\mathrm{rand}},
+\overline{E}_{i,\perp}
+)
+\]
+と定義する。Valence / Arousalについてそれぞれsample-level specificityをbootstrapし、95\% CIを算出する。random controlとの差、
+\[
+E_{\mathrm{aff}}-\overline{E}_{\mathrm{rand}}
+\]
+およびorthogonal controlとの差、
+\[
+E_{\mathrm{aff}}-\overline{E}_{\perp}
+\]
+もSecondary diagnosticsとして保持する。
+
+
+% ----------------------------------------------------------------
+\subsection{RQ1 Endogenous Relevance}
+
+direction injectionによってSelf-reportを動かせることはsufficiencyを示すが、自然なClinical stimulus processingにおいてそのrepresentationが利用されているとは限らない。そこでReader-grounded Valence / Arousal directionsからaffect-related subspaceを構成する。
+\[
+B
+=
+[
+d_V\;\;d_A
+].
+\]
+SVDによりrank-deficient directionを除外し、orthonormal basis、
+\[
+Q
+\in
+\mathbb{R}^{D\times r},
+\qquad
+r\le2
+\]
+を得る。
+\[
+Q^\top Q
+=
+I_r.
+\]
+training pairsのmatched Neutral Self representationsの平均を、
+\[
+\mu_{\mathrm{neu}}
+\]
+とする。held-out Clinical representation \(h_i^C\) について、
+\[
+h_{i,\mathrm{centered}}
+=
+h_i^C-\mu_{\mathrm{neu}}
+\]
+とし、affect-related subspace component、
+\[
+QQ^\top
+(
+h_i^C-\mu_{\mathrm{neu}}
+)
+\]
+を除去する。
+\[
+h_i'
+=
+h_i^C
+-
+QQ^\top
+(
+h_i^C-\mu_{\mathrm{neu}}
+)
+\]
+とする。
+
+
+% ----------------------------------------------------------------
+\subsection{Natural and residual Self shifts}
+
+held-out pair \(i\) について、clean Clinical Self outputとmatched Neutral Self outputとの差を、
+\[
+N_{i,V}
+=
+|
+V_i^{C}-V_i^{N}
+|
+\]
+
+\[
+N_{i,A}
+=
+|
+A_i^{C}-A_i^{N}
+|
+\]
+とする。これをnatural affective shiftと呼ぶ。subspace removal後のClinical outputを
+\(V_i^{C,\mathrm{abl}}\),\(A_i^{C,\mathrm{abl}}\) とすると、
+\[
+R_{i,V}
+=
+|
+V_i^{C,\mathrm{abl}}
+-
+V_i^{N}
+|
+\]
+
+\[
+R_{i,A}
+=
+|
+A_i^{C,\mathrm{abl}}
+-
+A_i^{N}
+|
+\]
+をresidual shiftとする。absolute attenuationは、
+\[
+N_i-R_i
+\]
+である。RQ1 Gateではscale normalizationのため、natural shiftが、
+\[
+N_i>0.05
+\]
+を満たすsamplesだけについて、
+\[
+AR_i
+=
+\frac{
+N_i-R_i
+}{
+N_i
+}
+\]
+というattenuation ratioを使用する。Valence / Arousalについてattenuation-ratio distributionをbootstrapする。
+
+
+% ----------------------------------------------------------------
+\subsection{RQ1 Topic Control}
+
+同じReader-grounded directionsをmatched Neutral textに対するtopic-classification taskへ注入する。clean topic distributionを、
+\[
+P
+\]
+patched topic distributionを、
+\[
+P'
+\]
+とし、
+\[
+TVD(P,P')
+=
+\frac{1}{2}
+\sum_k
+|
+P'_k-P_k
+|
+\]
+を計算する。Valence direction、Arousal directionを別々に評価する。ここでTopic TVDは、
+Self VA shiftと同じ構成概念ではない。したがって、
+\[
+\text{Self effect}
+-
+\text{Topic TVD}
+\]
+のような差をPrimary causal effectとしては使用しない。Topic TVDは、
+\[
+\text{non-specific task perturbationが小さいか}
+\]
+を確認する独立したcontrolとして扱う。
+
+
+% ----------------------------------------------------------------
+\subsection{RQ1 Bootstrap and Gate Criteria}
+
+RQ1におけるPrimary confidence intervalsは、
+\[
+B=1000
+\]
+のbootstrapによって算出する。Valence / Arousalの各axisについて、以下の4 criteriaを独立に評価する。
+
+\paragraph{Criterion 1: Sufficiency.}
+interventional slopeの95\% CI lower boundについて、
+\[
+CI_{\mathrm{low}}(\gamma)>0.1
+\]
+を要求する。
+
+
+\paragraph{Criterion 2: Specificity.}
+specificity scoreの95\% CI lower boundについて、
+\[
+CI_{\mathrm{low}}(S)>0.05
+\]
+を要求する。
+
+
+\paragraph{Criterion 3: Endogenous relevance.}
+attenuation ratioの95\% CI lower boundについて、
+\[
+CI_{\mathrm{low}}(AR)>0.05
+\]
+を要求する。
+
+
+\paragraph{Criterion 4: Topic control.}
+Topic TVDの95\% CI upper boundについて、
+\[
+CI_{\mathrm{high}}(TVD)<0.15
+\]
+を要求する。
+
+
+% ----------------------------------------------------------------
+\subsection{Axis-wise and overall Gate decision}
+
+Valenceについて4 criteriaをすべて満たした場合、
+\[
+\text{Valence}=\texttt{GO}
+\]
+とする。Arousalについても同様である。overall decisionは以下の4種類である。
+
+\begin{center}
+\small
+\begin{tabular}{lll}
+\toprule
+Valence & Arousal & Overall decision \\
+\midrule
+GO & GO & \texttt{GO} \\
+GO & NO\_GO & \texttt{GO (Valence-only)} \\
+NO\_GO & GO & \texttt{GO (Arousal-only)} \\
+NO\_GO & NO\_GO & \texttt{NO\_GO} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+通常のproduction pipelineがRQ2以降へ進むのは、
+\[
+\texttt{overall decision == GO}
+\]
+の場合だけである。したがって、
+\[
+\texttt{GO (Valence-only)}
+\]
+および、
+\[
+\texttt{GO (Arousal-only)}
+\]
+は、部分的にaxis criterionを満たしたことを記録するlabelではあるが、通常経路ではRQ2以降を自動的に継続する完全なGOとはみなさない。
+
+
+% ================================================================
+% RQ2
+% ================================================================
+
+\subsection{RQ2：Spatiotemporal 4-Maps}
+\label{app:v3-rq2}
+
+RQ1では、事前固定したmid-depth prompt-end siteにおいてaffect-related interventionがSelf-reportへ十分なcausal effectを持つかを検証する。RQ2ではこの解析を、
+\[
+\text{all layers}
+\times
+\text{multiple response-generation stages}
+\]
+へ拡張する。RQ2はQwen Discovery model上のexploratory spatiotemporal mapping analysisとして位置づける。最終的なcross-family confirmationでは、RQ2 Discoveryで得られたsite / stageをfreezeして使用する。
+
+
+% ----------------------------------------------------------------
+\subsection{RQ2 evaluation set}
+
+RQ2では、AIPsy-Affect Clinical--Neutral matched-pair tableのClinical側192 stimuliをすべて使用する。各stimulusについて、
+
+\begin{itemize}
+    \item clean Self expected Valence / Arousal
+    \item Reader Prediction Valence / Arousal
+    \item Self hidden representation
+\end{itemize}
+を取得する。AIPsyにはhuman V/Aが存在しないため、Primary decoding targetはRQ1と同じくmodel Reader Predictionである。Self-Report V/Aをtargetとしたdecodability mapもSecondaryとして計算する。
+
+
+% ----------------------------------------------------------------
+\subsection{Teacher-forced generation trajectory}
+
+prompt-endだけを解析するのではなく、Self responseのcanonical JSON candidateをteacher-forced sequenceとしてmodelへ入力し、response token processing中のhidden statesを測定する。canonical reference candidateには、
+\begin{verbatim}
+{"valence":5,"arousal":5}
+\end{verbatim}
+を使用する。このcandidateは、81-state VA spaceの中央値に対応する。ここでteacher forcingは、モデルが実際にgreedy生成したresponse pathを意味しない。RQ2は、a fixed canonical candidate trajectory上でrepresentationとcausal leverageを比較するanalysisである。
+
+
+% ----------------------------------------------------------------
+\subsection{Semantic generation stages}
+
+RQ2では以下の6 semantic stagesを解析する。
+\[
+\{
+\texttt{candidate\_start},
+\texttt{pre\_V},
+\texttt{V\_value},
+\texttt{pre\_A},
+\texttt{A\_value},
+\texttt{response\_end}
+\}
+\]
+各stageはcandidate JSON上のtoken positionに対応する。
+
+
+\paragraph{\texttt{candidate\_start}.}
+
+candidate stringの最初のtokenを処理している位置である。config上の旧名称\texttt{response\_start}は、production RQ2では\texttt{candidate\_start}へ正規化される。したがってRQ2 production mapの最初のstageはprompt-endではなく、\textbf{first candidate token position}である。
+
+
+\paragraph{\texttt{pre\_V}.}
+
+Valence value tokenの直前に位置するtokenである。
+
+
+\paragraph{\texttt{V\_value}.}
+
+Valence numerical valueを含む最初のtokenである。
+
+
+\paragraph{\texttt{pre\_A}.}
+
+Arousal value tokenの直前に位置するtokenである。
+
+
+\paragraph{\texttt{A\_value}.}
+
+Arousal numerical valueを含む最初のtokenである。
+
+
+\paragraph{\texttt{response\_end}.}
+
+candidate responseの最終token、典型的にはclosing brace ``\texttt{\}}''を処理した位置である。causal language modelでは、この位置のhidden stateは
+すでにcandidate contentの主要部分を処理した後に存在する。そのため\texttt{response\_end}をlate negative temporal controlとして保持する。
+
+
+% ----------------------------------------------------------------
+\subsection{Stage-position invariance}
+
+tokenizerによって数値やpunctuationのtokenizationが異なる可能性があるため、各semantic stageのabsolute token indexが81 candidatesすべてで一致することを事前に検証する。stage indexがcandidate valueによって変化する場合には同一positionのmapとして比較できないため、production analysisを継続しない。\texttt{pre\_V}まではcandidate valueに依存しないtrajectoryとして扱う。一方、\texttt{pre\_A}以降のrepresentationは、canonical neutral candidate、
+\begin{verbatim}
+{"valence":5,"arousal":5}
+\end{verbatim}
+をprefixとしてteacher-forceしたtrajectory上のrepresentationである。したがって後半stageを、81 possible candidate trajectoriesすべての平均状態とは解釈しない。
+
+
+% ----------------------------------------------------------------
+\subsection{Spatiotemporal 4-Maps}
+
+各Transformer layer \(l\) とsemantic generation stage \(t\) について、
+\[
+D(l,t),
+\qquad
+\beta(l,t),
+\qquad
+\gamma(l,t),
+\qquad
+C(l,t)
+\]
+の4 mapsを構成する。Valence / Arousalは独立に解析する。
+
+
+% ----------------------------------------------------------------
+\subsection{Map 1：Decodability \(D(l,t)\)}
+
+各layer × stageのSelf hidden representationsを、
+\[
+H_{l,t}
+\]
+とする。model Reader Predictionを、
+\[
+Y_V,
+\qquad
+Y_A
+\]
+とする。pair identityをgroupとするGroupKFoldを使用し、
+\[
+K=3
+\]
+foldのout-of-fold predictionを得る。各training foldで、
+\[
+Y_V
+=
+H_{l,t}w_V+b_V+\epsilon
+\]
+
+\[
+Y_A
+=
+H_{l,t}w_A+b_A+\epsilon
+\]
+というRidge regressionを学習する。regularizationは、
+\[
+\alpha_{\mathrm{Ridge}}=10
+\]
+である。全192 samplesのout-of-fold predictionsから、
+\[
+D_V(l,t)
+=
+R_V^2(l,t)
+\]
+
+\[
+D_A(l,t)
+=
+R_A^2(l,t)
+\]
+を算出する。これは、Reader-grounded affect informationがSelf computationの各layer / stageからどの程度linearにdecode可能かを表す。同じprocedureをSelf-report V/A targetにも適用し、Secondary decodability mapsとして保持する。
+
+
+% ----------------------------------------------------------------
+\subsection{Map 2：Partial Association \(\beta(l,t)\)}
+
+Decodabilityが高いことだけでは、そのinternal scoreがSelf-reportと関係するかは分からない。そこでMap 1のout-of-fold decoded Reader scoreを用いて、Self-reportとのpartial associationを評価する。Valenceについて、
+\[
+\hat Y_{V,i}^{R}
+\]
+をout-of-fold decoded Reader-grounded Valence scoreとする。Self-report Valenceを、
+\[
+Y_{V,i}^{S}
+\]
+とする。AIPsyのstimulus-level covariatesを、
+\[
+Z_i
+\]
+とすると、
+\[
+Y_{V,i}^{S}
+=
+b_0
++
+\beta_V(l,t)
+\hat Y_{V,i}^{R}
++
+\gamma^\top Z_i
++
+\epsilon_i
+\]
+をfitする。Arousalについても同様に、
+\[
+Y_{A,i}^{S}
+=
+b_0
++
+\beta_A(l,t)
+\hat Y_{A,i}^{R}
++
+\gamma^\top Z_i
++
+\epsilon_i
+\]
+
+とする。AIPsyにはhuman continuous V/A covariatesがないため、利用可能な、
+\[
+\text{target emotion},
+\qquad
+\text{intensity},
+\qquad
+\text{domain}
+\]
+をcategorical covariatesとしてdummy encodeし、利用可能な変動を統制する。Primary mapはsigned coefficient、
+\[
+\beta(l,t)
+\]
+であり、
+\[
+|\beta(l,t)|
+\]
+もdescriptive mapとして保持する。各layer × stageの\(\beta\)について、現行analysisではsample-level resamplingを、
+\[
+B=100
+\]
+回行い、2.5th / 97.5th percentilesによる95\% bootstrap intervalを求める。
+
+
+% ----------------------------------------------------------------
+\subsection{Map 3：Interventional Slope \(\gamma(l,t)\)}
+
+Map 3では、各layer × stageにおけるrepresentationへaffect-related directionを直接注入し、doseに対するSelf-report shiftの傾きを測定する。Map 1と同じ3-fold GroupKFoldを使用する。各foldのtraining samplesだけで、
+\[
+Y_V
+=
+H_{l,t}w_V+b+\epsilon
+\]
+
+\[
+Y_A
+=
+H_{l,t}w_A+b+\epsilon
+\]
+を、
+\[
+\text{Ridge}(\alpha=10)
+\]
+でfitする。単位方向を、
+\[
+d_V
+=
+\frac{w_V}{\|w_V\|_2},
+\qquad
+d_A
+=
+\frac{w_A}{\|w_A\|_2}
+\]
+とする。training projection standard deviationを、
+\[
+\sigma_V
+=
+\operatorname{SD}(H_{\mathrm{train}}d_V),
+\]
+
+\[
+\sigma_A
+=
+\operatorname{SD}(H_{\mathrm{train}}d_A)
+\]
+として、held-out sampleの同じlayer × stageへ、
+\[
+h'
+=
+h+\alpha\sigma d
+\]
+を適用する。dose gridは、
+\[
+\alpha
+\in
+\{
+-2,-1,-0.5,0,0.5,1,2
+\}
+\]
+である。sample \(i\) のdose-response slopeを、
+\[
+\gamma_i(l,t)
+=
+\operatorname{Slope}
+[
+\alpha,
+\Delta Y_i(\alpha)
+]
+\]
+として求める。Map valueは、intervention subsetにおけるsample slopesのmean、
+\[
+\gamma(l,t)
+=
+E_i[
+\gamma_i(l,t)
+]
+\]
+である。
+
+
+% ----------------------------------------------------------------
+\subsection{Map 4：Causal Displacement \(C(l,t)\)}
+
+同じintervention sweepのうち、
+\[
+\alpha=1
+\]
+をreference doseとする。Valenceについて、
+\[
+C_V(l,t)
+=
+E_i
+\left[
+\left|
+V_i^{\mathrm{patched}}
+-
+V_i^{\mathrm{clean}}
+\right|
+\right]
+\]
+Arousalについて、
+\[
+C_A(l,t)
+=
+E_i
+\left[
+\left|
+A_i^{\mathrm{patched}}
+-
+A_i^{\mathrm{clean}}
+\right|
+\right]
+\]
+を算出する。したがって\(C\)はintervention directionに対するabsolute causal displacementである。RQ2の\(C\)はV2 RQ3のようなrandom-control-adjusted net effectではない。両者は異なるquantityであるため区別する。
+
+
+% ----------------------------------------------------------------
+\subsection{Causal intervention subset}
+
+全192 samplesについてhidden representationとdecodability mapを計算する一方、全layer × 全stage × 全doseでのinterventionは計算量が大きい。そこでcausal maps \(\gamma\)および\(C\)については、target emotionで層化した固定subsetを使用する。
+\[
+N_{\mathrm{causal}}=15
+\]
+samplesをseed 42で選択し、この同一subsetを全layer / 全stageで共通して使用する。各foldでは、そのsubsetのうちheld-out foldに属するsamplesだけをintervention evaluationへ使用する。したがってdirection fittingとcausal evaluationはcross-fittedである。
+
+
+% ----------------------------------------------------------------
+\subsection{A priori temporal dissociation summaries}
+
+full 4-map自体はDiscovery analysisであるが、axisごとに事前指定したstageでもdecodability--causal layer dissociationを算出する。Valenceでは、
+\[
+t_V^{\mathrm{prior}}
+=
+\texttt{pre\_V}
+\]
+Arousalでは、
+\[
+t_A^{\mathrm{prior}}
+=
+\texttt{pre\_A}
+\]
+を使用する。各axisについて、指定stageにおける、
+\[
+D(l,t)
+\]
+および、
+\[
+C(l,t)
+\]
+のpeak relative depthとpositive-weighted center-of-massを算出し、
+\[
+\Delta d^{*}
+=
+d_C^{*}-d_D^{*}
+\]
+および、
+\[
+\Delta\bar d
+=
+\bar d_C-\bar d_D
+\]
+をdescriptive dissociation summaryとする。これらはQwen Discovery mapから得られる量であり、cross-family confirmatory testそのものではない。
+
+
+% ----------------------------------------------------------------
+\subsection{Full-map empirical causal peaks}
+
+事前指定stageとは別に、全layer × 全stageにわたる\(C\) mapについて、
+\[
+(l_C^{*},t_C^{*})
+=
+\arg\max_{l,t}C(l,t)
+\]
+をValence / Arousal別々に求める。このempirical peakは、
+\[
+\text{Qwen Discovery site selection}
+\]
+として扱い、後続のconfirmatory familiesで再探索しない。Valence causal peakについて、
+\[
+(d_{C,V}^{*},t_{C,V}^{*})
+\]
+Arousalについて、
+\[
+(d_{C,A}^{*},t_{C,A}^{*})
+\]
+をfreezeし、cross-family temporal confirmationへ引き継ぐ。
+
+
+% ----------------------------------------------------------------
+\subsection{RQ2の解釈範囲}
+
+RQ2はDiscovery modelにおける全layer × generation-stage mapである。したがって、
+\[
+\text{where the map peaks in Qwen}
+\]
+自体を、普遍的なarchitecture-independent lawとは解釈しない。また、
+\[
+D(l,t)
+\]
+が高い位置で、
+\[
+C(l,t)
+\]
+が小さい場合も、その情報が全く使用されていないとは言えない。V3で測定するのは、本介入法によって観測されるlocal causal leverageである。Qwen Discoveryで得られたsite / stageを固定した上で、他familiesで確認することによって探索と確認を分離する。
+
+
+% ================================================================
+% RQ3
+% ================================================================
+
+\subsection{RQ3：Mediated Attenuation}
+\label{app:v3-rq3}
+
+RQ1のdirection injectionは、affect-related representationを人工的に増加させればSelf-reportを動かせるという\textbf{sufficiency}を評価する。RQ2は、そのcausal leverageがlayer × generation stageのどこに局在するかを探索する。しかしこれらだけでは、自然なClinical stimulusによって形成されたaffect-related representationが、Self-report shiftの生成に実際に利用されているかは十分に示されない。そこでRQ3では、自然なaffective representationからDiscoveryで定義したaffect-related subspaceを除去し、「Clinical--Neutral Self-report shiftがどの程度減衰するか」を独立Confirmation pairsで評価する。
+
+
+% ----------------------------------------------------------------
+\subsection{Discovery / Confirmation split}
+
+192 Clinical--Neutral matched pairsをseed 42でpair単位にshuffleし、
+\[
+96\text{ Discovery}
++
+96\text{ Confirmation}
+\]
+へ分割する。二つのsubsetはpair単位で完全にdisjointである。
+Discovery subsetは、
+\begin{itemize}
+    \item layer-wise decodability profile
+    \item exploratory causal profile
+    \item mediator layer selection
+    \item mediator subspace estimation
+    \item neutral mean estimation
+\end{itemize}
+に使用する。最終的なattenuation quantitiesはConfirmation subsetだけで評価する。
+
+
+% ----------------------------------------------------------------
+\subsection{RQ3 Discovery：prompt-end decodability profile}
+
+Discovery 96 pairsについて、全layerのSelf prompt-end post-MLP residual representationを取得する。model Reader Predictionを、
+\[
+Y_V,
+\qquad
+Y_A
+\]
+とする。各layerで、pair identityによる最大5-fold GroupKFoldを用いて、
+\[
+Y_V
+=
+H_lw_V+b+\epsilon
+\]
+
+\[
+Y_A
+=
+H_lw_A+b+\epsilon
+\]
+を、
+\[
+\text{Ridge}(\alpha=10)
+\]
+でfitする。held-out \(R^2\) を、
+\[
+D_V(l),
+\qquad
+D_A(l)
+\]
+とする。joint decodability summaryを、
+\[
+D_{\mathrm{joint}}(l)
+=
+\frac{
+D_V(l)+D_A(l)
+}{2}
+\]
+とする。stimulus-decoding peakを、
+\[
+l_{\mathrm{stim}}^{*}
+=
+\arg\max_lD_{\mathrm{joint}}(l)
+\]
+として記録する。
+
+
+% ----------------------------------------------------------------
+\subsection{RQ3 Discovery：exploratory causal screening}
+
+mediator candidateの選択には、Discovery subset上のprompt-end causal profileも使用する。target emotionで層化した、
+\[
+N=16
+\]
+Discovery samplesをseed 42で選択する。各layer \(l\) について、Discovery 96 samplesすべてを用いて、
+\[
+Y_V
+=
+H_lw_V+b+\epsilon,
+\]
+
+\[
+Y_A
+=
+H_lw_A+b+\epsilon
+\]
+をRidge \(\alpha=10\)でfitし、
+\[
+d_V(l),
+\qquad
+d_A(l)
+\]
+を得る。このdirection fittingと16-sample causal screeningはDiscovery subset内部で行われる。したがってこの部分はexploratory site selectionであり、独立confirmatory inferenceとは位置づけない。16 selected samplesについて、各layerのSelf prompt-endへ\(\alpha=1\) interventionを行う。Valence causal scoreを、
+\[
+C_V(l)
+=
+E_i
+[
+|
+V_i^{\mathrm{patched}}
+-
+V_i^{\mathrm{clean}}
+|
+]
+\]
+Arousal causal scoreを、
+\[
+C_A(l)
+=
+E_i
+[
+|
+A_i^{\mathrm{patched}}
+-
+A_i^{\mathrm{clean}}
+|
+]
+\]
+とする。joint causal profileを、
+\[
+C_{\mathrm{joint}}(l)
+=
+\frac{
+C_V(l)+C_A(l)
+}{2}
+\]
+と定義する。mediator layerを、
+\[
+l_{\mathrm{med}}^{*}
+=
+\arg\max_l
+C_{\mathrm{joint}}(l)
+\]
+としてDiscovery subsetだけから選択する。このsiteはConfirmation resultを見る前に固定する。
+
+
+% ----------------------------------------------------------------
+\subsection{Mediator affect-related subspace}
+
+選択されたmediator layer、
+\[
+l_{\mathrm{med}}^{*}
+\]
+について、Discovery Clinical Self representationsを、
+\[
+H_{\mathrm{med}}
+\]
+とする。Qwen Discovery RQ3の現行analysisでは、Reader Prediction V/Aを説明変数としてhidden representationをconditional linear regressionする。
+\[
+H_{\mathrm{med}}
+=
+\mathbf{1}b^\top
++
+V_R\beta_V^\top
++
+A_R\beta_A^\top
++
+E
+\]
+このRQ3 subspace estimationでは、現行procedure上、Ridge penaltyを加えないordinary least-squaresconditional regressionを使用する。得られた、
+
+\[
+\beta_V,
+\qquad
+\beta_A
+\]
+をunit directionsへ正規化し、SVDによってorthonormal affect-related subspaceを構成する。
+\[
+Q
+=
+\operatorname{orth}
+(
+[d_V,d_A]
+).
+\]
+rank-deficiencyが存在する場合には、numerically non-zeroなdirectionsだけを保持する。したがって、
+\[
+Q
+\in
+\mathbb{R}^{D\times r},
+\qquad
+1\le r\le2.
+\]
+
+
+% ----------------------------------------------------------------
+\subsection{Discovery matched-neutral center}
+
+mediator layerにおけるDiscovery matched Neutral representationsを、
+\[
+h_{i,\mathrm{neu}}
+\]
+とし、
+\[
+\mu_{\mathrm{neu}}
+=
+E_{i\in Discovery}
+[
+h_{i,\mathrm{neu}}
+]
+\]
+を計算する。Confirmation Clinical representationからsubspaceを除去する際、このDiscovery-derived neutral centerを使用する。
+
+
+% ----------------------------------------------------------------
+\subsection{Confirmation：Natural affective shift}
+
+Confirmation pair \(i\) について、clean Clinical Self expectationを、
+\[
+Y_i^{C}
+\]
+matched Neutral expectationを、
+\[
+Y_i^{N}
+\]
+とする。natural affective shiftを、
+\[
+T_i
+=
+|
+Y_i^{C}
+-
+Y_i^{N}
+|
+\]
+と定義する。Valence / Arousalを別々に算出する。
+
+
+% ----------------------------------------------------------------
+\subsection{Confirmation：Centered subspace removal}
+
+Confirmation Clinical stimulusのmediator-layer representationを、
+\[
+h_i^{C}
+\]
+とする。Discoveryで得たneutral centerおよびaffect-related basisを用いて、
+\[
+h_{i,\mathrm{centered}}
+=
+h_i^{C}
+-
+\mu_{\mathrm{neu}}
+\]
+とし、
+\[
+QQ^\top
+(
+h_i^{C}-\mu_{\mathrm{neu}}
+)
+\]
+を除去する。
+\[
+h_i'
+=
+h_i^{C}
+-
+QQ^\top
+(
+h_i^{C}-\mu_{\mathrm{neu}}
+)
+\]
+このmodified representationへ置換した後のClinical Self expectationを、
+\[
+Y_i^{C,\mathrm{blocked}}
+\]
+とする。matched Neutralからのresidual shiftを、
+\[
+R_i
+=
+|
+Y_i^{C,\mathrm{blocked}}
+-
+Y_i^{N}
+|
+\]
+と定義する。
+
+
+% ----------------------------------------------------------------
+\subsection{Absolute mediated attenuation}
+
+Primary outcomeは、
+\[
+M_i
+=
+T_i-R_i
+\]
+である。
+
+\[
+M_i>0
+\]
+は、affect-related subspaceを除去した後にClinical--Neutral Self shiftが小さくなったことを意味する。Valence / Arousalについて、Confirmation pairs上の、
+\[
+T,
+\qquad
+R,
+\qquad
+M
+\]
+をそれぞれbootstrapする。bootstrap回数は、
+\[
+B=1000
+\]
+であり、95\% confidence intervalを算出する。RQ3のPrimary endpointは、
+\[
+\text{absolute mediated attenuation }M=T-R
+\]
+である。
+
+
+% ----------------------------------------------------------------
+\subsection{Attenuation ratio}
+
+natural shiftが非常に小さいsampleではratioが不安定になる。そのため、
+\[
+T_i>0.05
+\]
+を満たすConfirmation samplesだけについて、
+\[
+AR_i
+=
+\frac{
+T_i-R_i
+}{
+T_i
+}
+\]
+を算出する。attenuation ratioはSecondary outcomeとし、Primaryはabsolute attenuation \(T-R\) とする。
+
+
+% ----------------------------------------------------------------
+\subsection{Random 2D subspace control}
+
+任意のlow-dimensional subspaceを除去するだけでSelf-report shiftが減少する可能性を評価するため、random orthogonal subspace controlを使用する。現行Qwen RQ3では、hidden dimensionality \(D\) に対しGaussian random matrix、
+\[
+G
+\in
+\mathbb{R}^{D\times2}
+\]
+を生成し、QR decompositionによって、
+\[
+Q_{\mathrm{rand}}
+\in
+\mathbb{R}^{D\times2}
+\]
+というrandom 2D orthonormal basisを得る。これは常に2D random controlであり、affect-related subspaceのnumerical rankへ自動的に合わせるmatched-rank controlとは定義しない。同じClinical representationから、
+\[
+Q_{\mathrm{rand}}
+Q_{\mathrm{rand}}^\top
+(
+h_i^C-\mu_{\mathrm{neu}}
+)
+\]
+を除去する。random removal後のresidual shiftを、
+\[
+R_i^{\mathrm{rand}}
+\]
+とする。random-subspace attenuationを、
+\[
+M_i^{\mathrm{rand}}
+=
+T_i-R_i^{\mathrm{rand}}
+
+\]
+と定義する。affect-related subspaceに特異的な追加attenuationを、
+\[
+M_{i,\mathrm{net}}
+=
+M_i
+-
+M_i^{\mathrm{rand}}
+\]
+とする。このnet attenuationについても、
+\[
+B=1000
+\]
+のbootstrap 95\% CIを求める。
+
+
+% ----------------------------------------------------------------
+\subsection{RQ3の解釈上の境界}
+
+RQ3によって直接検証されるのは、Discoveryで定義されたaffect-related subspaceを独立Confirmation pairsの自然なClinical processingから除去すると、Clinical--Neutral Self-report shiftが減衰するかである。本研究ではこれを、\text{mediated attenuation}または、\text{endogenous relevance}と呼ぶ。これはPearl型causal mediation frameworkにおける、
+\[
+\text{Natural Direct Effect},
+\]
+
+\[
+\text{Natural Indirect Effect},
+\]
+あるいは完全なmediationを識別したことを意味しない。また人間心理学における心理的媒介過程を同定するものでもない。
+
+
+% ================================================================
+% Cross-family Confirmation
+% ================================================================
+
+\subsection{Cross-family Confirmatory Replication}
+\label{app:v3-confirmatory}
+
+Qwen Discoveryだけで観測されたlayer / stage patternは、単一architectureに固有である可能性がある。そこで、
+\[
+\text{Llama 3.2 Instruct},
+\quad
+\text{Gemma 3 Instruct},
+\quad
+\text{OLMo 2 Instruct}
+\]
+を用いてconfirmatory evaluationを行う。
+
+
+% ----------------------------------------------------------------
+\subsection{Frozen-site principle}
+
+confirmatory familiesの結果を見てsiteを再選択しない。Qwen RQ1--RQ3終了後に、以下のrelative-depth / stage informationを固定する。
+
+\begin{enumerate}
+    \item \textbf{Sufficiency site}：
+    RQ1で実際に使用したrelative depth
+
+    \item \textbf{Valence temporal site}：
+    RQ2 full mapで得られた
+    Valence empirical causal-peak relative depthとstage
+
+    \item \textbf{Arousal temporal site}：
+    RQ2 full mapで得られた
+    Arousal empirical causal-peak relative depthとstage
+
+    \item \textbf{Mediation site}：
+    RQ3 Discoveryで選択されたmediator relative depth
+\end{enumerate}
+
+これらのsite / stageをLlama、Gemma、OLMoのoutcomeに基づいて変更しない。ただしarchitecture間でhidden dimensionやbasisが異なるため、Qwenのhidden direction vectorそのものを他modelへ移植しない。移植するのは、
+\[
+\text{relative site / semantic stage}
+\]
+であり、affect-related directions自体は各confirmatory familyのtraining foldから再推定する。
+
+
+% ----------------------------------------------------------------
+\subsection{Confirmatory sample-level cross-fitting}
+
+各confirmatory familyでは、AIPsyの192 matched pairsをすべて使用する。pair identityをgroupとしたGroupKFoldを使用し、
+\[
+K\le5
+\]
+とする。各foldで、
+\begin{itemize}
+    \item affect directions
+    \item mediation subspace
+    \item matched-neutral center
+    \item stage-local directions
+\end{itemize}
+をtraining foldだけから推定する。causal evaluationはheld-out test foldだけで行う。したがってdirection / subspace estimationとintervention evaluationを同じsampleで行わない。
+
+
+% ----------------------------------------------------------------
+\subsection{Confirmatory intervention sampling}
+
+causal interventionは計算量が大きいため、各test foldからseeded random samplingによって、
+\[
+5\text{ samples per fold}
+\]
+を最大数として選択する。test foldに5 samples未満しか存在しない場合には利用可能な全samplesを使用する。samplingはfoldごとに再現可能なseedで行い、pair orderに依存した先頭sample選択を避ける。
+
+
+% ----------------------------------------------------------------
+\subsection{Confirmatory H1：Decodability--Causal Dissociation}
+
+H1ではまず全192 pairsについて、Self prompt-end representationからReader Prediction V/Aをdecodeする。最大5-fold GroupKFoldにより、
+\[
+D_V(l),
+\qquad
+D_A(l)
+\]
+のout-of-fold layer profileを得る。Ridge regularizationは、
+\[
+\alpha=10
+\]
+である。causal interventionを実際に行ったheld-out intervention sample setと同じsupport上で、各layerのdecodability profileを再評価する。同じsamplesについて、training-fold-derived directionsを各layerへ\(\alpha=1\)注入して、
+\[
+C_V(l),
+\qquad
+C_A(l)
+\]
+を得る。peak dissociationを、
+\[
+\Delta d^{*}
+=
+d_C^{*}-d_D^{*}
+\]
+center-of-mass dissociationを、
+\[
+\Delta\bar d
+=
+\bar d_C-\bar d_D
+\]
+とする。intervention sample setをjointly bootstrapし、
+\[
+B=1000
+\]
+で両quantityの95\% CIを算出する。Valence / Arousalそれぞれについて、
+\[
+CI_{\mathrm{low}}(\Delta d^{*})>0
+\]
+かつ、
+\[
+CI_{\mathrm{low}}(\Delta\bar d)>0
+\]
+をconfirmatory criterionとする。
+
+
+% ----------------------------------------------------------------
+\subsection{Confirmatory H2：Sufficiency}
+
+Qwen RQ1からfreezeしたrelative depthを、各confirmatory modelのlayer数へ変換する。各foldのtraining Self representationsから、Reader Prediction V/Aをtargetとした
+\[
+\text{Ridge}(\alpha=10)
+\]
+によりValence / Arousal directionsを推定する。Neutral held-out samplesへ、
+\[
+\alpha
+\in
+\{
+-1,-0.5,0,0.5,1
+\}
+\]
+でdirection injectionを行い、Self-report shiftのslopeを評価する。sample-level slopesをbootstrapし、Valence / Arousalそれぞれについて、
+\[
+CI_{\mathrm{low}}(\gamma)>0.1
+\]
+をconfirmation criterionとする。
+
+
+% ----------------------------------------------------------------
+\subsection{Confirmatory H3：Endogenous Relevance}
+
+Qwen RQ3でfreezeしたmediator relative depthを、各confirmatory modelへ移す。各foldのtraining representationsについて、Reader Prediction V/AをtargetとしたRidge \(\alpha=10\)から、
+\[
+d_V,
+\qquad
+d_A
+\]
+を推定し、orthonormal affect-related subspace、
+\[
+Q
+\]
+を構成する。training matched Neutral representationsから、
+\[
+\mu_{\mathrm{neu}}
+\]
+を推定する。held-out Clinical samplesについて、centered affect-related subspaceを除去し、
+\[
+M_i=T_i-R_i
+\]
+を評価する。さらにrandom 2D orthogonal subspaceをfoldごとに生成し、
+\[
+M_{i,\mathrm{net}}
+=
+M_i-M_i^{\mathrm{rand}}
+\]
+を算出する。Valence / Arousalそれぞれについて、
+\[
+CI_{\mathrm{low}}(M)>0
+\]
+かつ、
+\[
+CI_{\mathrm{low}}(M_{\mathrm{net}})>0
+\]
+をconfirmatory criterionとする。natural shiftが、
+\[
+T_i>0.05
+\]
+のsamplesについてのみ計算するattenuation ratioはSecondary outcomeである。
+
+
+% ----------------------------------------------------------------
+\subsection{Confirmatory H4：Temporal Emergence}
+
+RQ2 DiscoveryでfreezeしたValence / Arousalのrelative depthとgeneration stageを使用する。各confirmatory familyでは、各stageのhidden representationsからReader Predictionをtargetとするstage-local Ridge directionをtraining foldだけで再推定する。Valenceについて、frozen target stageでのabsolute causal displacementを、
+\[
+C_V(t_V^{*})
+\]
+とする。
+candidate sequenceの最初のstageである\texttt{candidate\_start}のeffectを、
+\[
+C_V(t_{\mathrm{start}})
+\]
+とする。temporal contrastを、
+\[
+\Delta C_V^{\mathrm{temporal}}
+=
+C_V(t_V^{*})
+-
+C_V(\texttt{candidate\_start})
+\]
+とする。Arousalについても、
+\[
+\Delta C_A^{\mathrm{temporal}}
+=
+C_A(t_A^{*})
+-
+C_A(\texttt{candidate\_start})
+\]
+を計算する。sample-level contrastをbootstrapし、
+\[
+CI_{\mathrm{low}}
+(
+\Delta C^{\mathrm{temporal}}
+)>0
+\]
+をconfirmatory criterionとする。したがってH4が評価するのは、causal leverageがcandidate-generation sequence全体で一様なのではなく、Qwen Discoveryで選択されたstageにおいてcandidate startより大きくなるかである。
+
+
+% ----------------------------------------------------------------
+\subsection{Cross-family summaryの位置づけ}
+
+confirmatory familiesは、
+\[
+N_{\mathrm{family}}=3
+\]
+である。Llama、Gemma、OLMoのfamily-level quantitiesについてbootstrap summaryも計算するが、3 model familiesは無限のLLM populationからのrandom sampleではない。したがってcross-family aggregateは、prespecified three-family confirmatory consistencyとして解釈し、一般的なmodel populationに対する強いpopulation-level inferenceとは区別する。
+
+
+% ----------------------------------------------------------------
+\subsection{V3におけるPrimary / Secondary evidence}
+
+V3における主要なevidence hierarchyを表~\ref{tab:v3-primary-secondary}にまとめる。
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{V3におけるPrimary evidenceと主要なSecondary / control quantities。}
+\label{tab:v3-primary-secondary}
+\begin{tabularx}{\linewidth}{
+@{}
+>{\raggedright\arraybackslash}p{2.1cm}
+>{\raggedright\arraybackslash}p{4.1cm}
+>{\raggedright\arraybackslash}X
+@{}
+}
+\toprule
+\textbf{Analysis} &
+\textbf{Primary evidence} &
+\textbf{Secondary / Control} \\
+\midrule
+RQ1 &
+Reader-grounded sufficiency slope,
+specificity,
+attenuation ratio,
+Topic TVD,
+exact Gate decision &
+Reader--Self direction cosine,
+random / orthogonal effects separately \\
+
+RQ2 &
+Reader-grounded
+\(D,\beta,\gamma,C\)
+spatiotemporal maps;
+Valence pre\_V / Arousal pre\_A summaries &
+Self-grounded \(D\);
+global empirical peak site / stage;
+response\_end negative control \\
+
+RQ3 &
+Confirmation-set absolute
+mediated attenuation \(T-R\);
+net attenuation vs random 2D subspace &
+attenuation ratio;
+natural and residual shifts \\
+
+Cross-family &
+Frozen-site H1--H4
+held-out confirmation &
+three-family aggregate summaries \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+% ----------------------------------------------------------------
+\subsection{V3から直接主張できる範囲}
+\label{app:v3-interpretation}
+
+V3では、Representationから，Causal Utilizationへの関係を、sufficiency、spatiotemporal mapping、subspace removal、cross-family confirmationという複数の介入的evidenceによって検証する。ただし以下の解釈上の境界を維持する。
+
+\paragraph{First, decodability is not causal utilization.}
+\[
+D(l,t)
+\]
+が高いことだけから、その位置のrepresentationがSelf-report生成を制御しているとは結論しない。
+
+
+\paragraph{Second, sufficiency is not endogenous use.}
+
+direction injectionによってSelf-reportを変化させられても、自然刺激処理でその方向が実際に利用されているとは限らない。この区別のためにRQ1 / RQ3でsubspace removalを併用する。
+
+
+\paragraph{Third, temporal localization is intervention-specific.}
+
+あるstageで\(C(l,t)\)が最大になったとしても、それ以前のstageでは情報が利用されていないとは結論しない。本介入法によって測定されるcausal leverageがそのlayer / stageで相対的に大きいという解釈にとどまる。
+
+
+\paragraph{Fourth, mediated attenuation is not formal causal mediation.}
+
+\[
+M=T-R
+\]
+は、affect-related subspace removalによるinterventional attenuationである。Natural Direct Effect、Natural Indirect Effect、あるいは心理学的な完全mediationを識別したものではない。
+
+
+\paragraph{Fifth, Reader Prediction is not human ground truth.}
+
+AIPsyにはhuman continuous V/Aがないため、V3のPrimary groundingはmodel Reader Predictionである。したがってV3は、
+\[
+\text{model-derived Reader representation}
+\rightarrow
+\text{Self-report causal utilization}
+\]
+を検証する。
+
+
+\paragraph{Sixth, V3 does not identify subjective emotion or consciousness.}
+
+V3で扱うSelf-reportは標準化されたpromptに対して生成される数値的affective outputである。
+得られたcausal effectsを、
+\begin{itemize}
+    \item 主観的感情経験,
+    \item 意識,
+    \item sentience,
+    \item 人間心理学における特定の二過程モデル
+\end{itemize}
+の証拠とは解釈しない。
+
+
+\paragraph{Seventh, measurement spaces remain stage-specific.}
+
+V3は81-state VA candidate spaceを使用する。Behavioral / V1 Phase Cの729-state VAD spaceとはSoftmax normalization spaceが異なるため、expected V/Aのabsolute valueをStage間で直接比較しない。
+
+
+% ----------------------------------------------------------------
+\subsection{V3のまとめ}
+
+V3は、
+\[
+\begin{array}{c}
+\textbf{State Induction}
+\\
+\text{Reader-grounded affect directionはSelf-reportを動かせるか}
+\\[5pt]
+\downarrow
+\\[5pt]
+\textbf{Specificity / Gate}
+\\
+\text{その効果はrandom perturbationやtask disruptionではないか}
+\\[5pt]
+\downarrow
+\\[5pt]
+\textbf{Spatiotemporal Mapping}
+\\
+\text{causal leverageはどのlayer・generation stageに分布するか}
+\\[5pt]
+\downarrow
+\\[5pt]
+\textbf{Endogenous Relevance}
+\\
+\text{自然なaffect-related subspaceを除去するとSelf shiftは減衰するか}
+\\[5pt]
+\downarrow
+\\[5pt]
+\textbf{Cross-family Confirmation}
+\\
+\text{Qwenで選択したsite / stageのpatternは他familiesでも確認されるか}
+\end{array}
+\]
+とまとめられる。したがってV3が最終的に検証するのは、「内部でdecode可能な情動関連情報が一様にSelf-Reportへ利用されるのではなく、その測定可能なcausal leverageがlayerおよびgeneration stageによって異なるか」である。
+
+Behavioral、V1、V2と合わせると、本研究全体は、
+\[
+\text{Behavioral Covariation}
+\rightarrow
+\text{Internal Representation}
+\rightarrow
+\text{Post-training-Associated Reorganization}
+\rightarrow
+\text{Spatiotemporal Causal Utilization}
+\]
+という一続きのevidence hierarchyとして、LLMのaffect-relevant internal representationとSelf-Reportとの関係を検証する。
+
+
+% ================================================================
+% 17. V3結果
+% ================================================================
+\section{V3結果}
+\label{sec:v3-results}
+
+% ----------------------------------------------------------------
+% V3 Stageの客観的結果データ（Gate判定、時空間解離、検証マトリックス）
+% ----------------------------------------------------------------
+
+本節では、プローブ方向の因果的利用可能性（Causal Utilization）を評価した V3 ステージの結果を報告する。事前登録されたプロトコルに基づき、Gate 判定結果、探索的時空間ダイナミクス、および未見モデルファミリーにおける検証結果を段階別に提示する。
+
+\subsection{事前登録 Gate 判定結果（NO\_GO Decision）}
+介入方向の十分性（Sufficiency）、特異性（Specificity）、媒介減衰（Mediated Attenuation）、およびトピック不変性（Topic TVD）を事前登録規約に基づき評価した結果を表\ref{tab:v3_gate_decision}に示す。
+
+\input{tables/v3_gate_decision.tex}
+
+表\ref{tab:v3_gate_decision}に示す通り、ValenceおよびArousalの両軸において、十分性および特異性の傾き $\beta_1$ のブートストラップ95\%信頼区間下限が事前登録閾値（raw 1--9 scale 上で 0.05 / 0.10）に達しなかったため、パイプライン判定は確定的に \textbf{NO\_GO}（\texttt{pipeline\_continues = False}）となった。このため、以降の分析は事前登録された確認的仮説検定ではなく、時空間局在のメカニズムを解明するための探索的・定性的分析として位置づけられる。
+
+\subsection{探索的時空間ダイナミクス（Qwen 2.5 1.5B Discovery）}
+Qwen 2.5 1.5B-Instruct における直接プローブ読み出しピーク深度 $d_D$ と、残差ストリームへの因果介入効果ピーク深度 $d_C$ の空間的解離、および媒介減衰率を表\ref{tab:v3_spatiotemporal_dynamics}に示す。
+
+\input{tables/v3_spatiotemporal_dynamics.tex}
+
+表\ref{tab:v3_spatiotemporal_dynamics}が示すように、因果効果ピーク深度は直接デコードピーク深度よりも浅層（上流層）側に位置しており（Valence: $\Delta d = -0.111$, Arousal: $\Delta d = -0.074$）、「時空間解離（Spatiotemporal Dissociation）」が観察された。また下流層のアブレーションによる媒介減衰率は $1\%$ 未満にとどまり、情動情報が特定の単一ボトルネック層のみを経由して出力されるのではないことが示唆された。
+
+\subsection{独立ファミリー検証再現性マトリックス（Confirmatory Replication）}
+探索的発見（Qwen 2.5）で得られた時空間仮説 H1--H4 を、独立した未見の3モデルファミリー（Llama 3.2, Gemma 3, OLMo 2）で検証した結果を表\ref{tab:v3_confirmatory_matrix}に示す。
+
+\input{tables/v3_confirmatory_matrix.tex}
+
+表\ref{tab:v3_confirmatory_matrix}の通り、H1（時空間解離 $\Delta d < 0$）は Llama 3.2 および OLMo 2 において再現されたものの、効果量規約（H2）や媒介性（H3--H4）はいずれの独立モデルでも満たされず（All Confirmed: \textbf{False}）、プローブ方向の因果的介入性はモデル構造や訓練データに高度に依存し、単純な普遍的回路としては機能しないことが確認された。
+
+% ================================================================
+% 18. V3考察
+% ================================================================
+\section{V3考察}
+\label{sec:v3-discussion}
+
+V3の結果は、LLM内部における「情報の読み出し可能性（Decodability）」と「自律生成における因果的影響力（Causal Leverage）」の間に存在する決定的な乖離を浮き彫りにする。
+State Induction Gateにおいてraw 1--9 scaleの事前定義閾値が満たされずNO\_GOと判定されたことは、外部からの線形射影方向への介入が、モデルの自己報告を恣意的に歪めるほど無制約には作用しないという重要な否定的／境界的証拠を提供する。
+一方で、Qwen 2.5 1.5B-Instructを対象とした探索的時空間マップ（Discovery 4-Maps）では、特定の層および生成トークン段階（特にcandidate-independentな初期段階）において局所的な因果影響の痕跡が観察された。
+これらの知見は、情動情報が全層・全生成過程にわたって一様に利用されるのではなく、生成ダイナミクスの極めて限られた時空間窓においてのみ限定的な影響力を持ち得ることを示している。
+
+
+% ================================================================
+% 19. 全体の考察
+% ================================================================
+\section{全体の考察}
+\label{sec:general-discussion}
+
+本研究は、大規模言語モデルにおける情動関連処理と自己報告の関係を、
+\[
+\text{Behavioral Covariation} \rightarrow \text{Internal Representation Sharing} \rightarrow \text{Post-training Reorganization} \rightarrow \text{Spatiotemporal Causal Utilization}
+\]
+という4段階の体系的証拠階層を通じて検証した。
+
+\subsection{主要な知見の統合}
+第一に、行動評価（Behavioral Stage）においてモデルは人間評定との対応および刺激操作に対する高い感度を示し、ReaderとSelfの強力な共変動（Coupling）が確認された。
+第二に、同一モデル内の内部表現解析（V1）により、両タスクは共通の幾何学的表現と因果プロファイルを共有しつつも、タスク固有の調整（Specialization）を保持していることが明らかになった。
+第三に、事後学習の比較（V2）において、アライメントは内部表現を単に消去するのではなく、幾何学的歪みと因果配置の深層への再配置（Relocation）をもたらすことが示された。
+第四に、時空間因果介入（V3）は、デコード可能な情報がそのまま自己報告を因果的に支配するわけではないという決定的な境界を示した。
+
+\subsection{理論的・実践的含意と限界}
+これらの結果は、LLMが表層において高度に共感的な自己報告を生成していたとしても、それを「モデルが内部の情動状態を一様に直接言語化している」と解釈することへの強い警鐘となる。
+自己報告は内部情動表現の部分的かつタスク依存的な反映に過ぎず、事後学習による出力方針の再編や生成プロセスの制約を強く受けている。
+今後の課題として、より大規模なモデルファミリーへの拡張や、自由記述対話における自律的感情表出ダイナミクスの因果的追跡が挙げられる。
+
+
+
+
+
+
+\section*{References}
+
+[1] L. Weidinger, J. Uesato, M. Rauh, et al., “Taxonomy of Risks posed by Language Models,” \textit{Proceedings of the 2022 ACM Conference on Fairness, Accountability, and Transparency (FAccT ’22)}, pp. 214–229, 2022.
+
+[2] H. Li, R. Zhang, Y.-C. Lee, R. E. Kraut, and D. C. Mohr, “Systematic review and meta-analysis of AI-based conversational agents for promoting mental health and well-being,” \textit{npj Digital Medicine}, vol. 6, 236, 2023.
+
+[3] X. Luo, Z. Wang, J. L. Tilley, S. Balarajan, U.-A. Bassey, and C. I. Cheang, “Seeking Emotional and Mental Health Support From Generative AI: Mixed-Methods Study of ChatGPT User Experiences,” \textit{JMIR Mental Health}, vol. 12, e77951, 2025.
+
+[4] L. Laestadius, A. Bishop, M. Gonzalez, D. Illenčík, and C. Campos-Castillo, “Too human and not human enough: A grounded theory analysis of mental health harms from emotional dependence on the social chatbot Replika,” \textit{New Media \& Society}, vol. 26, no. 10, pp. 5923–5941, 2024.
+
+[5] C. M. Fang, A. R. Liu, V. Danry, et al., “How AI and Human Behaviors Shape Psychosocial Effects of Chatbot Use: A Longitudinal Randomized Controlled Study,” \textit{arXiv preprint arXiv:2503.17473}, 2025.
+
+[6] J. W. Ayers, A. Poliak, M. Dredze, et al., “Comparing Physician and Artificial Intelligence Chatbot Responses to Patient Questions Posted to a Public Social Media Forum,” \textit{JAMA Internal Medicine}, vol. 183, no. 6, pp. 589–596, 2023.
+
+[7] H. H. Haladjian and C. Montemayor, “Artificial consciousness and the consciousness-attention dissociation,” \textit{Consciousness and Cognition}, vol. 45, pp. 210–225, 2016.
+
+[8] C. Montemayor, J. Halpern, and A. Fairweather, “In principle obstacles for empathic AI: why we can’t replace human empathy in healthcare,” \textit{AI \& Society}, vol. 37, no. 4, pp. 1353–1359, 2022.
+
+[9] T. Yu, S. Pan, C. Fan, S. Luo, Y. Jin, and B. Zhao, “Can large language models exhibit cognitive and affective empathy as humans?,” \textit{Computers in Human Behavior: Artificial Humans}, vol. 6, 100233, 2025.
+
+[10] S. Zhang, Y. Qian, Z. Yao, Z. Ni, and Y. Zhang, “From approach to avoidance: How AI agent cognitive and affective empathy elicits the uncanny valley effect,” \textit{Telematics and Informatics}, vol. 101, 102313, 2025.
+
+[11] Z. Elyoseph, D. Hadar-Shoval, K. Asraf, and M. Lvovsky, “ChatGPT outperforms humans in emotional awareness evaluations,” \textit{Frontiers in Psychology}, vol. 14, 1199058, 2023.
+
+[12] J.-T. Huang, M. H. Lam, E. J. Li, et al., “Emotionally Numb or Empathetic? Evaluating How LLMs Feel Using EmotionBench,” \textit{Advances in Neural Information Processing Systems}, 2024.
+
+[13] M. Sharma, M. Tong, T. Korbak, et al., “Towards Understanding Sycophancy in Language Models,” \textit{International Conference on Learning Representations (ICLR)}, 2024.
+
+[14] M. Turpin, J. Michael, E. Perez, and S. Bowman, “Language Models Don’t Always Say What They Think: Unfaithful Explanations in Chain-of-Thought Prompting,” \textit{Advances in Neural Information Processing Systems 36}, 2023.
+
+[15] C. Burns, H. Ye, D. Klein, and J. Steinhardt, “Discovering Latent Knowledge in Language Models Without Supervision,” \textit{International Conference on Learning Representations (ICLR)}, 2023.
+
+[16] K. Li, O. Patel, F. Viégas, H. Pfister, and M. Wattenberg, “Inference-Time Intervention: Eliciting Truthful Answers from a Language Model,” \textit{Advances in Neural Information Processing Systems 36}, 2023.
+
+[17] S. Zhang, T. Yu, and Y. Feng, “TruthX: Alleviating Hallucinations by Editing Large Language Models in Truthful Space,” \textit{Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics}, pp. 8908–8949, 2024.
+
+[18] J. Ferrando, O. Obeso, S. Rajamanoharan, and N. Nanda, “Do I Know This Entity? Knowledge Awareness and Hallucinations in Language Models,” \textit{International Conference on Learning Representations (ICLR)}, 2025.
+
+[19] D. Di Palma, A. De Bellis, G. Servedio, V. W. Anelli, F. Narducci, and T. Di Noia, “LLaMAs Have Feelings Too: Unveiling Sentiment and Emotion Representations in LLaMA Models Through Probing,” \textit{Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics}, pp. 6124–6142, 2025.
+
+[20] A. N. Tak, A. Banayeeanzade, A. Bolourani, M. Kian, R. Jia, and J. Gratch, “Mechanistic Interpretability of Emotion Inference in Large Language Models,” \textit{Findings of the Association for Computational Linguistics: ACL 2025}, pp. 13090–13120, 2025.
+
+[21] J. Zhang and L. Zhong, “Decoding Emotion in the Deep: A Systematic Study of How LLMs Represent, Retain, and Express Emotion,” \textit{arXiv preprint arXiv:2510.04064}, 2025.
+
+[22] B. Reichman, A. Avsian, and L. Heck, “Emotions Where Art Thou: Understanding and Characterizing the Emotional Latent Space of Large Language Models,” \textit{International Conference on Learning Representations (ICLR)}, 2026.
+
+[23] X. Wu, H. Wang, Z. Yan, et al., “Decoding and controlling emotion in LLMs through human-aligned representational geometry with enhanced interpretability,” \textit{Computers in Human Behavior}, vol. 183, 109051, 2026.
+
+[24] A. Banayeeanzade, A. N. Tak, F. Bahrani, et al., “Psychological Steering in LLMs: An Evaluation of Effectiveness and Trustworthiness,” \textit{Proceedings of the 64th Annual Meeting of the Association for Computational Linguistics}, pp. 1719–1771, 2026.
+
+[25] F. J. Binder, J. Chua, T. Korbak, et al., “Looking Inward: Language Models Can Learn About Themselves by Introspection,” \textit{International Conference on Learning Representations (ICLR)}, 2025.
+
+[26] J. Lindsey, “Emergent Introspective Awareness in Large Language Models,” \textit{arXiv preprint arXiv:2601.01828}, 2026.
+
+[27] N. Martorell, “Quantitative Introspection in Language Models: Tracking Internal States Across Conversation,” \textit{arXiv preprint arXiv:2603.18893}, 2026.
+
+[28] S. Singh, T. Linzen, and S. Ravfogel, “Can LLMs Introspect? A Reality Check,” \textit{Conference on Language Modeling (COLM)}, 2026.
+
+
+\end{CJK*}
 \end{document}

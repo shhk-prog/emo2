@@ -1,0 +1,31 @@
+# タスク: production_v2_20260922_210714.log のエラー修正（最終確定版）
+
+- [x] 1. 修正対象箇所の整理 <!-- id: 1 -->
+  - `v2/primary/run_rq4_recovery_patching.py`:
+    - `permutation(N)` 2箇所（line 364 & line 638）
+    - `"sample_idx": int(i)` 2箇所（dry-run line 174 & full run line 525）
+    - `json.dump` 2箇所（line 889 `v2_recovery_{fam_id}.json` & line 1009 `v2_distribution_recovery_summary.json`）
+  - `src/affective_empathy_eval/io.py`:
+    - `json_serializable_default()` の保守的実装（NumPy型とPathのみ対象）
+    - `save_experiment_result()` への適用
+    - `record_latest_run()` への適用
+  - `src/affective_empathy_eval/manifests.py`:
+    - `compute_string_or_dict_hash()` への適用
+    - `RunManifest.save()` への適用
+    - `ManifestManager.save()` への適用
+- [x] 2. 共通I/Oヘルパーの実装 (`src/affective_empathy_eval/io.py`, `manifests.py`) <!-- id: 2 -->
+  - `io.py`: `json_serializable_default` 実装、`save_experiment_result`、`record_latest_run` に適用完了
+  - `manifests.py`: `ManifestManager.save`、`RunManifest.save`、`compute_string_or_dict_hash` に適用完了
+- [x] 3. `v2/primary/run_rq4_recovery_patching.py` の修正 <!-- id: 3 -->
+  - `perm = [int(x) for x in rng_split.permutation(N)]`（line 364 & line 638）完了
+  - `"sample_idx": int(i)`（line 174 & line 525）完了
+  - line 889, line 1009 の `json.dump` に `default=json_serializable_default` を適用完了
+- [x] 4. 単体テストの追加と実行 (`tests/test_io_modular.py`) <!-- id: 4 -->
+  - ネストした dict / list 内の `np.int64`, `np.float64`, `np.bool_`, `np.ndarray` を含むテストケースを追加
+  - pytest による自動検証完了（2 passed）
+- [x] 5. CPU dry-run 回帰テストの実行 <!-- id: 5 -->
+  - `python v2/primary/run_rq4_recovery_patching.py --models-config configs/models.yaml --model-set primary_small --family olmo --dry-run --device cpu` 実行完了
+  - family, modular, manifest, final summary の全保存ステップが正常完了（exit code 0）を確認
+- [x] 6. ドキュメント整備と報告 <!-- id: 6 -->
+  - `task.md`, `implementation_plan.md`, `walkthrough.md` の作成・更新
+  - 結果のまとめと再実行（GPU）に関する確認

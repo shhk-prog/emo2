@@ -150,7 +150,7 @@ def run_v2(args, python_bin: str):
     run_command([python_bin, "v2/primary/run_rq4_recovery_patching.py"] + common_flags)
     # 4. Confirmatory Statistical Analysis across families
     if not args.family and not args.base_model and not args.instruct_model:
-        conf_flags = []
+        conf_flags = ["--models-config", "configs/models.yaml", "--model-set", args.model_set]
         if args.dry_run:
             conf_flags.append("--dry-run")
         if getattr(args, "force", False):
@@ -368,8 +368,23 @@ def main():
     args = parse_args()
     python_bin = sys.executable
 
+    from datetime import datetime
+    from affective_empathy_eval.io import resolve_log_dir
+
+    log_dir = resolve_log_dir(
+        model_set=args.model_set,
+        stage=args.stage,
+        is_dry_run=args.dry_run,
+    )
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_file = log_dir / f"run_{args.stage}_{timestamp}.log"
+    file_handler = logging.FileHandler(log_file, encoding="utf-8")
+    file_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
+    logging.getLogger().addHandler(file_handler)
+
     logger.info("Affective Empathy Evaluation Unified Runner")
     logger.info(f"Stage: {args.stage} | Cohort: {args.model_set} | Dry-run: {args.dry_run}")
+    logger.info(f"Execution log automatically saved to {log_file}")
     logger.info("Wall-clock estimates are unmeasured until a Qwen-family benchmark is recorded.")
     log_production_dataset_inventory()
 

@@ -1,0 +1,189 @@
+==================================================================
+Starting Production V2 Scale Ablation Evaluation
+Timestamp : 2026-09-24T04:26:32Z
+Model Set : scale_3b
+Device    : cpu
+Python    : /mnt/nas/home/hiromi/src/emo2/.venv/bin/python
+Python Ver: Python 3.12.3
+Pip Ver   : 
+Git SHA   : 83267581830fa8b5268076067fa058e2d4fc6f24
+uv.lock   : 5c6343d85ce02a529c05cb796a7a0cca6bfd1558fef8750d6c692e37258631d9
+Extra Args: --dry-run
+Log File  : results/ablation/scale_3b/logs/production_v2_20260924_132632.log
+Pipeline  : RQ1/RQ2 (Cross-decoding) -> RQ3 (Causal Map) -> RQ4 (Recovery Patching)
+==================================================================
+2026-09-24 13:26:34,447 [INFO] Affective Empathy Evaluation Unified Runner
+2026-09-24 13:26:34,447 [INFO] Stage: v2 | Cohort: scale_3b | Dry-run: True
+2026-09-24 13:26:34,447 [INFO] Execution log automatically saved to results/ablation/scale_3b/logs/dry_run/run_v2_20260924_132634.log
+2026-09-24 13:26:34,447 [INFO] Wall-clock estimates are unmeasured until a Qwen-family benchmark is recorded.
+2026-09-24 13:26:34,447 [INFO] Dataset inventory (actual loaded counts; wall-clock time is unmeasured):
+2026-09-24 13:26:34,453 [INFO] EmoBank 3-way: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-24 13:26:34,458 [INFO] AIPsy 4-split: n_rows=480 | path=v1/data/processed/aipsy_4split_all.csv | n_unique_pair_id=192 | n_unique_id=480 | split_counts={'clinical': 192, 'neutral': 192, 'moderate': 48, 'complex_neutral': 48}
+2026-09-24 13:26:34,464 [INFO] V1 Phase B rule-based controls: n_rows=192 | path=v1/data/processed/v1_e5_semantic_controls.csv | n_unique_pair_id=192
+2026-09-24 13:26:34,464 [INFO] === Running V2 Stage (model-set: scale_3b) ===
+2026-09-24 13:26:34,464 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v2/primary/run_rq1_rq2_cross_decoding.py --models-config configs/models.yaml --model-set scale_3b --device cpu --dry-run
+2026-09-24 13:26:38,259 [INFO] Starting V2-RQ1 & RQ2 analysis (dry_run=True, device=cpu)
+2026-09-24 13:26:38,270 [INFO] V2-RQ1/RQ2 dataset: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-24 13:26:38,271 [INFO] [DRY-RUN] Scaled down dataset to N=32 for fast smoke testing.
+2026-09-24 13:26:38,271 [INFO] Dataset loaded: total=32, train=22, held_out_test=10
+2026-09-24 13:26:38,272 [INFO] Target model-set: scale_3b | Output raw: results/ablation/scale_3b/raw/dry_run | derived: results/ablation/scale_3b/derived/dry_run
+2026-09-24 13:26:38,482 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-3B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-24 13:26:38,494 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-3B-Instruct/aa8e72537993ba99e69dfaafa59ed015b17504d1/config.json?%2FQwen%2FQwen2.5-3B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%2251b83fbd4e2d363b60235b9c8d494046a83c1cbf%22 "HTTP/1.1 200 OK"
+2026-09-24 13:26:38,498 [INFO] --- Processing Family: qwen (Qwen 2.5, 4 layers, dim=64) ---
+2026-09-24 13:26:38,498 [INFO] Extracting activations for base_reader (model=Qwen/Qwen2.5-3B, format=plain)...
+2026-09-24 13:26:38,499 [INFO] Extracting activations for base_self (model=Qwen/Qwen2.5-3B, format=plain)...
+2026-09-24 13:26:38,499 [INFO] Extracting activations for inst_reader (model=Qwen/Qwen2.5-3B-Instruct, format=chat)...
+2026-09-24 13:26:38,499 [INFO] Extracting activations for inst_self (model=Qwen/Qwen2.5-3B-Instruct, format=chat)...
+2026-09-24 13:26:38,500 [INFO] Extracting activations for inst_matched_reader (model=Qwen/Qwen2.5-3B-Instruct, format=plain)...
+2026-09-24 13:26:38,500 [INFO] Extracting activations for inst_matched_self (model=Qwen/Qwen2.5-3B-Instruct, format=plain)...
+2026-09-24 13:26:38,500 [INFO] Running held-out geometry & cross-decoding analysis across 4 layers (has_matched=True)...
+2026-09-24 13:26:38,500 [INFO]   Evaluating layer 0/3 (d=0.00)...
+2026-09-24 13:26:38,556 [INFO]   Evaluating layer 3/3 (d=1.00)...
+2026-09-24 13:26:38,573 [INFO] Archived existing result results/ablation/scale_3b/raw/dry_run/v2_rq1_decodability_preservation_qwen.json to results/ablation/scale_3b/raw/archive/20260924T042638Z_v2_rq1_decodability_preservation_qwen.json
+2026-09-24 13:26:38,574 [INFO] [v2:v2_rq1_decodability_preservation] Sequentially saved result to results/ablation/scale_3b/raw/dry_run/v2_rq1_decodability_preservation_qwen.json (success=True)
+2026-09-24 13:26:38,575 [INFO] Archived existing result results/ablation/scale_3b/raw/dry_run/v2_rq2_geometry_transformation_qwen.json to results/ablation/scale_3b/raw/archive/20260924T042638Z_v2_rq2_geometry_transformation_qwen.json
+2026-09-24 13:26:38,576 [INFO] [v2:v2_rq2_geometry_transformation] Sequentially saved result to results/ablation/scale_3b/raw/dry_run/v2_rq2_geometry_transformation_qwen.json (success=True)
+2026-09-24 13:26:38,577 [INFO] Saved family results to results/ablation/scale_3b/raw/dry_run/v2_geometry_qwen.json, results/ablation/scale_3b/raw/dry_run/v2_rq1_decodability_preservation_qwen.json, and results/ablation/scale_3b/raw/dry_run/v2_rq2_geometry_transformation_qwen.json
+2026-09-24 13:26:38,749 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct/resolve/main/config.json "HTTP/1.1 200 OK"
+2026-09-24 13:26:38,770 [INFO] --- Processing Family: llama (Llama 3.2, 4 layers, dim=64) ---
+2026-09-24 13:26:38,770 [INFO] Extracting activations for base_reader (model=meta-llama/Llama-3.2-3B, format=plain)...
+2026-09-24 13:26:38,771 [INFO] Extracting activations for base_self (model=meta-llama/Llama-3.2-3B, format=plain)...
+2026-09-24 13:26:38,771 [INFO] Extracting activations for inst_reader (model=meta-llama/Llama-3.2-3B-Instruct, format=chat)...
+2026-09-24 13:26:38,771 [INFO] Extracting activations for inst_self (model=meta-llama/Llama-3.2-3B-Instruct, format=chat)...
+2026-09-24 13:26:38,772 [INFO] Extracting activations for inst_matched_reader (model=meta-llama/Llama-3.2-3B-Instruct, format=plain)...
+2026-09-24 13:26:38,772 [INFO] Extracting activations for inst_matched_self (model=meta-llama/Llama-3.2-3B-Instruct, format=plain)...
+2026-09-24 13:26:38,772 [INFO] Running held-out geometry & cross-decoding analysis across 4 layers (has_matched=True)...
+2026-09-24 13:26:38,772 [INFO]   Evaluating layer 0/3 (d=0.00)...
+2026-09-24 13:26:38,820 [INFO]   Evaluating layer 3/3 (d=1.00)...
+2026-09-24 13:26:38,836 [INFO] Archived existing result results/ablation/scale_3b/raw/dry_run/v2_rq1_decodability_preservation_llama.json to results/ablation/scale_3b/raw/archive/20260924T042638Z_v2_rq1_decodability_preservation_llama.json
+2026-09-24 13:26:38,837 [INFO] [v2:v2_rq1_decodability_preservation] Sequentially saved result to results/ablation/scale_3b/raw/dry_run/v2_rq1_decodability_preservation_llama.json (success=True)
+2026-09-24 13:26:38,838 [INFO] Archived existing result results/ablation/scale_3b/raw/dry_run/v2_rq2_geometry_transformation_llama.json to results/ablation/scale_3b/raw/archive/20260924T042638Z_v2_rq2_geometry_transformation_llama.json
+2026-09-24 13:26:38,839 [INFO] [v2:v2_rq2_geometry_transformation] Sequentially saved result to results/ablation/scale_3b/raw/dry_run/v2_rq2_geometry_transformation_llama.json (success=True)
+2026-09-24 13:26:38,840 [INFO] Saved family results to results/ablation/scale_3b/raw/dry_run/v2_geometry_llama.json, results/ablation/scale_3b/raw/dry_run/v2_rq1_decodability_preservation_llama.json, and results/ablation/scale_3b/raw/dry_run/v2_rq2_geometry_transformation_llama.json
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/scipy/stats/_wilcoxon.py:192: RuntimeWarning: invalid value encountered in scalar divide
+  z = (r_plus - mn) / se
+2026-09-24 13:26:38,847 [INFO] All done! Integrated summary with Bootstrap CIs saved to results/ablation/scale_3b/derived/dry_run/v2_cross_family_summary.json
+2026-09-24 13:26:39,726 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v2/primary/run_rq3_causal_map.py --models-config configs/models.yaml --model-set scale_3b --device cpu --dry-run
+2026-09-24 13:26:43,635 [INFO] Starting V2-RQ3 Causal Map analysis (dry_run=True, device=cpu)
+2026-09-24 13:26:43,640 [INFO] Target model-set: scale_3b | Output raw: results/ablation/scale_3b/raw/dry_run | derived: results/ablation/scale_3b/derived/dry_run
+2026-09-24 13:26:43,646 [INFO] V2-RQ3 dataset: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-24 13:26:43,646 [INFO] [DRY-RUN] Scaled down dataset to N=32 for fast smoke testing.
+2026-09-24 13:26:43,851 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-3B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-24 13:26:43,864 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-3B-Instruct/aa8e72537993ba99e69dfaafa59ed015b17504d1/config.json?%2FQwen%2FQwen2.5-3B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%2251b83fbd4e2d363b60235b9c8d494046a83c1cbf%22 "HTTP/1.1 200 OK"
+2026-09-24 13:26:43,869 [INFO] --- Running Causal Maps for Family: qwen (4 layers) ---
+2026-09-24 13:26:43,869 [INFO] Causal patching for base_plain_reader...
+2026-09-24 13:26:43,870 [INFO] Causal patching for base_plain_self...
+2026-09-24 13:26:43,872 [INFO] Causal patching for inst_matched_plain_reader...
+2026-09-24 13:26:43,873 [INFO] Causal patching for inst_matched_plain_self...
+2026-09-24 13:26:43,874 [INFO] Causal patching for inst_native_chat_reader...
+2026-09-24 13:26:43,875 [INFO] Causal patching for inst_native_chat_self...
+2026-09-24 13:26:43,877 [INFO] Matched dissociation changes (qwen valence): Self Delta d* shift=nan, Reader Delta d* shift=nan
+2026-09-24 13:26:43,877 [INFO] Matched dissociation changes (qwen arousal): Self Delta d* shift=nan, Reader Delta d* shift=nan
+2026-09-24 13:26:43,899 [INFO] Archived existing result results/ablation/scale_3b/raw/dry_run/v2_rq3_causal_relocation_qwen.json to results/ablation/scale_3b/raw/archive/20260924T042643Z_v2_rq3_causal_relocation_qwen.json
+2026-09-24 13:26:43,960 [INFO] [v2:v2_rq3_causal_relocation] Sequentially saved result to results/ablation/scale_3b/raw/dry_run/v2_rq3_causal_relocation_qwen.json (success=True)
+2026-09-24 13:26:43,960 [INFO] Saved causal map to results/ablation/scale_3b/raw/dry_run/v2_causal_map_qwen.json and results/ablation/scale_3b/raw/dry_run/v2_rq3_causal_relocation_qwen.json
+2026-09-24 13:26:44,024 [INFO] Saved family pair-level records (768 rows) to results/ablation/scale_3b/derived/dry_run/pair_level/v2_causal_pair_level_qwen.csv
+2026-09-24 13:26:44,205 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct/resolve/main/config.json "HTTP/1.1 200 OK"
+2026-09-24 13:26:44,226 [INFO] --- Running Causal Maps for Family: llama (4 layers) ---
+2026-09-24 13:26:44,226 [INFO] Causal patching for base_plain_reader...
+2026-09-24 13:26:44,227 [INFO] Causal patching for base_plain_self...
+2026-09-24 13:26:44,229 [INFO] Causal patching for inst_matched_plain_reader...
+2026-09-24 13:26:44,230 [INFO] Causal patching for inst_matched_plain_self...
+2026-09-24 13:26:44,231 [INFO] Causal patching for inst_native_chat_reader...
+2026-09-24 13:26:44,232 [INFO] Causal patching for inst_native_chat_self...
+2026-09-24 13:26:44,234 [INFO] Matched dissociation changes (llama valence): Self Delta d* shift=nan, Reader Delta d* shift=nan
+2026-09-24 13:26:44,234 [INFO] Matched dissociation changes (llama arousal): Self Delta d* shift=nan, Reader Delta d* shift=nan
+2026-09-24 13:26:44,236 [INFO] Archived existing result results/ablation/scale_3b/raw/dry_run/v2_rq3_causal_relocation_llama.json to results/ablation/scale_3b/raw/archive/20260924T042644Z_v2_rq3_causal_relocation_llama.json
+2026-09-24 13:26:44,238 [INFO] [v2:v2_rq3_causal_relocation] Sequentially saved result to results/ablation/scale_3b/raw/dry_run/v2_rq3_causal_relocation_llama.json (success=True)
+2026-09-24 13:26:44,238 [INFO] Saved causal map to results/ablation/scale_3b/raw/dry_run/v2_causal_map_llama.json and results/ablation/scale_3b/raw/dry_run/v2_rq3_causal_relocation_llama.json
+2026-09-24 13:26:44,247 [INFO] Saved family pair-level records (768 rows) to results/ablation/scale_3b/derived/dry_run/pair_level/v2_causal_pair_level_llama.csv
+2026-09-24 13:26:44,282 [INFO] Reconstructed combined pair-level causal records (1536 rows from 2 family CSVs) to results/ablation/scale_3b/derived/dry_run/v2_causal_pair_level.csv
+2026-09-24 13:26:44,285 [INFO] Fitting Primary LMM (matched-plain, N=1024) for Valence...
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/statsmodels/base/model.py:589: SingularMatrixWarning: Random effects covariance is singular
+  return -self.score(params, *args) / nobs
+/mnt/nas/home/hiromi/src/emo2/src/affective_empathy_eval/statistics.py:43: ConvergenceWarning: The MLE may be on the boundary of the parameter space.
+  model_res = model.fit(method=["lbfgs", "cg"], maxiter=500)
+/mnt/nas/home/hiromi/src/emo2/src/affective_empathy_eval/statistics.py:43: ConvergenceWarning: The Hessian matrix at the estimated parameter values is not positive definite.
+  model_res = model.fit(method=["lbfgs", "cg"], maxiter=500)
+2026-09-24 13:26:44,431 [INFO] Fitting Primary LMM (matched-plain, N=1024) for Arousal...
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/statsmodels/base/model.py:589: SingularMatrixWarning: Random effects covariance is singular
+  return -self.score(params, *args) / nobs
+2026-09-24 13:26:44,444 [WARNING] Primary LMM fitting failed: Singular matrix
+2026-09-24 13:26:44,444 [INFO] Fitting Secondary LMM (native-chat, N=1024) for Valence...
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/statsmodels/base/model.py:589: SingularMatrixWarning: Random effects covariance is singular
+  return -self.score(params, *args) / nobs
+/mnt/nas/home/hiromi/src/emo2/src/affective_empathy_eval/statistics.py:43: ConvergenceWarning: The MLE may be on the boundary of the parameter space.
+  model_res = model.fit(method=["lbfgs", "cg"], maxiter=500)
+/mnt/nas/home/hiromi/src/emo2/src/affective_empathy_eval/statistics.py:43: ConvergenceWarning: The Hessian matrix at the estimated parameter values is not positive definite.
+  model_res = model.fit(method=["lbfgs", "cg"], maxiter=500)
+2026-09-24 13:26:44,522 [INFO] Fitting Secondary LMM (native-chat, N=1024) for Arousal...
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/statsmodels/base/model.py:589: SingularMatrixWarning: Random effects covariance is singular
+  return -self.score(params, *args) / nobs
+2026-09-24 13:26:44,535 [WARNING] Secondary LMM fitting failed: Singular matrix
+2026-09-24 13:26:44,537 [INFO] All causal maps completed! Saved summary with LMM to results/ablation/scale_3b/derived/dry_run/v2_causal_dissociation_summary.json
+2026-09-24 13:26:45,462 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v2/primary/run_rq4_recovery_patching.py --models-config configs/models.yaml --model-set scale_3b --device cpu --dry-run
+2026-09-24 13:26:49,294 [INFO] Starting V2-RQ4 Distribution Recovery Patching (dry_run=True)
+2026-09-24 13:26:49,299 [INFO] Target model-set: scale_3b | Output raw: results/ablation/scale_3b/raw/dry_run | derived: results/ablation/scale_3b/derived/dry_run
+2026-09-24 13:26:49,305 [INFO] V2-RQ4 dataset: n_rows=1000 | path=v1/data/processed/stimuli_vad_3way_test1k.csv | n_unique_stimulus_id=1000 | split_counts={'test': 1000}
+2026-09-24 13:26:49,306 [INFO] [DRY-RUN] Scaled down dataset to N=32 for fast smoke testing.
+2026-09-24 13:26:49,306 [INFO] --- Running Recovery Patching for Family: qwen (train_ratio=0.7) ---
+2026-09-24 13:26:49,306 [INFO] === Starting RQ4 Recovery Patching for Family: qwen ===
+2026-09-24 13:26:49,649 [INFO] HTTP Request: HEAD https://huggingface.co/Qwen/Qwen2.5-3B-Instruct/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-24 13:26:49,698 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen2.5-3B-Instruct/aa8e72537993ba99e69dfaafa59ed015b17504d1/config.json?%2FQwen%2FQwen2.5-3B-Instruct%2Fresolve%2Fmain%2Fconfig.json=&etag=%2251b83fbd4e2d363b60235b9c8d494046a83c1cbf%22 "HTTP/1.1 200 OK"
+2026-09-24 13:26:49,703 [INFO] [qwen] Running Recovery Patching for Reader task...
+2026-09-24 13:26:49,705 [INFO] [qwen] Running Recovery Patching for Self task...
+2026-09-24 13:26:49,710 [INFO] Saved family sample recovery records to results/ablation/scale_3b/raw/dry_run/v2_recovery_samples_qwen.csv
+2026-09-24 13:26:49,714 [INFO] Archived existing result results/ablation/scale_3b/raw/dry_run/v2_rq4_recovery_patching_qwen.json to results/ablation/scale_3b/raw/archive/20260924T042649Z_v2_rq4_recovery_patching_qwen.json
+2026-09-24 13:26:49,726 [INFO] [v2:v2_rq4_recovery_patching] Sequentially saved result to results/ablation/scale_3b/raw/dry_run/v2_rq4_recovery_patching_qwen.json (success=True)
+2026-09-24 13:26:49,726 [INFO] Saved family recovery result to results/ablation/scale_3b/raw/dry_run/v2_recovery_qwen.json and results/ablation/scale_3b/raw/dry_run/v2_rq4_recovery_patching_qwen.json
+2026-09-24 13:26:49,729 [INFO]   [Self] Best Recovery (Matched-Plain): Layer 2 (d=0.67) -> 81.0%
+2026-09-24 13:26:49,729 [INFO]   [Reader] Best Recovery (Matched-Plain): Layer 2 (d=0.67) -> 66.7%
+2026-09-24 13:26:49,729 [INFO] --- Running Recovery Patching for Family: llama (train_ratio=0.7) ---
+2026-09-24 13:26:49,729 [INFO] === Starting RQ4 Recovery Patching for Family: llama ===
+2026-09-24 13:26:49,952 [INFO] HTTP Request: HEAD https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct/resolve/main/config.json "HTTP/1.1 200 OK"
+2026-09-24 13:26:49,973 [INFO] [llama] Running Recovery Patching for Reader task...
+2026-09-24 13:26:49,975 [INFO] [llama] Running Recovery Patching for Self task...
+2026-09-24 13:26:49,980 [INFO] Saved family sample recovery records to results/ablation/scale_3b/raw/dry_run/v2_recovery_samples_llama.csv
+2026-09-24 13:26:49,984 [INFO] Archived existing result results/ablation/scale_3b/raw/dry_run/v2_rq4_recovery_patching_llama.json to results/ablation/scale_3b/raw/archive/20260924T042649Z_v2_rq4_recovery_patching_llama.json
+2026-09-24 13:26:49,994 [INFO] [v2:v2_rq4_recovery_patching] Sequentially saved result to results/ablation/scale_3b/raw/dry_run/v2_rq4_recovery_patching_llama.json (success=True)
+2026-09-24 13:26:49,994 [INFO] Saved family recovery result to results/ablation/scale_3b/raw/dry_run/v2_recovery_llama.json and results/ablation/scale_3b/raw/dry_run/v2_rq4_recovery_patching_llama.json
+2026-09-24 13:26:49,997 [INFO]   [Self] Best Recovery (Matched-Plain): Layer 2 (d=0.67) -> 81.0%
+2026-09-24 13:26:49,997 [INFO]   [Reader] Best Recovery (Matched-Plain): Layer 2 (d=0.67) -> 66.7%
+2026-09-24 13:26:50,002 [INFO] Saved cross-family sample recovery records (N=128) to results/ablation/scale_3b/derived/dry_run/v2_recovery_sample_level_all.csv
+2026-09-24 13:26:50,022 [INFO] All recovery experiments completed! Summary saved to results/ablation/scale_3b/derived/dry_run/v2_distribution_recovery_summary.json
+2026-09-24 13:26:50,934 [INFO] Executing: /mnt/nas/home/hiromi/src/emo2/.venv/bin/python v2/primary/run_confirmatory_analysis.py --models-config configs/models.yaml --model-set scale_3b --dry-run
+2026-09-24 13:26:52,800 [INFO] Running confirmatory analysis for model_set='scale_3b' | families=['qwen', 'Qwen', 'llama', 'Llama'] | raw=results/ablation/scale_3b/raw/dry_run | derived=results/ablation/scale_3b/derived/dry_run
+2026-09-24 13:26:52,907 [INFO] Fitting Confirmatory Primary LMM on 1280 observations (matched-plain) with C(family) fixed effects...
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/statsmodels/base/model.py:589: SingularMatrixWarning: Random effects covariance is singular
+  return -self.score(params, *args) / nobs
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/statsmodels/regression/mixed_linear_model.py:2384: ConvergenceWarning: Maximum Likelihood optimization failed to converge. Check mle_retvals
+  rslt = super().fit(
+/mnt/nas/home/hiromi/src/emo2/src/affective_empathy_eval/statistics.py:43: ConvergenceWarning: Retrying MixedLM optimization with cg
+  model_res = model.fit(method=["lbfgs", "cg"], maxiter=500)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/statsmodels/regression/mixed_linear_model.py:2384: ConvergenceWarning: Maximum Likelihood optimization failed to converge. Check mle_retvals
+  rslt = super().fit(
+/mnt/nas/home/hiromi/src/emo2/src/affective_empathy_eval/statistics.py:43: ConvergenceWarning: MixedLM optimization failed, trying a different optimizer may help.
+  model_res = model.fit(method=["lbfgs", "cg"], maxiter=500)
+/mnt/nas/home/hiromi/src/emo2/src/affective_empathy_eval/statistics.py:43: ConvergenceWarning: Gradient optimization failed, |grad| = 21.363835
+  model_res = model.fit(method=["lbfgs", "cg"], maxiter=500)
+/mnt/nas/home/hiromi/src/emo2/src/affective_empathy_eval/statistics.py:43: ConvergenceWarning: The MLE may be on the boundary of the parameter space.
+  model_res = model.fit(method=["lbfgs", "cg"], maxiter=500)
+/mnt/nas/home/hiromi/src/emo2/src/affective_empathy_eval/statistics.py:43: ConvergenceWarning: The Hessian matrix at the estimated parameter values is not positive definite.
+  model_res = model.fit(method=["lbfgs", "cg"], maxiter=500)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/statsmodels/base/model.py:589: SingularMatrixWarning: Random effects covariance is singular
+  return -self.score(params, *args) / nobs
+2026-09-24 13:26:53,100 [WARNING] Primary LMM Arousal fit failed: Singular matrix
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/statsmodels/base/model.py:589: SingularMatrixWarning: Random effects covariance is singular
+  return -self.score(params, *args) / nobs
+/mnt/nas/home/hiromi/src/emo2/src/affective_empathy_eval/statistics.py:43: ConvergenceWarning: The MLE may be on the boundary of the parameter space.
+  model_res = model.fit(method=["lbfgs", "cg"], maxiter=500)
+/mnt/nas/home/hiromi/src/emo2/.venv/lib/python3.12/site-packages/statsmodels/base/model.py:589: SingularMatrixWarning: Random effects covariance is singular
+  return -self.score(params, *args) / nobs
+/mnt/nas/home/hiromi/src/emo2/src/affective_empathy_eval/statistics.py:43: ConvergenceWarning: The MLE may be on the boundary of the parameter space.
+  model_res = model.fit(method=["lbfgs", "cg"], maxiter=500)
+2026-09-24 13:26:53,173 [INFO] Saved V2 Confirmatory Analysis report to results/ablation/scale_3b/derived/dry_run/v2_lmm_confirmatory.json
+2026-09-24 13:26:53,706 [INFO] All requested stages completed successfully!
+==================================================================
+Scale Ablation (scale_3b) completed successfully!
+Elapsed Time: 22 seconds
+==================================================================

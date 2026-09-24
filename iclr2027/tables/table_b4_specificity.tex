@@ -1,0 +1,42 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{AIPsy RQ3（感情特異性 vs 構文複雑性）：問い「臨床刺激による変位は、単なる複雑な構文の中立文（Complex Neutral）への反応ではなく、感情内容に特異的か」。臨床文変位 $\Delta_{\text{clin}}$ と複雑中立文変位 $\Delta_{\text{comp}}$ の差分、効果量 Cohen's $d$、およびFDR補正後 $q$ 値。}
+\label{tab:behavioral_aipsy_rq3_specificity}
+\begin{tabular}{lll cccc cccc}
+\toprule
+ & & & \multicolumn{4}{c}{\textbf{Valence Axis}} & \multicolumn{4}{c}{\textbf{Arousal Axis}} \\
+\cmidrule(lr){4-7} \cmidrule(lr){8-11}
+\textbf{Family} & \textbf{Variant} & \textbf{Task} & $\Delta_{\text{clin}}$ & $\Delta_{\text{comp}}$ & $d$ & $q$-value & $\Delta_{\text{clin}}$ & $\Delta_{\text{comp}}$ & $d$ & $q$-value \\
+\midrule
+\multirow{4}{*}{Qwen 2.5 1.5B} & \multirow{2}{*}{Base} & Reader     & 0.014 & 0.014 & -0.02 & 0.9464 & 0.020 & 0.009 & 0.96 & $<10^{-11}$ \\
+                       &                      & Self       & 0.011 & 0.013 & -0.30 & 0.0923 & 0.015 & 0.009 & 0.72 & $<10^{-6}$ \\
+\cmidrule(lr){2-11}
+                       & \multirow{2}{*}{Instruct} & Reader     & 0.048 & 0.026 & 0.74 & $<10^{-6}$ & 0.078 & 0.053 & 0.58 & $<0.001$ \\
+                       &                      & Self       & 0.029 & 0.023 & 0.27 & 0.0995 & 0.044 & 0.043 & 0.01 & 0.9511 \\
+\midrule
+\multirow{4}{*}{Llama 3.2 1B} & \multirow{2}{*}{Base} & Reader     & 0.009 & 0.015 & -0.69 & $<0.001$ & 0.007 & 0.012 & -0.77 & $<10^{-5}$ \\
+                       &                      & Self       & 0.011 & 0.022 & -0.92 & $<10^{-5}$ & 0.008 & 0.012 & -0.68 & $<0.001$ \\
+\cmidrule(lr){2-11}
+                       & \multirow{2}{*}{Instruct} & Reader     & 0.029 & 0.026 & 0.15 & 0.3774 & 0.084 & 0.040 & 1.04 & $<10^{-9}$ \\
+                       &                      & Self       & 0.024 & 0.029 & -0.23 & 0.2456 & 0.035 & 0.048 & -0.43 & 0.0244 \\
+\midrule
+\multirow{4}{*}{Gemma 3 1B} & \multirow{2}{*}{Base} & Reader     & 0.034 & 0.066 & -0.76 & $<0.001$ & 0.027 & 0.040 & -0.54 & 0.0049 \\
+                       &                      & Self       & 0.033 & 0.061 & -0.72 & $<0.001$ & 0.024 & 0.037 & -0.55 & 0.0050 \\
+\cmidrule(lr){2-11}
+                       & \multirow{2}{*}{Instruct} & Reader     & 0.087 & 0.177 & -0.97 & $<10^{-6}$ & 0.165 & 0.136 & 0.24 & 0.1572 \\
+                       &                      & Self       & 0.096 & 0.121 & -0.33 & 0.0842 & 0.146 & 0.162 & -0.15 & 0.3748 \\
+\midrule
+\multirow{4}{*}{OLMo 2 1B} & \multirow{2}{*}{Base} & Reader     & 0.030 & 0.019 & 0.55 & $<10^{-5}$ & 0.012 & 0.016 & -0.39 & 0.0410 \\
+                       &                      & Self       & 0.014 & 0.011 & 0.23 & 0.1484 & 0.007 & 0.008 & -0.16 & 0.3592 \\
+\cmidrule(lr){2-11}
+                       & \multirow{2}{*}{Instruct} & Reader     & 0.023 & 0.028 & -0.24 & 0.2218 & 0.054 & 0.041 & 0.34 & 0.0329 \\
+                       &                      & Self       & 0.022 & 0.026 & -0.18 & 0.3489 & 0.057 & 0.037 & 0.48 & 0.0038 \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} 特異的効果量 $d$ は、臨床刺激に対する反応が単なる構文複雑さへの反応を超越している度合いを示す。Instructモデルにおいて、特にArousal軸で有意な感情特異性が維持されている。
+\end{minipage}
+\end{table}

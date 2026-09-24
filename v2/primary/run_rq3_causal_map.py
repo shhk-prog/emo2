@@ -701,13 +701,14 @@ def main():
         v2_config = yaml.safe_load(f)
 
     target_models = resolve_models_from_args(args, Path(args.models_config))
-    raw_dir = Path(v2_config["output"]["raw_dir"])
-    derived_dir = Path(v2_config["output"]["derived_dir"])
-    if args.dry_run:
-        raw_dir = raw_dir / "dry_run"
-        derived_dir = derived_dir / "dry_run"
-    raw_dir.mkdir(parents=True, exist_ok=True)
-    derived_dir.mkdir(parents=True, exist_ok=True)
+    from affective_empathy_eval.io import resolve_output_dirs
+    raw_dir, derived_dir = resolve_output_dirs(
+        config=v2_config,
+        model_set=getattr(args, "model_set", "primary_small"),
+        stage="v2",
+        is_dry_run=args.dry_run,
+    )
+    logger.info(f"Target model-set: {getattr(args, 'model_set', 'primary_small')} | Output raw: {raw_dir} | derived: {derived_dir}")
 
     pair_dir = derived_dir / "pair_level"
     pair_dir.mkdir(parents=True, exist_ok=True)

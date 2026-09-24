@@ -106,6 +106,8 @@ from affective_empathy_eval.likelihood import (
 # IO
 from affective_empathy_eval.io import (
     is_experiment_completed,
+    resolve_log_dir,
+    resolve_output_dirs,
     save_experiment_result,
 )
 
@@ -304,4 +306,6 @@ __all__ = [
     # IO
     "save_experiment_result",
     "is_experiment_completed",
+    "resolve_output_dirs",
+    "resolve_log_dir",
 ]

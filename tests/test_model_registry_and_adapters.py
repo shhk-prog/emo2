@@ -78,6 +78,55 @@ def test_load_scale_validation():
     assert "v0.3" in mistral.instruct_model.model_id
 
 
+def test_load_scale_3b():
+    models = load_model_set(model_set="scale_3b")
+    assert "qwen" in models
+    assert "llama" in models
+
+    qwen = models["qwen"]
+    assert qwen.scale == "3B"
+    assert qwen.base_model.model_id == "Qwen/Qwen2.5-3B"
+    assert qwen.instruct_model.model_id == "Qwen/Qwen2.5-3B-Instruct"
+    assert qwen.num_layers == 36
+    assert qwen.hidden_dim == 2048
+
+    llama = models["llama"]
+    assert llama.scale == "3B"
+    assert llama.base_model.model_id == "meta-llama/Llama-3.2-3B"
+    assert llama.instruct_model.model_id == "meta-llama/Llama-3.2-3B-Instruct"
+    assert llama.num_layers == 28
+    assert llama.hidden_dim == 3072
+
+
+def test_load_scale_7b():
+    models = load_model_set(model_set="scale_7b")
+    assert "qwen" in models
+    assert "llama" in models
+    assert "olmo" in models
+
+    qwen = models["qwen"]
+    assert qwen.scale == "7B"
+    assert qwen.base_model.model_id == "Qwen/Qwen2.5-7B"
+    assert qwen.instruct_model.model_id == "Qwen/Qwen2.5-7B-Instruct"
+    assert qwen.num_layers == 28
+    assert qwen.hidden_dim == 3584
+
+    llama = models["llama"]
+    assert llama.scale == "8B"
+    assert llama.base_model.model_id == "meta-llama/Llama-3.1-8B"
+    assert llama.instruct_model.model_id == "meta-llama/Llama-3.1-8B-Instruct"
+    assert llama.num_layers == 32
+    assert llama.hidden_dim == 4096
+
+    olmo = models["olmo"]
+    assert olmo.scale == "7B"
+    assert olmo.base_model.model_id == "allenai/OLMo-2-1124-7B"
+    assert olmo.instruct_model.model_id == "allenai/OLMo-2-1124-7B-Instruct"
+    assert olmo.num_layers == 32
+    assert olmo.hidden_dim == 4096
+
+
+
 def test_resolve_models_from_args():
     parser = argparse.ArgumentParser()
     add_model_selection_args(parser)

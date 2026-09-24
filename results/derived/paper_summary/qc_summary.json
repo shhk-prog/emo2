@@ -1,5 +1,5 @@
 {
-  "updated_at_utc": "2026-09-24T19:45:53.437867+00:00",
+  "updated_at_utc": "2026-09-24T21:31:12.194165+00:00",
   "stages": {
     "behavioral": {
       "stage": "behavioral",
@@ -41,6 +41,32 @@
         },
         "table_v1_6": {
           "n_rows": 8
+        }
+      }
+    },
+    "v2": {
+      "stage": "v2",
+      "tables": {
+        "table_v2_1": {
+          "n_rows": 16
+        },
+        "table_v2_2": {
+          "n_rows": 8
+        },
+        "table_v2_3a": {
+          "n_rows": 32
+        },
+        "table_v2_3b": {
+          "n_rows": 32
+        },
+        "table_v2_3c": {
+          "n_rows": 24
+        },
+        "table_v2_4": {
+          "n_rows": 8
+        },
+        "table_v2_confirmatory": {
+          "n_rows": 18
         }
       }
     },

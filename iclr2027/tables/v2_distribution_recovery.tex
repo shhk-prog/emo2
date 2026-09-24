@@ -1,0 +1,25 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{V2 H4（出力分布回復能・介入修復）：Baseモデルの表現介入によるInstructモデルの出力分布回復。Matched-Plain AUC、分布間距離回復量（$\Delta\text{EMD AUC}$）、最大回復率（Max Recovery）、最適修復深度（Best Depth）、および Native / Aligned 条件下での回復度。}
+\label{tab:v2_distribution_recovery}
+\begin{tabular}{ll cccc cc}
+\toprule
+\textbf{Family} & \textbf{Task} & \textbf{Matched AUC} & $\Delta\text{EMD AUC}$ & \textbf{Max Recovery} & \textbf{Best Depth ($d^*$)} & \textbf{Native AUC} & \textbf{Aligned AUC} \\
+\midrule
+QWEN       & Reader   & 0.189        & 0.056          & 0.439        & 0.370            & 0.007      & $-$0.001   \\
+QWEN       & Self     & 0.181        & 0.062          & 0.417        & 0.407            & 0.052      & $-$0.000   \\
+LLAMA      & Reader   & 0.005        & 0.001          & 0.113        & 0.400            & 0.158      & 0.001      \\
+LLAMA      & Self     & $-$0.006     & $-$0.000       & 0.078        & 0.400            & 0.125      & $-$0.000   \\
+GEMMA      & Reader   & $-$0.052     & $-$0.012       & 0.142        & 0.040            & $-$0.072   & $-$0.011   \\
+GEMMA      & Self     & 0.001        & 0.005          & 0.326        & 0.000            & $-$0.025   & $-$0.009   \\
+OLMO       & Reader   & $-$0.170     & $-$0.037       & 0.006        & 0.800            & 0.044      & 0.001      \\
+OLMO       & Self     & $-$0.160     & $-$0.045       & 0.000        & 1.000            & 0.070      & $-$0.001   \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} Baseモデル内部へInstruct由来の整列ベクトルを注入した場合の出力感情分布の回復度（Matched AUC, $\Delta\text{EMD AUC}$, Max Recovery）。事前登録された4ファミリー設計（Qwen, Llama, Gemma, OLMo）に基づき、全モデルでMatched-Plain recoveryの実測値が得られた。
+\end{minipage}
+\end{table}

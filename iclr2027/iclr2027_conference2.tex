@@ -2885,7 +2885,50 @@ correlationを定義できるだけのsample variationが存在しない場合�
 \section{Behavioral考察}
 \label{sec:behavioral-discussion}
 
+Reader PredictionとSelf-Reportの間に、model familyおよびBase / Instructの別を超えて強いstimulus-level couplingが見られた。AIPsy-AffectのClinical--Neutral matched pairsでは、Reader changeとSelf changeのPearson correlationはValence / Arousalの全Primary conditionsで正となり、おおむね
+\[
+r_{\Delta}=0.56\text{--}0.93
+\]
+の範囲にあった。
 
+この結果は、同じcontrolled stimulus manipulationによってReader Predictionが大きく変化するstimulusほど、Self-Reportも大きく変化するという安定したbehavioral covariationを示す。特に、本解析はabsolute responseそのものではなく、各Clinical stimulusとmatched Neutralとの差分、
+\[
+\Delta R_i
+=
+R(x_i^C)-R(x_i^N),
+\qquad
+\Delta S_i
+=
+S(x_i^C)-S(x_i^N)
+\]
+の相関を用いているため、単なるstimulus identityに由来する共有変動だけでは説明しにくいと考える。
+
+一方で、この強いReader--Self couplingを、human-like affective responseやaffective empathyの証拠と解釈することはできない。
+
+第一に、EmoBankにおけるhuman VADとのcorrespondenceはmodel family、task、axisによって大きく異なった。QwenではReader / Selfとも比較的明瞭なcorrespondenceが得られた一方、Gemma BaseやOLMo Baseでは多くのaxisで相関が小さかった。またInstruct variantsでcorrespondenceが高い条件は多かったものの、その改善はすべてのfamily / axisで一様ではなかった。したがって、
+\[
+\text{Reader--Self coupling}
+\neq
+\text{human-affect correspondence}
+\]
+である。モデル内部でReaderとSelfが一貫して共変動することと、その変動がhuman affect annotationを正確に追跡することは異なる性質である。
+
+第二に、Clinical--Neutral Sensitivityも全modelで一様ではなかった。多数のconditionsでは期待方向へのsignificantな変位が観測されたが、
+一部では有意な逆方向変位も存在した。したがって、Clinical stimulusへの反応を全familyに共通する単一のaffective responseとして扱うことは適切ではない。
+
+第三に、Sensitivityが存在することとstimulus intensityに対するmonotonic dose-responseが成立することも区別する必要がある。Neutral--Moderate--Clinical tripletsに対するstrict Intersection--Union Testでは、FDR補正後に明瞭なmonotonicityを満たしたPrimary conditionは限定的であった。したがって、情動刺激の有無に反応することから、その強度を連続的に符号化しているとは言えない。
+
+第四に、Clinical responseのspecificityもmodel / task / axis依存であった。ClinicalがComplex Neutralより大きく変位するconditionsがある一方、Complex Neutralの方が大きな変位を生じるconditionsも存在した。これは、response magnitudeがaffective contentだけでなく、semantic complexityやその他のstimulus propertiesにも影響される可能性を示す。
+
+以上を合わせると、Behavioral Stageで最もcross-familyに安定しているのは、human-like accuracyやstrict dose-responseではなく、
+\[
+\text{controlled stimulus change}
+\rightarrow
+\text{coupled Reader--Self change}
+\]
+という関係である。
+
+したがって、この行動レベルの共変動をもってLLMが人間のような主観的情動を体験している、あるいは真の情動的共感を保持していると解釈することはできない。本Stageが実証するのは、他者の情動反応を予測するtaskと、同じ刺激についてモデル自身を参照してaffective reportを生成するtaskが、外部刺激操作に対して出力レベルで強固に連動するという行動特性に留まる。
 
 
 % ================================================================
@@ -2894,7 +2937,34 @@ correlationを定義できるだけのsample variationが存在しない場合�
 \section{BehavioralからV1への接続}
 \label{sec:behavioral-to-v1}
 
+Behavioral Stageでは、controlled affective manipulationに対してReader PredictionとSelf-Reportが強く共変動することが示された。
+しかし、このbehavioral couplingだけから、両taskが同一の内部representationを共有しているとは言えない。少なくとも三つのmechanistic explanationが残る。
 
+第一に、ReaderとSelfが共通のaffect-relevant representationを利用している可能性がある。
+
+第二に、異なる内部representationを利用しながら、共通のresponse formatやlanguage-model priorによって類似したoutput changeを生成している可能性がある。
+
+第三に、両taskがaffectそのものではなく、generic salienceやsemantic complexityのような共有stimulus featureへ反応している可能性がある。
+
+したがって次に必要なのは、
+\[
+\text{Behavioral Covariation}
+\rightarrow
+\text{Internal Representation}
+\]
+である。
+
+V1では、human Reader V/Aやcontrolled Clinical--Neutral labelsといった外部targetを用いて、ReaderとSelfのhidden statesにaffect-relevant informationが存在するかを検証する。
+
+さらに、linear decodability、representation geometry、semantic controls、hidden-state interventionを組み合わせることにより、
+\[
+\text{Decodable}
+\neq
+\text{Geometrically Shared}
+\neq
+\text{Causally Interchangeable}
+\]
+という分離を行う。
 
 
 % ================================================================
@@ -3009,7 +3079,7 @@ intervention sensitivityが存在するか \\
 \subsection{V1における共通測定}
 \label{app:v1-common-measurements}
 
-V1では、\S\ref{app:general_methods}で定義したReader / Self taskの共通測定系（プロンプト形式、相対深度 $d_l = l/(L-1)$、729-state VAD candidate space）を引き継ぐ。
+V1では、\S\ref{app:overall_methods}で定義したReader / Self taskの共通測定系（プロンプト形式、相対深度 $d_l = l/(L-1)$、729-state VAD candidate space）を引き継ぐ。
 ReaderとSelfは引き続き独立したforward passとして実行する。
 
 Phase AおよびPhase Bでは、出力確率ではなく、各Transformer block $l$ におけるprompt-end residual representation $h_{T,i,l} \in \mathbb{R}^D$ ($T \in \{R, S\}$) を主要解析対象とする。
@@ -4377,12 +4447,7 @@ double-difference fallback \\
 \section{V1結果}
 \label{sec:v1-results}
 
-\input{tables/v1_peak_decodability.tex}
-\input{tables/v1_shared_geometry.tex}
-\input{tables/v1_semantic_controls.tex}
-\input{tables/v1_causal_profile.tex}
-\input{tables/v1_interchangeability.tex}
-\input{tables/v1_specialization.tex}
+\input{tables/v1_internal_sharing_summary.tex}
 
 
 % ================================================================
@@ -4391,6 +4456,55 @@ double-difference fallback \\
 \section{V1考察}
 \label{sec:v1-discussion}
 
+V1の結果は、Behavioral Stageで観測されたReader--Self couplingが単なる最終outputの相関だけではなく、両taskにaffect-relevant informationが内部的に存在することと整合する一方、そのrepresentationやcausal useが単純に同一であるわけではないことを示した。
+
+まずE1では、Primary 4 model familiesのBase / Instructの双方において、ReaderとSelfのhidden statesからhuman Reader Valence / Arousalをheld-outでdecodeできた。多くのmodel / axisではReaderとSelfのpeak depthも近接していた。
+
+これは、ReaderとSelfが完全に独立した情報処理を行っているという説明よりも、同じaffect-relevant informationが両taskの内部representationに保持されるという説明と整合する。
+
+一方で、一部conditionsではpeak relative depthに0.2以上の乖離も観測された。したがって、
+\[
+\text{shared affect-relevant information}
+\neq
+\text{identical readout location}
+\]
+である。
+
+E2では、ReaderとSelfのstimulus geometryについて全conditionsで正のRSAが観測された一方、direct cross-decodingは大きく負となるconditionsが多かった。Procrustes alignmentによって性能が改善したことから、ReaderとSelfのrepresentationはraw coordinate systemとして直接交換可能なのではなく、線形変換によって部分的に整列可能なgeometryを持つと解釈できる。この結果は、
+\[
+\text{similar relational geometry}
+\neq
+\text{same coordinate system}
+\]
+という区別を示す。
+
+Phase Bのsemantic controlsでは、Word Shuffleによる一貫したperformance dropが見られた。したがってV1のdecodabilityを単純なbag-of-words lexical shortcutだけで説明することは困難である。一方、ParaphraseおよびOutcome Reversalのnonfallback sample数は小さいため、これらはsemantic validityを補強するevidenceとして限定的に解釈する。
+
+Phase CのE3では、ReaderとSelfのlayer-wise causal profilesに中程度から高い正のrank correlationが見られた。多くのmodelsではcausal peakも同一または近接layerに存在した。したがってReaderとSelfは、affect-relevant informationをdecode可能なだけではなく、hidden-state perturbationに対するlayer-level sensitivityも部分的に共有していると考えられる。
+
+しかし、direction cosine similarityはmodelによって大きく異なり、ほぼ0となるconditionsも存在した。したがって、
+\[
+\text{similar causal sensitivity profile}
+\neq
+\text{same causal direction}
+\]
+である。
+
+これはE4でさらに明確になった。Reader由来のstimulus-associated hidden-state differenceをSelfへ移植したmatched interventionは、
+random-direction controlに対してFDR補正後にrobustなspecificityを示さなかった。したがって、
+\[
+\text{Reader representation}
+\not\Rightarrow
+\text{causally interchangeable Self representation}
+\]
+である。
+
+これは本研究にとって重要なnegative resultである。Behavioral coupling、linear decodability、representation geometry、layer-wise causal profileの類似だけから、ReaderとSelfが同じcausal codeを直接共有しているとは言えない。
+
+最後にE6では、Task $\times$ SiteType interactionが一部modelsではFDR補正後にも支持された一方、全familyには一般化しなかった。したがってReaderとSelfの計算にはpartial causal specializationが存在する可能性があるが、普遍的な二回路構造を示すとは言えない。
+
+以上からV1は、ReaderとSelfはaffect-relevant informationとlayer-level causal sensitivityを部分的に共有するが、そのrepresentationは直接交換可能ではなく、causal organizationにはtask-specificな差も存在するという構造を支持する。
+
 
 
 % ================================================================
@@ -4398,6 +4512,33 @@ double-difference fallback \\
 % ================================================================
 \section{V1からV2への接続}
 \label{sec:v1-to-v2}
+
+V1では、ReaderとSelfの双方にaffect-relevant informationが存在し、representation geometryおよびlayer-wise causal sensitivityにも一定の共有性があることが示された。
+
+一方、direct cross-decodingは弱く、cross-task causal interchangeabilityも支持されなかった。さらに、peak depth、causal magnitude、
+intervention direction、task-specific site sensitivityにはmodel間およびBase / Instruct間で差が存在した。
+
+ここからBaseからInstructへの変化に伴って、このrepresentation--report relationの何が変わるのかという問いが生じる。
+
+V1でBaseとInstructの双方にaffect-relevant informationが存在したため、post-training後のbehavioral changeを単純なinformation erasureだけで説明できるとは限らない点が重要である。
+可能性としては、
+\begin{enumerate}
+    \item representation geometryの変換
+    \item Reader--Self sharingの再編
+    \item causal leverageの再配置
+    \item representationからoutput distributionへのreadout変更
+\end{enumerate}
+の4つが区別される。
+
+そこでV2では比較軸を
+\[
+\text{Reader}\leftrightarrow\text{Self}
+\]
+から、
+\[
+\text{Base}\leftrightarrow\text{Instruct}
+\]
+へ変更し、Matched-Plain conditionをPrimary comparisonとしてprompt-format differenceを統制した上で、post-training-associated reorganizationを検証する。
 
 
 
@@ -4539,14 +4680,14 @@ N_{\mathrm{test}}=300
 \subsection{Prompt-format controlと内部表現測定}
 \label{app:v2-prompt-control}
 
-前節\S\ref{app:prompt_formats}で定義したPrompt-format control（Base Plain、Instruct Matched-Plain、Instruct Native-Chat）に基づき、V2のPrimary comparisonは、プロンプト形式の差異を排除した
+前節\S\ref{app:prompt_format_control}で定義したPrompt-format control（Base Plain、Instruct Matched-Plain、Instruct Native-Chat）に基づき、V2のPrimary comparisonは、プロンプト形式の差異を排除した
 \[
 \text{Base Plain} \quad\text{vs.}\quad \text{Instruct Matched-Plain}
 \]
 （Matched-Plain contrast）とする。
 Instruct Nativeとの比較はSecondary comparisonとし、両者の差（$\text{Instruct Native} - \text{Instruct Matched-Plain}$）をprompt-format effectとして分離評価する。
 
-内部表現の測定は、\S\ref{app:general-methods}の共通規約に従い、各Transformer block $l$ におけるprompt-end residual representation $h_{M,T,i,l}$ ($T \in \{R, S\}$, $M \in \{\text{Base}, \text{Instruct}\}$) を抽出し、相対深度 $d_l = l/(L-1)$ を一貫して用いてReaderおよびSelfの双方で実行する。
+内部表現の測定は、\S\ref{app:overall_methods}の共通規約に従い、各Transformer block $l$ におけるprompt-end residual representation $h_{M,T,i,l}$ ($T \in \{R, S\}$, $M \in \{\text{Base}, \text{Instruct}\}$) を抽出し、相対深度 $d_l = l/(L-1)$ を一貫して用いてReaderおよびSelfの双方で実行する。
 
 
 % ================================================================
@@ -5944,12 +6085,7 @@ Procrustes-aligned recovery \\
 \section{V2結果}
 \label{sec:v2-results}
 
-\input{tables/v2_h1_h2_reorganization.tex}
-\input{tables/v2_causal_relocation.tex}
-\input{tables/v2_causal_controls.tex}
-\input{tables/v2_h3_causal_lmm.tex}
-\input{tables/v2_distribution_recovery.tex}
-\input{tables/v2_confirmatory_summary.tex}
+\input{tables/v2_reorganization_summary.tex}
 
 
 % ================================================================
@@ -6628,7 +6764,11 @@ NO\_GO & NO\_GO & \texttt{NO\_GO} \\
 \texttt{GO (Arousal-only)}
 \]
 は、部分的にaxis criterionを満たしたことを記録するlabelではあるが、通常経路ではRQ2以降を自動的に継続する完全なGOとはみなさない。
-
+\color{red}
+5:14追記
+\paragraph{Gate failure後の探索的継続。}
+overall Gate decisionが\texttt{GO}でない場合、通常のproduction pipelineはRQ2以降を実行しない。ただし、Gate failure後の内部計算を探索的に特徴づける目的で、\texttt{--force-after-no-go}による明示的overrideを可能とする。このoverrideの下で実行されたRQ2、RQ3、およびcross-family replicationは、prespecified confirmatory evidenceとしては扱わず、exploratory / descriptive analysisとして解釈する。
+\color{black}
 
 % ================================================================
 % RQ2
@@ -7864,11 +8004,7 @@ Behavioral、V1、V2と合わせると、本研究全体は、
 \section{V3結果}
 \label{sec:v3-results}
 
-\input{tables/v3_gate_decision.tex}
-\input{tables/v3_spatiotemporal_dynamics.tex}
-\input{tables/v3_mediated_attenuation.tex}
-\input{tables/v3_confirmatory_details.tex}
-\input{tables/v3_confirmatory_matrix.tex}
+\input{tables/v3_causal_utilization_summary.tex}
 
 
 
@@ -7878,6 +8014,56 @@ Behavioral、V1、V2と合わせると、本研究全体は、
 % ================================================================
 \section{V3考察}
 \label{sec:v3-discussion}
+
+V3で最も重要な結果は、事前定義されたState Induction GateがValenceおよびArousalの双方で\texttt{NO\_GO}となったことである。
+
+Sufficiency、Specificity、Endogenous Relevanceの各criterionはprespecified thresholdを満たさなかった一方、Topic Controlはpassした。したがって、今回同定したaffect-related directionについて、
+\[
+\text{robust and specific causal control of Self-Report}
+\]
+が確認されたとは言えない。
+
+この結果は、V1でaffect-relevant informationがdecodableであり、hidden-state interventionに対するlayer-wise causal sensitivityが存在したことと矛盾しない。むしろ、
+\[
+\text{Decodable}
+\not\Rightarrow
+\text{robustly steerable}
+\]
+というrepresentation--use distinctionを示す。
+
+GateがNO\_GOであったため、RQ2以降は明示的overrideの下で実行されたexploratory / descriptive analysisとして解釈する。
+Qwen Discovery analysisでは、ValenceとArousalの双方でdecodability peakはrelative depth
+\[
+d_D^{*}\simeq0.85
+\]
+付近に存在した一方、causal displacement peakは
+\[
+d_C^{*}\simeq0.74\text{--}0.78
+\]
+と、より前段に位置した。peak-levelでは、
+\[
+\Delta d^*
+=
+d_C^*-d_D^*
+<0
+\]
+であり、最もdecodeしやすいlayerと最大のinterventional effectを生じるlayerが一致しない可能性を示す。
+
+ただし、このpatternを普遍的なspatiotemporal lawとして一般化することはできない。cross-family confirmatory analysisでは、
+H1のdissociation criterionはLlama、Gemma、OLMoのいずれでもValence / Arousal双方について成立しなかった。
+
+またH2のSufficiencyも、3 familyすべてでprespecified thresholdを大きく下回った。
+
+H3のmediated attenuationについても、Qwen Discoveryではattenuation ratioが1\%未満と小さく、Valenceのconfidence intervalは0を含んだ。cross-family confirmationでも、absolute attenuationとrandom-subspace controlを差し引いたnet attenuationの双方を要求するcriterionはいずれのfamilyでも満たされなかった。
+
+したがって、今回同定したaffect-related subspaceがnatural Self-Report shiftを主要に媒介するという主張は支持されない。
+
+一方、H4のtemporal contrastについては、Llama、Gemma、OLMoの3 familyすべてでValence / Arousal双方のconfidence interval lower boundが0を上回った。
+これは、causal sensitivityがgeneration stageに対して完全に一様ではない可能性を示す再現性のあるexploratory signalである。
+
+しかし、事前のState Induction GateがNO\_GOであり、H1--H3もconfirmされていないため、H4単独からprespecified causal mechanism全体が確認されたとは解釈しない。
+
+以上からV3が支持するのは、より限定された結論となり、affect-relevant informationのdecodabilityとlocal causal leverageは一致するとは限らず、causal sensitivityにはgeneration-stage dependenceが存在し得るが、robustでfamily-generalな単一mechanismは確認されなかったというものである。
 
 
 

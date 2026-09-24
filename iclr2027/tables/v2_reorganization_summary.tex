@@ -1,0 +1,208 @@
+% ================================================================
+% V2 Stage: Post-training Reorganization Complete Summary Tables
+% ================================================================
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{V2 H1--H2（幾何再編と表現共有度の変位）：事後学習に伴う表現幾何学的歪み（Procrustes Distortion）、デコードピーク深度変位 $\Delta d^*$、およびタスク共有度変化 $\Delta\text{Sharing}$。4ファミリー統合ブートストラップ95\%信頼区間。}
+\label{tab:v2_h1_h2_reorganization}
+\begin{tabular}{ll ccc}
+\toprule
+\textbf{Hypothesis} & \textbf{Metric} & \textbf{Estimate} & \textbf{95\% CI} & \textbf{Condition} \\
+\midrule
+\multirow{2}{*}{H1a: Geometric Distortion} & Reader Procrustes Distortion         & 1.455    & [0.639, 2.813]     & Matched-Plain \\
+                                 & Self Procrustes Distortion           & 2.872    & [0.660, 6.995]     & Matched-Plain \\
+\midrule
+\multirow{4}{*}{H1b: Decodability Peak Shift} & Valence Reader $\Delta d^*$          & $-$0.119 & [$-$0.219, $-$0.033] & Matched-Plain \\
+                                 & Valence Self $\Delta d^*$            & 0.007    & [$-$0.053, 0.100]  & Matched-Plain \\
+                                 & Arousal Reader $\Delta d^*$          & 0.200    & [$-$0.027, 0.426]  & Matched-Plain \\
+                                 & Arousal Self $\Delta d^*$            & 0.017    & [$-$0.200, 0.250]  & Matched-Plain \\
+\midrule
+\multirow{2}{*}{H2: Sharing Reorganization} & $\Delta\text{Sharing}$ (Valence)     & $-$0.553 & [$-$1.324, 0.076]  & Matched-Plain \\
+                                 & $\Delta\text{Sharing}$ (Arousal)     & $-$0.278 & [$-$0.615, 0.049]  & Matched-Plain \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} $\Delta d^* = d^*_{\text{instruct}} - d^*_{\text{base}} > 0$ は、事後学習によって表現デコードピークが後段側（deeper側）へシフトしたことを示す。また、$\Delta\text{Sharing} < 0$ はReaderとSelfの表現共有度合いが事後学習によってタスク分離方向に再編されたことを示す。
+\end{minipage}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{V2 H3a（因果局在の再配置）：事後学習に伴う因果ピーク相対深度 $d_C^*$ および重心深度 $d_{\text{center}}$ の後段シフト量（$\Delta d_C^*, \Delta d_{\text{center}}$）。}
+\label{tab:v2_causal_relocation}
+\begin{tabular}{lll cccc}
+\toprule
+\textbf{Family} & \textbf{Task} & \textbf{Axis} & \textbf{Base Peak ($d^*$)} & \textbf{Instruct Peak ($d^*$)} & $\Delta d_C^*$ & $\Delta d_{\text{center}}$ \\
+\midrule
+GEMMA      & Reader   & Arousal  & ---            & ---              & ---        & ---        \\
+GEMMA      & Reader   & Valence  & ---            & ---              & ---        & ---        \\
+GEMMA      & Self     & Arousal  & ---            & ---              & ---        & ---        \\
+GEMMA      & Self     & Valence  & ---            & ---              & ---        & ---        \\
+LLAMA      & Reader   & Arousal  & ---            & ---              & ---        & ---        \\
+LLAMA      & Reader   & Valence  & ---            & ---              & ---        & ---        \\
+LLAMA      & Self     & Arousal  & ---            & ---              & ---        & ---        \\
+LLAMA      & Self     & Valence  & ---            & ---              & ---        & ---        \\
+OLMO       & Reader   & Arousal  & ---            & ---              & ---        & ---        \\
+OLMO       & Reader   & Valence  & ---            & ---              & ---        & ---        \\
+OLMO       & Self     & Arousal  & ---            & ---              & ---        & ---        \\
+OLMO       & Self     & Valence  & ---            & ---              & ---        & ---        \\
+QWEN       & Reader   & Arousal  & ---            & ---              & ---        & ---        \\
+QWEN       & Reader   & Valence  & ---            & ---              & ---        & ---        \\
+QWEN       & Self     & Arousal  & ---            & ---              & ---        & ---        \\
+QWEN       & Self     & Valence  & ---            & ---              & ---        & ---        \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} 因果介入におけるピークおよび重心深度変位 $\Delta d_C^* = d_{C,\text{Instruct}}^* - d_{C,\text{Base}}^*$ は、事後学習に伴う因果部位の後段移行量を示す。
+\end{minipage}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{V2 H3b（因果特異性統制実験）：生の因果効果 $C_{\text{raw}}$、ランダム方向統制 $C_{\text{rand}}$、直交方向統制 $C_{\text{perp}}$、正味因果効果 $C_{\text{net,rand}} = C_{\text{raw}} - C_{\text{rand}}$、およびゼロ切除効果。}
+\label{tab:v2_causal_controls}
+\begin{tabular}{llll ccccc}
+\toprule
+\textbf{Family} & \textbf{Task} & \textbf{Condition} & \textbf{Axis} & $C_{\text{raw}}$ & $C_{\text{rand}}$ & $C_{\text{perp}}$ & $C_{\text{net,rand}}$ (\textbf{Primary}) & Zero-Ablation \\
+\midrule
+OLMO       & Reader   & Base-Plain       & Valence  & ---        & ---        & ---        & ---                & ---          \\
+OLMO       & Reader   & Base-Plain       & Arousal  & ---        & ---        & ---        & ---                & ---          \\
+OLMO       & Self     & Base-Plain       & Valence  & ---        & ---        & ---        & ---                & ---          \\
+OLMO       & Self     & Base-Plain       & Arousal  & ---        & ---        & ---        & ---                & ---          \\
+OLMO       & Reader   & Matched-Plain    & Valence  & ---        & ---        & ---        & ---                & ---          \\
+OLMO       & Reader   & Matched-Plain    & Arousal  & ---        & ---        & ---        & ---                & ---          \\
+OLMO       & Self     & Matched-Plain    & Valence  & ---        & ---        & ---        & ---                & ---          \\
+OLMO       & Self     & Matched-Plain    & Arousal  & ---        & ---        & ---        & ---                & ---          \\
+LLAMA      & Reader   & Base-Plain       & Valence  & ---        & ---        & ---        & ---                & ---          \\
+LLAMA      & Reader   & Base-Plain       & Arousal  & ---        & ---        & ---        & ---                & ---          \\
+LLAMA      & Self     & Base-Plain       & Valence  & ---        & ---        & ---        & ---                & ---          \\
+LLAMA      & Self     & Base-Plain       & Arousal  & ---        & ---        & ---        & ---                & ---          \\
+LLAMA      & Reader   & Matched-Plain    & Valence  & ---        & ---        & ---        & ---                & ---          \\
+LLAMA      & Reader   & Matched-Plain    & Arousal  & ---        & ---        & ---        & ---                & ---          \\
+LLAMA      & Self     & Matched-Plain    & Valence  & ---        & ---        & ---        & ---                & ---          \\
+LLAMA      & Self     & Matched-Plain    & Arousal  & ---        & ---        & ---        & ---                & ---          \\
+GEMMA      & Reader   & Base-Plain       & Valence  & ---        & ---        & ---        & ---                & ---          \\
+GEMMA      & Reader   & Base-Plain       & Arousal  & ---        & ---        & ---        & ---                & ---          \\
+GEMMA      & Self     & Base-Plain       & Valence  & ---        & ---        & ---        & ---                & ---          \\
+GEMMA      & Self     & Base-Plain       & Arousal  & ---        & ---        & ---        & ---                & ---          \\
+GEMMA      & Reader   & Matched-Plain    & Valence  & ---        & ---        & ---        & ---                & ---          \\
+GEMMA      & Reader   & Matched-Plain    & Arousal  & ---        & ---        & ---        & ---                & ---          \\
+GEMMA      & Self     & Matched-Plain    & Valence  & ---        & ---        & ---        & ---                & ---          \\
+GEMMA      & Self     & Matched-Plain    & Arousal  & ---        & ---        & ---        & ---                & ---          \\
+QWEN       & Reader   & Base-Plain       & Valence  & ---        & ---        & ---        & ---                & ---          \\
+QWEN       & Reader   & Base-Plain       & Arousal  & ---        & ---        & ---        & ---                & ---          \\
+QWEN       & Self     & Base-Plain       & Valence  & ---        & ---        & ---        & ---                & ---          \\
+QWEN       & Self     & Base-Plain       & Arousal  & ---        & ---        & ---        & ---                & ---          \\
+QWEN       & Reader   & Matched-Plain    & Valence  & ---        & ---        & ---        & ---                & ---          \\
+QWEN       & Reader   & Matched-Plain    & Arousal  & ---        & ---        & ---        & ---                & ---          \\
+QWEN       & Self     & Matched-Plain    & Valence  & ---        & ---        & ---        & ---                & ---          \\
+QWEN       & Self     & Matched-Plain    & Arousal  & ---        & ---        & ---        & ---                & ---          \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} $C_{\mathrm{net,rand}}>0$ は、affect-related directionの平均介入効果がrandom-direction controlより大きい方向にあることを示す。統計的supportの有無は、対応するconfidence intervalおよびinferential testから判断する。
+\end{minipage}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{V2 H3c（因果再配置の線形混合効果モデル LMM）：control-adjusted causal leverage $C_{\mathrm{net,rand}}$ を目的変数とし、family、alignment、task、relative depth、およびそのinteractionを評価したsample-level regression / mixed-effects analysis。ValenceおよびArousalの両軸におけるPrimary事前登録交互作用項および事後学習主効果。}
+\label{tab:v2_h3_causal_lmm}
+\begin{tabular}{ll cccc}
+\toprule
+\textbf{Axis} & \textbf{Predictor / Parameter} & \textbf{Estimate ($\beta$)} & \textbf{95\% CI} & $p$-value & \textbf{FDR $q$} \\
+\midrule
+\multirow{4}{*}{\textbf{Valence}} & $\text{Post-training} \times \text{Depth}$ (\textbf{Primary}) & 0.000090       & [$-$0.000054, 0.000234]    & 0.223      & 0.304      \\
+                                 & $\text{Post-training} \times \text{Task}$ (\textbf{Primary}) & 0.000163       & [0.000044, 0.000282]       & 0.007      & 0.044      \\
+                                 & $\text{Post-training} \times \text{Task} \times \text{Depth}$ (\textbf{Primary}) & $-$0.000192    & [$-$0.000396, 0.000012]    & 0.065      & 0.196      \\
+                                 & Post-training ($\text{Instruct} = 1$) (\textbf{Secondary})   & $-$0.000095    & [$-$0.000179, $-$0.000011] & 0.027      & ---        \\
+\midrule
+\multirow{4}{*}{\textbf{Arousal}} & $\text{Post-training} \times \text{Depth}$ (\textbf{Primary}) & $-$0.000019    & [$-$0.000055, 0.000017]    & 0.304      & 0.304      \\
+                                 & $\text{Post-training} \times \text{Task}$ (\textbf{Primary}) & $-$0.000017    & [$-$0.000047, 0.000013]    & 0.277      & 0.304      \\
+                                 & $\text{Post-training} \times \text{Task} \times \text{Depth}$ (\textbf{Primary}) & 0.000034       & [$-$0.000017, 0.000085]    & 0.196      & 0.304      \\
+                                 & Post-training ($\text{Instruct} = 1$) (\textbf{Secondary})   & 0.000006       & [$-$0.000015, 0.000028]    & 0.549      & ---        \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} Primary confirmatory inferenceは Alignment $\times$ Depth、Alignment $\times$ Task、Alignment $\times$ Task $\times$ Depth のprespecified interaction termsに基づく。ValenceおよびArousalのいずれにおいても、これらのPrimary interactionはFDR補正後の有意水準を満たさなかった。
+\end{minipage}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{V2 H4（出力分布回復能・介入修復）：Baseモデルの表現介入によるInstructモデルの出力分布回復。Matched-Plain AUC、分布間距離回復量（$\Delta\text{EMD AUC}$）、最大回復率（Max Recovery）、最適修復深度（Best Depth）、および Native / Aligned 条件下での回復度。}
+\label{tab:v2_distribution_recovery}
+\begin{tabular}{ll cccc cc}
+\toprule
+\textbf{Family} & \textbf{Task} & \textbf{Matched AUC} & $\Delta\text{EMD AUC}$ & \textbf{Max Recovery} & \textbf{Best Depth ($d^*$)} & \textbf{Native AUC} & \textbf{Aligned AUC} \\
+\midrule
+QWEN       & Reader   & 0.189        & 0.056          & 0.439        & 0.370            & 0.007      & $-$0.001   \\
+QWEN       & Self     & 0.181        & 0.062          & 0.417        & 0.407            & 0.052      & $-$0.000   \\
+LLAMA      & Reader   & 0.005        & 0.001          & 0.113        & 0.400            & 0.158      & 0.001      \\
+LLAMA      & Self     & $-$0.006     & $-$0.000       & 0.078        & 0.400            & 0.125      & $-$0.000   \\
+GEMMA      & Reader   & $-$0.052     & $-$0.012       & 0.142        & 0.040            & $-$0.072   & $-$0.011   \\
+GEMMA      & Self     & 0.001        & 0.005          & 0.326        & 0.000            & $-$0.025   & $-$0.009   \\
+OLMO       & Reader   & $-$0.170     & $-$0.037       & 0.006        & 0.800            & 0.044      & 0.001      \\
+OLMO       & Self     & $-$0.160     & $-$0.045       & 0.000        & 1.000            & 0.070      & $-$0.001   \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} Baseモデル内部へInstruct由来の整列ベクトルを注入した場合の出力感情分布の回復度（Matched AUC, $\Delta\text{EMD AUC}$, Max Recovery）。事前登録された4ファミリー設計（Qwen, Llama, Gemma, OLMo）に基づき、全モデルでMatched-Plain recoveryの実測値が得られた。
+\end{minipage}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{V2 事前登録仮説（Confirmatory Hypotheses H1--H4）の検証結果総括：各主要指標における推定値、統合ブートストラップ95\%信頼区間、および事前登録判定。}
+\label{tab:v2_confirmatory_summary}
+\begin{tabular}{ll ccc c}
+\toprule
+\textbf{Hypothesis} & \textbf{Key Pre-registered Metric} & \textbf{Estimate} & \textbf{95\% CI} & $p$ / FDR $q$ & \textbf{Supported?} \\
+\midrule
+H1a: Geometry Reorganization   & Reader Procrustes Distortion               & 1.455    & [0.639, 2.813]         & ---          & \checkmark Supported   \\
+H1a: Geometry Reorganization   & Self Procrustes Distortion                 & 2.872    & [0.660, 6.995]         & ---          & \checkmark Supported   \\
+\midrule
+H1b: Decodability Peak Shift   & Valence Reader Peak Shift Delta d*         & $-$0.119 & [$-$0.219, $-$0.033]   & ---          & Not Supported          \\
+H1b: Decodability Peak Shift   & Valence Self Peak Shift Delta d*           & 0.007    & [$-$0.053, 0.100]      & ---          & Not Supported          \\
+H1b: Decodability Peak Shift   & Arousal Reader Peak Shift Delta d*         & 0.200    & [$-$0.027, 0.426]      & ---          & Not Supported          \\
+H1b: Decodability Peak Shift   & Arousal Self Peak Shift Delta d*           & 0.017    & [$-$0.200, 0.250]      & ---          & Not Supported          \\
+\midrule
+H2: Sharing Reorganization     & Valence Delta Sharing                      & $-$0.553 & [$-$1.324, 0.076]      & ---          & Not Supported          \\
+H2: Sharing Reorganization     & Arousal Delta Sharing                      & $-$0.278 & [$-$0.615, 0.049]      & ---          & Not Supported          \\
+\midrule
+H3: Causal Reorganization      & Valence Alignment x Depth (Primary)        & 0.000    & [$-$0.000, 0.000]      & 0.304        & Not Supported          \\
+H3: Causal Reorganization      & Valence Alignment x Task (Primary)         & 0.000    & [0.000, 0.000]         & 0.044        & \checkmark Supported   \\
+H3: Causal Reorganization      & Valence Alignment x Task x Depth (Primary) & $-$0.000 & [$-$0.000, 0.000]      & 0.196        & Not Supported          \\
+H3: Alignment Main Effect      & Valence Alignment main effect (Secondary)  & $-$0.000 & [$-$0.000, $-$0.000]   & 0.027        & \checkmark Supported   \\
+H3: Causal Reorganization      & Arousal Alignment x Depth (Primary)        & $-$0.000 & [$-$0.000, 0.000]      & 0.304        & Not Supported          \\
+H3: Causal Reorganization      & Arousal Alignment x Task (Primary)         & $-$0.000 & [$-$0.000, 0.000]      & 0.304        & Not Supported          \\
+H3: Causal Reorganization      & Arousal Alignment x Task x Depth (Primary) & 0.000    & [$-$0.000, 0.000]      & 0.304        & Not Supported          \\
+H3: Alignment Main Effect      & Arousal Alignment main effect (Secondary)  & 0.000    & [$-$0.000, 0.000]      & 0.549        & Not Supported          \\
+\midrule
+H4: Recovery Asymmetry         & Self--Reader AUC diff (Primary)            & 0.011    & [$-$0.010, 0.038]      & ---          & Not Supported          \\
+H4: Recovery Asymmetry         & Matched-Plain AUC (Descriptive)            & $-$0.001 & ---                    & ---          & ---                    \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} H1aではBase--Instruct間のgeometric distortionが確認された。一方、H1bのprespecified positive peak shiftおよびH2のReader--Self sharing reorganizationは、4-family bootstrap CIに基づく事前定義criterionを満たさなかった。H3のPrimary interaction termsもFDR補正後には支持されず、H4のRecovery Asymmetry（Self--Reader AUC差）も95\% CIがゼロを跨ぎ支持されなかった。
+\end{minipage}
+\end{table}

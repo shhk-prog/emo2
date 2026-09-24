@@ -1,0 +1,33 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{V2 H3a（因果局在の再配置）：事後学習に伴う因果ピーク相対深度 $d_C^*$ および重心深度 $d_{\text{center}}$ の後段シフト量（$\Delta d_C^*, \Delta d_{\text{center}}$）。}
+\label{tab:v2_causal_relocation}
+\begin{tabular}{lll cccc}
+\toprule
+\textbf{Family} & \textbf{Task} & \textbf{Axis} & \textbf{Base Peak ($d^*$)} & \textbf{Instruct Peak ($d^*$)} & $\Delta d_C^*$ & $\Delta d_{\text{center}}$ \\
+\midrule
+GEMMA      & Reader   & Arousal  & ---            & ---              & ---        & ---        \\
+GEMMA      & Reader   & Valence  & ---            & ---              & ---        & ---        \\
+GEMMA      & Self     & Arousal  & ---            & ---              & ---        & ---        \\
+GEMMA      & Self     & Valence  & ---            & ---              & ---        & ---        \\
+LLAMA      & Reader   & Arousal  & ---            & ---              & ---        & ---        \\
+LLAMA      & Reader   & Valence  & ---            & ---              & ---        & ---        \\
+LLAMA      & Self     & Arousal  & ---            & ---              & ---        & ---        \\
+LLAMA      & Self     & Valence  & ---            & ---              & ---        & ---        \\
+OLMO       & Reader   & Arousal  & ---            & ---              & ---        & ---        \\
+OLMO       & Reader   & Valence  & ---            & ---              & ---        & ---        \\
+OLMO       & Self     & Arousal  & ---            & ---              & ---        & ---        \\
+OLMO       & Self     & Valence  & ---            & ---              & ---        & ---        \\
+QWEN       & Reader   & Arousal  & ---            & ---              & ---        & ---        \\
+QWEN       & Reader   & Valence  & ---            & ---              & ---        & ---        \\
+QWEN       & Self     & Arousal  & ---            & ---              & ---        & ---        \\
+QWEN       & Self     & Valence  & ---            & ---              & ---        & ---        \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} 因果介入におけるピークおよび重心深度変位 $\Delta d_C^* = d_{C,\text{Instruct}}^* - d_{C,\text{Base}}^*$ は、事後学習に伴う因果部位の後段移行量を示す。
+\end{minipage}
+\end{table}

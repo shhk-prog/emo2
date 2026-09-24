@@ -138,7 +138,6 @@ def build_v2_summary(
                         "delta_peak_depth": delta_peak,
                         "mean_rsa": mean_rsa,
                         "procrustes_distortion_center": center_dist,
-                        "distortion_center": center_dist,
                         "native_distortion": native_dist,
                     }
                 )

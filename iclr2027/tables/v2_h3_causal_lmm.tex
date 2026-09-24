@@ -1,0 +1,26 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{V2 H3c（因果再配置の線形混合効果モデル LMM）：control-adjusted causal leverage $C_{\mathrm{net,rand}}$ を目的変数とし、family、alignment、task、relative depth、およびそのinteractionを評価したsample-level regression / mixed-effects analysis。ValenceおよびArousalの両軸におけるPrimary事前登録交互作用項および事後学習主効果。}
+\label{tab:v2_h3_causal_lmm}
+\begin{tabular}{ll cccc}
+\toprule
+\textbf{Axis} & \textbf{Predictor / Parameter} & \textbf{Estimate ($\beta$)} & \textbf{95\% CI} & $p$-value & \textbf{FDR $q$} \\
+\midrule
+\multirow{4}{*}{\textbf{Valence}} & $\text{Post-training} \times \text{Depth}$ (\textbf{Primary}) & 0.000090       & [$-$0.000054, 0.000234]    & 0.223      & 0.304      \\
+                                 & $\text{Post-training} \times \text{Task}$ (\textbf{Primary}) & 0.000163       & [0.000044, 0.000282]       & 0.007      & 0.044      \\
+                                 & $\text{Post-training} \times \text{Task} \times \text{Depth}$ (\textbf{Primary}) & $-$0.000192    & [$-$0.000396, 0.000012]    & 0.065      & 0.196      \\
+                                 & Post-training ($\text{Instruct} = 1$) (\textbf{Secondary})   & $-$0.000095    & [$-$0.000179, $-$0.000011] & 0.027      & ---        \\
+\midrule
+\multirow{4}{*}{\textbf{Arousal}} & $\text{Post-training} \times \text{Depth}$ (\textbf{Primary}) & $-$0.000019    & [$-$0.000055, 0.000017]    & 0.304      & 0.304      \\
+                                 & $\text{Post-training} \times \text{Task}$ (\textbf{Primary}) & $-$0.000017    & [$-$0.000047, 0.000013]    & 0.277      & 0.304      \\
+                                 & $\text{Post-training} \times \text{Task} \times \text{Depth}$ (\textbf{Primary}) & 0.000034       & [$-$0.000017, 0.000085]    & 0.196      & 0.304      \\
+                                 & Post-training ($\text{Instruct} = 1$) (\textbf{Secondary})   & 0.000006       & [$-$0.000015, 0.000028]    & 0.549      & ---        \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} Primary confirmatory inferenceは Alignment $\times$ Depth、Alignment $\times$ Task、Alignment $\times$ Task $\times$ Depth のprespecified interaction termsに基づく。ValenceおよびArousalのいずれにおいても、これらのPrimary interactionはFDR補正後の有意水準を満たさなかった。
+\end{minipage}
+\end{table}

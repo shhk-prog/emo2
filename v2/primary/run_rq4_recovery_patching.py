@@ -851,6 +851,8 @@ def main():
                         read_p = modular_rq4_path if modular_rq4_path.exists() else out_path
                         with open(read_p, "r", encoding="utf-8") as f:
                             cached = json.load(f)
+                        if isinstance(cached, dict) and "results" in cached:
+                            cached = cached["results"]
                         logger.info(f"Loaded existing results matching manifest for {fam_id} from {read_p}. Skipping computation.")
                         all_recovery_results[fam_id] = cached
                         fam_csv = raw_dir / f"v2_recovery_samples_{fam_id}.csv"

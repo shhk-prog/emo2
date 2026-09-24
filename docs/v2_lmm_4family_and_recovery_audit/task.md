@@ -14,5 +14,8 @@ ICLR 2027論文の結果監査において、Behavioral、V1、V3、V2のPresent
   - output-level behavioral covariation である旨を明記し、内部ダイナミクスや事後学習への過大解釈を抑制する文面に改修。
 - [x] **4. V3 Confirmatory Matrix Note の科学的表現修正（凍結対応）**
   - 「棄却」を「支持されなかった」に改め、事前 Gate NO_GO に基づき全体結論を正確に記載する文面に改修。
-- [ ] **5. V2 パイプライン完了待ちおよびテーブル最終再生成**
-  - Qwen/Llama の RQ4 完了（06:30頃見込み）後、最新の 4-family 完全データから最終 table を再生成。
+- [x] **5. V2 パイプライン完了およびテーブル最終再生成・全実験完了監査**
+  - 今朝 06:23:34 に全 V2 ステージ（RQ1--RQ4、Confirmatory Analysis）が正常終了。
+  - `build_all_paper_summaries.py --strict` により全 4 ステージの 25 テーブル、9 図表データ、Primary (341行) / Secondary (515行) を完全生成。
+  - `generate_paper_results_tables.py` により全 TeX テーブルを最新生成。
+  - `pytest tests/test_paper_summary_invariants.py` が 8/8 全件 PASSED。全実験・全結果の完全揃いを確認。

@@ -332,7 +332,7 @@ def generate_distribution_recovery_table(df_recov):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} Baseモデル内部へInstruct由来の整列ベクトルを注入した場合の出力感情分布の回復度（Matched AUC, $\Delta\text{EMD AUC}$, Max Recovery）。現時点ではGemma familyのみについてMatched-Plain recoveryの実測値が利用可能である。したがって、事前登録された4ファミリー設計（Qwen, Llama, Gemma, OLMo）に基づくH4確証的統合は未完（Incomplete）であり、confirmatory conclusionを行わない。",
+        r"\textbf{Note:} Baseモデル内部へInstruct由来の整列ベクトルを注入した場合の出力感情分布の回復度（Matched AUC, $\Delta\text{EMD AUC}$, Max Recovery）。事前登録された4ファミリー設計（Qwen, Llama, Gemma, OLMo）に基づき、全モデルでMatched-Plain recoveryの実測値が得られた。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -455,7 +455,7 @@ def generate_confirmatory_summary_table(df_conf, df_lmm=None, df_recov=None):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} H1aではBase--Instruct間のgeometric distortionが確認された。一方、H1bのprespecified positive peak shiftおよびH2のReader--Self sharing reorganizationは、4-family bootstrap CIに基づく事前定義criterionを満たさなかった。H3のPrimary interaction termsもFDR補正後には支持されなかった。H4はprespecified 4-family resultsが揃っていないため、confirmatory conclusionを行わない。",
+        r"\textbf{Note:} H1aではBase--Instruct間のgeometric distortionが確認された。一方、H1bのprespecified positive peak shiftおよびH2のReader--Self sharing reorganizationは、4-family bootstrap CIに基づく事前定義criterionを満たさなかった。H3のPrimary interaction termsもFDR補正後には支持されず、H4のRecovery Asymmetry（Self--Reader AUC差）も95\% CIがゼロを跨ぎ支持されなかった。",
         r"\end{minipage}",
         r"\end{table}",
     ])

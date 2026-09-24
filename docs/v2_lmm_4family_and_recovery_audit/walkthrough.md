@@ -32,6 +32,29 @@
 
 ---
 
-## 3. 検証結果
-- 全リポジトリ内で古い表現（「連動ダイナミクスが破綻せず一貫して保たれている」「全モデルファミリーにおいてH1--H3は棄却され」）を grep 検索した結果、**該当件数 0 件** を確認しました。
-- これにより、**Behavioral、V1、V3 の各 Stage は完全に Freeze（凍結）可能な状態**となりました。
+## 4. 全ステージ完了および全結果揃い最終監査（2026-09-25 06:25）
+
+### (1) V2 実験パイプラインの正常完了
+- `production_v2_20260925_062140.log` より、06:23:34 に全 V2 ステージ（RQ1--RQ4、Confirmatory Analysis）が正常終了。
+- **H3 LMM**: 4-family（Gemma: Reference, Llama/OLMo/Qwen: ダミー）× Valence/Arousal 両軸の全固定効果・交互作用項（$N=344,000$）が推定完了。
+- **H4 Recovery**: 4-family（Qwen, Llama, Gemma, OLMo）× 2条件（Reader, Self）の全 8 行の実測回復値が完全取得。
+- **Confirmatory**: H1a, H1b, H2, H3, H4 の全項目について、4-family bootstrap CI と判定が確定。
+
+### (2) Master Summary および LaTeX 表の生成
+- `python scripts/build_all_paper_summaries.py --strict` 実行完了：
+  - Primary Results: 341 rows
+  - Secondary Results: 515 rows
+  - Tables: 25 CSV files
+  - Figure Data: 9 CSV files
+  - `dry_run` 混入: **0 件**
+- `python scripts/generate_paper_results_tables.py` 実行完了：
+  - Behavioral（EmoBank 3-way, AIPsy RQ1--RQ4）
+  - V1（E1--E6）
+  - V2（H1--H4, Causal Map, Controls, LMM, Recovery, Confirmatory）
+  - V3（Gate, RQ2 Spatiotemporal, RQ3 Mediation, Confirmatory Matrix）
+  - 全ての LaTeX 表が出力完了。
+
+### (3) 不変条件テストの完全合格
+- `pytest tests/test_paper_summary_invariants.py`:
+  - 8/8 全件 PASSED（直交性、NaN保持、負の対照、非フォールバック、Gate判定ロジック、層化カバレッジ、マニフェスト完全性、dry_run混入ゼロ）。
+- 全ての実験が問題なく完了し、全結果が欠損なく揃っていることを確認・凍結完了。

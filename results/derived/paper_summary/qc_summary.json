@@ -1,5 +1,5 @@
 {
-  "updated_at_utc": "2026-09-24T14:50:01.922289+00:00",
+  "updated_at_utc": "2026-09-24T15:20:36.692852+00:00",
   "stages": {
     "behavioral": {
       "stage": "behavioral",
@@ -66,7 +66,7 @@
           "n_rows": 8
         },
         "table_v2_confirmatory": {
-          "n_rows": 20
+          "n_rows": 18
         }
       }
     },

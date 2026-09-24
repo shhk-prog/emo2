@@ -137,7 +137,6 @@ def build_v2_summary(
                         "instruct_peak_depth": inst_peak,
                         "delta_peak_depth": delta_peak,
                         "mean_rsa": mean_rsa,
-                        "mean_procrustes_distortion": mean_dist,
                         "procrustes_distortion_center": center_dist,
                         "distortion_center": center_dist,
                         "native_distortion": native_dist,
@@ -584,14 +583,12 @@ def build_v2_summary(
     # 6. V2 Confirmatory Summary Table
     # =========================================================================
     conf_rows = []
-    # H1a
+    # H1a: Geometry Reorganization (Distortion magnitude only, RSA in descriptive geometry)
     h1a_data = lmm_data.get("hypotheses", {}).get("H1a_geometry_reorganization", {})
     effects = h1a_data.get("effects", {})
     for mk, label in [
         ("reader_distortion", "Reader Procrustes Distortion"),
         ("self_distortion", "Self Procrustes Distortion"),
-        ("rsa_reader", "RSA Reader"),
-        ("rsa_self", "RSA Self"),
     ]:
         eff = effects.get(mk, {})
         est = eff.get("mean", np.nan)
@@ -608,13 +605,13 @@ def build_v2_summary(
             "supported": "Supported" if supp else "Not Supported",
         })
 
-    # H1b
+    # H1b: Decodability Peak Shift (Both Reader and Self across Valence and Arousal)
     h1b_data = lmm_data.get("hypotheses", {}).get("H1b_decodability_peak_reorganization", lmm_data.get("hypotheses", {}).get("H1_decodability_peak_reorganization", {}))
     for mk, label in [
-        ("valence.reader.shift", "Valence Reader Peak Shift"),
-        ("valence.self.shift", "Valence Self Peak Shift"),
-        ("arousal.reader.shift", "Arousal Reader Peak Shift"),
-        ("arousal.self.shift", "Arousal Self Peak Shift"),
+        ("valence.reader.shift", "Valence Reader Peak Shift Delta d*"),
+        ("valence.self.shift", "Valence Self Peak Shift Delta d*"),
+        ("arousal.reader.shift", "Arousal Reader Peak Shift Delta d*"),
+        ("arousal.self.shift", "Arousal Self Peak Shift Delta d*"),
     ]:
         eff = h1b_data.get("primary_effects", {}).get(mk, {})
         est = eff.get("mean_shift", np.nan)

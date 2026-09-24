@@ -9,13 +9,11 @@
 \midrule
 H1a: Geometry Reorganization   & Reader Procrustes Distortion               & 1.455    & [0.639, 2.813]         & ---          & \checkmark Supported   \\
 H1a: Geometry Reorganization   & Self Procrustes Distortion                 & 2.872    & [0.660, 6.995]         & ---          & \checkmark Supported   \\
-H1a: Geometry Reorganization   & RSA Reader                                 & 0.505    & [0.330, 0.673]         & ---          & \checkmark Supported   \\
-H1a: Geometry Reorganization   & RSA Self                                   & 0.505    & [0.324, 0.698]         & ---          & \checkmark Supported   \\
 \midrule
-H1b: Decodability Peak Shift   & Valence Reader Peak Shift                  & $-$0.119 & [$-$0.219, $-$0.033]   & ---          & Not Supported          \\
-H1b: Decodability Peak Shift   & Valence Self Peak Shift                    & 0.007    & [$-$0.053, 0.100]      & ---          & Not Supported          \\
-H1b: Decodability Peak Shift   & Arousal Reader Peak Shift                  & 0.200    & [$-$0.027, 0.426]      & ---          & Not Supported          \\
-H1b: Decodability Peak Shift   & Arousal Self Peak Shift                    & 0.017    & [$-$0.200, 0.250]      & ---          & Not Supported          \\
+H1b: Decodability Peak Shift   & Valence Reader Peak Shift Delta d*         & $-$0.119 & [$-$0.219, $-$0.033]   & ---          & Not Supported          \\
+H1b: Decodability Peak Shift   & Valence Self Peak Shift Delta d*           & 0.007    & [$-$0.053, 0.100]      & ---          & Not Supported          \\
+H1b: Decodability Peak Shift   & Arousal Reader Peak Shift Delta d*         & 0.200    & [$-$0.027, 0.426]      & ---          & Not Supported          \\
+H1b: Decodability Peak Shift   & Arousal Self Peak Shift Delta d*           & 0.017    & [$-$0.200, 0.250]      & ---          & Not Supported          \\
 \midrule
 H2: Sharing Reorganization     & Valence Delta Sharing                      & $-$0.553 & [$-$1.324, 0.076]      & ---          & Not Supported          \\
 H2: Sharing Reorganization     & Arousal Delta Sharing                      & $-$0.278 & [$-$0.615, 0.049]      & ---          & Not Supported          \\
@@ -36,6 +34,6 @@ H4: Recovery Asymmetry         & Matched-Plain AUC (Descriptive)            & $-
 \vspace{1ex}
 \begin{minipage}{\linewidth}
 \footnotesize
-\textbf{Note:} H1aではBase--Instruct間の幾何学的歪み（Procrustes Distortion）が確認された。一方、H1bの事前定義された正方向のデコードピーク後段シフト、およびH2のReader--Self表現共有度再編（$\Delta\text{Sharing}$）は、4ファミリー統合ブートストラップ95\%信頼区間に基づく事前登録判定基準を満たさなかった。H3のPrimary因果交互作用項もFDR補正後には支持されなかった。H4は4ファミリー結果が揃っていないため確証的判定を行わない。
+\textbf{Note:} H1aではBase--Instruct間のgeometric distortionが確認された。一方、H1bのprespecified positive peak shiftおよびH2のReader--Self sharing reorganizationは、4-family bootstrap CIに基づく事前定義criterionを満たさなかった。H3のPrimary interaction termsもFDR補正後には支持されなかった。H4はprespecified 4-family resultsが揃っていないため、confirmatory conclusionを行わない。
 \end{minipage}
 \end{table}

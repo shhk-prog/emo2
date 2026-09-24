@@ -6,12 +6,10 @@
 |:---|:---|:---:|:---:|:---:|:---:|
 | H1a: Geometry Reorganization | Reader Procrustes Distortion | 1.4553 | [0.6387, 2.8126] | --- | Supported |
 | H1a: Geometry Reorganization | Self Procrustes Distortion | 2.8716 | [0.6603, 6.9954] | --- | Supported |
-| H1a: Geometry Reorganization | RSA Reader | 0.5052 | [0.3300, 0.6729] | --- | Supported |
-| H1a: Geometry Reorganization | RSA Self | 0.5049 | [0.3244, 0.6975] | --- | Supported |
-| H1b: Decodability Peak Shift | Valence Reader Peak Shift | $-$0.1185 | [$-$0.2185, $-$0.0333] | --- | Not Supported |
-| H1b: Decodability Peak Shift | Valence Self Peak Shift | 0.0067 | [$-$0.0533, 0.1000] | --- | Not Supported |
-| H1b: Decodability Peak Shift | Arousal Reader Peak Shift | 0.1996 | [$-$0.0267, 0.4259] | --- | Not Supported |
-| H1b: Decodability Peak Shift | Arousal Self Peak Shift | 0.0167 | [$-$0.2000, 0.2500] | --- | Not Supported |
+| H1b: Decodability Peak Shift | Valence Reader Peak Shift Delta d* | $-$0.1185 | [$-$0.2185, $-$0.0333] | --- | Not Supported |
+| H1b: Decodability Peak Shift | Valence Self Peak Shift Delta d* | 0.0067 | [$-$0.0533, 0.1000] | --- | Not Supported |
+| H1b: Decodability Peak Shift | Arousal Reader Peak Shift Delta d* | 0.1996 | [$-$0.0267, 0.4259] | --- | Not Supported |
+| H1b: Decodability Peak Shift | Arousal Self Peak Shift Delta d* | 0.0167 | [$-$0.2000, 0.2500] | --- | Not Supported |
 | H2: Sharing Reorganization | Valence Delta Sharing | $-$0.5529 | [$-$1.3236, 0.0760] | --- | Not Supported |
 | H2: Sharing Reorganization | Arousal Delta Sharing | $-$0.2784 | [$-$0.6151, 0.0489] | --- | Not Supported |
 | H3: Causal Reorganization | Valence Alignment x Depth (Primary) | 0.0001 | [$-$0.0000, 0.0003] | q = 0.287 | Not Supported |

@@ -67,14 +67,12 @@ def generate_h1_h2_table(df_conf):
         ("H1a: Geometric Distortion", [
             ("H1a: Geometry Reorganization", "Reader Procrustes Distortion", r"Reader Procrustes Distortion"),
             ("H1a: Geometry Reorganization", "Self Procrustes Distortion", r"Self Procrustes Distortion"),
-            ("H1a: Geometry Reorganization", "RSA Reader", r"RSA Reader ($\rho_{\text{RSA}}$)"),
-            ("H1a: Geometry Reorganization", "RSA Self", r"RSA Self ($\rho_{\text{RSA}}$)"),
         ]),
         ("H1b: Decodability Peak Shift", [
-            ("H1b: Decodability Peak Shift", "Valence Reader Peak Shift", r"Valence Reader $\Delta d^*$"),
-            ("H1b: Decodability Peak Shift", "Valence Self Peak Shift", r"Valence Self $\Delta d^*$"),
-            ("H1b: Decodability Peak Shift", "Arousal Reader Peak Shift", r"Arousal Reader $\Delta d^*$"),
-            ("H1b: Decodability Peak Shift", "Arousal Self Peak Shift", r"Arousal Self $\Delta d^*$"),
+            ("H1b: Decodability Peak Shift", "Valence Reader Peak Shift Delta d*", r"Valence Reader $\Delta d^*$"),
+            ("H1b: Decodability Peak Shift", "Valence Self Peak Shift Delta d*", r"Valence Self $\Delta d^*$"),
+            ("H1b: Decodability Peak Shift", "Arousal Reader Peak Shift Delta d*", r"Arousal Reader $\Delta d^*$"),
+            ("H1b: Decodability Peak Shift", "Arousal Self Peak Shift Delta d*", r"Arousal Self $\Delta d^*$"),
         ]),
         ("H2: Sharing Reorganization", [
             ("H2: Sharing Reorganization", "Valence Delta Sharing", r"$\Delta\text{Sharing}$ (Valence)"),
@@ -291,7 +289,7 @@ def generate_h3_lmm_table(df_h3_lmm):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} Primary confirmatory inferenceは、Alignment $\times$ Depth、Alignment $\times$ Task、および Alignment $\times$ Task $\times$ Depth の事前登録された因果交互作用項に基づく。これらはいずれもBH-FDR多重比較補正後の有意水準を満たさなかった。",
+        r"\textbf{Note:} Primary confirmatory inferenceは Alignment $\times$ Depth、Alignment $\times$ Task、Alignment $\times$ Task $\times$ Depth のprespecified interaction termsに基づく。ValenceおよびArousalのいずれにおいても、これらのPrimary interactionはFDR補正後の有意水準を満たさなかった。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -334,7 +332,7 @@ def generate_distribution_recovery_table(df_recov):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} Baseモデル内部へInstruct由来の整列ベクトルを注入した場合の出力感情分布の回復度（Matched AUC, $\Delta\text{EMD AUC}$, Max Recovery）。現時点ではGemma familyのみについてMatched-Plain recoveryの実測値が利用可能である。したがって、事前登録された4ファミリー設計（Qwen, Llama, Gemma, OLMo）に基づくH4確証的統合は未完（Incomplete）であり、H4について確証的判定（Confirmatory conclusion）は行わない。",
+        r"\textbf{Note:} Baseモデル内部へInstruct由来の整列ベクトルを注入した場合の出力感情分布の回復度（Matched AUC, $\Delta\text{EMD AUC}$, Max Recovery）。現時点ではGemma familyのみについてMatched-Plain recoveryの実測値が利用可能である。したがって、事前登録された4ファミリー設計（Qwen, Llama, Gemma, OLMo）に基づくH4確証的統合は未完（Incomplete）であり、confirmatory conclusionを行わない。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -360,12 +358,10 @@ def generate_confirmatory_summary_table(df_conf, df_lmm=None, df_recov=None):
     CONF_MAP = [
         ("H1a: Geometry Reorganization", "Reader Procrustes Distortion", "H1a: Geometry Reorganization", "Reader Procrustes Distortion"),
         ("H1a: Geometry Reorganization", "Self Procrustes Distortion", "H1a: Geometry Reorganization", "Self Procrustes Distortion"),
-        ("H1a: Geometry Reorganization", "RSA Reader", "H1a: Geometry Reorganization", "RSA Reader"),
-        ("H1a: Geometry Reorganization", "RSA Self", "H1a: Geometry Reorganization", "RSA Self"),
-        ("H1b: Decodability Peak Shift", "Valence Reader Peak Shift", "H1b: Decodability Peak Shift", r"Valence Reader Peak Shift $\Delta d^*$"),
-        ("H1b: Decodability Peak Shift", "Valence Self Peak Shift", "H1b: Decodability Peak Shift", r"Valence Self Peak Shift $\Delta d^*$"),
-        ("H1b: Decodability Peak Shift", "Arousal Reader Peak Shift", "H1b: Decodability Peak Shift", r"Arousal Reader Peak Shift $\Delta d^*$"),
-        ("H1b: Decodability Peak Shift", "Arousal Self Peak Shift", "H1b: Decodability Peak Shift", r"Arousal Self Peak Shift $\Delta d^*$"),
+        ("H1b: Decodability Peak Shift", "Valence Reader Peak Shift Delta d*", "H1b: Decodability Peak Shift", r"Valence Reader Peak Shift $\Delta d^*$"),
+        ("H1b: Decodability Peak Shift", "Valence Self Peak Shift Delta d*", "H1b: Decodability Peak Shift", r"Valence Self Peak Shift $\Delta d^*$"),
+        ("H1b: Decodability Peak Shift", "Arousal Reader Peak Shift Delta d*", "H1b: Decodability Peak Shift", r"Arousal Reader Peak Shift $\Delta d^*$"),
+        ("H1b: Decodability Peak Shift", "Arousal Self Peak Shift Delta d*", "H1b: Decodability Peak Shift", r"Arousal Self Peak Shift $\Delta d^*$"),
         ("H2: Sharing Reorganization", "Valence Delta Sharing", "H2: Sharing Reorganization", r"Valence $\Delta\text{Sharing}$"),
         ("H2: Sharing Reorganization", "Arousal Delta Sharing", "H2: Sharing Reorganization", r"Arousal $\Delta\text{Sharing}$"),
     ]
@@ -459,7 +455,7 @@ def generate_confirmatory_summary_table(df_conf, df_lmm=None, df_recov=None):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} H1aではBase--Instruct間の幾何学的歪み（Procrustes Distortion）が確認された。一方、H1bの事前定義された正方向のデコードピーク後段シフト、およびH2のReader--Self表現共有度再編（$\Delta\text{Sharing}$）は、4ファミリー統合ブートストラップ95\%信頼区間に基づく事前登録判定基準を満たさなかった。H3のPrimary因果交互作用項もFDR補正後には支持されなかった。H4は4ファミリー結果が揃っていないため確証的判定を行わない。",
+        r"\textbf{Note:} H1aではBase--Instruct間のgeometric distortionが確認された。一方、H1bのprespecified positive peak shiftおよびH2のReader--Self sharing reorganizationは、4-family bootstrap CIに基づく事前定義criterionを満たさなかった。H3のPrimary interaction termsもFDR補正後には支持されなかった。H4はprespecified 4-family resultsが揃っていないため、confirmatory conclusionを行わない。",
         r"\end{minipage}",
         r"\end{table}",
     ])

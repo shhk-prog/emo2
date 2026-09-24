@@ -158,17 +158,19 @@ def generate_mediated_attenuation_table(df_atten):
         for _, row in df_atten.iterrows():
             ax = str(row["axis"]).capitalize()
             layer_str = f"L{int(row['mediator_layer'])} ({row['mediator_depth']:.2f})"
-            atten_val = row["mediated_attenuation"]
-            # Total shift approximate / representation
-            t_shift = f"{atten_val / (row['attenuation_ratio'] + 1e-8):.4f}" if row['attenuation_ratio'] > 0 else "---"
-            r_shift = f"{(atten_val / (row['attenuation_ratio'] + 1e-8)) - atten_val:.4f}" if row['attenuation_ratio'] > 0 else "---"
-            m_val = format_num(atten_val)
-            m_rand = "0.0000"
-            m_net = m_val
-            ratio_str = f"{row['attenuation_ratio'] * 100:.2f}" + r"\%"
-            ci_m = f"[{format_num(row['attenuation_ci_low'])}, {format_num(row['attenuation_ci_high'])}]"
-            ci_net = ci_m
-
+            t_shift = format_num(row.get("total_shift", np.nan))
+            r_shift = format_num(row.get("residual_shift", np.nan))
+            m_val = format_num(row.get("mediated_attenuation", np.nan))
+            m_rand = format_num(row.get("attenuation_random", np.nan))
+            m_net = format_num(row.get("net_attenuation", np.nan))
+            ratio_val = row.get("attenuation_ratio", np.nan)
+            ratio_str = f"{ratio_val * 100:.2f}" + r"\%" if pd.notna(ratio_val) else "---"
+            m_ci_l = row.get("mediated_ci_low", row.get("attenuation_ci_low", np.nan))
+            m_ci_h = row.get("mediated_ci_high", row.get("attenuation_ci_high", np.nan))
+            ci_m = f"[{format_num(m_ci_l)}, {format_num(m_ci_h)}]" if (pd.notna(m_ci_l) and pd.notna(m_ci_h)) else "---"
+            net_ci_l = row.get("net_ci_low", np.nan)
+            net_ci_h = row.get("net_ci_high", np.nan)
+            ci_net = f"[{format_num(net_ci_l)}, {format_num(net_ci_h)}]" if (pd.notna(net_ci_l) and pd.notna(net_ci_h)) else "---"
             tex_lines.append(f"{ax:<10} & {layer_str:<16} & {t_shift:<8} & {r_shift:<8} & {m_val:<10} & {m_rand:<10} & {m_net:<10} & {ratio_str:<14} & {ci_m:<22} & {ci_net} \\\\")
     else:
         tex_lines.append(r"--- & --- & --- & --- & --- & --- & --- & --- & --- & --- \\")
@@ -179,7 +181,7 @@ def generate_mediated_attenuation_table(df_atten):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} $M = T - R$ は媒介層の潜在表現統制による変位減衰量、$M_{\text{net}} = M - M_{\text{rand}}$ はランダム部分空間統制を差し引いた正味媒介減衰量。Valenceでは 95\% CI が負値を含み（$[-0.0011, 0.0029]$）、統計的に堅牢な媒介効果は支持されない。",
+        r"\textbf{Note:} $M = T - R$ は媒介層の潜在表現統制による変位減衰量、$M_{\text{net}} = M - M_{\text{rand}}$ はランダム部分空間統制を差し引いた正味媒介減衰量。ValenceおよびArousalともに 95\% CI がゼロを跨ぎ、統計的に堅牢な媒介効果は支持されない。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -211,19 +213,29 @@ def generate_confirmatory_details_table(df_conf, repo_root="."):
 
         for idx_fam, fam in enumerate(fams):
             fd = fam_wise.get(fam, {})
-            # H1
-            h1 = fd.get("h1_dissociation", {})
-            for ax in ["valence", "arousal"]:
-                ax_d = h1.get(ax, {})
-                est = ax_d.get("delta_d_peak", np.nan)
-                ci = ax_d.get("delta_d_peak_ci", [np.nan, np.nan])
-                passed = (ci[1] <= 0 and est < 0)
-                p_str = r"\checkmark \textbf{PASS}" if passed else r"$\times$ FAIL"
-                ci_str = f"[{format_num(ci[0], 2)}, {format_num(ci[1], 2)}]"
-                fam_str = f"\\multirow{{8}}{{*}}{{\\textbf{{{fam}}}}}" if ax == "valence" else ""
-                tex_lines.append(f"{fam_str:<28} & H1: Dissociation ($\\Delta d$) & {ax.capitalize():<8} & {format_num(est, 3):<10} & {ci_str:<18} & $\\text{{CI}}_{{\\text{{high}}}} \\le 0$ & {p_str} \\\\")
+            fam_str = f"\\multirow{{10}}{{*}}{{\\textbf{{{fam}}}}}"
 
-            # H2
+            # H1: Peak and Center Dissociation (Methods: Delta d* > 0 and Delta bar_d > 0)
+            h1 = fd.get("h1_dissociation", {})
+            for ax_idx, ax in enumerate(["valence", "arousal"]):
+                ax_d = h1.get(ax, {})
+                pk_est = ax_d.get("delta_d_peak", ax_d.get("delta_d_star", np.nan))
+                pk_ci = ax_d.get("delta_d_peak_ci", [np.nan, np.nan])
+                pk_pass = (pk_ci[0] > 0 and pk_est > 0)
+                pk_p_str = r"\checkmark \textbf{PASS}" if pk_pass else r"$\times$ FAIL"
+                pk_ci_str = f"[{format_num(pk_ci[0], 2)}, {format_num(pk_ci[1], 2)}]"
+
+                ct_est = ax_d.get("delta_d_center", ax_d.get("delta_bar_d", np.nan))
+                ct_ci = ax_d.get("delta_d_center_ci", [np.nan, np.nan])
+                ct_pass = (ct_ci[0] > 0 and ct_est > 0)
+                ct_p_str = r"\checkmark \textbf{PASS}" if ct_pass else r"$\times$ FAIL"
+                ct_ci_str = f"[{format_num(ct_ci[0], 2)}, {format_num(ct_ci[1], 2)}]"
+
+                f_label = fam_str if ax_idx == 0 else ""
+                tex_lines.append(f"{f_label:<28} & H1 Peak Dissoc. ($\\Delta d^*$) & {ax.capitalize():<8} & {format_num(pk_est, 3):<10} & {pk_ci_str:<18} & $\\text{{CI}}_{{\\text{{low}}}} > 0$ & {pk_p_str} \\\\")
+                tex_lines.append(f"{'':<28} & H1 Center Dissoc. ($\\Delta\\bar{{d}}$) & {ax.capitalize():<8} & {format_num(ct_est, 3):<10} & {ct_ci_str:<18} & $\\text{{CI}}_{{\\text{{low}}}} > 0$ & {ct_p_str} \\\\")
+
+            # H2: Sufficiency Slope (Threshold: CI_low > 0.10)
             h2 = fd.get("h2_sufficiency", {})
             for ax, key_s, key_ci in [("valence", "slope_v", "slope_v_ci"), ("arousal", "slope_a", "slope_a_ci")]:
                 est = h2.get(key_s, np.nan)
@@ -233,26 +245,29 @@ def generate_confirmatory_details_table(df_conf, repo_root="."):
                 ci_str = f"[{format_num(ci[0], 4)}, {format_num(ci[1], 4)}]"
                 tex_lines.append(f"{'':<28} & H2: Sufficiency ($\\beta_1$)   & {ax.capitalize():<8} & {format_num(est, 4):<10} & {ci_str:<18} & $\\text{{CI}}_{{\\text{{low}}}} > 0.10$ & {p_str} \\\\")
 
-            # H3
+            # H3: Endogenous Mediation (Methods: CI_low(M) > 0 and CI_low(M_net) > 0)
             h3 = fd.get("h3_endogenous_relevance", {})
             for ax in ["valence", "arousal"]:
                 ax_d = h3.get(ax, {})
                 est = ax_d.get("mediated_attenuation", np.nan)
                 ci = ax_d.get("mediated_attenuation_ci", [np.nan, np.nan])
-                passed = (ci[0] > 0.05)
+                # Check random net CI if present
+                net_info = h3.get("random_subspace_control", {}).get(ax, {}).get("net_attenuation_vs_random", {})
+                net_ci_l = net_info.get("ci_lower", 0.0)
+                passed = (ci[0] > 0.0 and net_ci_l > 0.0)
                 p_str = r"\checkmark \textbf{PASS}" if passed else r"$\times$ FAIL"
                 ci_str = f"[{format_num(ci[0], 4)}, {format_num(ci[1], 4)}]"
-                tex_lines.append(f"{'':<28} & H3: Mediation ($M$)           & {ax.capitalize():<8} & {format_num(est, 4):<10} & {ci_str:<18} & $\\text{{CI}}_{{\\text{{low}}}} > 0.05$ & {p_str} \\\\")
+                tex_lines.append(f"{'':<28} & H3: Mediation ($M$)           & {ax.capitalize():<8} & {format_num(est, 4):<10} & {ci_str:<18} & $\\text{{CI}}_{{\\text{{low}}}} > 0$ & {p_str} \\\\")
 
-            # H4
+            # H4: Temporal Contrast (Methods: CI_low(Delta C) > 0)
             h4 = fd.get("h4_temporal_emergence", {})
             for ax, key_c, key_ci in [("valence", "contrast_v", "contrast_v_ci"), ("arousal", "contrast_a", "contrast_a_ci")]:
                 est = h4.get(key_c, np.nan)
                 ci = h4.get(key_ci, [np.nan, np.nan])
-                passed = (ci[0] > 0.05)
+                passed = (ci[0] > 0.0)
                 p_str = r"\checkmark \textbf{PASS}" if passed else r"$\times$ FAIL"
                 ci_str = f"[{format_num(ci[0], 4)}, {format_num(ci[1], 4)}]"
-                tex_lines.append(f"{'':<28} & H4: Contrast ($\\Delta\\tau$)   & {ax.capitalize():<8} & {format_num(est, 4):<10} & {ci_str:<18} & $\\text{{CI}}_{{\\text{{low}}}} > 0.05$ & {p_str} \\\\")
+                tex_lines.append(f"{'':<28} & H4: Contrast ($\\Delta C$)     & {ax.capitalize():<8} & {format_num(est, 4):<10} & {ci_str:<18} & $\\text{{CI}}_{{\\text{{low}}}} > 0$ & {p_str} \\\\")
 
             if idx_fam < len(fams) - 1:
                 tex_lines.append(r"\midrule")
@@ -265,7 +280,7 @@ def generate_confirmatory_details_table(df_conf, repo_root="."):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} 各ファミリー固有の95\%ブートストラップ信頼区間および事前登録判定基準（H1: $\text{CI}_{\text{high}} \le 0$; H2: $\text{CI}_{\text{low}} > 0.10$; H3: $\text{CI}_{\text{low}} > 0.05$; H4: $\text{CI}_{\text{low}} > 0.05$）に基づく厳密評価。H1（時空間解離）はLlama 3.2およびOLMo 2のValenceで支持されたが、ArousalやH2--H4の効果量閾値はいずれのモデル・軸でも満たされずFAILとなった。",
+        r"\textbf{Note:} 各ファミリー固有の95\%ブートストラップ信頼区間および事前登録判定基準（H1: $\text{CI}_{\text{low}} > 0$; H2: $\text{CI}_{\text{low}} > 0.10$; H3: $\text{CI}_{\text{low}} > 0$; H4: $\text{CI}_{\text{low}} > 0$）に基づく評価。H1--H3はいずれのモデル・軸でも事前登録基準を満たさなかった（FAIL）。H4では各モデルで軸レベルの正の効果量（$\text{CI}_{\text{low}} > 0$）が観測されたが、Gate判定がNO\_GOであるため事前登録パイプライン全体のConfirmationは不成立となった。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -297,25 +312,29 @@ def generate_confirmatory_table(df_conf, df_conf_matrix, repo_root="."):
 
         for fam in fams:
             fd = fam_wise.get(fam, {})
-            # H1: dissociation (requires CI_high <= 0 for both V and A)
-            h1_v_ci = fd.get("h1_dissociation", {}).get("valence", {}).get("delta_d_peak_ci", [0, 1])
-            h1_a_ci = fd.get("h1_dissociation", {}).get("arousal", {}).get("delta_d_peak_ci", [0, 1])
-            h1_pass = (h1_v_ci[1] <= 0 and h1_a_ci[1] <= 0)
+            # H1: dissociation requires peak_ci_low > 0 and center_ci_low > 0 for both V and A
+            h1 = fd.get("h1_dissociation", {})
+            h1_v_pk_ci = h1.get("valence", {}).get("delta_d_peak_ci", [-1, -1])
+            h1_v_ct_ci = h1.get("valence", {}).get("delta_d_center_ci", [-1, -1])
+            h1_a_pk_ci = h1.get("arousal", {}).get("delta_d_peak_ci", [-1, -1])
+            h1_a_ct_ci = h1.get("arousal", {}).get("delta_d_center_ci", [-1, -1])
+            h1_pass = (h1_v_pk_ci[0] > 0 and h1_v_ct_ci[0] > 0 and h1_a_pk_ci[0] > 0 and h1_a_ct_ci[0] > 0)
 
-            # H2: sufficiency slope CI_low > 0.10
+            # H2: sufficiency slope CI_low > 0.10 for both V and A
             h2_v_ci = fd.get("h2_sufficiency", {}).get("slope_v_ci", [0, 0])
             h2_a_ci = fd.get("h2_sufficiency", {}).get("slope_a_ci", [0, 0])
             h2_pass = (h2_v_ci[0] > 0.10 and h2_a_ci[0] > 0.10)
 
-            # H3: mediated attenuation CI_low > 0.05
-            h3_v_ci = fd.get("h3_endogenous_relevance", {}).get("valence", {}).get("mediated_attenuation_ci", [0, 0])
-            h3_a_ci = fd.get("h3_endogenous_relevance", {}).get("arousal", {}).get("mediated_attenuation_ci", [0, 0])
-            h3_pass = (h3_v_ci[0] > 0.05 and h3_a_ci[0] > 0.05)
+            # H3: mediated attenuation CI_low > 0 for both V and A
+            h3 = fd.get("h3_endogenous_relevance", {})
+            h3_v_ci = h3.get("valence", {}).get("mediated_attenuation_ci", [0, 0])
+            h3_a_ci = h3.get("arousal", {}).get("mediated_attenuation_ci", [0, 0])
+            h3_pass = (h3_v_ci[0] > 0.0 and h3_a_ci[0] > 0.0)
 
-            # H4: temporal contrast CI_low > 0.05
+            # H4: temporal contrast CI_low > 0 for both V and A
             h4_v_ci = fd.get("h4_temporal_emergence", {}).get("contrast_v_ci", [0, 0])
             h4_a_ci = fd.get("h4_temporal_emergence", {}).get("contrast_a_ci", [0, 0])
-            h4_pass = (h4_v_ci[0] > 0.05 and h4_a_ci[0] > 0.05)
+            h4_pass = (h4_v_ci[0] > 0.0 and h4_a_ci[0] > 0.0)
 
             all_c = (h1_pass and h2_pass and h3_pass and h4_pass)
 
@@ -335,7 +354,7 @@ def generate_confirmatory_table(df_conf, df_conf_matrix, repo_root="."):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} 事前登録された二軸同時達成基準（Valence pass AND Arousal pass）および効果量閾値による厳密判定。いずれの独立ファミリーでも4仮説の同時再現は達成されず（All Confirmed: \textbf{NO}）、因果的介入効果の一般化には制約が存在することが立証された。",
+        r"\textbf{Note:} 事前登録された二軸同時達成基準（Valence pass AND Arousal pass）および効果量閾値による判定。H4単独では各モデルで二軸達成されたが、Gate不通過およびH1--H3の未達により、全体としての事前登録Confirmationは成立しなかった（All Confirmed: \textbf{NO}）。",
         r"\end{minipage}",
         r"\end{table}",
     ])

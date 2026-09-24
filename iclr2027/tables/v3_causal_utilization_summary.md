@@ -20,6 +20,6 @@
 
 | Family | H1 (Dissociation $\Delta d < 0$) | H2 (Sufficiency $\beta > 0$) | H3 (Mediation $\beta > 0$) | H4 (Temporal Contrast $\beta > 0$) | All Confirmed? |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| Llama 3.2 | PASS | FAIL | FAIL | FAIL | **False** |
-| Gemma 3 | FAIL | FAIL | FAIL | FAIL | **False** |
-| OLMo 2 | PASS | FAIL | FAIL | FAIL | **False** |
+| Llama 3.2 | FAIL | FAIL | FAIL | PASS | **False** |
+| Gemma 3 | FAIL | FAIL | FAIL | PASS | **False** |
+| OLMo 2 | FAIL | FAIL | FAIL | PASS | **False** |

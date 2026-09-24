@@ -76,6 +76,10 @@ def build_v2_summary(
     lmm_path = find_v2_artifact(v2_dir, "v2_lmm_confirmatory.json")
     lmm_data = load_json_if_exists(lmm_path) if lmm_path else {}
 
+    # 4. Distribution recovery summary artifact (RQ4 derived)
+    rec_path = find_v2_artifact(v2_dir, "v2_distribution_recovery_summary.json")
+    rec_data = load_json_if_exists(rec_path) if rec_path else {}
+
     # =========================================================================
     # 1. Table V2-1: Representation Geometry
     # =========================================================================
@@ -275,8 +279,9 @@ def build_v2_summary(
                 m_net_perp = float(np.nanmean(net_perp_arr)) if len(net_perp_arr) > 0 else np.nan
                 m_zero = float(np.nanmean(zero_arr)) if len(zero_arr) > 0 else np.nan
 
-                # Peak finding on net_rand (CRITICAL: if no positive peak, preserve NaN!)
+                # Peak and Center-of-Mass finding on net_rand
                 pos_causal_peak = np.nan
+                causal_center = np.nan
                 no_pos_causal_peak = True
                 if len(net_rand_arr) > 0 and len(rel_depths) == len(net_rand_arr):
                     net_arr = np.array(net_rand_arr, dtype=float)
@@ -284,6 +289,11 @@ def build_v2_summary(
                         max_idx = int(np.nanargmax(net_arr))
                         pos_causal_peak = float(rel_depths[max_idx])
                         no_pos_causal_peak = False
+
+                    positive = np.maximum(net_arr, 0.0)
+                    pos_sum = float(np.nansum(positive))
+                    if pos_sum > 0:
+                        causal_center = float(np.nansum(np.asarray(rel_depths) * positive) / pos_sum)
 
                 # Decodability peak from geom or np.nan (no hardcoded fallback!)
                 dec_peak = np.nan
@@ -304,7 +314,7 @@ def build_v2_summary(
                         # preserves NaN if no positive peak!
                         "positive_causal_peak": pos_causal_peak,
                         "decodability_center": dec_peak,
-                        "causal_center": pos_causal_peak,
+                        "causal_center": causal_center,
                         "delta_d_peak": np.nan,  # Relocation delta must be computed as Instruct - Base
                         "delta_d_center": np.nan,
                         "causal_decodability_gap": causal_decodability_gap,
@@ -470,13 +480,31 @@ def build_v2_summary(
 
     for fam in families:
         fam_rec = rec_families.get(fam, {})
+        fam_dist = rec_data.get("per_family", {}).get(fam, {})
         for task in ("reader", "self"):
-            matched_auc = float(fam_rec.get(f"{task}_matched_auc", np.nan))
-            delta_emd = float(fam_rec.get(f"{task}_delta_emd_auc", np.nan))
-            max_rec = float(fam_rec.get(f"{task}_max_recovery", np.nan))
-            best_d = float(fam_rec.get(f"{task}_best_depth", np.nan))
-            native_auc = float(fam_rec.get(f"{task}_native_auc", np.nan))
-            aligned_auc = float(fam_rec.get(f"{task}_aligned_auc", np.nan))
+            td = fam_dist.get(task, {})
+            if td:
+                matched_auc = float(
+                    td.get("auc_recovery_matched_plain", td.get("primary_matched_plain", {}).get("auc_recovery", np.nan))
+                )
+                delta_emd = float(
+                    td.get("auc_delta_emd_matched_plain", td.get("primary_matched_plain", {}).get("delta_emd_auc", np.nan))
+                )
+                max_rec = float(
+                    td.get("max_recovery_ratio_matched_plain", td.get("secondary_peak_localization", {}).get("max_recovery_ratio", np.nan))
+                )
+                best_d = float(
+                    td.get("best_recovery_depth", td.get("secondary_peak_localization", {}).get("best_recovery_depth", np.nan))
+                )
+                native_auc = float(td.get("auc_recovery", np.nan))
+                aligned_auc = float(td.get("auc_recovery_aligned", np.nan))
+            else:
+                matched_auc = float(fam_rec.get(f"{task}_matched_auc", np.nan))
+                delta_emd = float(fam_rec.get(f"{task}_delta_emd_auc", np.nan))
+                max_rec = float(fam_rec.get(f"{task}_max_recovery", np.nan))
+                best_d = float(fam_rec.get(f"{task}_best_depth", np.nan))
+                native_auc = float(fam_rec.get(f"{task}_native_auc", np.nan))
+                aligned_auc = float(fam_rec.get(f"{task}_aligned_auc", np.nan))
 
             table_v2_4_rows.append(
                 {
@@ -504,10 +532,10 @@ def build_v2_summary(
                     estimate=matched_auc,
                     is_primary=True,
                     analysis_role="primary",
-                    source_artifact=str(lmm_path.relative_to(v2_dir.parent))
-                    if lmm_path
-                    else "v2_lmm_confirmatory.json",
-                    source_key="matched_auc",
+                    source_artifact=str(rec_path.relative_to(v2_dir.parent))
+                    if rec_path
+                    else (str(lmm_path.relative_to(v2_dir.parent)) if lmm_path else "v2_distribution_recovery_summary.json"),
+                    source_key="auc_recovery_matched_plain",
                 ).to_dict()
             )
 

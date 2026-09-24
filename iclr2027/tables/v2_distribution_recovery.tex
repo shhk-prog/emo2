@@ -7,13 +7,19 @@
 \toprule
 \textbf{Family} & \textbf{Task} & \textbf{Matched AUC} & $\Delta\text{EMD AUC}$ & \textbf{Max Recovery} & \textbf{Best Depth ($d^*$)} & \textbf{Native AUC} & \textbf{Aligned AUC} \\
 \midrule
-OLMO       & Reader   & 0.720        & 0.150          & 0.450        & 0.600            & 0.780      & 0.810      \\
-OLMO       & Self     & 0.720        & 0.150          & 0.450        & 0.600            & 0.780      & 0.810      \\
+GEMMA      & Reader   & $-$0.052     & $-$0.012       & 0.142        & 0.040            & $-$0.072   & $-$0.011   \\
+GEMMA      & Self     & 0.001        & 0.005          & 0.326        & 0.000            & $-$0.025   & $-$0.009   \\
+LLAMA      & Reader   & ---          & ---            & ---          & ---              & ---        & ---        \\
+LLAMA      & Self     & ---          & ---            & ---          & ---              & ---        & ---        \\
+OLMO       & Reader   & $-$0.170     & $-$0.037       & 0.006        & 0.800            & 0.044      & 0.001      \\
+OLMO       & Self     & $-$0.160     & $-$0.045       & 0.000        & 1.000            & 0.070      & $-$0.001   \\
+QWEN       & Reader   & ---          & ---            & ---          & ---              & ---        & ---        \\
+QWEN       & Self     & ---          & ---            & ---          & ---              & ---        & ---        \\
 \bottomrule
 \end{tabular}
 \vspace{1ex}
 \begin{minipage}{\linewidth}
 \footnotesize
-\textbf{Note:} Baseモデル内部へInstruct由来の整列ベクトルを注入することで、出力感情分布の忠実度が有意に回復（$\text{AUC} > 0.70, \text{Max Recovery} > 0.40$）。事後学習によって再編された感情回路が因果的に修復可能であることが示された。
+\textbf{Note:} Baseモデル内部へInstruct由来の整列ベクトルを注入した場合の出力感情分布の回復度（Matched AUC, $\Delta\text{EMD AUC}$, Max Recovery）。統計的検定および信頼区間に基づき効果を検証する（欠損ファミリーは未実施または除外）。
 \end{minipage}
 \end{table}

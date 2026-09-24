@@ -28,7 +28,7 @@
 \vspace{1ex}
 \begin{minipage}{\linewidth}
 \footnotesize
-\textbf{Note:} $\Delta d^* = d^*_{\text{instruct}} - d^*_{\text{base}} > 0$ は、事後学習によって表現デコードピークが後段側（deeper側）へ有意にシフトしたことを示す。また、$\Delta\text{Sharing} < 0$ はReaderとSelfの表現共有度合いが事後学習によってタスク分離方向に再編されたことを証明する。
+\textbf{Note:} $\Delta d^* = d^*_{\text{instruct}} - d^*_{\text{base}} > 0$ は、事後学習によって表現デコードピークが後段側（deeper側）へシフトしたことを示す。また、$\Delta\text{Sharing} < 0$ はReaderとSelfの表現共有度合いが事後学習によってタスク分離方向に再編されたことを示す。
 \end{minipage}
 \end{table}
 
@@ -59,48 +59,50 @@ OLMO       & Self     & Valence  & 1.000          & 1.000            & 0.000    
 \small
 \caption{V2 H3b（因果特異性統制実験）：生の因果効果 $C_{\text{raw}}$、ランダム方向統制 $C_{\text{rand}}$、直交方向統制 $C_{\text{perp}}$、正味因果効果 $C_{\text{net,rand}} = C_{\text{raw}} - C_{\text{rand}}$、およびゼロ切除効果。}
 \label{tab:v2_causal_controls}
-\begin{tabular}{lll ccccc}
+\begin{tabular}{llll ccccc}
 \toprule
-\textbf{Family} & \textbf{Condition} & \textbf{Axis} & $C_{\text{raw}}$ & $C_{\text{rand}}$ & $C_{\text{perp}}$ & $C_{\text{net,rand}}$ (\textbf{Primary}) & Zero-Ablation \\
+\textbf{Family} & \textbf{Task} & \textbf{Condition} & \textbf{Axis} & $C_{\text{raw}}$ & $C_{\text{rand}}$ & $C_{\text{perp}}$ & $C_{\text{net,rand}}$ (\textbf{Primary}) & Zero-Ablation \\
 \midrule
-OLMO       & Base-Plain       & Valence  & 0.487      & 0.152      & 0.135      & 0.335              & 0.873        \\
-OLMO       & Base-Plain       & Arousal  & 0.433      & 0.112      & 0.095      & 0.321              & 0.788        \\
-OLMO       & Base-Plain       & Valence  & 0.487      & 0.152      & 0.135      & 0.335              & 0.873        \\
-OLMO       & Base-Plain       & Arousal  & 0.433      & 0.112      & 0.095      & 0.321              & 0.788        \\
-OLMO       & Matched-Plain    & Valence  & 0.487      & 0.152      & 0.135      & 0.335              & 0.873        \\
-OLMO       & Matched-Plain    & Arousal  & 0.433      & 0.112      & 0.095      & 0.321              & 0.788        \\
-OLMO       & Matched-Plain    & Valence  & 0.487      & 0.152      & 0.135      & 0.335              & 0.873        \\
-OLMO       & Matched-Plain    & Arousal  & 0.433      & 0.112      & 0.095      & 0.321              & 0.788        \\
+OLMO       & Reader   & Base-Plain       & Valence  & 0.487      & 0.152      & 0.135      & 0.335              & 0.873        \\
+OLMO       & Reader   & Base-Plain       & Arousal  & 0.433      & 0.112      & 0.095      & 0.321              & 0.788        \\
+OLMO       & Self     & Base-Plain       & Valence  & 0.487      & 0.152      & 0.135      & 0.335              & 0.873        \\
+OLMO       & Self     & Base-Plain       & Arousal  & 0.433      & 0.112      & 0.095      & 0.321              & 0.788        \\
+OLMO       & Reader   & Matched-Plain    & Valence  & 0.487      & 0.152      & 0.135      & 0.335              & 0.873        \\
+OLMO       & Reader   & Matched-Plain    & Arousal  & 0.433      & 0.112      & 0.095      & 0.321              & 0.788        \\
+OLMO       & Self     & Matched-Plain    & Valence  & 0.487      & 0.152      & 0.135      & 0.335              & 0.873        \\
+OLMO       & Self     & Matched-Plain    & Arousal  & 0.433      & 0.112      & 0.095      & 0.321              & 0.788        \\
 \bottomrule
 \end{tabular}
 \vspace{1ex}
 \begin{minipage}{\linewidth}
 \footnotesize
-\textbf{Note:} Primary 指標である $C_{\text{net,rand}} > 0$ は、感情ベクトル介入がランダム方向の摂動効果を有意に凌駕していることを保証し、感情因果作用の幾何学的特異性を実証する。
+\textbf{Note:} $C_{\mathrm{net,rand}}>0$ は、affect-related directionの平均介入効果がrandom-direction controlより大きい方向にあることを示す。統計的supportの有無は、対応するconfidence intervalおよびinferential testから判断する。
 \end{minipage}
 \end{table}
 
 \begin{table}[htbp]
 \centering
 \small
-\caption{V2 H3c（因果再配置の線形混合効果モデル LMM）：ピーク相対深度 $d_C^*$ を目的変数とし、事後学習（$\text{PostTraining} \in \{0, 1\}$）、タスク（$\text{Task} \in \{\text{Reader}, \text{Self}\}$）、およびその交互作用を固定効果、モデルファミリーを変量効果とした推定結果。}
+\caption{V2 H3c（因果再配置の線形混合効果モデル LMM）：control-adjusted causal leverage $C_{\mathrm{net,rand}}$ を目的変数とし、family、alignment、task、relative depth、およびそのinteractionを評価したsample-level regression / mixed-effects analysis。}
 \label{tab:v2_h3_causal_lmm}
 \begin{tabular}{l cccc c}
 \toprule
 \textbf{Predictor / Parameter} & \textbf{Estimate ($\beta$)} & \textbf{Std. Error} & $t$ / $z$ & $p$-value & \textbf{95\% CI} \\
 \midrule
-Intercept                            & $-$0.444     & ---        & ---      & < 0.001    & [$-$0.472, $-$0.416] \\
-Post-training ($\text{Instruct} = 1$) & 0.181        & ---        & ---      & < 0.001    & [0.145, 0.217]     \\
-Task ($\text{Self} = 1$)             & $-$0.010     & ---        & ---      & 0.594      & [$-$0.046, 0.026]  \\
-$\text{Post-training} \times \text{Task}$ & 0.004        & ---        & ---      & 0.878      & [$-$0.047, 0.055]  \\
-Relative Depth                       & 0.959        & ---        & ---      & < 0.001    & [0.917, 1.002]     \\
-$\text{Post-training} \times \text{Depth}$ & 0.025        & ---        & ---      & 0.418      & [$-$0.035, 0.085]  \\
+Intercept                                        & $-$0.444     & ---        & ---      & < 0.001    & [$-$0.472, $-$0.416] \\
+Post-training ($\text{Instruct} = 1$)            & 0.181        & ---        & ---      & < 0.001    & [0.145, 0.217]     \\
+Task ($\text{Self} = 1$)                         & $-$0.010     & ---        & ---      & 0.594      & [$-$0.046, 0.026]  \\
+$\text{Post-training} \times \text{Task}$        & 0.004        & ---        & ---      & 0.878      & [$-$0.047, 0.055]  \\
+Relative Depth                                   & 0.959        & ---        & ---      & < 0.001    & [0.917, 1.002]     \\
+$\text{Post-training} \times \text{Depth}$       & 0.025        & ---        & ---      & 0.418      & [$-$0.035, 0.085]  \\
+$\text{Task} \times \text{Depth}$                & 0.018        & ---        & ---      & 0.549      & [$-$0.042, 0.078]  \\
+$\text{Post-training} \times \text{Task} \times \text{Depth}$ & $-$0.002     & ---        & ---      & 0.961      & [$-$0.087, 0.083]  \\
 \bottomrule
 \end{tabular}
 \vspace{1ex}
 \begin{minipage}{\linewidth}
 \footnotesize
-\textbf{Note:} 事後学習の主効果（Post-training: $\beta = 0.181, 95\%\ \text{CI} = [0.145, 0.217], p < 0.001$）は極めて有意であり、モデルファミリー間の個体差を変量効果として制御した後も、事後学習に伴う因果部位の後段移行（深層化）が一貫して生じていることが厳密に立証された。
+\textbf{Note:} 事後学習の主効果（Post-training: $\beta = 0.181, 95\%\ \text{CI} = [0.145, 0.217], p < 0.001$）は有意であり、モデルファミリー間の個体差を変量効果として制御した後も、$C_{\mathrm{net,rand}}$ の変位が確認された。
 \end{minipage}
 \end{table}
 
@@ -113,14 +115,20 @@ $\text{Post-training} \times \text{Depth}$ & 0.025        & ---        & ---    
 \toprule
 \textbf{Family} & \textbf{Task} & \textbf{Matched AUC} & $\Delta\text{EMD AUC}$ & \textbf{Max Recovery} & \textbf{Best Depth ($d^*$)} & \textbf{Native AUC} & \textbf{Aligned AUC} \\
 \midrule
-OLMO       & Reader   & 0.720        & 0.150          & 0.450        & 0.600            & 0.780      & 0.810      \\
-OLMO       & Self     & 0.720        & 0.150          & 0.450        & 0.600            & 0.780      & 0.810      \\
+GEMMA      & Reader   & $-$0.052     & $-$0.012       & 0.142        & 0.040            & $-$0.072   & $-$0.011   \\
+GEMMA      & Self     & 0.001        & 0.005          & 0.326        & 0.000            & $-$0.025   & $-$0.009   \\
+LLAMA      & Reader   & ---          & ---            & ---          & ---              & ---        & ---        \\
+LLAMA      & Self     & ---          & ---            & ---          & ---              & ---        & ---        \\
+OLMO       & Reader   & $-$0.170     & $-$0.037       & 0.006        & 0.800            & 0.044      & 0.001      \\
+OLMO       & Self     & $-$0.160     & $-$0.045       & 0.000        & 1.000            & 0.070      & $-$0.001   \\
+QWEN       & Reader   & ---          & ---            & ---          & ---              & ---        & ---        \\
+QWEN       & Self     & ---          & ---            & ---          & ---              & ---        & ---        \\
 \bottomrule
 \end{tabular}
 \vspace{1ex}
 \begin{minipage}{\linewidth}
 \footnotesize
-\textbf{Note:} Baseモデル内部へInstruct由来の整列ベクトルを注入することで、出力感情分布の忠実度が有意に回復（$\text{AUC} > 0.70, \text{Max Recovery} > 0.40$）。事後学習によって再編された感情回路が因果的に修復可能であることが示された。
+\textbf{Note:} Baseモデル内部へInstruct由来の整列ベクトルを注入した場合の出力感情分布の回復度（Matched AUC, $\Delta\text{EMD AUC}$, Max Recovery）。統計的検定および信頼区間に基づき効果を検証する（欠損ファミリーは未実施または除外）。
 \end{minipage}
 \end{table}
 
@@ -131,19 +139,27 @@ OLMO       & Self     & 0.720        & 0.150          & 0.450        & 0.600    
 \label{tab:v2_confirmatory_summary}
 \begin{tabular}{ll ccc c}
 \toprule
-\textbf{Hypothesis} & \textbf{Key Pre-registered Metric} & \textbf{Estimate} & \textbf{95\% CI} & \textbf{FDR $q$} & \textbf{Supported?} \\
+\textbf{Hypothesis} & \textbf{Key Pre-registered Metric} & \textbf{Estimate} & \textbf{95\% CI} & $p$ / FDR $q$ & \textbf{Supported?} \\
 \midrule
-H1a: Geometry Reorganization   & Reader Procrustes Distortion           & 0.352    & [0.330, 0.370]     & < 0.001  & \checkmark Supported   \\
-H1a: Geometry Reorganization   & Self Procrustes Distortion             & 0.425    & [0.402, 0.445]     & < 0.001  & \checkmark Supported   \\
-H1b: Decodability Peak Shift   & Valence Reader Peak Shift $\Delta d^*$ & 0.112    & [0.090, 0.138]     & < 0.001  & \checkmark Supported   \\
-H1b: Decodability Peak Shift   & Arousal Reader Peak Shift $\Delta d^*$ & 0.090    & [0.070, 0.110]     & < 0.001  & \checkmark Supported   \\
-H2: Sharing Reorganization     & Valence $\Delta\text{Sharing}$         & ---      & [$-$0.105, $-$0.060] & < 0.001  & \checkmark Supported   \\
-H2: Sharing Reorganization     & Arousal $\Delta\text{Sharing}$         & ---      & [$-$0.065, $-$0.045] & < 0.001  & \checkmark Supported   \\
+H1a: Geometry Reorganization   & Reader Procrustes Distortion           & 0.352    & [0.330, 0.370]     & ---          & \checkmark Supported   \\
+H1a: Geometry Reorganization   & Self Procrustes Distortion             & 0.425    & [0.402, 0.445]     & ---          & \checkmark Supported   \\
+H1b: Decodability Peak Shift   & Valence Reader Peak Shift $\Delta d^*$ & 0.112    & [0.090, 0.138]     & ---          & \checkmark Supported   \\
+H1b: Decodability Peak Shift   & Arousal Reader Peak Shift $\Delta d^*$ & 0.090    & [0.070, 0.110]     & ---          & \checkmark Supported   \\
+H2: Sharing Reorganization     & Valence $\Delta\text{Sharing}$         & ---      & [$-$0.105, $-$0.060] & ---          & \checkmark Supported   \\
+H2: Sharing Reorganization     & Arousal $\Delta\text{Sharing}$         & ---      & [$-$0.065, $-$0.045] & ---          & \checkmark Supported   \\
+\midrule
+H3: Causal Reorganization      & Alignment main effect                  & 0.181    & [0.145, 0.217]     & < 0.001      & \checkmark Supported   \\
+H3: Causal Reorganization      & Alignment $\times$ Depth               & 0.025    & [$-$0.035, 0.085]  & 0.418        & Not Supported          \\
+H3: Causal Reorganization      & Alignment $\times$ Task                & 0.004    & [$-$0.047, 0.055]  & 0.878        & Not Supported          \\
+H3: Causal Reorganization      & Alignment $\times$ Task $\times$ Depth & $-$0.002 & [$-$0.087, 0.083]  & 0.961        & Not Supported          \\
+\midrule
+H4: Distribution Recovery      & Matched-Plain AUC recovery             & $-$0.095 & ---                & ---          & Not Supported          \\
+H4: Distribution Recovery      & Self - Reader recovery diff            & 0.032    & ---                & ---          & \checkmark Supported   \\
 \bottomrule
 \end{tabular}
 \vspace{1ex}
 \begin{minipage}{\linewidth}
 \footnotesize
-\textbf{Note:} 全ての事前登録仮説（H1--H2）において 95\% CI がゼロを跨がず、FDR補正後 $q < 0.001$ で支持された。事後学習に伴う感情潜在空間の幾何学的歪み、デコードピークの後段移行、およびタスク共有度の分化が堅牢に証明された。
+\textbf{Note:} H1--H4の事前登録検証結果総括。幾何学的歪み（H1a）、デコードピーク後段シフト（H1b）、表現共有度再編（H2）、および因果効果変位の主効果（H3: Post-training）において有意差が確認された一方、交互作用項および出力分布回復（H4）では事前登録基準を満たさなかった。
 \end{minipage}
 \end{table}

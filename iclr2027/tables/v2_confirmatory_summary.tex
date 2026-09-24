@@ -5,19 +5,27 @@
 \label{tab:v2_confirmatory_summary}
 \begin{tabular}{ll ccc c}
 \toprule
-\textbf{Hypothesis} & \textbf{Key Pre-registered Metric} & \textbf{Estimate} & \textbf{95\% CI} & \textbf{FDR $q$} & \textbf{Supported?} \\
+\textbf{Hypothesis} & \textbf{Key Pre-registered Metric} & \textbf{Estimate} & \textbf{95\% CI} & $p$ / FDR $q$ & \textbf{Supported?} \\
 \midrule
-H1a: Geometry Reorganization   & Reader Procrustes Distortion           & 0.352    & [0.330, 0.370]     & < 0.001  & \checkmark Supported   \\
-H1a: Geometry Reorganization   & Self Procrustes Distortion             & 0.425    & [0.402, 0.445]     & < 0.001  & \checkmark Supported   \\
-H1b: Decodability Peak Shift   & Valence Reader Peak Shift $\Delta d^*$ & 0.112    & [0.090, 0.138]     & < 0.001  & \checkmark Supported   \\
-H1b: Decodability Peak Shift   & Arousal Reader Peak Shift $\Delta d^*$ & 0.090    & [0.070, 0.110]     & < 0.001  & \checkmark Supported   \\
-H2: Sharing Reorganization     & Valence $\Delta\text{Sharing}$         & ---      & [$-$0.105, $-$0.060] & < 0.001  & \checkmark Supported   \\
-H2: Sharing Reorganization     & Arousal $\Delta\text{Sharing}$         & ---      & [$-$0.065, $-$0.045] & < 0.001  & \checkmark Supported   \\
+H1a: Geometry Reorganization   & Reader Procrustes Distortion           & 0.352    & [0.330, 0.370]     & ---          & \checkmark Supported   \\
+H1a: Geometry Reorganization   & Self Procrustes Distortion             & 0.425    & [0.402, 0.445]     & ---          & \checkmark Supported   \\
+H1b: Decodability Peak Shift   & Valence Reader Peak Shift $\Delta d^*$ & 0.112    & [0.090, 0.138]     & ---          & \checkmark Supported   \\
+H1b: Decodability Peak Shift   & Arousal Reader Peak Shift $\Delta d^*$ & 0.090    & [0.070, 0.110]     & ---          & \checkmark Supported   \\
+H2: Sharing Reorganization     & Valence $\Delta\text{Sharing}$         & ---      & [$-$0.105, $-$0.060] & ---          & \checkmark Supported   \\
+H2: Sharing Reorganization     & Arousal $\Delta\text{Sharing}$         & ---      & [$-$0.065, $-$0.045] & ---          & \checkmark Supported   \\
+\midrule
+H3: Causal Reorganization      & Alignment main effect                  & 0.181    & [0.145, 0.217]     & < 0.001      & \checkmark Supported   \\
+H3: Causal Reorganization      & Alignment $\times$ Depth               & 0.025    & [$-$0.035, 0.085]  & 0.418        & Not Supported          \\
+H3: Causal Reorganization      & Alignment $\times$ Task                & 0.004    & [$-$0.047, 0.055]  & 0.878        & Not Supported          \\
+H3: Causal Reorganization      & Alignment $\times$ Task $\times$ Depth & $-$0.002 & [$-$0.087, 0.083]  & 0.961        & Not Supported          \\
+\midrule
+H4: Distribution Recovery      & Matched-Plain AUC recovery             & $-$0.095 & ---                & ---          & Not Supported          \\
+H4: Distribution Recovery      & Self - Reader recovery diff            & 0.032    & ---                & ---          & \checkmark Supported   \\
 \bottomrule
 \end{tabular}
 \vspace{1ex}
 \begin{minipage}{\linewidth}
 \footnotesize
-\textbf{Note:} 全ての事前登録仮説（H1--H2）において 95\% CI がゼロを跨がず、FDR補正後 $q < 0.001$ で支持された。事後学習に伴う感情潜在空間の幾何学的歪み、デコードピークの後段移行、およびタスク共有度の分化が堅牢に証明された。
+\textbf{Note:} H1--H4の事前登録検証結果総括。幾何学的歪み（H1a）、デコードピーク後段シフト（H1b）、表現共有度再編（H2）、および因果効果変位の主効果（H3: Post-training）において有意差が確認された一方、交互作用項および出力分布回復（H4）では事前登録基準を満たさなかった。
 \end{minipage}
 \end{table}

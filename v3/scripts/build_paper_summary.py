@@ -389,103 +389,128 @@ def build_v3_summary(
 
         for fam_name in rep_fams:
             f_res = fam_wise.get(fam_name, {})
-            # Normalize family name
             fam_clean = (
                 "llama"
                 if "llama" in fam_name.lower()
                 else ("gemma" if "gemma" in fam_name.lower() else "olmo")
             )
 
-            # H1
-            h1_v = f_res.get("h1_dissociation", {}).get("valence", {})
-            h1_val = float(h1_v.get("delta_d_peak", np.nan))
-            table_v3_4_rows.append(
-                {
-                    "family": fam_name,
-                    "hypothesis": "H1_dissociation",
-                    "axis": "valence",
-                    "estimate": h1_val,
-                    "ci_low": float(h1_pe.get("valence", {}).get("ci_95", [np.nan, np.nan])[0]),
-                    "ci_high": float(h1_pe.get("valence", {}).get("ci_95", [np.nan, np.nan])[1]),
-                    "threshold": "< 0",
-                    "pass": h1_val < 0,
-                }
-            )
+            # H1: Dissociation
+            h1 = f_res.get("h1_dissociation", {})
+            h1_passes = []
+            for ax in ("valence", "arousal"):
+                ax_d = h1.get(ax, {})
+                pk_val = float(ax_d.get("delta_d_peak", ax_d.get("delta_d_star", np.nan)))
+                pk_ci = ax_d.get("delta_d_peak_ci", [np.nan, np.nan])
+                ct_val = float(ax_d.get("delta_d_center", ax_d.get("delta_bar_d", np.nan)))
+                ct_ci = ax_d.get("delta_d_center_ci", [np.nan, np.nan])
+                pass_h1 = bool(pk_ci[0] > 0 and pk_val > 0 and ct_ci[0] > 0 and ct_val > 0)
+                h1_passes.append(pass_h1)
 
-            # H2
-            h2_v = f_res.get("h2_sufficiency", {}).get("valence", {})
-            h2_val = float(h2_v.get("slope", np.nan))
-            table_v3_4_rows.append(
-                {
-                    "family": fam_name,
-                    "hypothesis": "H2_sufficiency",
-                    "axis": "valence",
-                    "estimate": h2_val,
-                    "ci_low": float(h2_pe.get("valence", {}).get("ci_95", [np.nan, np.nan])[0]),
-                    "ci_high": float(h2_pe.get("valence", {}).get("ci_95", [np.nan, np.nan])[1]),
-                    "threshold": "> 0",
-                    "pass": h2_val > 0,
-                }
-            )
+                table_v3_4_rows.append(
+                    {
+                        "family": fam_name,
+                        "hypothesis": "H1_dissociation",
+                        "axis": ax,
+                        "estimate": pk_val,
+                        "ci_low": float(pk_ci[0]),
+                        "ci_high": float(pk_ci[1]),
+                        "threshold": "CI_low > 0",
+                        "pass": pass_h1,
+                    }
+                )
 
-            # H3
-            h3_v = f_res.get("h3_mediation", {}).get("valence", {})
-            h3_val = float(h3_v.get("mediated_attenuation", np.nan))
-            table_v3_4_rows.append(
-                {
-                    "family": fam_name,
-                    "hypothesis": "H3_mediation",
-                    "axis": "valence",
-                    "estimate": h3_val,
-                    "ci_low": float(
-                        h3_pe.get("valence", {}).get(
-                            "ci_95_mediated_attenuation", [np.nan, np.nan]
-                        )[0]
-                    ),
-                    "ci_high": float(
-                        h3_pe.get("valence", {}).get(
-                            "ci_95_mediated_attenuation", [np.nan, np.nan]
-                        )[1]
-                    ),
-                    "threshold": "> 0",
-                    "pass": h3_val > 0,
-                }
-            )
+            # H2: Sufficiency
+            h2 = f_res.get("h2_sufficiency", {})
+            h2_passes = []
+            for ax, k_s, k_ci in [("valence", "slope_v", "slope_v_ci"), ("arousal", "slope_a", "slope_a_ci")]:
+                h2_val = float(h2.get(k_s, np.nan))
+                h2_ci = h2.get(k_ci, [np.nan, np.nan])
+                pass_h2 = bool(h2_ci[0] > 0.10)
+                h2_passes.append(pass_h2)
 
-            # H4
-            h4_v = f_res.get("h4_temporal", {}).get("valence", {})
-            h4_val = float(h4_v.get("contrast", np.nan))
-            table_v3_4_rows.append(
-                {
-                    "family": fam_name,
-                    "hypothesis": "H4_temporal_contrast",
-                    "axis": "valence",
-                    "estimate": h4_val,
-                    "ci_low": float(h4_pe.get("valence", {}).get("ci_95", [np.nan, np.nan])[0]),
-                    "ci_high": float(h4_pe.get("valence", {}).get("ci_95", [np.nan, np.nan])[1]),
-                    "threshold": "> 0",
-                    "pass": h4_val > 0,
-                }
-            )
+                table_v3_4_rows.append(
+                    {
+                        "family": fam_name,
+                        "hypothesis": "H2_sufficiency",
+                        "axis": ax,
+                        "estimate": h2_val,
+                        "ci_low": float(h2_ci[0]),
+                        "ci_high": float(h2_ci[1]),
+                        "threshold": "CI_low > 0.10",
+                        "pass": pass_h2,
+                    }
+                )
 
-            # Matrix pass/fail row
+            # H3: Mediation
+            h3 = f_res.get("h3_endogenous_relevance", {})
+            h3_passes = []
+            for ax in ("valence", "arousal"):
+                ax_d = h3.get(ax, {})
+                h3_val = float(ax_d.get("mediated_attenuation", np.nan))
+                h3_ci = ax_d.get("mediated_attenuation_ci", [np.nan, np.nan])
+                pass_h3 = bool(h3_ci[0] > 0.0)
+                h3_passes.append(pass_h3)
+
+                table_v3_4_rows.append(
+                    {
+                        "family": fam_name,
+                        "hypothesis": "H3_mediation",
+                        "axis": ax,
+                        "estimate": h3_val,
+                        "ci_low": float(h3_ci[0]),
+                        "ci_high": float(h3_ci[1]),
+                        "threshold": "CI_low > 0",
+                        "pass": pass_h3,
+                    }
+                )
+
+            # H4: Temporal Contrast
+            h4 = f_res.get("h4_temporal_emergence", {})
+            h4_passes = []
+            for ax, k_c, k_ci in [("valence", "contrast_v", "contrast_v_ci"), ("arousal", "contrast_a", "contrast_a_ci")]:
+                h4_val = float(h4.get(k_c, np.nan))
+                h4_ci = h4.get(k_ci, [np.nan, np.nan])
+                pass_h4 = bool(h4_ci[0] > 0.0)
+                h4_passes.append(pass_h4)
+
+                table_v3_4_rows.append(
+                    {
+                        "family": fam_name,
+                        "hypothesis": "H4_temporal_contrast",
+                        "axis": ax,
+                        "estimate": h4_val,
+                        "ci_low": float(h4_ci[0]),
+                        "ci_high": float(h4_ci[1]),
+                        "threshold": "CI_low > 0",
+                        "pass": pass_h4,
+                    }
+                )
+
+            # Matrix pass/fail row: requires BOTH valence AND arousal
+            h1_both = all(h1_passes)
+            h2_both = all(h2_passes)
+            h3_both = all(h3_passes)
+            h4_both = all(h4_passes)
+            all_c = (h1_both and h2_both and h3_both and h4_both)
+
             matrix_rows.append(
                 {
                     "family": fam_name,
-                    "H1": h1_val < 0,
-                    "H2": h2_val > 0,
-                    "H3": h3_val > 0,
-                    "H4": h4_val > 0,
-                    "all_confirmed": (h1_val < 0 and h2_val > 0 and h3_val > 0 and h4_val > 0),
+                    "H1": h1_both,
+                    "H2": h2_both,
+                    "H3": h3_both,
+                    "H4": h4_both,
+                    "all_confirmed": all_c,
                 }
             )
 
             # Confirmatory primary records
-            for hyp, est, pass_bool in [
-                ("H1_dissociation", h1_val, h1_val < 0),
-                ("H2_sufficiency", h2_val, h2_val > 0),
-                ("H3_mediation", h3_val, h3_val > 0),
-                ("H4_temporal_contrast", h4_val, h4_val > 0),
+            for hyp, pass_bool in [
+                ("H1_dissociation", h1_both),
+                ("H2_sufficiency", h2_both),
+                ("H3_mediation", h3_both),
+                ("H4_temporal_contrast", h4_both),
             ]:
                 records.append(
                     PaperSummaryRecord(
@@ -494,10 +519,10 @@ def build_v3_summary(
                         family=fam_clean,
                         alignment="instruct",
                         task="self",
-                        axis="valence",
+                        axis="valence_arousal_joint",
                         condition="cross_model_replication",
                         metric=hyp,
-                        estimate=est,
+                        estimate=1.0 if pass_bool else 0.0,
                         value_text="PASS" if pass_bool else "FAIL",
                         is_primary=True,
                         analysis_role="confirmatory",

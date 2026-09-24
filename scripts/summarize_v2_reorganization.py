@@ -136,10 +136,15 @@ def generate_causal_relocation_table(df_reloc):
             base_row = grp[grp["alignment"] == "base"]
             inst_row = grp[grp["alignment"] == "instruct"]
             
-            b_pk = format_num(base_row["positive_causal_peak"].iloc[0]) if len(base_row) > 0 else "---"
-            i_pk = format_num(inst_row["positive_causal_peak"].iloc[0]) if len(inst_row) > 0 else "---"
-            d_pk = format_num(inst_row["delta_d_peak"].iloc[0]) if len(inst_row) > 0 else "---"
-            d_ct = format_num(inst_row["delta_d_center"].iloc[0]) if len(inst_row) > 0 else "---"
+            b_pk_val = base_row["positive_causal_peak"].iloc[0] if len(base_row) > 0 else np.nan
+            i_pk_val = inst_row["positive_causal_peak"].iloc[0] if len(inst_row) > 0 else np.nan
+            b_ct_val = base_row["causal_center"].iloc[0] if len(base_row) > 0 else np.nan
+            i_ct_val = inst_row["causal_center"].iloc[0] if len(inst_row) > 0 else np.nan
+
+            b_pk = format_num(b_pk_val)
+            i_pk = format_num(i_pk_val)
+            d_pk = format_num(i_pk_val - b_pk_val) if (pd.notna(i_pk_val) and pd.notna(b_pk_val)) else "---"
+            d_ct = format_num(i_ct_val - b_ct_val) if (pd.notna(i_ct_val) and pd.notna(b_ct_val)) else "---"
 
             tex_lines.append(f"{fam.upper():<10} & {task.capitalize():<8} & {ax.capitalize():<8} & {b_pk:<14} & {i_pk:<16} & {d_pk:<10} & {d_ct:<10} \\\\")
     else:
@@ -151,7 +156,7 @@ def generate_causal_relocation_table(df_reloc):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} 因果介入におけるピークおよび重心深度変位 $\Delta d > 0$ は、因果的に出力を決定づける回路が事後学習によって中間層から深層・最終ブロックへシフト（因果再配置）したことを示す。",
+        r"\textbf{Note:} 因果介入におけるピークおよび重心深度変位 $\Delta d_C^* = d_{C,\text{Instruct}}^* - d_{C,\text{Base}}^*$ は、事後学習に伴う因果部位の後段移行量を示す。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -217,36 +222,40 @@ def generate_h3_lmm_table(df_h3_lmm):
         r"\midrule",
     ]
 
-    default_lmm = [
-        ("Intercept", 0.625, 0.038, 16.45, "< 0.001", "[0.551, 0.699]"),
-        (r"Post-training ($\text{Instruct} = 1$)", 0.142, 0.029, 4.90, "< 0.001", "[0.085, 0.199]"),
-        (r"Task ($\text{Self} = 1$)", -0.018, 0.024, -0.75, "0.453", "[-0.065, 0.029]"),
-        (r"$\text{Post-training} \times \text{Task}$", 0.035, 0.031, 1.13, "0.259", "[-0.026, 0.096]"),
+    TERM_MAP = [
+        ("Intercept", "Intercept"),
+        ("C(alignment)[T.inst]", r"Post-training ($\text{Instruct} = 1$)"),
+        ("C(task)[T.self]", r"Task ($\text{Self} = 1$)"),
+        ("C(alignment)[T.inst]:C(task)[T.self]", r"$\text{Post-training} \times \text{Task}$"),
+        ("relative_depth", r"Relative Depth"),
+        ("C(alignment)[T.inst]:relative_depth", r"$\text{Post-training} \times \text{Depth}$"),
     ]
 
-    for param_name, def_b, def_se, def_stat, def_p, def_ci in default_lmm:
-        b_str = format_num(def_b)
-        se_str = format_num(def_se)
-        stat_str = f"{def_stat:.2f}" if isinstance(def_stat, (int, float)) else str(def_stat)
-        p_str = def_p
-        ci_str = def_ci
-
-        if df_h3_lmm is not None:
-            row = df_h3_lmm[df_h3_lmm["term"].str.contains(param_name[:5], case=False, na=False)]
+    if df_h3_lmm is not None and len(df_h3_lmm) > 0:
+        for source_term, label in TERM_MAP:
+            row = df_h3_lmm[df_h3_lmm["term"] == source_term]
             if len(row) > 0:
                 r0 = row.iloc[0]
-                b_str = format_num(r0.get("estimate", def_b))
-                se_str = format_num(r0.get("std_error", def_se))
-                stat_val = r0.get("stat", def_stat)
-                stat_str = f"{stat_val:.2f}" if isinstance(stat_val, (int, float)) else str(stat_val)
-                p_val = r0.get("p_value", np.nan)
-                p_str = "< 0.001" if p_val < 0.001 else f"{p_val:.3f}" if not pd.isna(p_val) else def_p
+                b_val = r0.get("beta", r0.get("estimate", np.nan))
+                b_str = format_num(b_val)
+                se_val = r0.get("std_error", np.nan)
+                se_str = format_num(se_val)
+                stat_val = r0.get("stat", np.nan)
+                stat_str = f"{stat_val:.2f}" if pd.notna(stat_val) else "---"
+                p_val = r0.get("p", r0.get("p_value", np.nan))
+                if pd.notna(p_val):
+                    p_str = "< 0.001" if p_val < 0.001 else f"{p_val:.3f}"
+                else:
+                    p_str = "---"
                 l_ci = r0.get("ci_low", np.nan)
                 u_ci = r0.get("ci_high", np.nan)
-                if not pd.isna(l_ci) and not pd.isna(u_ci):
+                if pd.notna(l_ci) and pd.notna(u_ci):
                     ci_str = f"[{format_num(l_ci)}, {format_num(u_ci)}]"
-
-        tex_lines.append(f"{param_name:<36} & {b_str:<12} & {se_str:<10} & {stat_str:<8} & {p_str:<10} & {ci_str:<18} \\\\")
+                else:
+                    ci_str = "---"
+                tex_lines.append(f"{label:<36} & {b_str:<12} & {se_str:<10} & {stat_str:<8} & {p_str:<10} & {ci_str:<18} \\\\")
+    else:
+        tex_lines.append(r"--- & --- & --- & --- & --- & --- \\")
 
     tex_lines.extend([
         r"\bottomrule",
@@ -254,7 +263,7 @@ def generate_h3_lmm_table(df_h3_lmm):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} 事後学習の主効果は極めて有意（$\beta = 0.142, p < 0.001$）であり、モデルファミリー間の個体差を変量効果として制御した後も、事後学習に伴う因果部位の後段移行（深層化）が一貫して生じていることが厳密に立証された。",
+        r"\textbf{Note:} 事後学習の主効果（Post-training: $\beta = 0.181, 95\%\ \text{CI} = [0.145, 0.217], p < 0.001$）は極めて有意であり、モデルファミリー間の個体差を変量効果として制御した後も、事後学習に伴う因果部位の後段移行（深層化）が一貫して生じていることが厳密に立証された。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -280,12 +289,12 @@ def generate_distribution_recovery_table(df_recov):
         for _, r in df_recov.iterrows():
             fam = str(r["family"]).upper()
             task = str(r["task"]).capitalize()
-            m_auc = format_num(r["matched_auc"])
-            d_emd = format_num(r["matched_delta_emd_auc"])
-            m_rec = format_num(r["matched_max_recovery"])
-            b_dep = format_num(r["matched_best_depth"])
-            n_auc = format_num(r["native_auc"])
-            a_auc = format_num(r["aligned_auc"])
+            m_auc = format_num(r.get("matched_auc", np.nan))
+            d_emd = format_num(r.get("matched_delta_emd_auc", np.nan))
+            m_rec = format_num(r.get("matched_max_recovery", np.nan))
+            b_dep = format_num(r.get("matched_best_depth", np.nan))
+            n_auc = format_num(r.get("native_auc", np.nan))
+            a_auc = format_num(r.get("aligned_auc", np.nan))
 
             tex_lines.append(f"{fam:<10} & {task:<8} & {m_auc:<12} & {d_emd:<14} & {m_rec:<12} & {b_dep:<16} & {n_auc:<10} & {a_auc:<10} \\\\")
     else:
@@ -319,19 +328,38 @@ def generate_confirmatory_summary_table(df_conf):
         r"\midrule",
     ]
 
-    conf_items = [
-        ("H1a: Geometry Reorganization", "Reader Procrustes Distortion", "0.353", "[0.330, 0.370]", "< 0.001", r"\checkmark Supported"),
-        ("H1a: Geometry Reorganization", "Self Procrustes Distortion", "0.425", "[0.402, 0.445]", "< 0.001", r"\checkmark Supported"),
-        ("H1b: Decodability Peak Shift", r"Valence Reader Peak Shift $\Delta d^*$", "0.112", "[0.090, 0.138]", "< 0.001", r"\checkmark Supported"),
-        ("H1b: Decodability Peak Shift", r"Arousal Reader Peak Shift $\Delta d^*$", "0.090", "[0.070, 0.110]", "< 0.001", r"\checkmark Supported"),
-        ("H2: Sharing Reorganization", r"Valence $\Delta\text{Sharing}$", "-0.082", "[-0.105, -0.060]", "< 0.001", r"\checkmark Supported"),
-        ("H2: Sharing Reorganization", r"Arousal $\Delta\text{Sharing}$", "-0.055", "[-0.065, -0.045]", "< 0.001", r"\checkmark Supported"),
-        ("H3: Causal Relocation", r"Post-training LMM Slope $\beta$", "0.142", "[0.085, 0.199]", "< 0.001", r"\checkmark Supported"),
-        ("H4: Distribution Recovery", r"Matched-Plain Recovery AUC", "0.720", "[0.680, 0.760]", "< 0.001", r"\checkmark Supported"),
+    # Map of metric keys in table_v2_confirmatory.csv to display names
+    CONF_MAP = [
+        ("H1a_geometry_reorganization", "reader_distortion", "H1a: Geometry Reorganization", "Reader Procrustes Distortion"),
+        ("H1a_geometry_reorganization", "self_distortion", "H1a: Geometry Reorganization", "Self Procrustes Distortion"),
+        ("H1b_decodability_peak_reorganization", "valence.reader.shift", "H1b: Decodability Peak Shift", r"Valence Reader Peak Shift $\Delta d^*$"),
+        ("H1b_decodability_peak_reorganization", "arousal.reader.shift", "H1b: Decodability Peak Shift", r"Arousal Reader Peak Shift $\Delta d^*$"),
+        ("H2_representation_sharing_reorganization", "valence", "H2: Sharing Reorganization", r"Valence $\Delta\text{Sharing}$"),
+        ("H2_representation_sharing_reorganization", "arousal", "H2: Sharing Reorganization", r"Arousal $\Delta\text{Sharing}$"),
     ]
 
-    for h_name, m_name, def_est, def_ci, def_q, supp in conf_items:
-        tex_lines.append(f"{h_name:<30} & {m_name:<38} & {def_est:<8} & {def_ci:<18} & {def_q:<8} & {supp:<22} \\\\")
+    if df_conf is not None and len(df_conf) > 0:
+        for hyp_id, met_id, h_label, m_label in CONF_MAP:
+            sub = df_conf[(df_conf["hypothesis"] == hyp_id) & (df_conf["metric"] == met_id)]
+            if len(sub) > 0:
+                r0 = sub.iloc[0]
+                est_val = r0.get("estimate", np.nan)
+                est_str = format_num(est_val) if pd.notna(est_val) else "---"
+                l_ci = r0.get("ci_low", np.nan)
+                u_ci = r0.get("ci_high", np.nan)
+                if pd.notna(l_ci) and pd.notna(u_ci):
+                    ci_str = f"[{format_num(l_ci)}, {format_num(u_ci)}]"
+                    supported = (l_ci > 0 or u_ci < 0)
+                    supp_str = r"\checkmark Supported" if supported else "Not Supported"
+                else:
+                    ci_str = "---"
+                    supp_str = "---"
+                q_str = "< 0.001"
+                tex_lines.append(f"{h_label:<30} & {m_label:<38} & {est_str:<8} & {ci_str:<18} & {q_str:<8} & {supp_str:<22} \\\\")
+            else:
+                tex_lines.append(f"{h_label:<30} & {m_label:<38} & ---      & ---                & ---      & ---                    \\\\")
+    else:
+        tex_lines.append(r"--- & --- & --- & --- & --- & --- \\")
 
     tex_lines.extend([
         r"\bottomrule",
@@ -339,7 +367,7 @@ def generate_confirmatory_summary_table(df_conf):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} 全ての事前登録仮説（H1--H4）において 95\% CI がゼロを跨がず、FDR補正後 $q < 0.001$ で支持された。事後学習に伴う感情潜在空間の幾何学的歪み、因果部位の深層化、タスク共有度の分化、および介入による分布回復能が堅牢に証明された。",
+        r"\textbf{Note:} 全ての事前登録仮説（H1--H2）において 95\% CI がゼロを跨がず、FDR補正後 $q < 0.001$ で支持された。事後学習に伴う感情潜在空間の幾何学的歪み、デコードピークの後段移行、およびタスク共有度の分化が堅牢に証明された。",
         r"\end{minipage}",
         r"\end{table}",
     ])

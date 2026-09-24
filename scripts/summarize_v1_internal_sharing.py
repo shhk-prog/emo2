@@ -53,6 +53,20 @@ def format_num(val, decimals=3):
         return f"$-${val_str[1:]}"
     return val_str
 
+def compute_fdr_bh(p_values):
+    p_vals = np.asarray(p_values, dtype=float)
+    n = len(p_vals)
+    if n == 0:
+        return np.array([])
+    order = np.argsort(p_vals)
+    ranked = p_vals[order]
+    q_vals = ranked * n / np.arange(1, n + 1)
+    q_vals = np.minimum.accumulate(q_vals[::-1])[::-1]
+    q_vals = np.clip(q_vals, 0.0, 1.0)
+    out = np.empty_like(q_vals)
+    out[order] = q_vals
+    return out
+
 # =========================================================================
 # 1. E1: Peak Decodability Table
 # =========================================================================
@@ -118,7 +132,7 @@ def generate_e1_table(df_e1):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} ReaderとSelfのデコードピーク深度の乖離 $\Delta d^*$ は全ファミリーで微小（$< 0.15$）であり、感情認識と自己報告の潜在表現が同一の中間〜深層帯に局在していることを示す。",
+        r"\textbf{Note:} ReaderとSelfのdecodability peakは多くの条件で近接したが、一部のmodel / axisでは相対深度0.2以上の乖離も観測された。したがって両taskはaffect-relevant informationを共有する一方、その最適なreadout depthは完全には一致しない。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -176,7 +190,7 @@ def generate_e2_geometry_table(df_e2):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} 全モデル・全軸において表現類似度 RSA $\rho > 0.90$ と極めて高く、直交Procrustes変換によって転移性能が大幅に向上（$\text{Gain} > 0$）することから、ReaderとSelfは線形回転で重ね合わせ可能な同一の表現幾何を共有している。",
+        r"\textbf{Note:} ReaderとSelfのstimulus geometryには全条件で正のRSAが観測され、多くの条件で高いrank-level similarityを示した。一方、direct cross-decodingは大きく負となる条件が多く、raw coordinate systemが直接交換可能であることは支持されない。Procrustes alignment後には性能改善がみられ、両taskのgeometryが線形変換によって部分的に整列可能であることと整合する。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -234,7 +248,7 @@ def generate_semantic_controls_table(df_ctrl):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} 単語順序を破壊した Word Shuffle により精度が系統的に低下（$\text{Drop} > 0.07$）し、構文逆転（Outcome Reversal）に対しても確率低下が確認された。これにより、デコードは単なる表層的語彙手がかりではなく文脈的感情意味に依存していることが実証された。",
+        r"\textbf{Note:} Word Shuffleに対する一貫したaccuracy dropは、decodabilityが完全なbag-of-words shortcutだけでは説明しにくいことを支持する。一方、ParaphraseおよびOutcome Reversalはnonfallback sample数が小さいため、semantic validityに関する補助的evidenceとして解釈する。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -295,7 +309,7 @@ def generate_e3_causal_map_table(df_e3):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} ReaderとSelfの層別因果効果プロファイルは極めて高い順位相関（$\rho_{\text{rank}} > 0.85$）および正の余弦類似度を示し、刺激から感情情報を抽出し出力へと伝播させる計算経路が両タスク間で高度に重複（回路共有）していることを証明する。",
+        r"\textbf{Note:} ReaderとSelfのlayer-wise causal profilesには中程度から高い正の順位相関が観測されたが、その強さはmodel間で異なり、intervention directionのcosine similarityがほぼ0となる条件も存在した。したがって、両taskはlayer-level causal sensitivityを部分的に共有するが、同一のcausal directionまたは同一回路を利用するとは結論しない。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -354,7 +368,7 @@ def generate_interchangeability_table(df_e4):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} Readerで形成された潜在変位ベクトルをSelf計算に直接代入したとき、ランダム統制を上回る正の特異的変位（Specificity $> 0$）が確認され、内部情動情報がタスク境界を越えて機能的に交換可能であることが示された。",
+        r"\textbf{Note:} Reader由来のstimulus-associated hidden-state differenceをSelfへ移植した際のmatched-minus-random specificityは、いずれのPrimary conditionでもFDR補正後に有意ではなかった。したがって、本解析からReader由来representationのcross-task causal interchangeabilityを支持するrobust evidenceは得られなかった。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -364,17 +378,23 @@ def generate_interchangeability_table(df_e4):
 # 6. E6: Task-Specific Specialization Table
 # =========================================================================
 def generate_specialization_table(df_e6):
+    if df_e6 is not None and "interaction_p" in df_e6.columns:
+        df_e6 = df_e6.copy()
+        df_e6["interaction_q"] = compute_fdr_bh(df_e6["interaction_p"])
+    else:
+        df_e6 = df_e6.copy() if df_e6 is not None else None
+
     tex_lines = [
         r"\begin{table}[htbp]",
         r"\centering",
         r"\small",
-        r"\caption{V1 E6（タスク特異的因果特殊化）：ReaderおよびSelfに特異的な因果局所部位（Selective Depth）の同定、各部位における切除効果（Ablation Effect）、および Task $\times$ SiteType 交互作用効果（$\beta_{\text{int}}, p$）。}",
+        r"\caption{V1 E6（タスク特異的因果特殊化）：ReaderおよびSelfに特異的な因果局所部位（Selective Depth）の同定、各部位における切除効果（Ablation Effect）、および Task $\times$ SiteType 交互作用効果（$\beta_{\text{int}}, p$, FDR $q$）。}",
         r"\label{tab:v1_specialization}",
-        r"\begin{tabular}{lll cccc cc}",
+        r"\begin{tabular}{lll cccc ccc}",
         r"\toprule",
-        r" & & & \multicolumn{2}{c}{\textbf{Reader Site Effect}} & \multicolumn{2}{c}{\textbf{Self Site Effect}} & \multicolumn{2}{c}{\textbf{Interaction}} \\",
-        r"\cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(lr){8-9}",
-        r"\textbf{Family} & \textbf{Variant} & \textbf{Selective Sites} & On Reader & On Self & On Reader & On Self & $\beta_{\text{int}}$ & $p$ \\",
+        r" & & & \multicolumn{2}{c}{\textbf{Reader Site Effect}} & \multicolumn{2}{c}{\textbf{Self Site Effect}} & \multicolumn{3}{c}{\textbf{Interaction}} \\",
+        r"\cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(lr){8-10}",
+        r"\textbf{Family} & \textbf{Variant} & \textbf{Selective Sites} & On Reader & On Self & On Reader & On Self & $\beta_{\text{int}}$ & $p$ & FDR $q$ \\",
         r"\midrule",
     ]
 
@@ -393,17 +413,18 @@ def generate_specialization_table(df_e6):
                 s_on_s = f"{r0['self_ablation_on_self']:.3f}"
                 b_int = f"{r0['interaction_beta']:.4f}"
                 p_int = f"{r0['interaction_p']:.2e}" if r0['interaction_p'] < 0.001 else f"{r0['interaction_p']:.3f}"
+                q_int = f"{r0['interaction_q']:.2e}" if r0['interaction_q'] < 0.001 else f"{r0['interaction_q']:.3f}"
             else:
                 site_str = "No distinct sites"
-                r_on_r = r_on_s = s_on_r = s_on_s = b_int = p_int = "---"
+                r_on_r = r_on_s = s_on_r = s_on_s = b_int = p_int = q_int = "---"
 
             fam_str = f"\\multirow{{2}}{{*}}{{\\textbf{{{fam_name}}}}}" if first_fam else ""
             first_fam = False
 
-            tex_lines.append(f"{fam_str:<32} & {aln_label:<10} & {site_str:<18} & {r_on_r:<10} & {r_on_s:<10} & {s_on_r:<10} & {s_on_s:<10} & {b_int:<10} & {p_int:<10} \\\\")
+            tex_lines.append(f"{fam_str:<32} & {aln_label:<10} & {site_str:<18} & {r_on_r:<10} & {r_on_s:<10} & {s_on_r:<10} & {s_on_s:<10} & {b_int:<10} & {p_int:<10} & {q_int:<10} \\\\")
 
             if aln == "base":
-                tex_lines.append(r"\cmidrule(lr){2-9}")
+                tex_lines.append(r"\cmidrule(lr){2-10}")
 
         if fam_key != FAMILY_ORDER[-1][0]:
             tex_lines.append(r"\midrule")
@@ -414,7 +435,7 @@ def generate_specialization_table(df_e6):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} Reader優位部位とSelf優位部位を独立に切除した際の二重解離を検定。全ファミリーにおいて交互作用 $\beta_{\text{int}} \neq 0$ が検出され、大域的な回路共有の内部に、タスク依存の微小な特殊化サブネットワークが存在することが確認された。",
+        r"\textbf{Note:} Task $\times$ SiteType interactionはQwen Base / Instruct、Llama Base / Instruct、OLMo Baseでnominally significantであった一方、Gemma Base / InstructおよびOLMo Instructでは明確なsupportが得られなかった。したがってtask-specific causal specializationは一部modelで観測されたが、全familyに共通する性質ではなかった。",
         r"\end{minipage}",
         r"\end{table}",
     ])

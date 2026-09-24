@@ -99,7 +99,7 @@ def generate_family_3way_table(df_b1):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} $^{***}: p < 0.001, ^{**}: p < 0.01, ^{*}: p < 0.05$。BaseモデルではQwenおよびLlamaのみが正の相関を示したが、事後学習（Instruct）により全ファミリーにおいて認識（Writer/Reader）および自己報告（Self）のアライメントが系統的に向上した。",
+        r"\textbf{Note:} $^{***}: p < 0.001, ^{**}: p < 0.01, ^{*}: p < 0.05$。Instruct variantsでは多くのtask / axisでhuman correspondenceが高かったが、改善は一様ではなかった。Behavioral StageではBase / Instruct間でprompt formatも異なるため、この差をpost-trainingの因果効果とは解釈しない。",
         r"\end{minipage}",
         r"\end{table}",
     ])

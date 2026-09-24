@@ -285,12 +285,12 @@ def build_v2_summary(
                         pos_causal_peak = float(rel_depths[max_idx])
                         no_pos_causal_peak = False
 
-                # Decodability peak placeholder or from geom
-                dec_peak = 0.5
-                no_pos_dec_peak = False
+                # Decodability peak from geom or np.nan (no hardcoded fallback!)
+                dec_peak = np.nan
+                no_pos_dec_peak = True
 
-                delta_d_peak = (
-                    pos_causal_peak - dec_peak if not np.isnan(pos_causal_peak) else np.nan
+                causal_decodability_gap = (
+                    pos_causal_peak - dec_peak if (not np.isnan(pos_causal_peak) and not np.isnan(dec_peak)) else np.nan
                 )
 
                 table_v2_3a_rows.append(
@@ -305,8 +305,9 @@ def build_v2_summary(
                         "positive_causal_peak": pos_causal_peak,
                         "decodability_center": dec_peak,
                         "causal_center": pos_causal_peak,
-                        "delta_d_peak": delta_d_peak,
-                        "delta_d_center": delta_d_peak,
+                        "delta_d_peak": np.nan,  # Relocation delta must be computed as Instruct - Base
+                        "delta_d_center": np.nan,
+                        "causal_decodability_gap": causal_decodability_gap,
                         "no_positive_decodability_peak": no_pos_dec_peak,
                         "no_positive_net_causal_peak": no_pos_causal_peak,
                     }
@@ -470,12 +471,12 @@ def build_v2_summary(
     for fam in families:
         fam_rec = rec_families.get(fam, {})
         for task in ("reader", "self"):
-            matched_auc = float(fam_rec.get(f"{task}_matched_auc", 0.72))
-            delta_emd = float(fam_rec.get(f"{task}_delta_emd_auc", 0.15))
-            max_rec = float(fam_rec.get(f"{task}_max_recovery", 0.45))
-            best_d = float(fam_rec.get(f"{task}_best_depth", 0.6))
-            native_auc = float(fam_rec.get(f"{task}_native_auc", 0.78))
-            aligned_auc = float(fam_rec.get(f"{task}_aligned_auc", 0.81))
+            matched_auc = float(fam_rec.get(f"{task}_matched_auc", np.nan))
+            delta_emd = float(fam_rec.get(f"{task}_delta_emd_auc", np.nan))
+            max_rec = float(fam_rec.get(f"{task}_max_recovery", np.nan))
+            best_d = float(fam_rec.get(f"{task}_best_depth", np.nan))
+            native_auc = float(fam_rec.get(f"{task}_native_auc", np.nan))
+            aligned_auc = float(fam_rec.get(f"{task}_aligned_auc", np.nan))
 
             table_v2_4_rows.append(
                 {

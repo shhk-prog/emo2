@@ -115,7 +115,7 @@ def generate_rq1_sensitivity_table(df_b2):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} 整列変位 $\Delta_{\text{aligned}} > 0$ は刺激の極性に応じた期待方向への変位を示す。Instructモデルでは、Arousal軸（Qwen, Llama, Gemma）およびValence軸（Qwen, OLMo）において強固な感度（$d_z > 0.4, q < 0.001$）が確認される。",
+        r"\textbf{Note:} 整列変位 $\Delta_{\text{aligned}} > 0$ は刺激の極性に応じた期待方向への変位を示す。Instructモデルでは、Arousal軸（Qwen, Llama, Gemma）およびValence軸（Qwen, OLMo）において強固な感度（$q < 0.001$）が確認される（OLMo Instruct Valence: $d_z = 0.32 \sim 0.36$）。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -241,7 +241,7 @@ def generate_rq3_specificity_table(df_b4):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} 特異的効果量 $d$ は、臨床刺激に対する反応が単なる構文複雑さへの反応を超越している度合いを示す。Instructモデルにおいて、特にArousal軸で有意な感情特異性が維持されている。",
+        r"\textbf{Note:} 特異的効果量 $d$ は、臨床刺激に対する反応が単なる構文複雑さへの反応を超越している度合いを示す。特異性の成立度合いおよび強度はmodelやtaskによって異なっており、全ファミリーで一様に成立しているわけではない。",
         r"\end{minipage}",
         r"\end{table}",
     ])

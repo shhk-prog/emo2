@@ -1,0 +1,4 @@
+family,H1,H2,H3,H4,all_confirmed
+Llama 3.2,False,False,False,True,False
+Gemma 3,False,False,False,True,False
+OLMo 2,False,False,False,True,False

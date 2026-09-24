@@ -1,0 +1,46 @@
+{
+  "summary_schema_version": "1.0.0",
+  "generated_at_utc": "2026-09-24T05:02:46.069346+00:00",
+  "provenance_map": {
+    "v3.table_v3_2.valence_dissociation_peak": {
+      "sources": [
+        {
+          "artifact": "v3/results/derived/v3_spatiotemporal_summary.json",
+          "key": "delta_d_peak"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Peak dissociation delta_d_peak between D and C profiles at a priori stage"
+    },
+    "v3.table_v3_2.arousal_dissociation_peak": {
+      "sources": [
+        {
+          "artifact": "v3/results/derived/v3_spatiotemporal_summary.json",
+          "key": "delta_d_peak"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Peak dissociation delta_d_peak between D and C profiles at a priori stage"
+    },
+    "v3.table_v3_3.valence_mediated_attenuation": {
+      "sources": [
+        {
+          "artifact": "v3/results/derived/v3_path_mediation_summary.json",
+          "key": "valence_mediated_attenuation"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Endogenous mediated attenuation on confirmation set"
+    },
+    "v3.table_v3_3.arousal_mediated_attenuation": {
+      "sources": [
+        {
+          "artifact": "v3/results/derived/v3_path_mediation_summary.json",
+          "key": "arousal_mediated_attenuation"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Endogenous mediated attenuation on confirmation set"
+    }
+  }
+}

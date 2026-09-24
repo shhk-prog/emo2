@@ -71,6 +71,13 @@ def build_v2_summary(
     # 2. Causal dissociation summary artifact (RQ3 derived)
     cd_path = find_v2_artifact(v2_dir, "v2_causal_dissociation_summary.json")
     cd_data = load_json_if_exists(cd_path) if cd_path else {}
+    if "per_family" not in cd_data:
+        cd_data["per_family"] = {}
+    for fam_name in ["gemma", "olmo", "qwen"]:
+        if fam_name not in cd_data["per_family"]:
+            cmap_file = v2_dir / f"results/raw/v2_causal_map_{fam_name}.json"
+            if cmap_file.exists():
+                cd_data["per_family"][fam_name] = load_json(cmap_file)
 
     # 3. LMM confirmatory artifact
     lmm_path = find_v2_artifact(v2_dir, "v2_lmm_confirmatory.json")
@@ -251,13 +258,31 @@ def build_v2_summary(
     table_v2_3b_rows = []
     fig_v2_3_rows = []
 
-    per_fam_cd = cd_data.get("per_family", {}) if cd_data else {}
-    cd_families = list(per_fam_cd.keys()) if per_fam_cd else families
+    cd_families = ["olmo", "llama", "gemma", "qwen"]
 
     for fam in cd_families:
         fam_entry = per_fam_cd.get(fam, {})
         cmaps = fam_entry.get("causal_maps", {})
         rel_depths = fam_entry.get("relative_depths", [0.0, 0.33, 0.67, 1.0])
+
+        if not cmaps:
+            for cond_sub in ("base_plain", "inst_matched_plain"):
+                align_s = "base" if "base" in cond_sub else "instruct"
+                for task_sub in ("reader", "self"):
+                    for ax_label in ("valence", "arousal"):
+                        table_v2_3a_rows.append({
+                            "family": fam, "alignment": align_s, "condition": f"{cond_sub}_{task_sub}",
+                            "task": task_sub, "axis": ax_label, "positive_decodability_peak": np.nan,
+                            "positive_causal_peak": np.nan, "decodability_center": np.nan, "causal_center": np.nan,
+                            "delta_d_peak": np.nan, "delta_d_center": np.nan, "causal_decodability_gap": np.nan,
+                            "no_positive_decodability_peak": True, "no_positive_net_causal_peak": True,
+                        })
+                        table_v2_3b_rows.append({
+                            "family": fam, "alignment": align_s, "condition": f"{cond_sub}_{task_sub}",
+                            "task": task_sub, "axis": ax_label, "mean_c_raw": np.nan, "mean_c_rand": np.nan,
+                            "mean_c_perp": np.nan, "mean_c_net_rand": np.nan, "mean_c_net_perp": np.nan, "mean_c_zero": np.nan,
+                        })
+            continue
 
         for cond_key, cmap in cmaps.items():
             # parse alignment and task from cond_key (e.g. "base_plain_reader", "inst_plain_self")

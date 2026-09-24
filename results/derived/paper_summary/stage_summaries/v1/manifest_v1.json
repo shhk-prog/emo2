@@ -1,0 +1,694 @@
+{
+  "summary_schema_version": "1.0.0",
+  "generated_at_utc": "2026-09-24T05:02:33.812708+00:00",
+  "provenance_map": {
+    "v1.table_v1_1.gemma_base_valence_peak_depth_distance": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_a/gemma_base/e1_emobank_decodability.csv",
+          "key": "target_V_human_r2_reader"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_a/gemma_base/e1_emobank_decodability.csv",
+          "key": "target_V_human_r2_self"
+        }
+      ],
+      "derivation": "|argmax(r2_r)/(L-1) - argmax(r2_s)/(L-1)|",
+      "notes": "Peak relative depth distance between Reader and Self probes"
+    },
+    "v1.table_v1_1.gemma_base_arousal_peak_depth_distance": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_a/gemma_base/e1_emobank_decodability.csv",
+          "key": "target_A_human_r2_reader"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_a/gemma_base/e1_emobank_decodability.csv",
+          "key": "target_A_human_r2_self"
+        }
+      ],
+      "derivation": "|argmax(r2_r)/(L-1) - argmax(r2_s)/(L-1)|",
+      "notes": "Peak relative depth distance between Reader and Self probes"
+    },
+    "v1.table_v1_1.gemma_instruct_valence_peak_depth_distance": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_a/gemma_instruct/e1_emobank_decodability.csv",
+          "key": "target_V_human_r2_reader"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_a/gemma_instruct/e1_emobank_decodability.csv",
+          "key": "target_V_human_r2_self"
+        }
+      ],
+      "derivation": "|argmax(r2_r)/(L-1) - argmax(r2_s)/(L-1)|",
+      "notes": "Peak relative depth distance between Reader and Self probes"
+    },
+    "v1.table_v1_1.gemma_instruct_arousal_peak_depth_distance": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_a/gemma_instruct/e1_emobank_decodability.csv",
+          "key": "target_A_human_r2_reader"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_a/gemma_instruct/e1_emobank_decodability.csv",
+          "key": "target_A_human_r2_self"
+        }
+      ],
+      "derivation": "|argmax(r2_r)/(L-1) - argmax(r2_s)/(L-1)|",
+      "notes": "Peak relative depth distance between Reader and Self probes"
+    },
+    "v1.table_v1_1.llama_base_valence_peak_depth_distance": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_a/llama_base/e1_emobank_decodability.csv",
+          "key": "target_V_human_r2_reader"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_a/llama_base/e1_emobank_decodability.csv",
+          "key": "target_V_human_r2_self"
+        }
+      ],
+      "derivation": "|argmax(r2_r)/(L-1) - argmax(r2_s)/(L-1)|",
+      "notes": "Peak relative depth distance between Reader and Self probes"
+    },
+    "v1.table_v1_1.llama_base_arousal_peak_depth_distance": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_a/llama_base/e1_emobank_decodability.csv",
+          "key": "target_A_human_r2_reader"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_a/llama_base/e1_emobank_decodability.csv",
+          "key": "target_A_human_r2_self"
+        }
+      ],
+      "derivation": "|argmax(r2_r)/(L-1) - argmax(r2_s)/(L-1)|",
+      "notes": "Peak relative depth distance between Reader and Self probes"
+    },
+    "v1.table_v1_1.llama_instruct_valence_peak_depth_distance": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_a/llama_instruct/e1_emobank_decodability.csv",
+          "key": "target_V_human_r2_reader"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_a/llama_instruct/e1_emobank_decodability.csv",
+          "key": "target_V_human_r2_self"
+        }
+      ],
+      "derivation": "|argmax(r2_r)/(L-1) - argmax(r2_s)/(L-1)|",
+      "notes": "Peak relative depth distance between Reader and Self probes"
+    },
+    "v1.table_v1_1.llama_instruct_arousal_peak_depth_distance": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_a/llama_instruct/e1_emobank_decodability.csv",
+          "key": "target_A_human_r2_reader"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_a/llama_instruct/e1_emobank_decodability.csv",
+          "key": "target_A_human_r2_self"
+        }
+      ],
+      "derivation": "|argmax(r2_r)/(L-1) - argmax(r2_s)/(L-1)|",
+      "notes": "Peak relative depth distance between Reader and Self probes"
+    },
+    "v1.table_v1_1.olmo_base_valence_peak_depth_distance": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_a/olmo_base/e1_emobank_decodability.csv",
+          "key": "target_V_human_r2_reader"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_a/olmo_base/e1_emobank_decodability.csv",
+          "key": "target_V_human_r2_self"
+        }
+      ],
+      "derivation": "|argmax(r2_r)/(L-1) - argmax(r2_s)/(L-1)|",
+      "notes": "Peak relative depth distance between Reader and Self probes"
+    },
+    "v1.table_v1_1.olmo_base_arousal_peak_depth_distance": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_a/olmo_base/e1_emobank_decodability.csv",
+          "key": "target_A_human_r2_reader"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_a/olmo_base/e1_emobank_decodability.csv",
+          "key": "target_A_human_r2_self"
+        }
+      ],
+      "derivation": "|argmax(r2_r)/(L-1) - argmax(r2_s)/(L-1)|",
+      "notes": "Peak relative depth distance between Reader and Self probes"
+    },
+    "v1.table_v1_1.olmo_instruct_valence_peak_depth_distance": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_a/olmo_instruct/e1_emobank_decodability.csv",
+          "key": "target_V_human_r2_reader"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_a/olmo_instruct/e1_emobank_decodability.csv",
+          "key": "target_V_human_r2_self"
+        }
+      ],
+      "derivation": "|argmax(r2_r)/(L-1) - argmax(r2_s)/(L-1)|",
+      "notes": "Peak relative depth distance between Reader and Self probes"
+    },
+    "v1.table_v1_1.olmo_instruct_arousal_peak_depth_distance": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_a/olmo_instruct/e1_emobank_decodability.csv",
+          "key": "target_A_human_r2_reader"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_a/olmo_instruct/e1_emobank_decodability.csv",
+          "key": "target_A_human_r2_self"
+        }
+      ],
+      "derivation": "|argmax(r2_r)/(L-1) - argmax(r2_s)/(L-1)|",
+      "notes": "Peak relative depth distance between Reader and Self probes"
+    },
+    "v1.table_v1_1.qwen_base_valence_peak_depth_distance": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_a/qwen_base/e1_emobank_decodability.csv",
+          "key": "target_V_human_r2_reader"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_a/qwen_base/e1_emobank_decodability.csv",
+          "key": "target_V_human_r2_self"
+        }
+      ],
+      "derivation": "|argmax(r2_r)/(L-1) - argmax(r2_s)/(L-1)|",
+      "notes": "Peak relative depth distance between Reader and Self probes"
+    },
+    "v1.table_v1_1.qwen_base_arousal_peak_depth_distance": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_a/qwen_base/e1_emobank_decodability.csv",
+          "key": "target_A_human_r2_reader"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_a/qwen_base/e1_emobank_decodability.csv",
+          "key": "target_A_human_r2_self"
+        }
+      ],
+      "derivation": "|argmax(r2_r)/(L-1) - argmax(r2_s)/(L-1)|",
+      "notes": "Peak relative depth distance between Reader and Self probes"
+    },
+    "v1.table_v1_1.qwen_instruct_valence_peak_depth_distance": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_a/qwen_instruct/e1_emobank_decodability.csv",
+          "key": "target_V_human_r2_reader"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_a/qwen_instruct/e1_emobank_decodability.csv",
+          "key": "target_V_human_r2_self"
+        }
+      ],
+      "derivation": "|argmax(r2_r)/(L-1) - argmax(r2_s)/(L-1)|",
+      "notes": "Peak relative depth distance between Reader and Self probes"
+    },
+    "v1.table_v1_1.qwen_instruct_arousal_peak_depth_distance": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_a/qwen_instruct/e1_emobank_decodability.csv",
+          "key": "target_A_human_r2_reader"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_a/qwen_instruct/e1_emobank_decodability.csv",
+          "key": "target_A_human_r2_self"
+        }
+      ],
+      "derivation": "|argmax(r2_r)/(L-1) - argmax(r2_s)/(L-1)|",
+      "notes": "Peak relative depth distance between Reader and Self probes"
+    },
+    "v1.table_v1_3.qwen_instruct_reader_shuffle_drop": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_b/reader/qwen_instruct/phase_b_semantic_controls.csv",
+          "key": "acc_original_minimal_pair"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_b/reader/qwen_instruct/phase_b_semantic_controls.csv",
+          "key": "acc_word_shuffle"
+        }
+      ],
+      "derivation": "acc_original_minimal_pair - acc_word_shuffle",
+      "notes": "Semantic syntax disruption drop"
+    },
+    "v1.table_v1_3.qwen_base_reader_shuffle_drop": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_b/reader/qwen_base/phase_b_semantic_controls.csv",
+          "key": "acc_original_minimal_pair"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_b/reader/qwen_base/phase_b_semantic_controls.csv",
+          "key": "acc_word_shuffle"
+        }
+      ],
+      "derivation": "acc_original_minimal_pair - acc_word_shuffle",
+      "notes": "Semantic syntax disruption drop"
+    },
+    "v1.table_v1_3.olmo_instruct_reader_shuffle_drop": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_b/reader/olmo_instruct/phase_b_semantic_controls.csv",
+          "key": "acc_original_minimal_pair"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_b/reader/olmo_instruct/phase_b_semantic_controls.csv",
+          "key": "acc_word_shuffle"
+        }
+      ],
+      "derivation": "acc_original_minimal_pair - acc_word_shuffle",
+      "notes": "Semantic syntax disruption drop"
+    },
+    "v1.table_v1_3.llama_base_reader_shuffle_drop": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_b/reader/llama_base/phase_b_semantic_controls.csv",
+          "key": "acc_original_minimal_pair"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_b/reader/llama_base/phase_b_semantic_controls.csv",
+          "key": "acc_word_shuffle"
+        }
+      ],
+      "derivation": "acc_original_minimal_pair - acc_word_shuffle",
+      "notes": "Semantic syntax disruption drop"
+    },
+    "v1.table_v1_3.olmo_base_reader_shuffle_drop": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_b/reader/olmo_base/phase_b_semantic_controls.csv",
+          "key": "acc_original_minimal_pair"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_b/reader/olmo_base/phase_b_semantic_controls.csv",
+          "key": "acc_word_shuffle"
+        }
+      ],
+      "derivation": "acc_original_minimal_pair - acc_word_shuffle",
+      "notes": "Semantic syntax disruption drop"
+    },
+    "v1.table_v1_3.gemma_base_reader_shuffle_drop": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_b/reader/gemma_base/phase_b_semantic_controls.csv",
+          "key": "acc_original_minimal_pair"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_b/reader/gemma_base/phase_b_semantic_controls.csv",
+          "key": "acc_word_shuffle"
+        }
+      ],
+      "derivation": "acc_original_minimal_pair - acc_word_shuffle",
+      "notes": "Semantic syntax disruption drop"
+    },
+    "v1.table_v1_3.gemma_instruct_reader_shuffle_drop": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_b/reader/gemma_instruct/phase_b_semantic_controls.csv",
+          "key": "acc_original_minimal_pair"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_b/reader/gemma_instruct/phase_b_semantic_controls.csv",
+          "key": "acc_word_shuffle"
+        }
+      ],
+      "derivation": "acc_original_minimal_pair - acc_word_shuffle",
+      "notes": "Semantic syntax disruption drop"
+    },
+    "v1.table_v1_3.llama_instruct_reader_shuffle_drop": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_b/reader/llama_instruct/phase_b_semantic_controls.csv",
+          "key": "acc_original_minimal_pair"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_b/reader/llama_instruct/phase_b_semantic_controls.csv",
+          "key": "acc_word_shuffle"
+        }
+      ],
+      "derivation": "acc_original_minimal_pair - acc_word_shuffle",
+      "notes": "Semantic syntax disruption drop"
+    },
+    "v1.table_v1_3.olmo_base_self_shuffle_drop": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_b/self/olmo_base/phase_b_semantic_controls.csv",
+          "key": "acc_original_minimal_pair"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_b/self/olmo_base/phase_b_semantic_controls.csv",
+          "key": "acc_word_shuffle"
+        }
+      ],
+      "derivation": "acc_original_minimal_pair - acc_word_shuffle",
+      "notes": "Semantic syntax disruption drop"
+    },
+    "v1.table_v1_3.llama_instruct_self_shuffle_drop": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_b/self/llama_instruct/phase_b_semantic_controls.csv",
+          "key": "acc_original_minimal_pair"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_b/self/llama_instruct/phase_b_semantic_controls.csv",
+          "key": "acc_word_shuffle"
+        }
+      ],
+      "derivation": "acc_original_minimal_pair - acc_word_shuffle",
+      "notes": "Semantic syntax disruption drop"
+    },
+    "v1.table_v1_3.olmo_instruct_self_shuffle_drop": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_b/self/olmo_instruct/phase_b_semantic_controls.csv",
+          "key": "acc_original_minimal_pair"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_b/self/olmo_instruct/phase_b_semantic_controls.csv",
+          "key": "acc_word_shuffle"
+        }
+      ],
+      "derivation": "acc_original_minimal_pair - acc_word_shuffle",
+      "notes": "Semantic syntax disruption drop"
+    },
+    "v1.table_v1_3.gemma_instruct_self_shuffle_drop": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_b/self/gemma_instruct/phase_b_semantic_controls.csv",
+          "key": "acc_original_minimal_pair"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_b/self/gemma_instruct/phase_b_semantic_controls.csv",
+          "key": "acc_word_shuffle"
+        }
+      ],
+      "derivation": "acc_original_minimal_pair - acc_word_shuffle",
+      "notes": "Semantic syntax disruption drop"
+    },
+    "v1.table_v1_3.llama_base_self_shuffle_drop": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_b/self/llama_base/phase_b_semantic_controls.csv",
+          "key": "acc_original_minimal_pair"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_b/self/llama_base/phase_b_semantic_controls.csv",
+          "key": "acc_word_shuffle"
+        }
+      ],
+      "derivation": "acc_original_minimal_pair - acc_word_shuffle",
+      "notes": "Semantic syntax disruption drop"
+    },
+    "v1.table_v1_3.qwen_instruct_self_shuffle_drop": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_b/self/qwen_instruct/phase_b_semantic_controls.csv",
+          "key": "acc_original_minimal_pair"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_b/self/qwen_instruct/phase_b_semantic_controls.csv",
+          "key": "acc_word_shuffle"
+        }
+      ],
+      "derivation": "acc_original_minimal_pair - acc_word_shuffle",
+      "notes": "Semantic syntax disruption drop"
+    },
+    "v1.table_v1_3.qwen_base_self_shuffle_drop": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_b/self/qwen_base/phase_b_semantic_controls.csv",
+          "key": "acc_original_minimal_pair"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_b/self/qwen_base/phase_b_semantic_controls.csv",
+          "key": "acc_word_shuffle"
+        }
+      ],
+      "derivation": "acc_original_minimal_pair - acc_word_shuffle",
+      "notes": "Semantic syntax disruption drop"
+    },
+    "v1.table_v1_3.gemma_base_self_shuffle_drop": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_b/self/gemma_base/phase_b_semantic_controls.csv",
+          "key": "acc_original_minimal_pair"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_b/self/gemma_base/phase_b_semantic_controls.csv",
+          "key": "acc_word_shuffle"
+        }
+      ],
+      "derivation": "acc_original_minimal_pair - acc_word_shuffle",
+      "notes": "Semantic syntax disruption drop"
+    },
+    "v1.table_v1_5.gemma_base_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/gemma_base/e4_interchangeability_results.csv",
+          "key": "aligned_specificity_V"
+        }
+      ],
+      "derivation": "matched_effect - mean(random_derangements)",
+      "notes": "Reader-to-Self causal specificity at alpha=1.0"
+    },
+    "v1.table_v1_5.gemma_base_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/gemma_base/e4_interchangeability_results.csv",
+          "key": "aligned_specificity_A"
+        }
+      ],
+      "derivation": "matched_effect - mean(random_derangements)",
+      "notes": "Reader-to-Self causal specificity at alpha=1.0"
+    },
+    "v1.table_v1_5.gemma_instruct_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/gemma_instruct/e4_interchangeability_results.csv",
+          "key": "aligned_specificity_V"
+        }
+      ],
+      "derivation": "matched_effect - mean(random_derangements)",
+      "notes": "Reader-to-Self causal specificity at alpha=1.0"
+    },
+    "v1.table_v1_5.gemma_instruct_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/gemma_instruct/e4_interchangeability_results.csv",
+          "key": "aligned_specificity_A"
+        }
+      ],
+      "derivation": "matched_effect - mean(random_derangements)",
+      "notes": "Reader-to-Self causal specificity at alpha=1.0"
+    },
+    "v1.table_v1_5.llama_base_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/llama_base/e4_interchangeability_results.csv",
+          "key": "aligned_specificity_V"
+        }
+      ],
+      "derivation": "matched_effect - mean(random_derangements)",
+      "notes": "Reader-to-Self causal specificity at alpha=1.0"
+    },
+    "v1.table_v1_5.llama_base_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/llama_base/e4_interchangeability_results.csv",
+          "key": "aligned_specificity_A"
+        }
+      ],
+      "derivation": "matched_effect - mean(random_derangements)",
+      "notes": "Reader-to-Self causal specificity at alpha=1.0"
+    },
+    "v1.table_v1_5.llama_instruct_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/llama_instruct/e4_interchangeability_results.csv",
+          "key": "aligned_specificity_V"
+        }
+      ],
+      "derivation": "matched_effect - mean(random_derangements)",
+      "notes": "Reader-to-Self causal specificity at alpha=1.0"
+    },
+    "v1.table_v1_5.llama_instruct_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/llama_instruct/e4_interchangeability_results.csv",
+          "key": "aligned_specificity_A"
+        }
+      ],
+      "derivation": "matched_effect - mean(random_derangements)",
+      "notes": "Reader-to-Self causal specificity at alpha=1.0"
+    },
+    "v1.table_v1_5.olmo_base_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/olmo_base/e4_interchangeability_results.csv",
+          "key": "aligned_specificity_V"
+        }
+      ],
+      "derivation": "matched_effect - mean(random_derangements)",
+      "notes": "Reader-to-Self causal specificity at alpha=1.0"
+    },
+    "v1.table_v1_5.olmo_base_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/olmo_base/e4_interchangeability_results.csv",
+          "key": "aligned_specificity_A"
+        }
+      ],
+      "derivation": "matched_effect - mean(random_derangements)",
+      "notes": "Reader-to-Self causal specificity at alpha=1.0"
+    },
+    "v1.table_v1_5.olmo_instruct_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/olmo_instruct/e4_interchangeability_results.csv",
+          "key": "aligned_specificity_V"
+        }
+      ],
+      "derivation": "matched_effect - mean(random_derangements)",
+      "notes": "Reader-to-Self causal specificity at alpha=1.0"
+    },
+    "v1.table_v1_5.olmo_instruct_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/olmo_instruct/e4_interchangeability_results.csv",
+          "key": "aligned_specificity_A"
+        }
+      ],
+      "derivation": "matched_effect - mean(random_derangements)",
+      "notes": "Reader-to-Self causal specificity at alpha=1.0"
+    },
+    "v1.table_v1_5.qwen_base_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/qwen_base/e4_interchangeability_results.csv",
+          "key": "aligned_specificity_V"
+        }
+      ],
+      "derivation": "matched_effect - mean(random_derangements)",
+      "notes": "Reader-to-Self causal specificity at alpha=1.0"
+    },
+    "v1.table_v1_5.qwen_base_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/qwen_base/e4_interchangeability_results.csv",
+          "key": "aligned_specificity_A"
+        }
+      ],
+      "derivation": "matched_effect - mean(random_derangements)",
+      "notes": "Reader-to-Self causal specificity at alpha=1.0"
+    },
+    "v1.table_v1_5.qwen_instruct_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/qwen_instruct/e4_interchangeability_results.csv",
+          "key": "aligned_specificity_V"
+        }
+      ],
+      "derivation": "matched_effect - mean(random_derangements)",
+      "notes": "Reader-to-Self causal specificity at alpha=1.0"
+    },
+    "v1.table_v1_5.qwen_instruct_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/qwen_instruct/e4_interchangeability_results.csv",
+          "key": "aligned_specificity_A"
+        }
+      ],
+      "derivation": "matched_effect - mean(random_derangements)",
+      "notes": "Reader-to-Self causal specificity at alpha=1.0"
+    },
+    "v1.table_v1_6.gemma_base_interaction": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/gemma_base/e6_lmm_results.json",
+          "key": "coef_interaction"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "LMM task x site_type interaction effect"
+    },
+    "v1.table_v1_6.gemma_instruct_interaction": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/gemma_instruct/e6_lmm_results.json",
+          "key": "coef_interaction"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "LMM task x site_type interaction effect"
+    },
+    "v1.table_v1_6.llama_base_interaction": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/llama_base/e6_lmm_results.json",
+          "key": "coef_interaction"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "LMM task x site_type interaction effect"
+    },
+    "v1.table_v1_6.llama_instruct_interaction": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/llama_instruct/e6_lmm_results.json",
+          "key": "coef_interaction"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "LMM task x site_type interaction effect"
+    },
+    "v1.table_v1_6.olmo_base_interaction": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/olmo_base/e6_lmm_results.json",
+          "key": "coef_interaction"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "LMM task x site_type interaction effect"
+    },
+    "v1.table_v1_6.olmo_instruct_interaction": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/olmo_instruct/e6_lmm_results.json",
+          "key": "coef_interaction"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "LMM task x site_type interaction effect"
+    },
+    "v1.table_v1_6.qwen_base_interaction": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/qwen_base/e6_lmm_results.json",
+          "key": "coef_interaction"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "LMM task x site_type interaction effect"
+    },
+    "v1.table_v1_6.qwen_instruct_interaction": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/qwen_instruct/e6_lmm_results.json",
+          "key": "coef_interaction"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "LMM task x site_type interaction effect"
+    }
+  }
+}

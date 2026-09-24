@@ -325,11 +325,13 @@ def generate_confirmatory_table(df_conf, df_conf_matrix, repo_root="."):
             h2_a_ci = fd.get("h2_sufficiency", {}).get("slope_a_ci", [0, 0])
             h2_pass = (h2_v_ci[0] > 0.10 and h2_a_ci[0] > 0.10)
 
-            # H3: mediated attenuation CI_low > 0 for both V and A
+            # H3: mediated attenuation CI_low > 0 and net attenuation vs random CI_low > 0 for both V and A
             h3 = fd.get("h3_endogenous_relevance", {})
             h3_v_ci = h3.get("valence", {}).get("mediated_attenuation_ci", [0, 0])
             h3_a_ci = h3.get("arousal", {}).get("mediated_attenuation_ci", [0, 0])
-            h3_pass = (h3_v_ci[0] > 0.0 and h3_a_ci[0] > 0.0)
+            net_v_l = h3.get("random_subspace_control", {}).get("valence", {}).get("net_attenuation_vs_random", {}).get("ci_lower", 0.0)
+            net_a_l = h3.get("random_subspace_control", {}).get("arousal", {}).get("net_attenuation_vs_random", {}).get("ci_lower", 0.0)
+            h3_pass = (h3_v_ci[0] > 0.0 and net_v_l > 0.0 and h3_a_ci[0] > 0.0 and net_a_l > 0.0)
 
             # H4: temporal contrast CI_low > 0 for both V and A
             h4_v_ci = fd.get("h4_temporal_emergence", {}).get("contrast_v_ci", [0, 0])

@@ -1,0 +1,3 @@
+axis,sufficiency_slope_ci_low,sufficiency_pass,specificity_ci_low,specificity_pass,attenuation_ci_low,attenuation_pass,topic_tvd_ci_high,topic_pass,axis_decision,overall_decision,pipeline_continues
+valence,0.00043439620855683145,False,-0.0024751807424265456,False,-0.036633328972554835,False,0.004302060785813074,True,NO_GO,NO_GO,False
+arousal,-5.1264866300725006e-05,False,-0.0004177753314706745,False,0.0012865142958430897,False,0.004508702078168203,True,NO_GO,NO_GO,False

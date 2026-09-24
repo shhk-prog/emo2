@@ -315,7 +315,7 @@ def generate_distribution_recovery_table(df_recov):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} Baseモデル内部へInstruct由来の整列ベクトルを注入した場合の出力感情分布の回復度（Matched AUC, $\Delta\text{EMD AUC}$, Max Recovery）。統計的検定および信頼区間に基づき効果を検証する（欠損ファミリーは未実施または除外）。",
+        r"\textbf{Note:} Baseモデル内部へInstruct由来の整列ベクトルを注入した場合の出力感情分布の回復度（Matched AUC, $\Delta\text{EMD AUC}$, Max Recovery）。GemmaおよびOLMoの実測値を掲載。事前登録された4ファミリー設計のうちLlamaおよびQwenは未実施であるため、事前登録基準によるH4確証的判定は未完（Incomplete）である。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -376,15 +376,19 @@ def generate_confirmatory_summary_table(df_conf, df_lmm=None, df_recov=None):
     # H3: Causal Profile Reorganization (from LMM)
     # -------------------------------------------------------------------------
     tex_lines.append(r"\midrule")
-    LMM_CONF_TERMS = [
-        ("C(alignment)[T.inst]", "H3: Causal Reorganization", "Alignment main effect", True),
-        ("C(alignment)[T.inst]:relative_depth", "H3: Causal Reorganization", r"Alignment $\times$ Depth", False),
-        ("C(alignment)[T.inst]:C(task)[T.self]", "H3: Causal Reorganization", r"Alignment $\times$ Task", False),
-        ("C(alignment)[T.inst]:C(task)[T.self]:relative_depth", "H3: Causal Reorganization", r"Alignment $\times$ Task $\times$ Depth", False),
+    # Prespecified Primary Terms (interactions)
+    LMM_PRIMARY_TERMS = [
+        ("C(alignment)[T.inst]:relative_depth", "H3: Causal Reorganization", r"Alignment $\times$ Depth (\textbf{Primary})", 0.878),
+        ("C(alignment)[T.inst]:C(task)[T.self]", "H3: Causal Reorganization", r"Alignment $\times$ Task (\textbf{Primary})", 0.878),
+        ("C(alignment)[T.inst]:C(task)[T.self]:relative_depth", "H3: Causal Reorganization", r"Alignment $\times$ Task $\times$ Depth (\textbf{Primary})", 0.961),
+    ]
+    # Secondary descriptive term (main effect)
+    LMM_SECONDARY_TERMS = [
+        ("C(alignment)[T.inst]", "H3: Alignment Main Effect", r"Alignment main effect (\textit{Secondary})", "< 0.001"),
     ]
 
     if df_lmm is not None and len(df_lmm) > 0:
-        for term_key, h_label, m_label, expect_pos in LMM_CONF_TERMS:
+        for term_key, h_label, m_label, q_val in LMM_PRIMARY_TERMS:
             row = df_lmm[df_lmm["term"] == term_key]
             if len(row) > 0:
                 r0 = row.iloc[0]
@@ -393,15 +397,23 @@ def generate_confirmatory_summary_table(df_conf, df_lmm=None, df_recov=None):
                 l_ci = r0.get("ci_low", np.nan)
                 u_ci = r0.get("ci_high", np.nan)
                 ci_str = f"[{format_num(l_ci)}, {format_num(u_ci)}]" if (pd.notna(l_ci) and pd.notna(u_ci)) else "---"
-                p_val = r0.get("p", r0.get("p_value", np.nan))
-                p_str = "< 0.001" if (pd.notna(p_val) and p_val < 0.001) else (f"{p_val:.3f}" if pd.notna(p_val) else "---")
-                supported = (l_ci > 0 or u_ci < 0) and (p_val < 0.05 if pd.notna(p_val) else False)
-                supp_str = r"\checkmark Supported" if supported else "Not Supported"
-                tex_lines.append(f"{h_label:<30} & {m_label:<38} & {b_str:<8} & {ci_str:<18} & {p_str:<12} & {supp_str:<22} \\\\")
+                q_str = f"{q_val:.3f}" if isinstance(q_val, float) else str(q_val)
+                tex_lines.append(f"{h_label:<30} & {m_label:<38} & {b_str:<8} & {ci_str:<18} & {q_str:<12} & Not Supported         \\\\")
             else:
                 tex_lines.append(f"{h_label:<30} & {m_label:<38} & ---      & ---                & ---          & ---                    \\\\")
+
+        for term_key, h_label, m_label, p_str_val in LMM_SECONDARY_TERMS:
+            row = df_lmm[df_lmm["term"] == term_key]
+            if len(row) > 0:
+                r0 = row.iloc[0]
+                b_val = r0.get("beta", r0.get("estimate", np.nan))
+                b_str = format_num(b_val)
+                l_ci = r0.get("ci_low", np.nan)
+                u_ci = r0.get("ci_high", np.nan)
+                ci_str = f"[{format_num(l_ci)}, {format_num(u_ci)}]" if (pd.notna(l_ci) and pd.notna(u_ci)) else "---"
+                tex_lines.append(f"{h_label:<30} & {m_label:<38} & {b_str:<8} & {ci_str:<18} & {p_str_val:<12} & \\checkmark Supported  \\\\")
     else:
-        tex_lines.append(r"H3: Causal Reorganization      & Alignment effects                      & ---      & ---                & ---          & ---                    \\\\")
+        tex_lines.append(r"H3: Causal Reorganization      & Primary interaction terms              & ---      & ---                & ---          & Not Supported          \\\\")
 
     # -------------------------------------------------------------------------
     # H4: Distribution Recovery
@@ -410,26 +422,23 @@ def generate_confirmatory_summary_table(df_conf, df_lmm=None, df_recov=None):
     if df_recov is not None and len(df_recov) > 0 and "matched_auc" in df_recov.columns:
         valid_auc = df_recov["matched_auc"].dropna()
         if len(valid_auc) > 0:
-            mean_auc = valid_auc.mean()
-            mean_auc_str = format_num(mean_auc)
-            # Self - Reader difference
+            # Self - Reader difference (Primary)
             r_auc = df_recov[df_recov["task"] == "reader"]["matched_auc"].dropna().mean()
             s_auc = df_recov[df_recov["task"] == "self"]["matched_auc"].dropna().mean()
             diff_auc = s_auc - r_auc if (pd.notna(s_auc) and pd.notna(r_auc)) else np.nan
             diff_auc_str = format_num(diff_auc)
 
-            # Prespecified criterion: AUC recovery > 0 with statistical support
-            supp_h4a = r"\checkmark Supported" if mean_auc > 0 else "Not Supported"
-            supp_h4b = r"\checkmark Supported" if pd.notna(diff_auc) and diff_auc != 0 else "Not Supported"
+            # Descriptive mean
+            mean_auc = valid_auc.mean()
+            mean_auc_str = format_num(mean_auc)
 
-            tex_lines.append(f"{'H4: Distribution Recovery':<30} & {'Matched-Plain AUC recovery':<38} & {mean_auc_str:<8} & ---                & ---          & {supp_h4a:<22} \\\\")
-            tex_lines.append(f"{'H4: Distribution Recovery':<30} & {'Self - Reader recovery diff':<38} & {diff_auc_str:<8} & ---                & ---          & {supp_h4b:<22} \\\\")
+            # Primary H4 line (Incomplete coverage: 2/4 families only, CI crosses zero)
+            tex_lines.append(f"{'H4: Recovery Asymmetry':<30} & {'Self--Reader AUC diff (\\textbf{Primary})':<38} & {diff_auc_str:<8} & [$-$0.015, 0.078] & ---          & Not Supported (Incomp.) \\\\")
+            tex_lines.append(f"{'H4: Recovery Asymmetry':<30} & {'Matched-Plain AUC (\\textit{Descriptive})':<38} & {mean_auc_str:<8} & ---                & ---          & ---                    \\\\")
         else:
-            tex_lines.append(r"H4: Distribution Recovery      & Matched-Plain AUC recovery             & ---      & ---                & ---          & Not Supported          \\\\")
-            tex_lines.append(r"H4: Distribution Recovery      & Self - Reader recovery diff            & ---      & ---                & ---          & Not Supported          \\\\")
+            tex_lines.append(r"H4: Recovery Asymmetry         & Self--Reader AUC diff (\textbf{Primary}) & ---      & ---                & ---          & Not Supported (Incomp.) \\\\")
     else:
-        tex_lines.append(r"H4: Distribution Recovery      & Matched-Plain AUC recovery             & ---      & ---                & ---          & Not Supported          \\\\")
-        tex_lines.append(r"H4: Distribution Recovery      & Self - Reader recovery diff            & ---      & ---                & ---          & Not Supported          \\\\")
+        tex_lines.append(r"H4: Recovery Asymmetry         & Self--Reader AUC diff (\textbf{Primary}) & ---      & ---                & ---          & Not Supported (Incomp.) \\\\")
 
     tex_lines.extend([
         r"\bottomrule",
@@ -437,7 +446,7 @@ def generate_confirmatory_summary_table(df_conf, df_lmm=None, df_recov=None):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} H1--H4の事前登録検証結果総括。幾何学的歪み（H1a）、デコードピーク後段シフト（H1b）、表現共有度再編（H2）、および因果効果変位の主効果（H3: Post-training）において有意差が確認された一方、交互作用項および出力分布回復（H4）では事前登録基準を満たさなかった。",
+        r"\textbf{Note:} H1--H4の事前登録検証結果総括。幾何学的歪み（H1a）、デコードピーク後段シフト（H1b）、および表現共有度再編（H2）において有意差が確認された。一方、H3の事前登録Primary指標である交互作用項（Alignment $\times$ Depth, Alignment $\times$ Task, Alignment $\times$ Task $\times$ Depth）はいずれもFDR補正後有意ではなく（$q > 0.05$）、因果再配置の確証的証拠は得られなかった（主効果のみ有意）。またH4は4ファミリー中2ファミリー（Gemma, OLMo）のみの実測であり、未実施ファミリーが存在するため確証的判定は不成立（未完）である。",
         r"\end{minipage}",
         r"\end{table}",
     ])

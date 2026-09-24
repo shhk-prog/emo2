@@ -1,0 +1,3126 @@
+{
+  "summary_schema_version": "1.0.0",
+  "generated_at_utc": "2026-09-24T05:02:19.179449+00:00",
+  "provenance_map": {
+    "behavioral.table_b1.gemma_base_writer_valence_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.gemma_base_writer_arousal_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.gemma_base_writer_dominance_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.gemma_base_reader_valence_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.gemma_base_reader_arousal_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.gemma_base_reader_dominance_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.gemma_base_self_valence_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.gemma_base_self_arousal_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.gemma_base_self_dominance_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.gemma_instruct_writer_valence_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.gemma_instruct_writer_arousal_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.gemma_instruct_writer_dominance_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.gemma_instruct_reader_valence_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.gemma_instruct_reader_arousal_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.gemma_instruct_reader_dominance_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.gemma_instruct_self_valence_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.gemma_instruct_self_arousal_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.gemma_instruct_self_dominance_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.llama_base_writer_valence_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.llama_base_writer_arousal_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.llama_base_writer_dominance_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.llama_base_reader_valence_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.llama_base_reader_arousal_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.llama_base_reader_dominance_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.llama_base_self_valence_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.llama_base_self_arousal_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.llama_base_self_dominance_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.llama_instruct_writer_valence_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.llama_instruct_writer_arousal_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.llama_instruct_writer_dominance_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.llama_instruct_reader_valence_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.llama_instruct_reader_arousal_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.llama_instruct_reader_dominance_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.llama_instruct_self_valence_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.llama_instruct_self_arousal_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.llama_instruct_self_dominance_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.olmo_base_writer_valence_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.olmo_base_writer_arousal_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.olmo_base_writer_dominance_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.olmo_base_reader_valence_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.olmo_base_reader_arousal_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.olmo_base_reader_dominance_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.olmo_base_self_valence_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.olmo_base_self_arousal_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.olmo_base_self_dominance_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.olmo_instruct_writer_valence_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.olmo_instruct_writer_arousal_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.olmo_instruct_writer_dominance_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.olmo_instruct_reader_valence_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.olmo_instruct_reader_arousal_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.olmo_instruct_reader_dominance_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.olmo_instruct_self_valence_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.olmo_instruct_self_arousal_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.olmo_instruct_self_dominance_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.qwen_base_writer_valence_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.qwen_base_writer_arousal_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.qwen_base_writer_dominance_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.qwen_base_reader_valence_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.qwen_base_reader_arousal_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.qwen_base_reader_dominance_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.qwen_base_self_valence_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.qwen_base_self_arousal_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.qwen_base_self_dominance_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.qwen_instruct_writer_valence_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.qwen_instruct_writer_arousal_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.qwen_instruct_writer_dominance_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.qwen_instruct_reader_valence_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.qwen_instruct_reader_arousal_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.qwen_instruct_reader_dominance_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.qwen_instruct_self_valence_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.qwen_instruct_self_arousal_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b1.qwen_instruct_self_dominance_r": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/emobank_3way_summary/behavioral_emobank_metrics.csv",
+          "key": "r_continuous"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "EmoBank continuous Pearson r"
+    },
+    "behavioral.table_b2.gemma_base_writer_valence_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.gemma_base_reader_valence_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.gemma_base_self_valence_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.gemma_base_writer_arousal_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.gemma_base_reader_arousal_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.gemma_base_self_arousal_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.gemma_base_writer_dominance_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.gemma_base_reader_dominance_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.gemma_base_self_dominance_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.gemma_instruct_writer_valence_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.gemma_instruct_reader_valence_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.gemma_instruct_self_valence_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.gemma_instruct_writer_arousal_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.gemma_instruct_reader_arousal_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.gemma_instruct_self_arousal_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.gemma_instruct_writer_dominance_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.gemma_instruct_reader_dominance_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.gemma_instruct_self_dominance_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.llama_base_writer_valence_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.llama_base_reader_valence_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.llama_base_self_valence_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.llama_base_writer_arousal_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.llama_base_reader_arousal_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.llama_base_self_arousal_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.llama_base_writer_dominance_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.llama_base_reader_dominance_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.llama_base_self_dominance_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.llama_instruct_writer_valence_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.llama_instruct_reader_valence_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.llama_instruct_self_valence_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.llama_instruct_writer_arousal_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.llama_instruct_reader_arousal_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.llama_instruct_self_arousal_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.llama_instruct_writer_dominance_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.llama_instruct_reader_dominance_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.llama_instruct_self_dominance_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.olmo_base_writer_valence_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.olmo_base_reader_valence_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.olmo_base_self_valence_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.olmo_base_writer_arousal_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.olmo_base_reader_arousal_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.olmo_base_self_arousal_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.olmo_base_writer_dominance_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.olmo_base_reader_dominance_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.olmo_base_self_dominance_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.olmo_instruct_writer_valence_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.olmo_instruct_reader_valence_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.olmo_instruct_self_valence_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.olmo_instruct_writer_arousal_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.olmo_instruct_reader_arousal_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.olmo_instruct_self_arousal_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.olmo_instruct_writer_dominance_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.olmo_instruct_reader_dominance_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.olmo_instruct_self_dominance_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.qwen_base_writer_valence_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.qwen_base_reader_valence_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.qwen_base_self_valence_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.qwen_base_writer_arousal_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.qwen_base_reader_arousal_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.qwen_base_self_arousal_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.qwen_base_writer_dominance_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.qwen_base_reader_dominance_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.qwen_base_self_dominance_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.qwen_instruct_writer_valence_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.qwen_instruct_reader_valence_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.qwen_instruct_self_valence_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.qwen_instruct_writer_arousal_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.qwen_instruct_reader_arousal_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.qwen_instruct_self_arousal_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.qwen_instruct_writer_dominance_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.qwen_instruct_reader_dominance_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b2.qwen_instruct_self_dominance_sensitivity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_sensitivity_rq1.csv",
+          "key": "direction_aligned_mean_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "AIPsy Sensitivity direction-aligned delta"
+    },
+    "behavioral.table_b3.gemma_base_writer_valence_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.gemma_base_reader_valence_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.gemma_base_self_valence_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.gemma_base_writer_arousal_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.gemma_base_reader_arousal_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.gemma_base_self_arousal_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.gemma_base_writer_dominance_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.gemma_base_reader_dominance_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.gemma_base_self_dominance_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.gemma_instruct_writer_valence_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.gemma_instruct_reader_valence_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.gemma_instruct_self_valence_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.gemma_instruct_writer_arousal_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.gemma_instruct_reader_arousal_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.gemma_instruct_self_arousal_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.gemma_instruct_writer_dominance_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.gemma_instruct_reader_dominance_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.gemma_instruct_self_dominance_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.llama_base_writer_valence_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.llama_base_reader_valence_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.llama_base_self_valence_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.llama_base_writer_arousal_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.llama_base_reader_arousal_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.llama_base_self_arousal_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.llama_base_writer_dominance_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.llama_base_reader_dominance_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.llama_base_self_dominance_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.llama_instruct_writer_valence_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.llama_instruct_reader_valence_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.llama_instruct_self_valence_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.llama_instruct_writer_arousal_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.llama_instruct_reader_arousal_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.llama_instruct_self_arousal_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.llama_instruct_writer_dominance_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.llama_instruct_reader_dominance_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.llama_instruct_self_dominance_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.olmo_base_writer_valence_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.olmo_base_reader_valence_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.olmo_base_self_valence_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.olmo_base_writer_arousal_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.olmo_base_reader_arousal_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.olmo_base_self_arousal_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.olmo_base_writer_dominance_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.olmo_base_reader_dominance_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.olmo_base_self_dominance_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.olmo_instruct_writer_valence_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.olmo_instruct_reader_valence_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.olmo_instruct_self_valence_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.olmo_instruct_writer_arousal_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.olmo_instruct_reader_arousal_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.olmo_instruct_self_arousal_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.olmo_instruct_writer_dominance_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.olmo_instruct_reader_dominance_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.olmo_instruct_self_dominance_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.qwen_base_writer_valence_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.qwen_base_reader_valence_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.qwen_base_self_valence_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.qwen_base_writer_arousal_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.qwen_base_reader_arousal_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.qwen_base_self_arousal_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.qwen_base_writer_dominance_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.qwen_base_reader_dominance_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.qwen_base_self_dominance_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.qwen_instruct_writer_valence_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.qwen_instruct_reader_valence_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.qwen_instruct_self_valence_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.qwen_instruct_writer_arousal_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.qwen_instruct_reader_arousal_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.qwen_instruct_self_arousal_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.qwen_instruct_writer_dominance_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.qwen_instruct_reader_dominance_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b3.qwen_instruct_self_dominance_dose_response": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_dose_response_rq2.csv",
+          "key": "dose_response_p_value"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "IUT intersection-union p-value"
+    },
+    "behavioral.table_b4.gemma_base_writer_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.gemma_base_reader_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.gemma_base_self_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.gemma_base_writer_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.gemma_base_reader_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.gemma_base_self_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.gemma_base_writer_dominance_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.gemma_base_reader_dominance_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.gemma_base_self_dominance_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.gemma_instruct_writer_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.gemma_instruct_reader_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.gemma_instruct_self_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.gemma_instruct_writer_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.gemma_instruct_reader_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.gemma_instruct_self_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.gemma_instruct_writer_dominance_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.gemma_instruct_reader_dominance_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.gemma_instruct_self_dominance_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.llama_base_writer_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.llama_base_reader_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.llama_base_self_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.llama_base_writer_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.llama_base_reader_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.llama_base_self_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.llama_base_writer_dominance_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.llama_base_reader_dominance_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.llama_base_self_dominance_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.llama_instruct_writer_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.llama_instruct_reader_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.llama_instruct_self_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.llama_instruct_writer_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.llama_instruct_reader_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.llama_instruct_self_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.llama_instruct_writer_dominance_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.llama_instruct_reader_dominance_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.llama_instruct_self_dominance_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.olmo_base_writer_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.olmo_base_reader_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.olmo_base_self_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.olmo_base_writer_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.olmo_base_reader_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.olmo_base_self_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.olmo_base_writer_dominance_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.olmo_base_reader_dominance_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.olmo_base_self_dominance_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.olmo_instruct_writer_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.olmo_instruct_reader_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.olmo_instruct_self_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.olmo_instruct_writer_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.olmo_instruct_reader_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.olmo_instruct_self_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.olmo_instruct_writer_dominance_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.olmo_instruct_reader_dominance_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.olmo_instruct_self_dominance_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.qwen_base_writer_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.qwen_base_reader_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.qwen_base_self_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.qwen_base_writer_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.qwen_base_reader_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.qwen_base_self_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.qwen_base_writer_dominance_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.qwen_base_reader_dominance_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.qwen_base_self_dominance_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.qwen_instruct_writer_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.qwen_instruct_reader_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.qwen_instruct_self_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.qwen_instruct_writer_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.qwen_instruct_reader_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.qwen_instruct_self_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.qwen_instruct_writer_dominance_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.qwen_instruct_reader_dominance_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b4.qwen_instruct_self_dominance_specificity": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_specificity_rq3.csv",
+          "key": "displacement_diff"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "E[D_clinical] - E[D_complex_neutral]"
+    },
+    "behavioral.table_b5.gemma_base_valence_coupling": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_coupling_rq4.csv",
+          "key": "r"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Correlation of Delta Reader and Delta Self"
+    },
+    "behavioral.table_b5.gemma_base_arousal_coupling": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_coupling_rq4.csv",
+          "key": "r"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Correlation of Delta Reader and Delta Self"
+    },
+    "behavioral.table_b5.gemma_base_dominance_coupling": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_coupling_rq4.csv",
+          "key": "r"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Correlation of Delta Reader and Delta Self"
+    },
+    "behavioral.table_b5.gemma_instruct_valence_coupling": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_coupling_rq4.csv",
+          "key": "r"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Correlation of Delta Reader and Delta Self"
+    },
+    "behavioral.table_b5.gemma_instruct_arousal_coupling": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_coupling_rq4.csv",
+          "key": "r"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Correlation of Delta Reader and Delta Self"
+    },
+    "behavioral.table_b5.gemma_instruct_dominance_coupling": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_coupling_rq4.csv",
+          "key": "r"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Correlation of Delta Reader and Delta Self"
+    },
+    "behavioral.table_b5.llama_base_valence_coupling": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_coupling_rq4.csv",
+          "key": "r"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Correlation of Delta Reader and Delta Self"
+    },
+    "behavioral.table_b5.llama_base_arousal_coupling": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_coupling_rq4.csv",
+          "key": "r"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Correlation of Delta Reader and Delta Self"
+    },
+    "behavioral.table_b5.llama_base_dominance_coupling": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_coupling_rq4.csv",
+          "key": "r"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Correlation of Delta Reader and Delta Self"
+    },
+    "behavioral.table_b5.llama_instruct_valence_coupling": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_coupling_rq4.csv",
+          "key": "r"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Correlation of Delta Reader and Delta Self"
+    },
+    "behavioral.table_b5.llama_instruct_arousal_coupling": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_coupling_rq4.csv",
+          "key": "r"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Correlation of Delta Reader and Delta Self"
+    },
+    "behavioral.table_b5.llama_instruct_dominance_coupling": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_coupling_rq4.csv",
+          "key": "r"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Correlation of Delta Reader and Delta Self"
+    },
+    "behavioral.table_b5.olmo_base_valence_coupling": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_coupling_rq4.csv",
+          "key": "r"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Correlation of Delta Reader and Delta Self"
+    },
+    "behavioral.table_b5.olmo_base_arousal_coupling": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_coupling_rq4.csv",
+          "key": "r"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Correlation of Delta Reader and Delta Self"
+    },
+    "behavioral.table_b5.olmo_base_dominance_coupling": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_coupling_rq4.csv",
+          "key": "r"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Correlation of Delta Reader and Delta Self"
+    },
+    "behavioral.table_b5.olmo_instruct_valence_coupling": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_coupling_rq4.csv",
+          "key": "r"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Correlation of Delta Reader and Delta Self"
+    },
+    "behavioral.table_b5.olmo_instruct_arousal_coupling": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_coupling_rq4.csv",
+          "key": "r"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Correlation of Delta Reader and Delta Self"
+    },
+    "behavioral.table_b5.olmo_instruct_dominance_coupling": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_coupling_rq4.csv",
+          "key": "r"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Correlation of Delta Reader and Delta Self"
+    },
+    "behavioral.table_b5.qwen_base_valence_coupling": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_coupling_rq4.csv",
+          "key": "r"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Correlation of Delta Reader and Delta Self"
+    },
+    "behavioral.table_b5.qwen_base_arousal_coupling": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_coupling_rq4.csv",
+          "key": "r"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Correlation of Delta Reader and Delta Self"
+    },
+    "behavioral.table_b5.qwen_base_dominance_coupling": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_coupling_rq4.csv",
+          "key": "r"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Correlation of Delta Reader and Delta Self"
+    },
+    "behavioral.table_b5.qwen_instruct_valence_coupling": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_coupling_rq4.csv",
+          "key": "r"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Correlation of Delta Reader and Delta Self"
+    },
+    "behavioral.table_b5.qwen_instruct_arousal_coupling": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_coupling_rq4.csv",
+          "key": "r"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Correlation of Delta Reader and Delta Self"
+    },
+    "behavioral.table_b5.qwen_instruct_dominance_coupling": {
+      "sources": [
+        {
+          "artifact": "behavioral/results/derived/aipsy_4split_summary/behavioral_aipsy_coupling_rq4.csv",
+          "key": "r"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Correlation of Delta Reader and Delta Self"
+    }
+  }
+}

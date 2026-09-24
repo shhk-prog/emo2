@@ -76,11 +76,17 @@ Thumbs.db
 
 # Experiment Results (Read-only / write-once; keep only .gitkeep)
 **/results/raw/**
-**/results/derived/**
 **/results/cache/**
 **/results/logs/**
 !**/results/raw/.gitkeep
 !**/results/derived/.gitkeep
 !**/results/cache/.gitkeep
 !**/results/logs/.gitkeep
+
+# Derived results: ignore all except paper_summary
+**/results/derived/**
+!results/
+!results/derived/
+!results/derived/paper_summary/
+!results/derived/paper_summary/**
 

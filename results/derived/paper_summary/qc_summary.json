@@ -1,0 +1,91 @@
+{
+  "updated_at_utc": "2026-09-22T15:54:10.707732+00:00",
+  "stages": {
+    "behavioral": {
+      "stage": "behavioral",
+      "tables": {
+        "table_b1": {
+          "n_rows": 72
+        },
+        "table_b2": {
+          "n_rows": 72
+        },
+        "table_b3": {
+          "n_rows": 72
+        },
+        "table_b4": {
+          "n_rows": 72
+        },
+        "table_b5": {
+          "n_rows": 24
+        }
+      }
+    },
+    "v1": {
+      "stage": "v1",
+      "tables": {
+        "table_v1_1": {
+          "n_rows": 28
+        },
+        "table_v1_2": {
+          "n_rows": 312
+        },
+        "table_v1_3": {
+          "n_rows": 14
+        },
+        "table_v1_4": {
+          "n_rows": 14
+        },
+        "table_v1_5": {
+          "n_rows": 14
+        },
+        "table_v1_6": {
+          "n_rows": 4
+        }
+      }
+    },
+    "v2": {
+      "stage": "v2",
+      "tables": {
+        "table_v2_1": {
+          "n_rows": 4
+        },
+        "table_v2_2": {
+          "n_rows": 2
+        },
+        "table_v2_3a": {
+          "n_rows": 28
+        },
+        "table_v2_3b": {
+          "n_rows": 28
+        },
+        "table_v2_3c": {
+          "n_rows": 12
+        },
+        "table_v2_4": {
+          "n_rows": 2
+        }
+      }
+    },
+    "v3": {
+      "stage": "v3",
+      "tables": {
+        "table_v3_1": {
+          "n_rows": 2,
+          "pipeline_continues": false
+        },
+        "table_v3_2": {
+          "n_rows": 2,
+          "negative_control_response_end_present": true
+        },
+        "table_v3_3": {
+          "n_rows": 2
+        },
+        "table_v3_4": {
+          "n_rows": 12
+        }
+      }
+    }
+  },
+  "notes": []
+}

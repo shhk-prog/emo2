@@ -1,0 +1,3 @@
+family,axis,base_mean_sharing,inst_plain_mean_sharing,delta_sharing_matched,inst_native_mean_sharing,delta_sharing_native,format_effect
+olmo,valence,,,-0.38022110192314845,0.6666666666666666,-1.3588762999119817,-0.9786551979888333
+olmo,arousal,,,-0.38173753138697947,0.5333333333333333,-0.6486398048085796,-0.26690227342160017

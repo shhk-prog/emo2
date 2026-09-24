@@ -442,14 +442,16 @@ def build_v3_summary(
                     }
                 )
 
-            # H3: Mediation
+            # H3: Mediation (Methods: CI_low(M) > 0 and CI_low(M_net) > 0)
             h3 = f_res.get("h3_endogenous_relevance", {})
             h3_passes = []
             for ax in ("valence", "arousal"):
                 ax_d = h3.get(ax, {})
                 h3_val = float(ax_d.get("mediated_attenuation", np.nan))
                 h3_ci = ax_d.get("mediated_attenuation_ci", [np.nan, np.nan])
-                pass_h3 = bool(h3_ci[0] > 0.0)
+                net_info = h3.get("random_subspace_control", {}).get(ax, {}).get("net_attenuation_vs_random", {})
+                net_ci_low = float(net_info.get("ci_lower", 0.0))
+                pass_h3 = bool(h3_ci[0] > 0.0 and net_ci_low > 0.0)
                 h3_passes.append(pass_h3)
 
                 table_v3_4_rows.append(
@@ -460,7 +462,7 @@ def build_v3_summary(
                         "estimate": h3_val,
                         "ci_low": float(h3_ci[0]),
                         "ci_high": float(h3_ci[1]),
-                        "threshold": "CI_low > 0",
+                        "threshold": "CI_low(M) > 0 and CI_low(M_net) > 0",
                         "pass": pass_h3,
                     }
                 )

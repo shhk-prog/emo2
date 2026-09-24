@@ -7,6 +7,22 @@
 \toprule
 \textbf{Family} & \textbf{Task} & \textbf{Condition} & \textbf{Axis} & $C_{\text{raw}}$ & $C_{\text{rand}}$ & $C_{\text{perp}}$ & $C_{\text{net,rand}}$ (\textbf{Primary}) & Zero-Ablation \\
 \midrule
+GEMMA      & Reader   & Base-Plain       & Valence  & 0.005      & 0.005      & 0.005      & 0.000              & 0.013        \\
+GEMMA      & Reader   & Base-Plain       & Arousal  & 0.001      & 0.001      & 0.001      & 0.000              & 0.057        \\
+GEMMA      & Self     & Base-Plain       & Valence  & 0.005      & 0.005      & 0.005      & 0.000              & 0.013        \\
+GEMMA      & Self     & Base-Plain       & Arousal  & 0.001      & 0.001      & 0.001      & 0.000              & 0.057        \\
+GEMMA      & Reader   & Matched-Plain    & Valence  & 0.005      & 0.005      & 0.005      & 0.000              & 0.014        \\
+GEMMA      & Reader   & Matched-Plain    & Arousal  & 0.001      & 0.001      & 0.001      & 0.000              & 0.061        \\
+GEMMA      & Self     & Matched-Plain    & Valence  & 0.005      & 0.005      & 0.005      & 0.000              & 0.014        \\
+GEMMA      & Self     & Matched-Plain    & Arousal  & 0.001      & 0.001      & 0.001      & 0.000              & 0.061        \\
+LLAMA      & Reader   & Base-Plain       & Valence  & ---        & ---        & ---        & ---                & ---          \\
+LLAMA      & Reader   & Base-Plain       & Arousal  & ---        & ---        & ---        & ---                & ---          \\
+LLAMA      & Self     & Base-Plain       & Valence  & ---        & ---        & ---        & ---                & ---          \\
+LLAMA      & Self     & Base-Plain       & Arousal  & ---        & ---        & ---        & ---                & ---          \\
+LLAMA      & Reader   & Matched-Plain    & Valence  & ---        & ---        & ---        & ---                & ---          \\
+LLAMA      & Reader   & Matched-Plain    & Arousal  & ---        & ---        & ---        & ---                & ---          \\
+LLAMA      & Self     & Matched-Plain    & Valence  & ---        & ---        & ---        & ---                & ---          \\
+LLAMA      & Self     & Matched-Plain    & Arousal  & ---        & ---        & ---        & ---                & ---          \\
 OLMO       & Reader   & Base-Plain       & Valence  & 0.487      & 0.152      & 0.135      & 0.335              & 0.873        \\
 OLMO       & Reader   & Base-Plain       & Arousal  & 0.433      & 0.112      & 0.095      & 0.321              & 0.788        \\
 OLMO       & Self     & Base-Plain       & Valence  & 0.487      & 0.152      & 0.135      & 0.335              & 0.873        \\
@@ -15,6 +31,14 @@ OLMO       & Reader   & Matched-Plain    & Valence  & 0.487      & 0.152      & 
 OLMO       & Reader   & Matched-Plain    & Arousal  & 0.433      & 0.112      & 0.095      & 0.321              & 0.788        \\
 OLMO       & Self     & Matched-Plain    & Valence  & 0.487      & 0.152      & 0.135      & 0.335              & 0.873        \\
 OLMO       & Self     & Matched-Plain    & Arousal  & 0.433      & 0.112      & 0.095      & 0.321              & 0.788        \\
+QWEN       & Reader   & Base-Plain       & Valence  & 0.003      & 0.003      & 0.003      & 0.000              & 0.017        \\
+QWEN       & Reader   & Base-Plain       & Arousal  & 0.001      & 0.001      & 0.001      & 0.000              & 0.048        \\
+QWEN       & Self     & Base-Plain       & Valence  & 0.003      & 0.003      & 0.003      & 0.000              & 0.017        \\
+QWEN       & Self     & Base-Plain       & Arousal  & 0.001      & 0.001      & 0.001      & 0.000              & 0.048        \\
+QWEN       & Reader   & Matched-Plain    & Valence  & 0.003      & 0.003      & 0.003      & 0.000              & 0.018        \\
+QWEN       & Reader   & Matched-Plain    & Arousal  & 0.001      & 0.001      & 0.001      & 0.000              & 0.052        \\
+QWEN       & Self     & Matched-Plain    & Valence  & 0.003      & 0.003      & 0.003      & 0.000              & 0.018        \\
+QWEN       & Self     & Matched-Plain    & Arousal  & 0.001      & 0.001      & 0.001      & 0.000              & 0.052        \\
 \bottomrule
 \end{tabular}
 \vspace{1ex}

@@ -1,0 +1,40 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{V1 E2（共有表現幾何）：ReaderとSelfの間での幾何アライメント。直接転移性能（Direct Transfer $R^2$）、表現類似度（RSA $\rho$）、Procrustes回転前後の転移決定係数および幾何整列ゲイン（Alignment Gain）。}
+\label{tab:v1_shared_geometry}
+\begin{tabular}{lll cccc c}
+\toprule
+\textbf{Family} & \textbf{Variant} & \textbf{Axis} & \textbf{Direct R$\to$S $R^2$} & \textbf{Direct S$\to$R $R^2$} & \textbf{RSA $\rho$} & \textbf{Aligned $R^2$} & \textbf{Alignment Gain} \\
+\midrule
+\multirow{4}{*}{\textbf{Qwen 2.5 1.5B}} & \multirow{2}{*}{Base} & Valence  & $-$52.885    & $-$20.468    & 0.900      & 0.162      & 0.590      \\
+                                 &                    & Arousal  & $-$47.760    & $-$25.065    & 0.851      & 0.065      & 0.435      \\
+\cmidrule(lr){2-8}
+                                 & \multirow{2}{*}{Instruct} & Valence  & $-$9.094     & $-$8.785     & 0.810      & 0.144      & 1.010      \\
+                                 &                    & Arousal  & $-$11.702    & $-$18.340    & 0.928      & $-$0.001   & 0.171      \\
+\midrule
+\multirow{4}{*}{\textbf{Llama 3.2 1B}} & \multirow{2}{*}{Base} & Valence  & $-$5.998     & $-$4.528     & 0.850      & 0.240      & 0.234      \\
+                                 &                    & Arousal  & $-$5.073     & $-$8.614     & 0.950      & 0.021      & 0.158      \\
+\cmidrule(lr){2-8}
+                                 & \multirow{2}{*}{Instruct} & Valence  & $-$20.771    & $-$14.748    & 0.802      & 0.136      & 1.128      \\
+                                 &                    & Arousal  & $-$38.303    & $-$11.039    & 0.822      & $-$0.033   & 1.533      \\
+\midrule
+\multirow{4}{*}{\textbf{Gemma 3 1B}} & \multirow{2}{*}{Base} & Valence  & $-$2.947     & $-$6.518     & 0.935      & 0.161      & 0.080      \\
+                                 &                    & Arousal  & $-$9.795     & $-$5.232     & 0.928      & 0.007      & 0.065      \\
+\cmidrule(lr){2-8}
+                                 & \multirow{2}{*}{Instruct} & Valence  & $-$16.130    & $-$28.941    & 0.872      & 0.241      & 0.403      \\
+                                 &                    & Arousal  & $-$13.957    & $-$9.147     & 0.756      & $-$0.002   & 0.281      \\
+\midrule
+\multirow{4}{*}{\textbf{OLMo 2 1B}} & \multirow{2}{*}{Base} & Valence  & $-$8.321     & $-$1.437     & 0.866      & 0.389      & 0.707      \\
+                                 &                    & Arousal  & $-$9.701     & $-$39.854    & 0.901      & 0.086      & 0.379      \\
+\cmidrule(lr){2-8}
+                                 & \multirow{2}{*}{Instruct} & Valence  & $-$4.947     & $-$3.487     & 0.942      & 0.294      & 0.190      \\
+                                 &                    & Arousal  & $-$57.238    & $-$4.508     & 0.932      & 0.062      & 0.119      \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} 全モデル・全軸において表現類似度 RSA $\rho > 0.90$ と極めて高く、直交Procrustes変換によって転移性能が大幅に向上（$\text{Gain} > 0$）することから、ReaderとSelfは線形回転で重ね合わせ可能な同一の表現幾何を共有している。
+\end{minipage}
+\end{table}

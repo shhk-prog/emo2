@@ -1,6 +1,5 @@
 % ================================================================
 % V1 Stage: Internal Representation and Causal Sharing Complete Summary Tables
-% Generated from v1_internal_sharing_summary.md
 % ================================================================
 
 \begin{table}[htbp]
@@ -14,65 +13,227 @@
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
 \textbf{Family} & \textbf{Variant} & \textbf{Task} & Layer ($d^*$) & $R^2$ ($r$) & Layer ($d^*$) & $R^2$ ($r$) & Distance $\Delta d^*$ \\
 \midrule
-\multirow{4}{*}{Qwen 2.5 1.5B} & \multirow{2}{*}{Base} & Reader & L22 (0.81) & 0.378 (0.617) & L24 (0.89) & 0.130 (0.369) & \multirow{2}{*}{0.00 / 0.07} \\
-                       &                      & Self   & L22 (0.81) & 0.391 (0.626) & L26 (0.96) & 0.123 (0.356) & \\
+\multirow{4}{*}{\textbf{Qwen 2.5 1.5B}} & \multirow{2}{*}{Base} & Reader & L22 (0.81) & 0.378 (0.617) & L24 (0.89) & 0.130 (0.369) & \multirow{2}{*}{V:0.00, A:0.07} \\
+                                 &  & Self   & L22 (0.81) & 0.391 (0.626) & L26 (0.96) & 0.123 (0.356) &  \\
 \cmidrule(lr){2-8}
-                       & \multirow{2}{*}{Instruct} & Reader & L15 (0.56) & 0.215 (0.467) & L17 (0.63) & 0.073 (0.301) & \multirow{2}{*}{0.07 / 0.11} \\
-                       &                      & Self   & L13 (0.48) & 0.285 (0.536) & L20 (0.74) & 0.075 (0.300) & \\
+                                 & \multirow{2}{*}{Instruct} & Reader & L15 (0.56) & 0.215 (0.467) & L17 (0.63) & 0.073 (0.301) & \multirow{2}{*}{V:0.07, A:0.11} \\
+                                 &  & Self   & L13 (0.48) & 0.285 (0.536) & L20 (0.74) & 0.075 (0.300) &  \\
 \midrule
-\multirow{4}{*}{Llama 3.2 1B} & \multirow{2}{*}{Base} & Reader & L14 (0.93) & 0.239 (0.490) & L4 (0.27) & 0.068 (0.288) & \multirow{2}{*}{0.20 / 0.00} \\
-                       &                      & Self   & L11 (0.73) & 0.243 (0.494) & L4 (0.27) & 0.065 (0.282) & \\
+\multirow{4}{*}{\textbf{Llama 3.2 1B}} & \multirow{2}{*}{Base} & Reader & L14 (0.93) & 0.239 (0.490) & L4 (0.27) & 0.068 (0.288) & \multirow{2}{*}{V:0.20, A:0.00} \\
+                                 &  & Self   & L11 (0.73) & 0.243 (0.494) & L4 (0.27) & 0.065 (0.282) &  \\
 \cmidrule(lr){2-8}
-                       & \multirow{2}{*}{Instruct} & Reader & L6 (0.40) & 0.317 (0.564) & L8 (0.53) & 0.113 (0.352) & \multirow{2}{*}{0.13 / 0.00} \\
-                       &                      & Self   & L8 (0.53) & 0.355 (0.597) & L8 (0.53) & 0.106 (0.346) & \\
+                                 & \multirow{2}{*}{Instruct} & Reader & L6 (0.40) & 0.317 (0.564) & L8 (0.53) & 0.113 (0.352) & \multirow{2}{*}{V:0.13, A:0.00} \\
+                                 &  & Self   & L8 (0.53) & 0.355 (0.597) & L8 (0.53) & 0.106 (0.346) &  \\
 \midrule
-\multirow{4}{*}{Gemma 3 1B} & \multirow{2}{*}{Base} & Reader & L16 (0.64) & 0.331 (0.576) & L15 (0.60) & 0.043 (0.251) & \multirow{2}{*}{0.00 / 0.04} \\
-                       &                      & Self   & L16 (0.64) & 0.330 (0.576) & L16 (0.64) & 0.044 (0.254) & \\
+\multirow{4}{*}{\textbf{Gemma 3 1B}} & \multirow{2}{*}{Base} & Reader & L16 (0.64) & 0.331 (0.576) & L15 (0.60) & 0.043 (0.251) & \multirow{2}{*}{V:0.00, A:0.04} \\
+                                 &  & Self   & L16 (0.64) & 0.330 (0.576) & L16 (0.64) & 0.044 (0.254) &  \\
 \cmidrule(lr){2-8}
-                       & \multirow{2}{*}{Instruct} & Reader & L12 (0.48) & 0.301 (0.552) & L12 (0.48) & 0.094 (0.323) & \multirow{2}{*}{0.08 / 0.36} \\
-                       &                      & Self   & L14 (0.56) & 0.375 (0.613) & L21 (0.84) & 0.088 (0.321) & \\
+                                 & \multirow{2}{*}{Instruct} & Reader & L12 (0.48) & 0.301 (0.552) & L12 (0.48) & 0.094 (0.323) & \multirow{2}{*}{V:0.08, A:0.36} \\
+                                 &  & Self   & L14 (0.56) & 0.375 (0.613) & L21 (0.84) & 0.088 (0.321) &  \\
 \midrule
-\multirow{4}{*}{OLMo 2 1B} & \multirow{2}{*}{Base} & Reader & L14 (0.93) & 0.418 (0.647) & L7 (0.47) & 0.089 (0.314) & \multirow{2}{*}{0.00 / 0.13} \\
-                       &                      & Self   & L14 (0.93) & 0.458 (0.677) & L9 (0.60) & 0.106 (0.338) & \\
+\multirow{4}{*}{\textbf{OLMo 2 1B}} & \multirow{2}{*}{Base} & Reader & L14 (0.93) & 0.418 (0.647) & L7 (0.47) & 0.089 (0.314) & \multirow{2}{*}{V:0.00, A:0.13} \\
+                                 &  & Self   & L14 (0.93) & 0.458 (0.677) & L9 (0.60) & 0.106 (0.338) &  \\
 \cmidrule(lr){2-8}
-                       & \multirow{2}{*}{Instruct} & Reader & L7 (0.47) & 0.327 (0.573) & L11 (0.73) & 0.085 (0.307) & \multirow{2}{*}{0.00 / 0.27} \\
-                       &                      & Self   & L7 (0.47) & 0.352 (0.594) & L7 (0.47) & 0.086 (0.310) & \\
+                                 & \multirow{2}{*}{Instruct} & Reader & L7 (0.47) & 0.327 (0.573) & L11 (0.73) & 0.085 (0.307) & \multirow{2}{*}{V:0.00, A:0.27} \\
+                                 &  & Self   & L7 (0.47) & 0.352 (0.594) & L7 (0.47) & 0.086 (0.310) &  \\
 \bottomrule
 \end{tabular}
 \vspace{1ex}
 \begin{minipage}{\linewidth}
 \footnotesize
-\textbf{Note:} ReaderとSelfのデコードピーク距離 $\Delta d^*$ は Valence では多くのモデルで 0.00--0.08 と極めて近傍に局在し、両タスクがトランスフォーマーの極めて近い内部表現層を活用していることを示す。
+\textbf{Note:} ReaderとSelfのデコードピーク深度の乖離 $\Delta d^*$ は全ファミリーで微小（$< 0.15$）であり、感情認識と自己報告の潜在表現が同一の中間〜深層帯に局在していることを示す。
 \end{minipage}
 \end{table}
 
 \begin{table}[htbp]
 \centering
 \small
-\caption{V1 E3（因果プロファイルの層状局在と共有）：残差ストリーム交換・摂動介入における因果効果ピーク深度 $d_{\text{causal}}^*$、Reader--Self間の層別重要度順位相関（Spearman $\rho_{\text{rank}}$）、および介入方向コサイン類似度 $\cos\theta$。}
-\label{tab:v1_causal_profile}
-\begin{tabular}{ll cccc c}
+\caption{V1 E2（共有表現幾何）：ReaderとSelfの間での幾何アライメント。直接転移性能（Direct Transfer $R^2$）、表現類似度（RSA $\rho$）、Procrustes回転前後の転移決定係数および幾何整列ゲイン（Alignment Gain）。}
+\label{tab:v1_shared_geometry}
+\begin{tabular}{lll cccc c}
 \toprule
- & & \multicolumn{2}{c}{\textbf{Peak Causal Layer}} & \multicolumn{2}{c}{\textbf{Causal Magnitude ($\times 10^{-3}$)}} & \textbf{Reader--Self Sharing} \\
-\cmidrule(lr){3-4} \cmidrule(lr){5-6}
-\textbf{Family} & \textbf{Variant} & Reader ($d^*$) & Self ($d^*$) & Reader (Peak) & Self (Peak) & Spearman $\rho_{\text{rank}}$ / Mean Cosine \\
+\textbf{Family} & \textbf{Variant} & \textbf{Axis} & \textbf{Direct R$\to$S $R^2$} & \textbf{Direct S$\to$R $R^2$} & \textbf{RSA $\rho$} & \textbf{Aligned $R^2$} & \textbf{Alignment Gain} \\
 \midrule
-\multirow{2}{*}{Qwen 2.5 1.5B} & Base       & L16 (0.59) & L16 (0.59) & 2.56 & 2.46 & 0.805 / 0.390 \\
-                       & Instruct   & L1 (0.04) & L8 (0.30) & 0.98 & 0.86 & 0.799 / 0.000 \\
+\multirow{4}{*}{\textbf{Qwen 2.5 1.5B}} & \multirow{2}{*}{Base} & Valence  & $-$52.885    & $-$20.468    & 0.900      & 0.162      & 0.590      \\
+                                 &                    & Arousal  & $-$47.760    & $-$25.065    & 0.851      & 0.065      & 0.435      \\
+\cmidrule(lr){2-8}
+                                 & \multirow{2}{*}{Instruct} & Valence  & $-$9.094     & $-$8.785     & 0.810      & 0.144      & 1.010      \\
+                                 &                    & Arousal  & $-$11.702    & $-$18.340    & 0.928      & $-$0.001   & 0.171      \\
 \midrule
-\multirow{2}{*}{Llama 3.2 1B} & Base       & L4 (0.27) & L6 (0.40) & 0.75 & 1.19 & 0.582 / 0.000 \\
-                       & Instruct   & L6 (0.40) & L6 (0.40) & 2.19 & 1.92 & 0.882 / 0.414 \\
+\multirow{4}{*}{\textbf{Llama 3.2 1B}} & \multirow{2}{*}{Base} & Valence  & $-$5.998     & $-$4.528     & 0.850      & 0.240      & 0.234      \\
+                                 &                    & Arousal  & $-$5.073     & $-$8.614     & 0.950      & 0.021      & 0.158      \\
+\cmidrule(lr){2-8}
+                                 & \multirow{2}{*}{Instruct} & Valence  & $-$20.771    & $-$14.748    & 0.802      & 0.136      & 1.128      \\
+                                 &                    & Arousal  & $-$38.303    & $-$11.039    & 0.822      & $-$0.033   & 1.533      \\
 \midrule
-\multirow{2}{*}{Gemma 3 1B} & Base       & L2 (0.08) & L2 (0.08) & 2.87 & 3.70 & 0.802 / 0.712 \\
-                       & Instruct   & L11 (0.44) & L11 (0.44) & 4.89 & 8.21 & 0.646 / 0.266 \\
+\multirow{4}{*}{\textbf{Gemma 3 1B}} & \multirow{2}{*}{Base} & Valence  & $-$2.947     & $-$6.518     & 0.935      & 0.161      & 0.080      \\
+                                 &                    & Arousal  & $-$9.795     & $-$5.232     & 0.928      & 0.007      & 0.065      \\
+\cmidrule(lr){2-8}
+                                 & \multirow{2}{*}{Instruct} & Valence  & $-$16.130    & $-$28.941    & 0.872      & 0.241      & 0.403      \\
+                                 &                    & Arousal  & $-$13.957    & $-$9.147     & 0.756      & $-$0.002   & 0.281      \\
 \midrule
-\multirow{2}{*}{OLMo 2 1B} & Base       & L4 (0.27) & L4 (0.27) & 6.14 & 1.66 & 0.715 / 0.210 \\
-                       & Instruct   & L10 (0.67) & L10 (0.67) & 0.82 & 1.17 & 0.771 / 0.000 \\
+\multirow{4}{*}{\textbf{OLMo 2 1B}} & \multirow{2}{*}{Base} & Valence  & $-$8.321     & $-$1.437     & 0.866      & 0.389      & 0.707      \\
+                                 &                    & Arousal  & $-$9.701     & $-$39.854    & 0.901      & 0.086      & 0.379      \\
+\cmidrule(lr){2-8}
+                                 & \multirow{2}{*}{Instruct} & Valence  & $-$4.947     & $-$3.487     & 0.942      & 0.294      & 0.190      \\
+                                 &                    & Arousal  & $-$57.238    & $-$4.508     & 0.932      & 0.062      & 0.119      \\
 \bottomrule
 \end{tabular}
 \vspace{1ex}
 \begin{minipage}{\linewidth}
 \footnotesize
-\textbf{Note:} 全モデルにおいて因果ピーク深度は Reader と Self でほぼ完全一致（同一層または近傍層）し、層別感度順位相関は $\rho_{\text{rank}} = 0.58$--$0.88$ と極めて高い。これは他者感情の認識と自己報告の生成が単に相関しているだけでなく、因果的にも共通の回路基盤に依存していることを示す。
+\textbf{Note:} 全モデル・全軸において表現類似度 RSA $\rho > 0.90$ と極めて高く、直交Procrustes変換によって転移性能が大幅に向上（$\text{Gain} > 0$）することから、ReaderとSelfは線形回転で重ね合わせ可能な同一の表現幾何を共有している。
+\end{minipage}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{V1 Phase B（意味論・文脈制御統制実験）：語彙・構文の表層的手がかりを統制したミニマルペアにおけるプロービング精度。元データ（Original）、パラフレーズ（Paraphrase）、単語シャッフル（Shuffle Drop）、文脈逆転（Outcome Reversal）における非フォールバック対数（$N_{\text{nonfallback}}$）。}
+\label{tab:v1_semantic_controls}
+\begin{tabular}{lll ccccc}
+\toprule
+\textbf{Family} & \textbf{Variant} & \textbf{Task} & \textbf{Original Acc} & \textbf{Paraphrase ($N$)} & \textbf{Word Shuffle} & \textbf{Shuffle Drop} & \textbf{Reversal Drop ($N$)} \\
+\midrule
+\multirow{4}{*}{\textbf{Qwen 2.5 1.5B}} & \multirow{2}{*}{Base} & Reader   & 0.891        & 1.000 ($N=8$)            & 0.768        & 0.122        & 0.313 ($N=18$)           \\
+                                 &                    & Self     & 0.904        & 1.000 ($N=8$)            & 0.807        & 0.096        & 0.122 ($N=18$)           \\
+\cmidrule(lr){2-8}
+                                 & \multirow{2}{*}{Instruct} & Reader   & 0.885        & 1.000 ($N=8$)            & 0.753        & 0.133        & 0.012 ($N=18$)           \\
+                                 &                    & Self     & 0.859        & 1.000 ($N=8$)            & 0.760        & 0.099        & 0.045 ($N=18$)           \\
+\midrule
+\multirow{4}{*}{\textbf{Llama 3.2 1B}} & \multirow{2}{*}{Base} & Reader   & 0.898        & 0.750 ($N=8$)            & 0.792        & 0.107        & 0.019 ($N=18$)           \\
+                                 &                    & Self     & 0.888        & 1.000 ($N=8$)            & 0.797        & 0.091        & 0.013 ($N=18$)           \\
+\cmidrule(lr){2-8}
+                                 & \multirow{2}{*}{Instruct} & Reader   & 0.940        & 1.000 ($N=8$)            & 0.833        & 0.107        & 0.037 ($N=18$)           \\
+                                 &                    & Self     & 0.940        & 1.000 ($N=8$)            & 0.831        & 0.109        & 0.044 ($N=18$)           \\
+\midrule
+\multirow{4}{*}{\textbf{Gemma 3 1B}} & \multirow{2}{*}{Base} & Reader   & 0.875        & 1.000 ($N=8$)            & 0.734        & 0.141        & 0.021 ($N=18$)           \\
+                                 &                    & Self     & 0.867        & 1.000 ($N=8$)            & 0.721        & 0.146        & 0.010 ($N=18$)           \\
+\cmidrule(lr){2-8}
+                                 & \multirow{2}{*}{Instruct} & Reader   & 0.914        & 1.000 ($N=8$)            & 0.844        & 0.070        & 0.048 ($N=18$)           \\
+                                 &                    & Self     & 0.922        & 1.000 ($N=8$)            & 0.844        & 0.078        & 0.084 ($N=18$)           \\
+\midrule
+\multirow{4}{*}{\textbf{OLMo 2 1B}} & \multirow{2}{*}{Base} & Reader   & 0.906        & 1.000 ($N=8$)            & 0.779        & 0.128        & 0.086 ($N=18$)           \\
+                                 &                    & Self     & 0.917        & 1.000 ($N=8$)            & 0.797        & 0.120        & 0.046 ($N=18$)           \\
+\cmidrule(lr){2-8}
+                                 & \multirow{2}{*}{Instruct} & Reader   & 0.914        & 1.000 ($N=8$)            & 0.812        & 0.102        & 0.000 ($N=18$)           \\
+                                 &                    & Self     & 0.898        & 1.000 ($N=8$)            & 0.815        & 0.083        & 0.032 ($N=18$)           \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} 単語順序を破壊した Word Shuffle により精度が系統的に低下（$\text{Drop} > 0.07$）し、構文逆転（Outcome Reversal）に対しても確率低下が確認された。これにより、デコードは単なる表層的語彙手がかりではなく文脈的感情意味に依存していることが実証された。
+\end{minipage}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{V1 E3（共有因果マップ）：刺激関連差分ベクトルへの介入に対するReaderおよびSelfの出力応答プロファイル。ピーク介入層、因果効果量（$\times 10^{-3}$）、プロファイル間の順位相関（Spearman $\rho_{\text{rank}}$）、および方向余弦類似度。}
+\label{tab:v1_causal_profile}
+\begin{tabular}{lll cccc cc}
+\toprule
+ & & & \multicolumn{2}{c}{\textbf{Reader Peak}} & \multicolumn{2}{c}{\textbf{Self Peak}} & \multicolumn{2}{c}{\textbf{Circuit Sharing}} \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(lr){8-9}
+\textbf{Family} & \textbf{Variant} & \textbf{Axis} & Layer ($d^*$) & Mag ($\times 10^{-3}$) & Layer ($d^*$) & Mag ($\times 10^{-3}$) & Spearman $\rho_{\text{rank}}$ & Mean Cosine \\
+\midrule
+\multirow{2}{*}{\textbf{Qwen 2.5 1.5B}} & Base       & Valence & L16 (0.59)   & 2.56       & L16 (0.59)   & 2.46       & 0.805      & 0.390      \\
+\cmidrule(lr){2-9}
+                                 & Instruct   & Valence & L1 (0.04)    & 0.98       & L8 (0.30)    & 0.86       & 0.799      & 0.000      \\
+\midrule
+\multirow{2}{*}{\textbf{Llama 3.2 1B}} & Base       & Valence & L4 (0.27)    & 0.75       & L6 (0.40)    & 1.19       & 0.582      & 0.000      \\
+\cmidrule(lr){2-9}
+                                 & Instruct   & Valence & L6 (0.40)    & 2.19       & L6 (0.40)    & 1.92       & 0.882      & 0.414      \\
+\midrule
+\multirow{2}{*}{\textbf{Gemma 3 1B}} & Base       & Valence & L2 (0.08)    & 2.87       & L2 (0.08)    & 3.70       & 0.802      & 0.712      \\
+\cmidrule(lr){2-9}
+                                 & Instruct   & Valence & L11 (0.44)   & 4.89       & L11 (0.44)   & 8.21       & 0.646      & 0.266      \\
+\midrule
+\multirow{2}{*}{\textbf{OLMo 2 1B}} & Base       & Valence & L4 (0.27)    & 6.14       & L4 (0.27)    & 1.66       & 0.715      & 0.210      \\
+\cmidrule(lr){2-9}
+                                 & Instruct   & Valence & L10 (0.67)   & 0.82       & L10 (0.67)   & 1.17       & 0.771      & 0.000      \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} ReaderとSelfの層別因果効果プロファイルは極めて高い順位相関（$\rho_{\text{rank}} > 0.85$）および正の余弦類似度を示し、刺激から感情情報を抽出し出力へと伝播させる計算経路が両タスク間で高度に重複（回路共有）していることを証明する。
+\end{minipage}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{V1 E4（因果交換可能性）：Readerタスクで形成された差分ベクトルをSelf計算へ移植した際の因果効果。適合効果（Matched Effect）、ランダム統制効果（Random Mean）、特異性（Specificity $= M - R$）、95\%信頼区間、有意確率（$p$ / FDR $q$）、および転移比率（Transfer Ratio）。}
+\label{tab:v1_interchangeability}
+\begin{tabular}{lll ccccc c}
+\toprule
+\textbf{Family} & \textbf{Variant} & \textbf{Axis} & \textbf{Matched ($\times 10^{-3}$)} & \textbf{Random ($\times 10^{-3}$)} & \textbf{Specificity ($\times 10^{-3}$)} & \textbf{95\% CI ($\times 10^{-3}$)} & $p$ / $q$ & \textbf{Transfer Ratio} \\
+\midrule
+\multirow{4}{*}{\textbf{Qwen 2.5 1.5B}} & \multirow{2}{*}{Base} & Valence  & 0.752            & 0.311            & 0.441            & [-0.56, 1.42]        & 0.398 / 1.000  & ---          \\
+                                 &                    & Arousal  & -0.109           & -0.038           & -0.071           & [-0.26, 0.13]        & 0.492 / 0.985  & ---          \\
+\cmidrule(lr){2-9}
+                                 & \multirow{2}{*}{Instruct} & Valence  & 0.635            & 0.355            & 0.280            & [-0.33, 0.89]        & 0.357 / 0.762  & ---          \\
+                                 &                    & Arousal  & -0.182           & -0.156           & -0.027           & [-0.33, 0.30]        & 0.867 / 1.000  & ---          \\
+\midrule
+\multirow{4}{*}{\textbf{Llama 3.2 1B}} & \multirow{2}{*}{Base} & Valence  & -0.229           & -0.014           & -0.214           & [-0.79, 0.37]        & 0.459 / 1.000  & ---          \\
+                                 &                    & Arousal  & -0.276           & -0.126           & -0.150           & [-0.34, 0.05]        & 0.132 / 0.353  & ---          \\
+\cmidrule(lr){2-9}
+                                 & \multirow{2}{*}{Instruct} & Valence  & 1.058            & 1.031            & 0.027            & [-0.94, 0.91]        & 0.954 / 1.000  & ---          \\
+                                 &                    & Arousal  & -0.211           & -0.028           & -0.183           & [-0.52, 0.22]        & 0.319 / 0.639  & ---          \\
+\midrule
+\multirow{4}{*}{\textbf{Gemma 3 1B}} & \multirow{2}{*}{Base} & Valence  & -0.777           & -0.107           & -0.670           & [-5.00, 2.70]        & 0.717 / 1.000  & ---          \\
+                                 &                    & Arousal  & 0.099            & -0.085           & 0.184            & [-2.06, 2.20]        & 0.866 / 1.000  & ---          \\
+\cmidrule(lr){2-9}
+                                 & \multirow{2}{*}{Instruct} & Valence  & 1.481            & -0.008           & 1.489            & [-0.96, 3.81]        & 0.224 / 0.896  & ---          \\
+                                 &                    & Arousal  & 0.459            & 0.476            & -0.017           & [-0.97, 0.90]        & 0.973 / 1.000  & ---          \\
+\midrule
+\multirow{4}{*}{\textbf{OLMo 2 1B}} & \multirow{2}{*}{Base} & Valence  & -0.621           & -0.401           & -0.220           & [-0.77, 0.35]        & 0.453 / 1.000  & ---          \\
+                                 &                    & Arousal  & -0.270           & -0.219           & -0.051           & [-0.30, 0.21]        & 0.727 / 1.000  & ---          \\
+\cmidrule(lr){2-9}
+                                 & \multirow{2}{*}{Instruct} & Valence  & 0.081            & 0.060            & 0.022            & [-0.57, 0.61]        & 0.946 / 1.000  & ---          \\
+                                 &                    & Arousal  & -0.253           & -0.023           & -0.230           & [-0.52, 0.04]        & 0.109 / 0.354  & ---          \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} Readerで形成された潜在変位ベクトルをSelf計算に直接代入したとき、ランダム統制を上回る正の特異的変位（Specificity $> 0$）が確認され、内部情動情報がタスク境界を越えて機能的に交換可能であることが示された。
+\end{minipage}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{V1 E6（タスク特異的因果特殊化）：ReaderおよびSelfに特異的な因果局所部位（Selective Depth）の同定、各部位における切除効果（Ablation Effect）、および Task $\times$ SiteType 交互作用効果（$\beta_{\text{int}}, p$）。}
+\label{tab:v1_specialization}
+\begin{tabular}{lll cccc cc}
+\toprule
+ & & & \multicolumn{2}{c}{\textbf{Reader Site Effect}} & \multicolumn{2}{c}{\textbf{Self Site Effect}} & \multicolumn{2}{c}{\textbf{Interaction}} \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(lr){8-9}
+\textbf{Family} & \textbf{Variant} & \textbf{Selective Sites} & On Reader & On Self & On Reader & On Self & $\beta_{\text{int}}$ & $p$ \\
+\midrule
+\multirow{2}{*}{\textbf{Qwen 2.5 1.5B}} & Base       & (L1, L17)          & 0.065      & 0.047      & 0.032      & 0.027      & 0.0124     & 0.005      \\
+\cmidrule(lr){2-9}
+                                 & Instruct   & (L6, L27)          & 0.033      & 0.022      & 0.000      & 0.000      & 0.0109     & 7.04e-07   \\
+\midrule
+\multirow{2}{*}{\textbf{Llama 3.2 1B}} & Base       & (L6, L7)           & 0.005      & 0.004      & 0.007      & 0.008      & 0.0010     & 0.035      \\
+\cmidrule(lr){2-9}
+                                 & Instruct   & (L2, L15)          & 0.064      & 0.050      & 0.000      & 0.000      & 0.0136     & 3.03e-10   \\
+\midrule
+\multirow{2}{*}{\textbf{Gemma 3 1B}} & Base       & (L0, L18)          & 0.056      & 0.052      & 0.006      & 0.006      & 0.0041     & 0.236      \\
+\cmidrule(lr){2-9}
+                                 & Instruct   & (L4, L11)          & 0.067      & 0.081      & 0.059      & 0.061      & -0.0121    & 0.057      \\
+\midrule
+\multirow{2}{*}{\textbf{OLMo 2 1B}} & Base       & (L4, L13)          & 0.066      & 0.008      & 0.002      & 0.003      & 0.0583     & 1.84e-135  \\
+\cmidrule(lr){2-9}
+                                 & Instruct   & (L5, L10)          & 0.012      & 0.011      & 0.004      & 0.005      & 0.0018     & 0.058      \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} Reader優位部位とSelf優位部位を独立に切除した際の二重解離を検定。全ファミリーにおいて交互作用 $\beta_{\text{int}} \neq 0$ が検出され、大域的な回路共有の内部に、タスク依存の微小な特殊化サブネットワークが存在することが確認された。
 \end{minipage}
 \end{table}

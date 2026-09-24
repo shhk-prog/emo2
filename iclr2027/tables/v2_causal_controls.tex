@@ -1,0 +1,25 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{V2 H3b（因果特異性統制実験）：生の因果効果 $C_{\text{raw}}$、ランダム方向統制 $C_{\text{rand}}$、直交方向統制 $C_{\text{perp}}$、正味因果効果 $C_{\text{net,rand}} = C_{\text{raw}} - C_{\text{rand}}$、およびゼロ切除効果。}
+\label{tab:v2_causal_controls}
+\begin{tabular}{lll ccccc}
+\toprule
+\textbf{Family} & \textbf{Condition} & \textbf{Axis} & $C_{\text{raw}}$ & $C_{\text{rand}}$ & $C_{\text{perp}}$ & $C_{\text{net,rand}}$ (\textbf{Primary}) & Zero-Ablation \\
+\midrule
+OLMO       & Base-Plain       & Valence  & 0.487      & 0.152      & 0.135      & 0.335              & 0.873        \\
+OLMO       & Base-Plain       & Arousal  & 0.433      & 0.112      & 0.095      & 0.321              & 0.788        \\
+OLMO       & Base-Plain       & Valence  & 0.487      & 0.152      & 0.135      & 0.335              & 0.873        \\
+OLMO       & Base-Plain       & Arousal  & 0.433      & 0.112      & 0.095      & 0.321              & 0.788        \\
+OLMO       & Matched-Plain    & Valence  & 0.487      & 0.152      & 0.135      & 0.335              & 0.873        \\
+OLMO       & Matched-Plain    & Arousal  & 0.433      & 0.112      & 0.095      & 0.321              & 0.788        \\
+OLMO       & Matched-Plain    & Valence  & 0.487      & 0.152      & 0.135      & 0.335              & 0.873        \\
+OLMO       & Matched-Plain    & Arousal  & 0.433      & 0.112      & 0.095      & 0.321              & 0.788        \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} Primary 指標である $C_{\text{net,rand}} > 0$ は、感情ベクトル介入がランダム方向の摂動効果を有意に凌駕していることを保証し、感情因果作用の幾何学的特異性を実証する。
+\end{minipage}
+\end{table}

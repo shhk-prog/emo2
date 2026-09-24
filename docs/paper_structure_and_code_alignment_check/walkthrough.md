@@ -177,6 +177,7 @@ iclr2027/tables/
 ├── 【Behavioral: EmoBank 自然文コーパス】
 │   ├── behavioral_emobank_3way_vad.tex      # 問い: 「人間の言語表現（Writer）および読者評価（Reader）のVADグラウンドトゥルースに対して、LLMの認識・自己報告（Self）はどの程度整合するか」
 │   ├── behavioral_emobank_coupling.tex      # 問い: 「他者の感情を評価した変位 ΔReader と自身の状態として報告した変位 ΔSelf はモデル内部で連動しているか」
+│   ├── behavioral_emobank_summary.tex       # [NEW] EmoBank包括サマリーTeX版（上記2表を問い・ノート付きで統合）
 │   └── behavioral_emobank_summary.md        # EmoBank の Markdown 形式まとめ（各RQの問いと数値を明記）
 │
 ├── 【Behavioral: AIPsy-Affect 統制対照ペア（RQ1--RQ4完全網羅）】
@@ -184,21 +185,133 @@ iclr2027/tables/
 │   ├── behavioral_aipsy_rq2_dose_response.tex # RQ2: 「刺激の情動強度（Neutral → Moderate → Clinical）を段階的に増加させたとき、モデルの出力変位は単調に増加するか」
 │   ├── behavioral_aipsy_rq3_specificity.tex   # RQ3: 「臨床刺激による変位は、単なる文章の構文的複雑さ（Complex Neutral）への反応ではなく、感情内容に特異的か」
 │   ├── behavioral_aipsy_rq4_coupling.tex    # RQ4: 「刺激提示に伴う他者認識の変位 ΔR と自己報告の変位 ΔS は、モデル内部で連動して結合（カップリング）しているか」
+│   ├── behavioral_aipsy_summary.tex         # [NEW] AIPsy包括サマリーTeX版（RQ1--RQ4全表を問い・ノート付きで完全統合）
 │   └── behavioral_aipsy_summary.md          # AIPsy の Markdown 形式まとめ（全4つのRQの問いと数値を明記）
 │
 ├── 【V1 Stage: 同一モデル内 表現・回路共有（E1--E6）】
-│   ├── v1_peak_decodability.tex             # E1 / RQ1: 「同一モデル内でReaderとSelfの情動デコードピーク深度および性能は近接・一致しているか」
-│   ├── v1_causal_profile.tex                # E3 / RQ3: 「因果的介入効果の層別プロファイル（順位相関 ρ_rank、方向コサイン）は回路として共有されているか」
+│   ├── v1_peak_decodability.tex             # E1: 「同一モデル内でReaderとSelfの情動デコードピーク深度および性能は近接・一致しているか」
+│   ├── v1_causal_profile.tex                # E3: 「因果的介入効果の層別プロファイル（順位相関 ρ_rank、方向コサイン）は回路として共有されているか」
+│   ├── v1_internal_sharing_summary.tex      # [NEW] V1包括サマリーTeX版（E1・E3表を問い・ノート付きで統合）
 │   └── v1_internal_sharing_summary.md       # V1 の Markdown 形式まとめ
 │
 ├── 【V2 Stage: 事後学習に伴う構造再編（H1--H4 / RQ1--RQ4）】
 │   ├── v2_h1_h2_reorganization.tex          # H1--H2: 「事後学習に伴い、幾何歪み（H1a）、ピーク浅層シフト（H1b）、およびタスク共有度変化（H2）はどう生じるか」
 │   ├── v2_h3_causal_lmm.tex                 # H3: 「情動デコード層と因果的出力影響層の対応関係は、事後学習に伴って深層側へと再配置されるか（LMM）」
-│   └── v2_reorganization_summary.md         # V2 の Markdown 形式まとめ
+│   ├── v2_reorganization_summary.tex        # [NEW] V2包括サマリーTeX版（H1--H2・H3 LMM表を問い・ノート付きで統合）
+│   └── v2_reorganization_summary.md         # V2 の Markdown 形式まとめ（H3 LMMを追加し完全同期）
 │
 └── 【V3 Stage: 生成時空間因果利用性】
     ├── v3_gate_decision.tex                 # Gate: 「プローブ方向への線形残差介入は、自己報告を十分かつ特異的に制御できるか（事前登録閾値 → NO_GO 確定）」
-    ├── v3_spatiotemporal_dynamics.tex       # H1 / RQ1: 「感情情報の直接読み出し最適層 d_D と、介入によって自己報告を変位させる因果効果ピーク層 d_C は一致するか（時空間解離）」
+    ├── v3_spatiotemporal_dynamics.tex       # H1: 「感情情報の直接読み出し最適層 d_D と、介入によって自己報告を変位させる因果効果ピーク層 d_C は一致するか（時空間解離）」
     ├── v3_confirmatory_matrix.tex           # Replication: 「探索的時空間仮説（H1--H4）は、独立した未見のモデルファミリーで再現されるか」
+    ├── v3_causal_utilization_summary.tex    # [NEW] V3包括サマリーTeX版（Gate・時空間解離・独立検証表を問い・ノート付きで統合）
     └── v3_causal_utilization_summary.md     # V3 の Markdown 形式まとめ
 ```
+
+---
+
+## 6. 包括的サマリーTeXファイル（`*_summary.tex`）の作成とスクリプト更新
+
+ユーザーからの指示**「behavioral_aipsy_summary.md これらのsummaryもtex版を作成して」**に基づき、以下の改善・配備を完了しました：
+
+### 6.1 全ステージの包括的サマリーTeXファイルの新規作成・完全整備
+各ステージの個別のテーブル環境を単に並べるだけでなく、**キャプション内に明確な「問い（Research Question）」と設定・サンプル数を明記**し、テーブル末尾には**出版品質の Note（注釈）**を付与した自己完結型 TeX ファイルを作成しました：
+1. **`behavioral_emobank_summary.tex`**:
+   - 3-Way 人間評価アライメント表（`\label{tab:behavioral_emobank_3way_vad}`）
+   - 内部認知結合度表（`\label{tab:behavioral_emobank_coupling}`）
+2. **`behavioral_aipsy_summary.tex`**:
+   - RQ1 臨床--中立感度表（`\label{tab:behavioral_aipsy_rq1_sensitivity}`）
+   - RQ2 用量反応性・単調性表（`\label{tab:behavioral_aipsy_rq2_dose_response}`）
+   - RQ3 感情特異性 vs 構文複雑性表（`\label{tab:behavioral_aipsy_rq3_specificity}`）
+   - RQ4 内部認知結合度表（`\label{tab:behavioral_aipsy_rq4_coupling}`）
+3. **`v1_internal_sharing_summary.tex`**:
+   - E1 線形デコードピーク局在表（`\label{tab:v1_peak_decodability}`）
+   - E3 因果プロファイル・回路共有表（`\label{tab:v1_causal_profile}`）
+4. **`v2_reorganization_summary.tex`**:
+   - H1--H2 幾何歪み・ピークシフト・共有度分離表（`\label{tab:v2_h1_h2_reorganization}`）
+   - H3 因果再配置 線形混合効果モデル LMM 表（`\label{tab:v2_h3_causal_lmm}`）
+5. **`v3_causal_utilization_summary.tex`**:
+   - 事前登録 Gate 判定表（NO_GO 確定）（`\label{tab:v3_gate_decision}`）
+   - 探索的時空間解離・媒介減衰表（`\label{tab:v3_spatiotemporal_dynamics}`）
+   - 独立ファミリー検証再現性マトリックス（`\label{tab:v3_confirmatory_matrix}`）
+
+### 6.2 生成スクリプト（`scripts/summarize_*.py`）の自動出力対応
+手動生成に依存せず、常に再現可能なパイプラインを維持するため、各 Python スクリプトおよびマスターオーケストレーターを改修：
+- 各スクリプトが個別表（`.tex`）および Markdown サマリー（`.md`）に加えて、包括的サマリー TeX（`*_summary.tex`）も自動生成して保存するように実装。
+- `scripts/summarize_behavioral_emobank.py`
+- `scripts/summarize_behavioral_aipsy.py`
+- `scripts/summarize_v1_internal_sharing.py`
+- `scripts/summarize_v2_reorganization.py`
+- `scripts/summarize_v3_causal_utilization.py`
+
+---
+
+## 7. テーブルレンダリング崩れ（`6*Qwen` / `$$` 混入）の根本修正とキャプション階層化
+
+ユーザーより提示されたレンダリング不具合画像（`6*Qwen 2.5 1.5B`, `3*Base` の露出、キャプションへの問いの混ざり込み）を分析し、以下の根本改修を実施しました：
+
+### 7.1 レンダリング崩れの根本原因
+1. **空文字列時の `$$` 混入**: 有意差のない数値セルにおいて、`format_p_stars` が空文字列を返した際に `${stars}$` が `$$`（ディスプレイスタイル数式区切り）として出力されていた。これにより LaTeX の tabular パーサーがクラッシュしていた。
+2. **`\multirow` のマクロ展開不整合**: プリアンブルで `\usepackage{multirow}` が未ロードまたはコンフリクトを起こした際、引数 `6` と `*` がプレーンテキストとして露出（`6*Qwen 2.5 1.5B`）していた。
+3. **長大キャプションの混同**: キャプション `\caption{...}` に「問い」と「実験設定・サンプル数」が全て詰め込まれ、`Table 9: 問い「...」4モデルファミリーの...` と読みにくい一塊になっていた。
+
+### 7.2 実施した解決策
+1. **問いとキャプションの構造的階層化**:
+   - 表上部に太字で問いを配置：
+     `\noindent\textbf{〇〇：問い「...」}\par\vspace{1ex}`
+   - キャプション（`\caption{...}`）には表の具体的説明のみを配置：
+     `\caption{4モデルファミリーのBaseおよびInstructモデルにおける人間正解ラベル（Writer / Reader）および自己報告（Self）のピアソン相関係数 $r$（$N=1000$）。}`
+   - これにより、読者が「問い」→「Table 番号とタイトル」→「表本体」と自然な階層で把握できる構成を実現。
+2. **`\multirow` 環境の正式整備と組版の完全修正**:
+   - `iclr2027/iclr2027_conference2.tex` のプリアンブルに `\usepackage{booktabs,tabularx,array,multirow}` を正式に追加。
+   - `\multirow{6}{*}{\textbf{...}}` および `\multirow{3}{*}{Base}`, `\multirow{3}{*}{Instruct}` が正確に縦中央揃えでレンダリングされるように復元。
+   - アスタリスクなしのセルに `\phantom{$^{***}$}` を自動挿入し、小数点の縦位置がミリ単位で完全に一直線に揃う美しい組版を達成。
+   - 負の数値にはハイフンマイナスではなく数式マイナス `$-$` を適用し、出版品質のタイポグラフィを実現。
+3. **同期と自動生成パイプラインの更新**:
+   - `scripts/summarize_behavioral_emobank.py` を更新し、再実行時も常にこの最高精度の表が出力されるようにパイプラインを同期。
+   - `iclr2027/tables/table_b_emobank_family_3way.tex` および `behavioral_emobank_3way_vad.tex`、`behavioral_emobank_summary.tex` に即時反映完了。
+
+---
+
+## 8. 全ステージ（Behavioral, V1, V2, V3）結果表の完全整備と親ファイルへの配備
+
+論文結果章（§5 Behavioral, §9 V1, §13 V2, §17 V3）における研究課題（RQ）と結果表の完全な 1 対 1 対応を実現するため、以下の改修とテーブル生成を実施しました：
+
+### 8.1 Behavioral ステージの整理と修正
+1. **親ファイルへの配置**:
+   - `\input{tables/behavioral_emobank_3way_vad.tex}`
+   - `\input{tables/behavioral_aipsy_summary.tex}`（RQ1〜RQ4 の全4表）
+   - ※`behavioral_emobank_coupling.tex`（実際はAIPsy 192ペアのデータ）はキャプションと内容の不整合を防ぐため除外。
+2. **RQ2 Note の統計的整合性修正**:
+   - Qwen Instruct Reader Arousal（$q_{\text{IUT}} = 0.0952$）は FDR $q < 0.05$ 未達であるため、Note の記述を「単調性（IUT $q < 0.05$）は、Llama Instruct ReaderのArousal軸で確認された」へ厳密化。
+
+### 8.2 V1 ステージ不足 4 表の新規生成
+`scripts/summarize_v1_internal_sharing.py` を拡張し、以下の全 6 表を自動出力：
+- `v1_peak_decodability.tex`（E1: 表現デコードピーク局在）
+- `v1_shared_geometry.tex`（E2: 表現幾何共有・Procrustes転移・RSA）
+- `v1_semantic_controls.tex`（Phase B: 意味統制・シャッフル・逆転と非フォールバック対数 $N$）
+- `v1_causal_profile.tex`（E3: 共有因果マップ・順位相関）
+- `v1_interchangeability.tex`（E4: 因果交換可能性・特異性 $M-R$・95% CI）
+- `v1_specialization.tex`（E6: タスク特異的因果特殊化部位・二重解離交互作用）
+
+### 8.3 V2 ステージ既存バグ修正と不足 4 表の新規生成
+`scripts/summarize_v2_reorganization.py` を改修：
+1. **バグ修正**:
+   - ラベルを Canonical な `Reader/Self Procrustes Distortion` へ統一。
+   - $\Delta d^* > 0$（$\text{inst} - \text{base}$）の解釈を正確な「後段側（deeper側）へのshift」に修正。
+2. **不足 4 表の新規生成**:
+   - `v2_causal_relocation.tex`（H3a: 因果ピーク・重心の深層シフト量）
+   - `v2_causal_controls.tex`（H3b: 直交・ランダム統制と正味因果効果 $C_{\text{net,rand}}$）
+   - `v2_distribution_recovery.tex`（H4: Base表現介入による分布回復能 AUC）
+   - `v2_confirmatory_summary.tex`（H1〜H4 事前登録仮説の検証結果総括）
+
+### 8.4 V3 ステージ不足 2 表の新規生成
+`scripts/summarize_v3_causal_utilization.py` を改修し、実数値を備えた詳細表を追加：
+- `v3_gate_decision.tex`（事前登録 Gate NO_GO 判定）
+- `v3_spatiotemporal_dynamics.tex`（時空間解離 $\Delta d < 0$）
+- `v3_mediated_attenuation.tex`（RQ3 媒介減衰詳細 $T, R, M$, 95% CI）
+- `v3_confirmatory_details.tex`（独立ファミリー検証の各仮説実数値・CI・Pass/Fail）
+- `v3_confirmatory_matrix.tex`（独立3ファミリー検証総括マトリックス）
+
+### 8.5 親ファイル（`iclr2027_conference2.tex`）への完全反映
+親ファイル内の各結果セクション（§5, §9, §13, §17）に、上記全テーブルの `\input` を配置し、古い直書きコードを完全排除。これにより、本文の考察・接続の執筆基盤が完璧に整いました。

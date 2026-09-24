@@ -31,23 +31,29 @@ def load_data(repo_root):
     df_b5 = pd.read_csv(b5_path) if os.path.exists(b5_path) else None
     return df_b1, df_b5
 
-def format_p_stars(p_val):
-    if pd.isna(p_val):
-        return ""
-    if p_val < 0.001:
-        return "^{***}"
-    elif p_val < 0.01:
-        return "^{**}"
-    elif p_val < 0.05:
-        return "^{*}"
-    return ""
+def format_val_with_stars(r_val, p_val):
+    if pd.isna(r_val):
+        return "---"
+    val_str = f"{r_val:.3f}"
+    if val_str.startswith("-"):
+        val_str = f"$-${val_str[1:]}"
+    
+    if not pd.isna(p_val):
+        if p_val < 0.001:
+            return val_str + r"$^{***}$"
+        elif p_val < 0.01:
+            return val_str + r"$^{**}\phantom{^{*}}$"
+        elif p_val < 0.05:
+            return val_str + r"$^{*}\phantom{^{**}}$"
+    return val_str + r"\phantom{$^{***}$}"
 
 def generate_family_3way_table(df_b1):
     tex_lines = [
         r"\begin{table}[htbp]",
         r"\centering",
         r"\small",
-        r"\caption{EmoBank 3者間VADアライメント：問い「人間の言語表現（Writer）および読者評価（Reader）のVADグラウンドトゥルースに対して、LLMの認識・自己報告（Self）はどの程度整合するか」。4モデルファミリーのBaseおよびInstructモデルにおける人間正解ラベル（Writer / Reader）および自己報告（Self）のピアソン相関係数 $r$（$N=1000$）。}",
+        r"\noindent\textbf{EmoBank 3者間VADアライメント：問い「人間の言語表現（Writer）および読者評価（Reader）のVADグラウンドトゥルースに対して、LLMの認識・自己報告（Self）はどの程度整合するか」}\par\vspace{1ex}",
+        r"\caption{4モデルファミリーのBaseおよびInstructモデルにおける人間正解ラベル（Writer / Reader）および自己報告（Self）のピアソン相関係数 $r$（$N=1000$）。}",
         r"\label{tab:behavioral_emobank_3way_vad}",
         r"\begin{tabular}{lll ccc}",
         r"\toprule",
@@ -71,15 +77,15 @@ def generate_family_3way_table(df_b1):
                         p_col = "pearson_p" if "pearson_p" in row.columns else "p_continuous"
                         r_val = row[r_col].iloc[0]
                         p_val = row[p_col].iloc[0] if p_col in row.columns else np.nan
-                        stars = format_p_stars(p_val)
-                        vals.append(f"{r_val:.3f}${stars}$")
+                        vals.append(format_val_with_stars(r_val, p_val))
                     else:
                         vals.append("---")
 
-                fam_str = f"\\multirow{{6}}{{*}}{{{fam_name}}}" if first_fam and idx_task == 0 and aln == "base" else ""
+                fam_str = f"\\multirow{{6}}{{*}}{{\\textbf{{{fam_name}}}}}" if first_fam else ""
+                first_fam = False
                 aln_str = f"\\multirow{{3}}{{*}}{{{aln_label}}}" if idx_task == 0 else ""
 
-                tex_lines.append(f"{fam_str:<22} & {aln_str:<20} & {t_label:<10} & {vals[0]} & {vals[1]} & {vals[2]} \\\\")
+                tex_lines.append(f"{fam_str:<32} & {aln_str:<24} & {t_label:<10} & {vals[0]:<24} & {vals[1]:<24} & {vals[2]:<24} \\\\")
 
             if aln == "base":
                 tex_lines.append(r"\cmidrule(lr){2-6}")
@@ -104,7 +110,8 @@ def generate_internal_coupling_table(df_b5):
         r"\begin{table}[htbp]",
         r"\centering",
         r"\small",
-        r"\caption{EmoBank 内部認知結合度（Cognitive Coupling）：問い「他者の感情を評価した変位 $\Delta\text{Reader}$ と、自身の状態として報告した変位 $\Delta\text{Self}$ はモデル内部で連動しているか」。モデルの他者認識変位と自己報告変位の相関 $\Delta r$（$N=192$ ペア、95\%ブートストラップ信頼区間）。}",
+        r"\noindent\textbf{EmoBank 内部認知結合度：問い「他者の感情を評価した変位 $\Delta\text{Reader}$ と、自身の状態として報告した変位 $\Delta\text{Self}$ はモデル内部で連動しているか」}\par\vspace{1ex}",
+        r"\caption{モデルの他者認識変位と自己報告変位の相関 $\Delta r$（$N=192$ ペア、95\%ブートストラップ信頼区間）。}",
         r"\label{tab:behavioral_emobank_coupling}",
         r"\begin{tabular}{ll ccc}",
         r"\toprule",
@@ -132,9 +139,9 @@ def generate_internal_coupling_table(df_b5):
                 else:
                     cells.append("---")
 
-            fam_str = f"\\multirow{{2}}{{*}}{{{fam_name}}}" if first_fam else ""
+            fam_str = f"\\multirow{{2}}{{*}}{{\\textbf{{{fam_name}}}}}" if first_fam else ""
             first_fam = False
-            tex_lines.append(f"{fam_str:<22} & {aln_label:<10} & {cells[0]} & {cells[1]} & {cells[2]} \\\\")
+            tex_lines.append(f"{fam_str:<32} & {aln_label:<10} & {cells[0]} & {cells[1]} & {cells[2]} \\\\")
 
         if fam_key != FAMILY_ORDER[-1][0]:
             tex_lines.append(r"\midrule")

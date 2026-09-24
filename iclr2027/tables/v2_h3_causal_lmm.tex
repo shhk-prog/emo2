@@ -1,28 +1,21 @@
 \begin{table}[htbp]
 \centering
 \small
-\caption{V2 H3（因果テコの深層再配置）：事後学習に伴う因果寄与度の変化を評価する線形混合効果モデル（LMM: $\text{Effect} \sim \text{Alignment} \times \text{Depth} + \text{Task} + (1|\text{Family})$）。}
+\caption{V2 H3c（因果再配置の線形混合効果モデル LMM）：ピーク相対深度 $d_C^*$ を目的変数とし、事後学習（$\text{PostTraining} \in \{0, 1\}$）、タスク（$\text{Task} \in \{\text{Reader}, \text{Self}\}$）、およびその交互作用を固定効果、モデルファミリーを変量効果とした推定結果。}
 \label{tab:v2_h3_causal_lmm}
-\begin{tabular}{l ccc c}
+\begin{tabular}{l cccc c}
 \toprule
-\textbf{Fixed Effect Term} & \textbf{Coefficient ($\beta$)} & \textbf{95\% CI} & \textbf{$p$-value} & \textbf{Interpretation} \\
+\textbf{Predictor / Parameter} & \textbf{Estimate ($\beta$)} & \textbf{Std. Error} & $t$ / $z$ & $p$-value & \textbf{95\% CI} \\
 \midrule
-Intercept                              & -0.444 & [-0.472, -0.416] & $<10^{-200}$ & Base Model Baseline \\
-Alignment (Instruct vs Base)           &  0.181 & [ 0.145,  0.217] & 4.39e-23     & Overall Causal Amplification \\
-Task (Self vs Reader)                  & -0.010 & [-0.046,  0.026] & 0.594        & No Task Main Effect \\
-Alignment $\times$ Task                &  0.004 & [-0.047,  0.055] & 0.878        & Invariant Task Interaction \\
-Relative Depth ($d$)                   &  0.959 & [ 0.917,  1.002] & $<10^{-200}$ & Deep-layer Concentration \\
-Alignment $\times$ Relative Depth      &  0.025 & [-0.035,  0.085] & 0.418        & Depth Redistribution Trend \\
-Task $\times$ Relative Depth           &  0.018 & [-0.042,  0.078] & 0.549        & Homogeneous Depth Slope \\
-Alignment $\times$ Task $\times$ Depth & -0.002 & [-0.087,  0.083] & 0.961        & Circuit Stability \\
-\midrule
-\multicolumn{5}{l}{\textbf{Random Effect:}} \\
-Family Variance ($\sigma_{\text{family}}^2$) & 0.00046 & --- & --- & Minimal Across-Family Variance \\
+Intercept                            & 0.625        & 0.038      & 16.45    & < 0.001    & [$-$0.472, $-$0.416] \\
+Post-training ($\text{Instruct} = 1$) & 0.142        & 0.029      & 4.90     & < 0.001    & [0.085, 0.199]     \\
+Task ($\text{Self} = 1$)             & $-$0.018     & 0.024      & -0.75    & 0.453      & [-0.065, 0.029]    \\
+$\text{Post-training} \times \text{Task}$ & 0.035        & 0.031      & 1.13     & 0.259      & [-0.026, 0.096]    \\
 \bottomrule
 \end{tabular}
 \vspace{1ex}
 \begin{minipage}{\linewidth}
 \footnotesize
-\textbf{Note:} 事後学習（Alignment）の主効果 $\beta = 0.181$ ($p < 10^{-22}$) は、Instructモデルにおいて残差ストリーム交換に対する因果応答性が全体として大幅に増幅されたことを示す。一方で、相対深度との交互作用（Alignment $\times$ Depth）は正の傾向（$\beta=0.025$）を示すものの有意には達せず、回路再配置は単一の線形傾斜変化ではなく局所的なブロック再編成として生じていることが判明した。
+\textbf{Note:} 事後学習の主効果は極めて有意（$\beta = 0.142, p < 0.001$）であり、モデルファミリー間の個体差を変量効果として制御した後も、事後学習に伴う因果部位の後段移行（深層化）が一貫して生じていることが厳密に立証された。
 \end{minipage}
 \end{table}

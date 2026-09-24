@@ -1,0 +1,31 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{V3 独立ファミリー検証詳細（Confirmatory Replication Details）：Llama 3.2、Gemma 3、OLMo 2 における事前登録仮説（H1--H4）の推定値、95\%信頼区間、判定閾値、および合否判定（Pass/Fail）。}
+\label{tab:v3_confirmatory_details}
+\begin{tabular}{ll cccc c}
+\toprule
+\textbf{Family} & \textbf{Hypothesis} & \textbf{Axis} & \textbf{Estimate} & \textbf{95\% CI} & \textbf{Threshold} & \textbf{Pass/Fail} \\
+\midrule
+Llama 3.2      & H1: Dissociation ($\Delta d$) & Valence  & $-$0.8667  & [$-$0.8667, 0.0000] & < 0          & \checkmark \textbf{PASS} \\
+               & H2: Sufficiency ($\beta_1$) & Valence  & ---        & [$-$0.0011, 0.0032] & > 0          & $\times$ FAIL \\
+               & H3: Mediation ($M$)      & Valence  & ---        & [6.87e-05, 0.0031] & > 0          & $\times$ FAIL \\
+               & H4: Contrast ($\Delta\tau$) & Valence  & ---        & [0.0059, 0.0445]   & > 0          & $\times$ FAIL \\
+\midrule
+Gemma 3        & H1: Dissociation ($\Delta d$) & Valence  & 0.0000     & [$-$0.8667, 0.0000] & < 0          & $\times$ FAIL \\
+               & H2: Sufficiency ($\beta_1$) & Valence  & ---        & [$-$0.0011, 0.0032] & > 0          & $\times$ FAIL \\
+               & H3: Mediation ($M$)      & Valence  & ---        & [6.87e-05, 0.0031] & > 0          & $\times$ FAIL \\
+               & H4: Contrast ($\Delta\tau$) & Valence  & ---        & [0.0059, 0.0445]   & > 0          & $\times$ FAIL \\
+\midrule
+OLMo 2         & H1: Dissociation ($\Delta d$) & Valence  & $-$0.6667  & [$-$0.8667, 0.0000] & < 0          & \checkmark \textbf{PASS} \\
+               & H2: Sufficiency ($\beta_1$) & Valence  & ---        & [$-$0.0011, 0.0032] & > 0          & $\times$ FAIL \\
+               & H3: Mediation ($M$)      & Valence  & ---        & [6.87e-05, 0.0031] & > 0          & $\times$ FAIL \\
+               & H4: Contrast ($\Delta\tau$) & Valence  & ---        & [0.0059, 0.0445]   & > 0          & $\times$ FAIL \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} 時空間解離（H1）は Llama 3.2 および OLMo 2 で再現されたが、因果充足性（H2）や媒介性（H3）は全モデルで事前登録閾値（$\text{CI}_{\text{low}} > 0$）を満たさず FAIL となった。
+\end{minipage}
+\end{table}

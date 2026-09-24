@@ -178,7 +178,7 @@ def generate_rq2_dose_response_table(df_b3):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} 単調性（IUT $q < 0.05$）は、刺激の感情強度が強まるにつれて出力が連続的に増加することを示す。Qwen InstructおよびLlama InstructのArousal軸において顕著な用量反応性が確認される。",
+        r"\textbf{Note:} 単調性（IUT $q < 0.05$）は、刺激の感情強度が強まるにつれて出力が連続的に増加することを示す。Llama Instruct ReaderのArousal軸で確認された。",
         r"\end{minipage}",
         r"\end{table}",
     ])

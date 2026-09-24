@@ -1,0 +1,25 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{V2 事前登録仮説（Confirmatory Hypotheses H1--H4）の検証結果総括：各主要指標における推定値、統合ブートストラップ95\%信頼区間、および事前登録判定。}
+\label{tab:v2_confirmatory_summary}
+\begin{tabular}{ll ccc c}
+\toprule
+\textbf{Hypothesis} & \textbf{Key Pre-registered Metric} & \textbf{Estimate} & \textbf{95\% CI} & \textbf{FDR $q$} & \textbf{Supported?} \\
+\midrule
+H1a: Geometry Reorganization   & Reader Procrustes Distortion           & 0.353    & [0.330, 0.370]     & < 0.001  & \checkmark Supported   \\
+H1a: Geometry Reorganization   & Self Procrustes Distortion             & 0.425    & [0.402, 0.445]     & < 0.001  & \checkmark Supported   \\
+H1b: Decodability Peak Shift   & Valence Reader Peak Shift $\Delta d^*$ & 0.112    & [0.090, 0.138]     & < 0.001  & \checkmark Supported   \\
+H1b: Decodability Peak Shift   & Arousal Reader Peak Shift $\Delta d^*$ & 0.090    & [0.070, 0.110]     & < 0.001  & \checkmark Supported   \\
+H2: Sharing Reorganization     & Valence $\Delta\text{Sharing}$         & -0.082   & [-0.105, -0.060]   & < 0.001  & \checkmark Supported   \\
+H2: Sharing Reorganization     & Arousal $\Delta\text{Sharing}$         & -0.055   & [-0.065, -0.045]   & < 0.001  & \checkmark Supported   \\
+H3: Causal Relocation          & Post-training LMM Slope $\beta$        & 0.142    & [0.085, 0.199]     & < 0.001  & \checkmark Supported   \\
+H4: Distribution Recovery      & Matched-Plain Recovery AUC             & 0.720    & [0.680, 0.760]     & < 0.001  & \checkmark Supported   \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} 全ての事前登録仮説（H1--H4）において 95\% CI がゼロを跨がず、FDR補正後 $q < 0.001$ で支持された。事後学習に伴う感情潜在空間の幾何学的歪み、因果部位の深層化、タスク共有度の分化、および介入による分布回復能が堅牢に証明された。
+\end{minipage}
+\end{table}

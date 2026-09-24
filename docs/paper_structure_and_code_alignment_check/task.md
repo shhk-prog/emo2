@@ -49,4 +49,21 @@
   - [x] 6. 統合マスターオーケストレーター: `scripts/generate_paper_results_tables.py`
 - [x] スクリプトの実行検証と `iclr2027/tables/` への出力確認（16個のLaTeX表およびMarkdownサマリーの配置完了）
 - [x] 論文本文（`iclr2027_conference2.tex`）の各結果セクションへのテーブルインポートと結果解説の記述完了
+- [x] 各ステージ包括サマリーの TeX 版（`*_summary.tex`）の整備と問い（Research Questions）の完全明記
+  - [x] `behavioral_emobank_summary.tex`（3-Way VADアライメント、内部認知結合度）
+  - [x] `behavioral_aipsy_summary.tex`（RQ1 感度、RQ2 用量反応性、RQ3 感情特異性、RQ4 結合度）
+  - [x] `v1_internal_sharing_summary.tex`（E1 線形デコード局在、E3 因果プロファイル共有）
+  - [x] `v2_reorganization_summary.tex`（H1-H2 幾何再編・ピークシフト・共有度分離、H3 因果再配置 LMM）
+  - [x] `v3_causal_utilization_summary.tex`（Gate 判定 NO_GO、時空間 4-Maps 解離、独立検証マトリックス）
+- [x] 生成スクリプト（`scripts/summarize_*.py`）における包括サマリー TeX 自動出力の実装
+- [x] EmoBank テーブルのレンダリング崩れ（`6*Qwen` / `3*Base` 露出・キャプション混同）の根本修正
+  - [x] プリアンブル（`iclr2027_conference2.tex`）への `\usepackage{multirow}` 追加
+  - [x] 階層構造（1行目: 問い → 2行目: Table X: 説明 → 3行目: 正確に敷かれた表本体）の徹底
+  - [x] `\phantom{$^{***}$}` による小数点・桁揃えの完全整列、数式マイナス符号（`$-$`）の適用
+- [x] 論文結果節（§5, §9, §13, §17）の完全対応表生成とコード修正
+  - [x] Behavioral: `behavioral_emobank_3way_vad.tex` + `behavioral_aipsy_summary.tex`（RQ2 Noteの IUT $q < 0.05$ 修正反映）
+  - [x] V1 不足4表の追加実装: `v1_shared_geometry.tex`, `v1_semantic_controls.tex`, `v1_interchangeability.tex`, `v1_specialization.tex`
+  - [x] V2 既存バグ修正（Procrustes Distortion、deeper shift Note）および不足4表の追加実装: `v2_causal_relocation.tex`, `v2_causal_controls.tex`, `v2_distribution_recovery.tex`, `v2_confirmatory_summary.tex`
+  - [x] V3 不足2表の追加実装: `v3_mediated_attenuation.tex`, `v3_confirmatory_details.tex`
+  - [x] `iclr2027_conference2.tex` への結果節 `\input` 配置の完全反映
 - [x] 完了確認・Walkthrough（`walkthrough.md`）の作成

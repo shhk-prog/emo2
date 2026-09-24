@@ -1,0 +1,40 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{V1 E4（因果交換可能性）：Readerタスクで形成された差分ベクトルをSelf計算へ移植した際の因果効果。適合効果（Matched Effect）、ランダム統制効果（Random Mean）、特異性（Specificity $= M - R$）、95\%信頼区間、有意確率（$p$ / FDR $q$）、および転移比率（Transfer Ratio）。}
+\label{tab:v1_interchangeability}
+\begin{tabular}{lll ccccc c}
+\toprule
+\textbf{Family} & \textbf{Variant} & \textbf{Axis} & \textbf{Matched ($\times 10^{-3}$)} & \textbf{Random ($\times 10^{-3}$)} & \textbf{Specificity ($\times 10^{-3}$)} & \textbf{95\% CI ($\times 10^{-3}$)} & $p$ / $q$ & \textbf{Transfer Ratio} \\
+\midrule
+\multirow{4}{*}{\textbf{Qwen 2.5 1.5B}} & \multirow{2}{*}{Base} & Valence  & 0.752            & 0.311            & 0.441            & [-0.56, 1.42]        & 0.398 / 1.000  & ---          \\
+                                 &                    & Arousal  & -0.109           & -0.038           & -0.071           & [-0.26, 0.13]        & 0.492 / 0.985  & ---          \\
+\cmidrule(lr){2-9}
+                                 & \multirow{2}{*}{Instruct} & Valence  & 0.635            & 0.355            & 0.280            & [-0.33, 0.89]        & 0.357 / 0.762  & ---          \\
+                                 &                    & Arousal  & -0.182           & -0.156           & -0.027           & [-0.33, 0.30]        & 0.867 / 1.000  & ---          \\
+\midrule
+\multirow{4}{*}{\textbf{Llama 3.2 1B}} & \multirow{2}{*}{Base} & Valence  & -0.229           & -0.014           & -0.214           & [-0.79, 0.37]        & 0.459 / 1.000  & ---          \\
+                                 &                    & Arousal  & -0.276           & -0.126           & -0.150           & [-0.34, 0.05]        & 0.132 / 0.353  & ---          \\
+\cmidrule(lr){2-9}
+                                 & \multirow{2}{*}{Instruct} & Valence  & 1.058            & 1.031            & 0.027            & [-0.94, 0.91]        & 0.954 / 1.000  & ---          \\
+                                 &                    & Arousal  & -0.211           & -0.028           & -0.183           & [-0.52, 0.22]        & 0.319 / 0.639  & ---          \\
+\midrule
+\multirow{4}{*}{\textbf{Gemma 3 1B}} & \multirow{2}{*}{Base} & Valence  & -0.777           & -0.107           & -0.670           & [-5.00, 2.70]        & 0.717 / 1.000  & ---          \\
+                                 &                    & Arousal  & 0.099            & -0.085           & 0.184            & [-2.06, 2.20]        & 0.866 / 1.000  & ---          \\
+\cmidrule(lr){2-9}
+                                 & \multirow{2}{*}{Instruct} & Valence  & 1.481            & -0.008           & 1.489            & [-0.96, 3.81]        & 0.224 / 0.896  & ---          \\
+                                 &                    & Arousal  & 0.459            & 0.476            & -0.017           & [-0.97, 0.90]        & 0.973 / 1.000  & ---          \\
+\midrule
+\multirow{4}{*}{\textbf{OLMo 2 1B}} & \multirow{2}{*}{Base} & Valence  & -0.621           & -0.401           & -0.220           & [-0.77, 0.35]        & 0.453 / 1.000  & ---          \\
+                                 &                    & Arousal  & -0.270           & -0.219           & -0.051           & [-0.30, 0.21]        & 0.727 / 1.000  & ---          \\
+\cmidrule(lr){2-9}
+                                 & \multirow{2}{*}{Instruct} & Valence  & 0.081            & 0.060            & 0.022            & [-0.57, 0.61]        & 0.946 / 1.000  & ---          \\
+                                 &                    & Arousal  & -0.253           & -0.023           & -0.230           & [-0.52, 0.04]        & 0.109 / 0.354  & ---          \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} Reader由来のstimulus-associated hidden-state differenceをSelfへ移植した際のmatched-minus-random specificityは、いずれのPrimary conditionでもFDR補正後に有意ではなかった。したがって、本解析からReader由来representationのcross-task causal interchangeabilityを支持するrobust evidenceは得られなかった。
+\end{minipage}
+\end{table}

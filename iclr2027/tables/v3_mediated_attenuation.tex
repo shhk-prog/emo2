@@ -1,0 +1,19 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{V3 探索的媒介減衰詳細（Mediated Attenuation Analysis）：中間層（Mediator Layer）への介入による総変位量 $T$、残差変位 $R$、絶対減衰量 $M = T - R$、ランダム統制 $M_{\text{rand}}$、正味媒介減衰量 $M_{\text{net}} = M - M_{\text{rand}}$、減衰率（Attenuation Ratio）、およびブートストラップ95\%信頼区間。}
+\label{tab:v3_mediated_attenuation}
+\begin{tabular}{ll cccccc cc}
+\toprule
+\textbf{Axis} & \textbf{Mediator ($d$)} & $T$ & $R$ & $M$ & $M_{\text{rand}}$ & $M_{\text{net}}$ & \textbf{Atten. Ratio} & \textbf{95\% CI ($M$)} & \textbf{95\% CI ($M_{\text{net}}$)} \\
+\midrule
+Valence    & L3 (0.11)        & 0.1034   & 0.1025   & 9.01e-04   & 0.0000     & 9.01e-04   & 0.87\%         & [$-$0.0011, 0.0029]    & [$-$0.0011, 0.0029] \\
+Arousal    & L3 (0.11)        & 0.0469   & 0.0466   & 2.71e-04   & 0.0000     & 2.71e-04   & 0.58\%         & [-1.53e-04, 6.57e-04]  & [-1.53e-04, 6.57e-04] \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} $M = T - R$ は媒介層の潜在表現統制による変位減衰量、$M_{\text{net}} = M - M_{\text{rand}}$ はランダム部分空間統制を差し引いた正味媒介減衰量。Valenceでは 95\% CI が負値を含み（$[-0.0011, 0.0029]$）、統計的に堅牢な媒介効果は支持されない。
+\end{minipage}
+\end{table}

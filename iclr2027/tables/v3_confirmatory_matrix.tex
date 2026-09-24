@@ -1,0 +1,20 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{V3 独立ファミリー再現性マトリックス：探索段階（Qwen）で得られた知見の独立3ファミリー（Llama 3.2, Gemma 3, OLMo 2）における検証結果総括。各仮説はValenceおよびArousalの双方が基準を満たした場合のみ支持（$\checkmark$）とされる。}
+\label{tab:v3_confirmatory_matrix}
+\begin{tabular}{l cccc c}
+\toprule
+\textbf{Family} & \textbf{H1 (Dissociation)} & \textbf{H2 (Sufficiency)} & \textbf{H3 (Mediation)} & \textbf{H4 (Temporal Contrast)} & \textbf{All Confirmed?} \\
+\midrule
+Llama 3.2    & $\times$     & $\times$     & $\times$     & $\times$     & \textbf{NO} \\
+Gemma 3      & $\times$     & $\times$     & $\times$     & $\times$     & \textbf{NO} \\
+OLMo 2       & $\times$     & $\times$     & $\times$     & $\times$     & \textbf{NO} \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} 事前登録された二軸同時達成基準（Valence pass AND Arousal pass）および効果量閾値による厳密判定。いずれの独立ファミリーでも4仮説の同時再現は達成されず（All Confirmed: \textbf{NO}）、因果的介入効果の一般化には制約が存在することが立証された。
+\end{minipage}
+\end{table}

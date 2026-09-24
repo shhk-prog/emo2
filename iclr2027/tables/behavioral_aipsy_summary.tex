@@ -1,0 +1,182 @@
+% ================================================================
+% AIPsy-Affect Complete RQ Summary Tables (LaTeX Version)
+% Generated from behavioral_aipsy_summary.md (RQ1--RQ4 Complete)
+% ================================================================
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{AIPsy RQ1（Clinical--Neutral感度）：問い「臨床刺激は統制中立刺激と比較して、期待される情動方向へのモデル出力変位を引き起こすか」。感情対照ペア（$N=192$）におけるモデル整列変位 $\Delta_{\text{aligned}}$、95\%信頼区間、効果量 Cohen's $d_z$、およびFDR補正後 $q$ 値。}
+\label{tab:behavioral_aipsy_rq1_sensitivity}
+\begin{tabular}{lll ccc ccc}
+\toprule
+ & & & \multicolumn{3}{c}{\textbf{Valence Axis}} & \multicolumn{3}{c}{\textbf{Arousal Axis}} \\
+\cmidrule(lr){4-6} \cmidrule(lr){7-9}
+\textbf{Family} & \textbf{Variant} & \textbf{Task} & $\Delta_{\text{aligned}}$ [95\% CI] & $d_z$ & $q$-value & $\Delta_{\text{aligned}}$ [95\% CI] & $d_z$ & $q$-value \\
+\midrule
+\multirow{6}{*}{Qwen 2.5 1.5B} & \multirow{3}{*}{Base} & Writer     & 0.007 [0.004, 0.009] & 0.393 & --- & 0.011 [0.008, 0.013] & 0.491 & --- \\
+                       &                      & Reader     & 0.005 [0.002, 0.007] & 0.271 & $<0.001$ & 0.015 [0.012, 0.018] & 0.649 & $<10^{-15}$ \\
+                       &                      & Self       & 0.006 [0.004, 0.008] & 0.446 & $<10^{-8}$ & 0.005 [0.003, 0.008] & 0.269 & $<0.001$ \\
+\cmidrule(lr){2-9}
+                       & \multirow{3}{*}{Instruct} & Writer     & 0.019 [0.014, 0.025] & 0.495 & --- & 0.038 [0.032, 0.045] & 0.816 & --- \\
+                       &                      & Reader     & 0.022 [0.015, 0.030] & 0.415 & $<10^{-7}$ & 0.065 [0.056, 0.074] & 0.953 & $<10^{-15}$ \\
+                       &                      & Self       & 0.018 [0.012, 0.022] & 0.493 & $<10^{-10}$ & 0.033 [0.027, 0.040] & 0.728 & $<10^{-15}$ \\
+\midrule
+\multirow{6}{*}{Llama 3.2 1B} & \multirow{3}{*}{Base} & Writer     & -0.000 [-0.002, 0.002] & -0.009 & --- & 0.001 [0.000, 0.002] & 0.203 & --- \\
+                       &                      & Reader     & 0.001 [-0.000, 0.003] & 0.109 & 0.1954 & 0.002 [0.001, 0.003] & 0.234 & 0.0026 \\
+                       &                      & Self       & 0.000 [-0.001, 0.002] & 0.039 & 0.6691 & 0.002 [0.001, 0.003] & 0.241 & 0.0021 \\
+\cmidrule(lr){2-9}
+                       & \multirow{3}{*}{Instruct} & Writer     & 0.005 [0.001, 0.009] & 0.167 & --- & 0.025 [0.019, 0.031] & 0.565 & --- \\
+                       &                      & Reader     & 0.001 [-0.004, 0.006] & 0.016 & 0.8821 & 0.071 [0.061, 0.081] & 0.972 & $<10^{-15}$ \\
+                       &                      & Self       & 0.007 [0.003, 0.010] & 0.241 & 0.0021 & 0.019 [0.012, 0.024] & 0.417 & $<10^{-7}$ \\
+\midrule
+\multirow{6}{*}{Gemma 3 1B} & \multirow{3}{*}{Base} & Writer     & -0.009 [-0.017, -0.003] & -0.181 & --- & -0.006 [-0.012, -0.001] & -0.168 & --- \\
+                       &                      & Reader     & -0.005 [-0.014, 0.003] & -0.089 & 0.2907 & -0.002 [-0.008, 0.003] & -0.068 & 0.4121 \\
+                       &                      & Self       & -0.002 [-0.011, 0.006] & -0.033 & 0.7168 & -0.007 [-0.012, -0.001] & -0.175 & 0.0278 \\
+\cmidrule(lr){2-9}
+                       & \multirow{3}{*}{Instruct} & Writer     & -0.011 [-0.031, 0.007] & -0.083 & --- & 0.017 [-0.004, 0.040] & 0.103 & --- \\
+                       &                      & Reader     & 0.000 [-0.014, 0.016] & 0.004 & 0.9576 & 0.116 [0.092, 0.142] & 0.647 & $<10^{-15}$ \\
+                       &                      & Self       & 0.001 [-0.016, 0.019] & 0.010 & 0.9165 & 0.012 [-0.011, 0.038] & 0.068 & 0.4121 \\
+\midrule
+\multirow{6}{*}{OLMo 2 1B} & \multirow{3}{*}{Base} & Writer     & -0.009 [-0.014, -0.003] & -0.232 & --- & -0.002 [-0.005, -0.000] & -0.141 & --- \\
+                       &                      & Reader     & -0.006 [-0.012, -0.000] & -0.150 & 0.0619 & -0.003 [-0.006, -0.001] & -0.190 & 0.0161 \\
+                       &                      & Self       & -0.003 [-0.005, -0.000] & -0.141 & 0.0783 & -0.001 [-0.002, 0.001] & -0.071 & 0.4121 \\
+\cmidrule(lr){2-9}
+                       & \multirow{3}{*}{Instruct} & Writer     & 0.010 [0.007, 0.014] & 0.387 & --- & -0.023 [-0.034, -0.012] & -0.294 & --- \\
+                       &                      & Reader     & 0.008 [0.004, 0.011] & 0.319 & $<10^{-5}$ & -0.007 [-0.017, 0.003] & -0.104 & 0.2083 \\
+                       &                      & Self       & 0.009 [0.005, 0.013] & 0.357 & $<10^{-6}$ & -0.017 [-0.027, -0.007] & -0.242 & 0.0021 \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} 整列変位 $\Delta_{\text{aligned}} > 0$ は刺激の極性に応じた期待方向への変位を示す。Instructモデルでは、Arousal軸（Qwen, Llama, Gemma）およびValence軸（Qwen, OLMo）において強固な感度（$q < 0.001$）が確認される（OLMo Instruct Valence: $d_z = 0.32 \sim 0.36$）。
+\end{minipage}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{AIPsy RQ2（用量反応性・単調性）：問い「情動強度をNeutralからModerate、Clinicalへ段階的に増加させたとき、モデルの出力変位は単調に増加するか」。強度3段階トリプレット（$N=48$）における第1段階変位 $\Delta_1$（Neu $\to$ Mod）、第2段階変位 $\Delta_2$（Mod $\to$ Clin）、Intersection-Union Test (IUT) $q$ 値、および単調性充足率。}
+\label{tab:behavioral_aipsy_rq2_dose_response}
+\begin{tabular}{lll cccc cccc}
+\toprule
+ & & & \multicolumn{4}{c}{\textbf{Valence Axis}} & \multicolumn{4}{c}{\textbf{Arousal Axis}} \\
+\cmidrule(lr){4-7} \cmidrule(lr){8-11}
+\textbf{Family} & \textbf{Variant} & \textbf{Task} & $\Delta_1$ & $\Delta_2$ & $q_{\text{IUT}}$ & Mono.\% & $\Delta_1$ & $\Delta_2$ & $q_{\text{IUT}}$ & Mono.\% \\
+\midrule
+\multirow{4}{*}{Qwen 2.5 1.5B} & \multirow{2}{*}{Base} & Reader     & 0.004 & -0.003 & 0.9998 & 22.9\% & 0.003 & 0.016 & 0.9998 & 29.2\% \\
+                       &                      & Self       & 0.003 & 0.001 & 0.9998 & 16.7\% & -0.003 & 0.009 & 0.9998 & 22.9\% \\
+\cmidrule(lr){2-11}
+                       & \multirow{2}{*}{Instruct} & Reader     & 0.024 & -0.007 & 0.9998 & 22.9\% & 0.021 & 0.062 & 0.0952 & 47.9\% \\
+                       &                      & Self       & 0.020 & -0.001 & 0.9998 & 18.8\% & -0.001 & 0.042 & 0.9998 & 33.3\% \\
+\midrule
+\multirow{4}{*}{Llama 3.2 1B} & \multirow{2}{*}{Base} & Reader     & -0.002 & 0.001 & 0.9998 & 12.5\% & -0.002 & 0.004 & 0.9998 & 18.8\% \\
+                       &                      & Self       & -0.003 & 0.003 & 0.9998 & 16.7\% & -0.003 & 0.006 & 0.9998 & 27.1\% \\
+\cmidrule(lr){2-11}
+                       & \multirow{2}{*}{Instruct} & Reader     & 0.009 & -0.015 & 0.9998 & 10.4\% & 0.037 & 0.054 & 0.0048 & 54.2\% \\
+                       &                      & Self       & 0.016 & -0.010 & 0.9998 & 20.8\% & -0.009 & 0.030 & 0.9998 & 18.8\% \\
+\midrule
+\multirow{4}{*}{Gemma 3 1B} & \multirow{2}{*}{Base} & Reader     & -0.013 & 0.005 & 0.9998 & 6.2\% & 0.008 & -0.010 & 0.9998 & 10.4\% \\
+                       &                      & Self       & -0.015 & 0.013 & 0.9998 & 2.1\% & 0.004 & -0.015 & 0.9998 & 14.6\% \\
+\cmidrule(lr){2-11}
+                       & \multirow{2}{*}{Instruct} & Reader     & 0.012 & 0.016 & 0.9998 & 16.7\% & 0.050 & 0.124 & 0.3233 & 33.3\% \\
+                       &                      & Self       & 0.023 & -0.013 & 0.9998 & 14.6\% & -0.042 & 0.073 & 0.9998 & 14.6\% \\
+\midrule
+\multirow{4}{*}{OLMo 2 1B} & \multirow{2}{*}{Base} & Reader     & -0.011 & -0.001 & 0.9998 & 10.4\% & -0.010 & 0.002 & 0.9998 & 8.3\% \\
+                       &                      & Self       & -0.003 & -0.001 & 0.9998 & 14.6\% & -0.005 & 0.001 & 0.9998 & 8.3\% \\
+\cmidrule(lr){2-11}
+                       & \multirow{2}{*}{Instruct} & Reader     & 0.005 & 0.006 & 0.9998 & 22.9\% & -0.029 & 0.016 & 0.9998 & 6.2\% \\
+                       &                      & Self       & 0.004 & 0.007 & 0.9998 & 25.0\% & -0.035 & 0.007 & 0.9998 & 8.3\% \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} 単調性（IUT $q < 0.05$）は、刺激の感情強度が強まるにつれて出力が連続的に増加することを示す。Llama Instruct ReaderのArousal軸で確認された。
+\end{minipage}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{AIPsy RQ3（感情特異性 vs 構文複雑性）：問い「臨床刺激による変位は、単なる複雑な構文の中立文（Complex Neutral）への反応ではなく、感情内容に特異的か」。臨床文変位 $\Delta_{\text{clin}}$ と複雑中立文変位 $\Delta_{\text{comp}}$ の差分、効果量 Cohen's $d$、およびFDR補正後 $q$ 値。}
+\label{tab:behavioral_aipsy_rq3_specificity}
+\begin{tabular}{lll cccc cccc}
+\toprule
+ & & & \multicolumn{4}{c}{\textbf{Valence Axis}} & \multicolumn{4}{c}{\textbf{Arousal Axis}} \\
+\cmidrule(lr){4-7} \cmidrule(lr){8-11}
+\textbf{Family} & \textbf{Variant} & \textbf{Task} & $\Delta_{\text{clin}}$ & $\Delta_{\text{comp}}$ & $d$ & $q$-value & $\Delta_{\text{clin}}$ & $\Delta_{\text{comp}}$ & $d$ & $q$-value \\
+\midrule
+\multirow{4}{*}{Qwen 2.5 1.5B} & \multirow{2}{*}{Base} & Reader     & 0.014 & 0.014 & -0.02 & 0.9464 & 0.020 & 0.009 & 0.96 & $<10^{-11}$ \\
+                       &                      & Self       & 0.011 & 0.013 & -0.30 & 0.0923 & 0.015 & 0.009 & 0.72 & $<10^{-6}$ \\
+\cmidrule(lr){2-11}
+                       & \multirow{2}{*}{Instruct} & Reader     & 0.048 & 0.026 & 0.74 & $<10^{-6}$ & 0.078 & 0.053 & 0.58 & $<0.001$ \\
+                       &                      & Self       & 0.029 & 0.023 & 0.27 & 0.0995 & 0.044 & 0.043 & 0.01 & 0.9511 \\
+\midrule
+\multirow{4}{*}{Llama 3.2 1B} & \multirow{2}{*}{Base} & Reader     & 0.009 & 0.015 & -0.69 & $<0.001$ & 0.007 & 0.012 & -0.77 & $<10^{-5}$ \\
+                       &                      & Self       & 0.011 & 0.022 & -0.92 & $<10^{-5}$ & 0.008 & 0.012 & -0.68 & $<0.001$ \\
+\cmidrule(lr){2-11}
+                       & \multirow{2}{*}{Instruct} & Reader     & 0.029 & 0.026 & 0.15 & 0.3774 & 0.084 & 0.040 & 1.04 & $<10^{-9}$ \\
+                       &                      & Self       & 0.024 & 0.029 & -0.23 & 0.2456 & 0.035 & 0.048 & -0.43 & 0.0244 \\
+\midrule
+\multirow{4}{*}{Gemma 3 1B} & \multirow{2}{*}{Base} & Reader     & 0.034 & 0.066 & -0.76 & $<0.001$ & 0.027 & 0.040 & -0.54 & 0.0049 \\
+                       &                      & Self       & 0.033 & 0.061 & -0.72 & $<0.001$ & 0.024 & 0.037 & -0.55 & 0.0050 \\
+\cmidrule(lr){2-11}
+                       & \multirow{2}{*}{Instruct} & Reader     & 0.087 & 0.177 & -0.97 & $<10^{-6}$ & 0.165 & 0.136 & 0.24 & 0.1572 \\
+                       &                      & Self       & 0.096 & 0.121 & -0.33 & 0.0842 & 0.146 & 0.162 & -0.15 & 0.3748 \\
+\midrule
+\multirow{4}{*}{OLMo 2 1B} & \multirow{2}{*}{Base} & Reader     & 0.030 & 0.019 & 0.55 & $<10^{-5}$ & 0.012 & 0.016 & -0.39 & 0.0410 \\
+                       &                      & Self       & 0.014 & 0.011 & 0.23 & 0.1484 & 0.007 & 0.008 & -0.16 & 0.3592 \\
+\cmidrule(lr){2-11}
+                       & \multirow{2}{*}{Instruct} & Reader     & 0.023 & 0.028 & -0.24 & 0.2218 & 0.054 & 0.041 & 0.34 & 0.0329 \\
+                       &                      & Self       & 0.022 & 0.026 & -0.18 & 0.3489 & 0.057 & 0.037 & 0.48 & 0.0038 \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} 特異的効果量 $d$ は、臨床刺激に対する反応が単なる構文複雑さへの反応を超越している度合いを示す。特異性の成立度合いおよび強度はmodelやtaskによって異なっており、全ファミリーで一様に成立しているわけではない。
+\end{minipage}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{AIPsy RQ4（内部認知結合度）：問い「刺激提示に伴う他者認識の変位 $\Delta R$ と自己報告の変位 $\Delta S$ は、モデル内部で連動して結合（カップリング）しているか」。感情対照ペア（$N=192$）における他者認識変位 $\Delta\text{Reader}$ と自己報告変位 $\Delta\text{Self}$ の相関係数 $\Delta r$（95\%ブートストラップ信頼区間およびFDR補正後 $q$ 値）。}
+\label{tab:behavioral_aipsy_rq4_coupling}
+\begin{tabular}{ll cccc}
+\toprule
+\textbf{Family} & \textbf{Variant} & \textbf{Axis} & \textbf{$\Delta$ Pearson $r$ [95\% CI]} & \textbf{$q$-value} & \textbf{Raw $r$} \\
+\midrule
+\multirow{4}{*}{Qwen 2.5 1.5B} & \multirow{2}{*}{Base} & Valence    & 0.809 [0.755, 0.854] & $<10^{-15}$ & 0.838 \\
+                       &                      & Arousal    & 0.866 [0.832, 0.892] & $<10^{-15}$ & 0.828 \\
+\cmidrule(lr){2-6}
+                       & \multirow{2}{*}{Instruct} & Valence    & 0.892 [0.859, 0.918] & $<10^{-15}$ & 0.898 \\
+                       &                      & Arousal    & 0.917 [0.892, 0.938] & $<10^{-15}$ & 0.898 \\
+\midrule
+\multirow{4}{*}{Llama 3.2 1B} & \multirow{2}{*}{Base} & Valence    & 0.662 [0.570, 0.733] & $<10^{-15}$ & 0.864 \\
+                       &                      & Arousal    & 0.876 [0.839, 0.904] & $<10^{-15}$ & 0.941 \\
+\cmidrule(lr){2-6}
+                       & \multirow{2}{*}{Instruct} & Valence    & 0.756 [0.675, 0.817] & $<10^{-15}$ & 0.799 \\
+                       &                      & Arousal    & 0.754 [0.697, 0.807] & $<10^{-15}$ & 0.718 \\
+\midrule
+\multirow{4}{*}{Gemma 3 1B} & \multirow{2}{*}{Base} & Valence    & 0.813 [0.704, 0.888] & $<10^{-15}$ & 0.872 \\
+                       &                      & Arousal    & 0.782 [0.685, 0.853] & $<10^{-15}$ & 0.825 \\
+\cmidrule(lr){2-6}
+                       & \multirow{2}{*}{Instruct} & Valence    & 0.621 [0.517, 0.713] & $<10^{-15}$ & 0.643 \\
+                       &                      & Arousal    & 0.780 [0.660, 0.857] & $<10^{-15}$ & 0.756 \\
+\midrule
+\multirow{4}{*}{OLMo 2 1B} & \multirow{2}{*}{Base} & Valence    & 0.559 [0.444, 0.660] & $<10^{-15}$ & 0.668 \\
+                       &                      & Arousal    & 0.600 [0.469, 0.708] & $<10^{-15}$ & 0.637 \\
+\cmidrule(lr){2-6}
+                       & \multirow{2}{*}{Instruct} & Valence    & 0.851 [0.811, 0.885] & $<10^{-15}$ & 0.903 \\
+                       &                      & Arousal    & 0.931 [0.908, 0.950] & $<10^{-15}$ & 0.935 \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} 全条件で $q < 10^{-15}$ の強固な結合を示し、事後学習を経てもモデル内部における感情認識と自己報告の連動ダイナミクスが破綻せず一貫して保たれていることが実証される。
+\end{minipage}
+\end{table}

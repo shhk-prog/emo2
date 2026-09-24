@@ -1,0 +1,42 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{AIPsy RQ2（用量反応性・単調性）：問い「情動強度をNeutralからModerate、Clinicalへ段階的に増加させたとき、モデルの出力変位は単調に増加するか」。強度3段階トリプレット（$N=48$）における第1段階変位 $\Delta_1$（Neu $\to$ Mod）、第2段階変位 $\Delta_2$（Mod $\to$ Clin）、Intersection-Union Test (IUT) $q$ 値、および単調性充足率。}
+\label{tab:behavioral_aipsy_rq2_dose_response}
+\begin{tabular}{lll cccc cccc}
+\toprule
+ & & & \multicolumn{4}{c}{\textbf{Valence Axis}} & \multicolumn{4}{c}{\textbf{Arousal Axis}} \\
+\cmidrule(lr){4-7} \cmidrule(lr){8-11}
+\textbf{Family} & \textbf{Variant} & \textbf{Task} & $\Delta_1$ & $\Delta_2$ & $q_{\text{IUT}}$ & Mono.\% & $\Delta_1$ & $\Delta_2$ & $q_{\text{IUT}}$ & Mono.\% \\
+\midrule
+\multirow{4}{*}{Qwen 2.5 1.5B} & \multirow{2}{*}{Base} & Reader     & 0.004 & -0.003 & 0.9998 & 22.9\% & 0.003 & 0.016 & 0.9998 & 29.2\% \\
+                       &                      & Self       & 0.003 & 0.001 & 0.9998 & 16.7\% & -0.003 & 0.009 & 0.9998 & 22.9\% \\
+\cmidrule(lr){2-11}
+                       & \multirow{2}{*}{Instruct} & Reader     & 0.024 & -0.007 & 0.9998 & 22.9\% & 0.021 & 0.062 & 0.0952 & 47.9\% \\
+                       &                      & Self       & 0.020 & -0.001 & 0.9998 & 18.8\% & -0.001 & 0.042 & 0.9998 & 33.3\% \\
+\midrule
+\multirow{4}{*}{Llama 3.2 1B} & \multirow{2}{*}{Base} & Reader     & -0.002 & 0.001 & 0.9998 & 12.5\% & -0.002 & 0.004 & 0.9998 & 18.8\% \\
+                       &                      & Self       & -0.003 & 0.003 & 0.9998 & 16.7\% & -0.003 & 0.006 & 0.9998 & 27.1\% \\
+\cmidrule(lr){2-11}
+                       & \multirow{2}{*}{Instruct} & Reader     & 0.009 & -0.015 & 0.9998 & 10.4\% & 0.037 & 0.054 & 0.0048 & 54.2\% \\
+                       &                      & Self       & 0.016 & -0.010 & 0.9998 & 20.8\% & -0.009 & 0.030 & 0.9998 & 18.8\% \\
+\midrule
+\multirow{4}{*}{Gemma 3 1B} & \multirow{2}{*}{Base} & Reader     & -0.013 & 0.005 & 0.9998 & 6.2\% & 0.008 & -0.010 & 0.9998 & 10.4\% \\
+                       &                      & Self       & -0.015 & 0.013 & 0.9998 & 2.1\% & 0.004 & -0.015 & 0.9998 & 14.6\% \\
+\cmidrule(lr){2-11}
+                       & \multirow{2}{*}{Instruct} & Reader     & 0.012 & 0.016 & 0.9998 & 16.7\% & 0.050 & 0.124 & 0.3233 & 33.3\% \\
+                       &                      & Self       & 0.023 & -0.013 & 0.9998 & 14.6\% & -0.042 & 0.073 & 0.9998 & 14.6\% \\
+\midrule
+\multirow{4}{*}{OLMo 2 1B} & \multirow{2}{*}{Base} & Reader     & -0.011 & -0.001 & 0.9998 & 10.4\% & -0.010 & 0.002 & 0.9998 & 8.3\% \\
+                       &                      & Self       & -0.003 & -0.001 & 0.9998 & 14.6\% & -0.005 & 0.001 & 0.9998 & 8.3\% \\
+\cmidrule(lr){2-11}
+                       & \multirow{2}{*}{Instruct} & Reader     & 0.005 & 0.006 & 0.9998 & 22.9\% & -0.029 & 0.016 & 0.9998 & 6.2\% \\
+                       &                      & Self       & 0.004 & 0.007 & 0.9998 & 25.0\% & -0.035 & 0.007 & 0.9998 & 8.3\% \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} 単調性（IUT $q < 0.05$）は、刺激の感情強度が強まるにつれて出力が連続的に増加することを示す。Llama Instruct ReaderのArousal軸で確認された。
+\end{minipage}
+\end{table}

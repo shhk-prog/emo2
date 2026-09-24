@@ -1,0 +1,132 @@
+% ================================================================
+% V3 Stage: Causal Utilization and Spatiotemporal Dynamics Complete Summary Tables
+% ================================================================
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{V3 事前登録 Gate 判定結果：因果介入パイプライン継続可否の評価規約。各判定軸の信頼区間下限／上限が 1--9 raw scale 閾値（Sufficiency: 0.10, Specificity: 0.05, Endogenous: 0.05）および TVD 上限（0.15）を満たすかを判定。}
+\label{tab:v3_gate_decision}
+\begin{tabular}{l cccc cccc c}
+\toprule
+\textbf{Axis} & \multicolumn{2}{c}{\textbf{Sufficiency ($\beta_1$)}} & \multicolumn{2}{c}{\textbf{Specificity ($\beta_1$)}} & \multicolumn{2}{c}{\textbf{Endogenous ($M$)}} & \multicolumn{2}{c}{\textbf{Topic Control (TVD)}} & \textbf{Gate Decision} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(lr){8-9}
+ & \textbf{CI Low} & \textbf{Pass?} & \textbf{CI Low} & \textbf{Pass?} & \textbf{CI Low} & \textbf{Pass?} & \textbf{CI High} & \textbf{Pass?} & \\
+\midrule
+Valence    & 4.34e-04   & $\times$ & $-$0.0025  & $\times$ & $-$0.0366  & $\times$ & 0.0043     & \checkmark & \textbf{NO\_GO} \\
+Arousal    & -5.13e-05  & $\times$ & -4.18e-04  & $\times$ & 0.0013     & $\times$ & 0.0045     & \checkmark & \textbf{NO\_GO} \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} 事前登録 Gate 判定基準（Sufficiency: $\text{CI}_{\text{low}} > 0.10$, Specificity: $\text{CI}_{\text{low}} > 0.05$, Endogenous Relevance: $\text{CI}_{\text{low}} > 0.05$, Topic TVD: $\text{CI}_{\text{high}} < 0.15$）。全軸で Sufficiency / Specificity / Endogenous が未達（$\text{CI}_{\text{low}} \le 0$）のため、パイプライン判定は \textbf{NO\_GO}（\texttt{pipeline\_continues = False}）となり、以降の分析は探索的・定性的分析として位置づけられる。
+\end{minipage}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{V3 探索的時空間ダイナミクス（Qwen 2.5 1.5B Discovery）：直接読み出しピーク深度 $d_D$ と因果介入ピーク深度 $d_C$ の空間的解離、および下流層媒介減衰率。}
+\label{tab:v3_spatiotemporal_dynamics}
+\begin{tabular}{l ccccc ccc}
+\toprule
+ & \multicolumn{5}{c}{\textbf{Peak \& Center-of-Mass Depth}} & \multicolumn{3}{c}{\textbf{Mediated Attenuation}} \\
+\cmidrule(lr){2-6} \cmidrule(lr){7-9}
+\textbf{Axis} & $d_D^{\text{peak}}$ & $d_C^{\text{peak}}$ & $\Delta d^{\text{peak}}$ & $d_D^{\text{center}}$ & $d_C^{\text{center}}$ & Layer ($d$) & Atten. Ratio & 95\% CI \\
+\midrule
+Valence    & 0.852    & 0.741    & $-$0.111 & 0.737    & 0.609    & L3 (0.11)    & 0.87\%       & [-1.77, 3.42]\% \\
+Arousal    & 0.852    & 0.778    & $-$0.074 & 0.717    & 0.756    & L3 (0.11)    & 0.58\%       & [0.01, 1.13]\% \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} 全軸で $\Delta d^{\text{peak}} < 0$ であり、直接読み出しが可能な表現層よりも前の層で因果効果が最大化する「時空間的解離」が観測された。しかし、媒介減衰率はいずれも微小（$< 1.0\%$）であり、下流媒介仮説の成立は限定的である。
+\end{minipage}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{V3 探索的媒介減衰詳細（Mediated Attenuation Analysis）：中間層（Mediator Layer）への介入による総変位量 $T$、残差変位 $R$、絶対減衰量 $M = T - R$、ランダム統制 $M_{\text{rand}}$、正味媒介減衰量 $M_{\text{net}} = M - M_{\text{rand}}$、減衰率（Attenuation Ratio）、およびブートストラップ95\%信頼区間。}
+\label{tab:v3_mediated_attenuation}
+\begin{tabular}{ll cccccc cc}
+\toprule
+\textbf{Axis} & \textbf{Mediator ($d$)} & $T$ & $R$ & $M$ & $M_{\text{rand}}$ & $M_{\text{net}}$ & \textbf{Atten. Ratio} & \textbf{95\% CI ($M$)} & \textbf{95\% CI ($M_{\text{net}}$)} \\
+\midrule
+Valence    & L3 (0.11)        & 0.1034   & 0.1025   & 9.01e-04   & 0.0000     & 9.01e-04   & 0.87\%         & [$-$0.0011, 0.0029]    & [$-$0.0011, 0.0029] \\
+Arousal    & L3 (0.11)        & 0.0469   & 0.0466   & 2.71e-04   & 0.0000     & 2.71e-04   & 0.58\%         & [-1.53e-04, 6.57e-04]  & [-1.53e-04, 6.57e-04] \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} $M = T - R$ は媒介層の潜在表現統制による変位減衰量、$M_{\text{net}} = M - M_{\text{rand}}$ はランダム部分空間統制を差し引いた正味媒介減衰量。Valenceでは 95\% CI が負値を含み（$[-0.0011, 0.0029]$）、統計的に堅牢な媒介効果は支持されない。
+\end{minipage}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{V3 独立ファミリー検証詳細（Confirmatory Replication Details）：Llama 3.2、Gemma 3、OLMo 2 における事前登録仮説（H1--H4）のValenceおよびArousal双方の推定値、ファミリー固有95\%信頼区間、判定閾値、および事前登録CI基準に基づく合否判定（Pass/Fail）。}
+\label{tab:v3_confirmatory_details}
+\begin{tabular}{ll cccc c}
+\toprule
+\textbf{Family} & \textbf{Hypothesis} & \textbf{Axis} & \textbf{Estimate} & \textbf{Family 95\% CI} & \textbf{Threshold} & \textbf{Pass/Fail} \\
+\midrule
+\multirow{8}{*}{\textbf{Llama 3.2}} & H1: Dissociation ($\Delta d$) & Valence  & $-$0.867   & [$-$1.00, $-$0.27] & $\text{CI}_{\text{high}} \le 0$ & \checkmark \textbf{PASS} \\
+                             & H1: Dissociation ($\Delta d$) & Arousal  & 0.067      & [$-$0.47, 0.40]    & $\text{CI}_{\text{high}} \le 0$ & $\times$ FAIL \\
+                             & H2: Sufficiency ($\beta_1$)   & Valence  & 0.0032     & [0.0022, 0.0042]   & $\text{CI}_{\text{low}} > 0.10$ & $\times$ FAIL \\
+                             & H2: Sufficiency ($\beta_1$)   & Arousal  & 0.0018     & [0.0015, 0.0022]   & $\text{CI}_{\text{low}} > 0.10$ & $\times$ FAIL \\
+                             & H3: Mediation ($M$)           & Valence  & 6.87e-05   & [$-$0.0028, 0.0027] & $\text{CI}_{\text{low}} > 0.05$ & $\times$ FAIL \\
+                             & H3: Mediation ($M$)           & Arousal  & 0.0013     & [2.25e-04, 0.0025] & $\text{CI}_{\text{low}} > 0.05$ & $\times$ FAIL \\
+                             & H4: Contrast ($\Delta\tau$)   & Valence  & 0.0445     & [0.0415, 0.0473]   & $\text{CI}_{\text{low}} > 0.05$ & $\times$ FAIL \\
+                             & H4: Contrast ($\Delta\tau$)   & Arousal  & 0.0656     & [0.0627, 0.0684]   & $\text{CI}_{\text{low}} > 0.05$ & \checkmark \textbf{PASS} \\
+\midrule
+\multirow{8}{*}{\textbf{Gemma 3}} & H1: Dissociation ($\Delta d$) & Valence  & 0.000      & [$-$0.64, 0.36]    & $\text{CI}_{\text{high}} \le 0$ & $\times$ FAIL \\
+                             & H1: Dissociation ($\Delta d$) & Arousal  & $-$0.280   & [$-$1.00, 0.00]    & $\text{CI}_{\text{high}} \le 0$ & \checkmark \textbf{PASS} \\
+                             & H2: Sufficiency ($\beta_1$)   & Valence  & $-$0.0011  & [$-$0.0036, 0.0020] & $\text{CI}_{\text{low}} > 0.10$ & $\times$ FAIL \\
+                             & H2: Sufficiency ($\beta_1$)   & Arousal  & -9.01e-04  & [$-$0.0020, 6.86e-05] & $\text{CI}_{\text{low}} > 0.10$ & $\times$ FAIL \\
+                             & H3: Mediation ($M$)           & Valence  & 0.0031     & [$-$0.0088, 0.0141] & $\text{CI}_{\text{low}} > 0.05$ & $\times$ FAIL \\
+                             & H3: Mediation ($M$)           & Arousal  & -2.29e-05  & [$-$0.0041, 0.0042] & $\text{CI}_{\text{low}} > 0.05$ & $\times$ FAIL \\
+                             & H4: Contrast ($\Delta\tau$)   & Valence  & 0.0059     & [0.0020, 0.0095]   & $\text{CI}_{\text{low}} > 0.05$ & $\times$ FAIL \\
+                             & H4: Contrast ($\Delta\tau$)   & Arousal  & 0.0082     & [0.0064, 0.0098]   & $\text{CI}_{\text{low}} > 0.05$ & $\times$ FAIL \\
+\midrule
+\multirow{8}{*}{\textbf{OLMo 2}} & H1: Dissociation ($\Delta d$) & Valence  & $-$0.667   & [$-$1.00, $-$0.07] & $\text{CI}_{\text{high}} \le 0$ & \checkmark \textbf{PASS} \\
+                             & H1: Dissociation ($\Delta d$) & Arousal  & $-$0.933   & [$-$0.93, 0.27]    & $\text{CI}_{\text{high}} \le 0$ & $\times$ FAIL \\
+                             & H2: Sufficiency ($\beta_1$)   & Valence  & 4.27e-05   & [-8.42e-04, 9.50e-04] & $\text{CI}_{\text{low}} > 0.10$ & $\times$ FAIL \\
+                             & H2: Sufficiency ($\beta_1$)   & Arousal  & -1.43e-04  & [-3.28e-04, 6.10e-05] & $\text{CI}_{\text{low}} > 0.10$ & $\times$ FAIL \\
+                             & H3: Mediation ($M$)           & Valence  & 1.28e-04   & [$-$0.0024, 0.0028] & $\text{CI}_{\text{low}} > 0.05$ & $\times$ FAIL \\
+                             & H3: Mediation ($M$)           & Arousal  & -1.37e-05  & [-7.29e-04, 6.06e-04] & $\text{CI}_{\text{low}} > 0.05$ & $\times$ FAIL \\
+                             & H4: Contrast ($\Delta\tau$)   & Valence  & 0.0179     & [0.0161, 0.0199]   & $\text{CI}_{\text{low}} > 0.05$ & $\times$ FAIL \\
+                             & H4: Contrast ($\Delta\tau$)   & Arousal  & 0.0678     & [0.0654, 0.0704]   & $\text{CI}_{\text{low}} > 0.05$ & \checkmark \textbf{PASS} \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} 各ファミリー固有の95\%ブートストラップ信頼区間および事前登録判定基準（H1: $\text{CI}_{\text{high}} \le 0$; H2: $\text{CI}_{\text{low}} > 0.10$; H3: $\text{CI}_{\text{low}} > 0.05$; H4: $\text{CI}_{\text{low}} > 0.05$）に基づく厳密評価。H1（時空間解離）はLlama 3.2およびOLMo 2のValenceで支持されたが、ArousalやH2--H4の効果量閾値はいずれのモデル・軸でも満たされずFAILとなった。
+\end{minipage}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{V3 独立ファミリー再現性マトリックス：探索段階（Qwen）で得られた知見の独立3ファミリー（Llama 3.2, Gemma 3, OLMo 2）における検証結果総括。各仮説はValenceおよびArousalの双方が基準を満たした場合のみ支持（$\checkmark$）とされる。}
+\label{tab:v3_confirmatory_matrix}
+\begin{tabular}{l cccc c}
+\toprule
+\textbf{Family} & \textbf{H1 (Dissociation)} & \textbf{H2 (Sufficiency)} & \textbf{H3 (Mediation)} & \textbf{H4 (Temporal Contrast)} & \textbf{All Confirmed?} \\
+\midrule
+Llama 3.2    & $\times$     & $\times$     & $\times$     & $\times$     & \textbf{NO} \\
+Gemma 3      & $\times$     & $\times$     & $\times$     & $\times$     & \textbf{NO} \\
+OLMo 2       & $\times$     & $\times$     & $\times$     & $\times$     & \textbf{NO} \\
+\bottomrule
+\end{tabular}
+\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize
+\textbf{Note:} 事前登録された二軸同時達成基準（Valence pass AND Arousal pass）および効果量閾値による厳密判定。いずれの独立ファミリーでも4仮説の同時再現は達成されず（All Confirmed: \textbf{NO}）、因果的介入効果の一般化には制約が存在することが立証された。
+\end{minipage}
+\end{table}

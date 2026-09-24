@@ -40,7 +40,14 @@ V2 / V3 の Sequence-Likelihood は 81 VA 候補である。Behavioral / V1 の 
 | Gemma 3 | `google/gemma-3-1b-pt` | `google/gemma-3-1b-it` |
 | OLMo 2 | `allenai/OLMo-2-0425-1B` | `allenai/OLMo-2-0425-1B-Instruct` |
 
-**Supplementary `scale_validation`**: Mistral 7B v0.3 Base / Instruct。Primary コホートには入れない。`configs/scale_validation.yaml` は `model_set: scale_validation` のみを持ち、ID は重複定義しない。
+**Supplementary `scale_validation`**: Mistral 7B v0.3 Base / Instruct。Primary コホートには入れない。`configs/scale_validation.yaml` は `model_set: scale_validation` のみを持ち、ID は重複定義しない。pinned revision あり。
+
+**Scale ablation**（Primary の `v2/results/` には書かない）:
+
+| set | 中身 | revision |
+|---|---|---|
+| `scale_3b` | Qwen 2.5 3B、Llama 3.2 3B | 現行 YAML に SHA は無い |
+| `scale_7b` | Qwen 2.5 7B、Llama 3.1 8B、OLMo 2 1124 7B | 現行 YAML に SHA は無い |
 
 旧稿の Gemma 2 / Primary Mistral は現行コホートではない。
 
@@ -145,18 +152,21 @@ $$
 ```text
 v2/
 ├── README.md
-├── primary/                         # 正本
+├── primary/                         # 実験正本
 │   ├── README.md
 │   ├── run_rq1_rq2_cross_decoding.py
 │   ├── run_rq3_causal_map.py
 │   ├── run_rq4_recovery_patching.py
 │   └── run_confirmatory_analysis.py
-├── scripts/                         # 旧抽出・探索。主解析に使わない
-├── scripts/legacy/
-└── results/
-    ├── raw/                         # v2_geometry_{family}.json 等
-    └── derived/                     # 横断 summary, LMM
+├── scripts/
+│   ├── build_paper_summary.py       # derived → 論文 19 列。再介入しない
+│   └── legacy/                      # 旧抽出・探索。主解析に使わない
+└── results/                         # primary_small のみ
+    ├── raw/
+    └── derived/
 ```
+
+`primary_small` 以外の成果物は `resolve_output_dirs` が `results/ablation/{model_set}/raw` と `derived` に分ける。`--dry-run` はそれぞれ `dry_run/`。`v2/scripts/` 直下の plot / extract / 旧 `run_*.py` は主解析に使わない。論文表の入口は `build_paper_summary.py` だけである。
 
 ---
 
@@ -180,10 +190,18 @@ python -m affective_empathy_eval.run --stage v2 --model-set primary_small --fami
 
 1 family 実行では confirmatory は走らない。横断 LMM が必要なら `run_confirmatory_analysis.py` を別途呼ぶ。
 
-Scale validation（Mistral 7B、Primary と分離）:
+外部コホート。成果物は `results/ablation/{model_set}/`。
 
 ```bash
+# Mistral 7B。family 未指定なら confirmatory も走る
+python -m affective_empathy_eval.run --stage v2 --model-set scale_validation --device cuda:0
+
+# RQ4 まで。confirmatory は呼ばない。--model-set / --force / --family は転送されない
 python -m affective_empathy_eval.run --stage scale_validation --device cuda:0
+
+# 3B / 7B。ログは results/ablation/${MODEL_SET}/logs/
+bash scripts/run_production_scale_ablation.sh scale_3b cuda:0
+bash scripts/run_production_scale_ablation.sh scale_7b cuda:0 --family olmo
 ```
 
 1 family:
@@ -217,13 +235,37 @@ python v2/primary/run_rq1_rq2_cross_decoding.py --dry-run --family qwen
 
 ## 7. 出力
 
+`primary_small` のパス。`scale_*` は同じファイル名が `results/ablation/{model_set}/` に出る。
+
 | ファイル | 内容 |
 |---|---|
 | `v2/results/raw/v2_geometry_{family}.json` | RQ1/RQ2 層別 $R^2$, RSA, Procrustes, sharing |
 | `v2/results/raw/v2_causal_map_{family}.json` | RQ3 の $D(l)$, $C(l)$, ピーク相対深度 |
 | `v2/results/raw/v2_recovery_{family}.json` | RQ4 の $W_1$ と recovery |
+| `v2/results/raw/v2_recovery_samples_{family}.csv` | family 内のサンプル単位 recovery |
+| `v2/results/derived/v2_recovery_sample_level_all.csv` | family 横断のサンプル単位 recovery（raw にも同名を書く） |
 | `v2/results/derived/v2_cross_family_summary.json` | 対比較と CI |
-| `v2/results/derived/v2_lmm_confirmatory.json` | 確証的 LMM。family 未指定の統合 CLI / production bash では RQ4 後に自動生成 |
+| `v2/results/derived/v2_lmm_confirmatory.json` | 確証的 LMM。family 未指定の `--stage v2` では RQ4 後に自動生成。`--stage scale_validation` では生成しない |
+
+論文 19 列は `v2/scripts/build_paper_summary.py` が derived を読んで書く。再介入はしない。
+
+| ファイル | 内容 |
+|---|---|
+| `tables/table_v2_1_geometry.csv` | Base vs Instruct の幾何。matched-plain と native |
+| `tables/table_v2_2_sharing.csv` | Reader–Self sharing |
+| `tables/table_v2_3a_causal_relocation.csv` | ピークと中心。NaN は落とさない |
+| `tables/table_v2_3b_causal_controls.csv` | $C$, $C_{\mathrm{rand}}$, $C_{\perp}$, net |
+| `tables/table_v2_3c_lmm.csv` | LMM。`metric` は `lmm_beta::<term>` |
+| `tables/table_v2_4_recovery.csv` | recovery |
+| `tables/table_v2_confirmatory.csv` | H1a, H1b, H2, H3, H4 |
+| `figure_data/figure_v2_3_causal_relocation.csv` | 現行コードが書く図 CSV はこの 1 本 |
+| `stage_summaries/v2/v2_paper_results.csv` | 19 列 |
+
+```bash
+python v2/scripts/build_paper_summary.py --strict
+```
+
+LaTeX は `scripts/summarize_v2_reorganization.py`。
 
 ---
 

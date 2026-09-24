@@ -1,8 +1,12 @@
 # V3 Scripts
 
-本ディレクトリの探索用スクリプトは `v3/scripts/legacy/` にある。主解析には使わない。旧 NDE/NIE や気分一致実験も legacy である。
+実験の正本は [`v3/primary/`](../primary/README.md) である。設計の本文は [`v3/README.md`](../README.md)。探索用スクリプトは `v3/scripts/legacy/` にあり、主解析には使わない。旧 NDE/NIE や気分一致実験も legacy である。
 
-正本は [`v3/primary/`](../primary/README.md) である。設計の本文は [`v3/README.md`](../README.md)。
+このディレクトリ直下の `build_paper_summary.py` は legacy ではない。ゲート JSON と RQ 成果物を読み、Table V3-1〜V3-4、confirmatory matrix、19 列を `results/derived/paper_summary/` へ書く。介入は再実行しない。`--strict` は欠落とスキーマ失敗で落とす。
+
+```bash
+python v3/scripts/build_paper_summary.py --strict
+```
 
 | 正本 | 内容 |
 |---|---|

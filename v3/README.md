@@ -333,7 +333,30 @@ python v3/primary/run_rq1_state_induction.py --dry-run --family qwen
 
 ---
 
-## 10. 解釈
+## 10. 論文 19 列
+
+`v3/scripts/build_paper_summary.py` は介入を再実行しない。`v3/results/derived/` を先に探し、無ければ `raw/` を読む。`v3/scripts/legacy/` とは別物である。
+
+| ファイル | 内容 |
+|---|---|
+| `tables/table_v3_1_gate.csv` | `overall_decision` の文字列と、pipeline を続けるかのフラグ |
+| `tables/table_v3_2_spatiotemporal_summary.csv` | 4-Map。`analysis_role=discovery`。`response_end` は negative control として残す |
+| `tables/table_v3_3_mediated_attenuation.csv` | Confirmation の減衰。`analysis_role=confirmatory` |
+| `tables/table_v3_4_confirmatory.csv` | Llama / Gemma 3 / OLMo 2 の H1〜H4 |
+| `tables/table_v3_confirmatory_matrix.csv` | family × 仮説の行列 |
+| `stage_summaries/v3/v3_paper_results.csv` | 19 列 |
+
+`figure_data/` は作る。現行の `build_v3_summary` は figure CSV を書き出さない。
+
+```bash
+python v3/scripts/build_paper_summary.py --strict
+```
+
+LaTeX は `scripts/summarize_v3_causal_utilization.py`。
+
+---
+
+## 11. 解釈
 
 - ゲート GO は「主観が確認された」ではなく「誘導が特異的で、Topic 崩壊が小さい」
 - 時空間解離は記述であり、二過程心理理論の証明ではない

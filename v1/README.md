@@ -350,7 +350,30 @@ python v1/primary/phase_c/run_e6_specialization.py \
 
 ---
 
-## 9. 解釈
+## 9. 論文 19 列
+
+`v1/scripts/build_paper_summary.py` は Phase の再実行をしない。`v1/results/derived/` を読み、`results/derived/paper_summary/` へ書く。`v1/scripts/legacy/` とは別物である。
+
+| ファイル | 内容 |
+|---|---|
+| `tables/table_v1_1_peak_decodability.csv` | E1 ピーク。AIPsy プローブは `table_v1_1_aipsy_probes.csv` |
+| `tables/table_v1_2_shared_geometry.csv` | E2 Direct / Aligned / RSA |
+| `tables/table_v1_3_semantic_controls.csv` | Phase B。nonfallback の $N$ を残す |
+| `tables/table_v1_4_causal_map.csv` | E3 |
+| `tables/table_v1_5_interchangeability.csv` | E4。Primary はピーク層の $\alpha=1.0$。sweep は図用 |
+| `tables/table_v1_6_specialization.csv` | E6 の distinct site と LMM 交互作用 |
+| `figure_data/figure_v1_1_decodability.csv` 〜 `figure_v1_4_interchangeability.csv` | 図用 |
+| `stage_summaries/v1/v1_paper_results.csv` | 19 列 |
+
+```bash
+python v1/scripts/build_paper_summary.py --strict
+```
+
+LaTeX は `scripts/summarize_v1_internal_sharing.py` が Table V1-1〜V1-6 を読む。
+
+---
+
+## 10. 解釈
 
 - E1 の高い $R^2$ を「同じ回路」と読まない
 - E4 不成立を「感情が無い」と読まない

@@ -1,9 +1,9 @@
 # V1 Primary
-## 論文対応: Section 4. Shared Representation and Causal Overlap in Base Models
+## 論文対応: §5 Internal Representation and Causal Sharing
 
 V1 の正式実行面。設計・指標・解釈の本文は親の [`v1/README.md`](../README.md) を正本とする。
 
-- **科学的問い (RQ)**: *What affect-relevant representations and causal mechanisms are shared or overlap between Reader and Self perspectives in base models?*（基底モデルにおいて、読者認識 (Reader) と自己報告 (Self) の背後に共通の情動内部表現および部分的に重複した因果機構・介入感受性部位が存在するか？）
+- **科学的問い (RQ)**: *To what extent do Reader and Self share representational and causal structure internally?*（同一モデル内で、Reader と Self は表現と因果サイトをどこまで共有するか）
 - **Primary Metric**:
   - **E1 Shared Decodability**: 外部刺激ラベル（EmoBank 人間評定 / AIPsy 条件）に対する層別線形プローブ性能（GroupKFold による held-out stimulus で評価、$R^2$, Pearson $r$, ROC-AUC）。ピーク相対深度 $d^*_R, d^*_S$。
   - **E2 Shared Geometry**: Direct cross-decoding transfer performance および Procrustes 変換幾何類似度。
@@ -19,7 +19,7 @@ V1 の正式実行面。設計・指標・解釈の本文は親の [`v1/README.m
   - Rule-based semantic controlled perturbations
 - **出力成果物**: `v1/results/derived/`
 
-V1 の主たる発見対象は **Base モデルにおける Reader と Self の共有表現・因果的重複（Primary Focus）**であり、Instruct モデルにおける 4 条件（4 ファミリー）の測定は**モデル内再現（Within-Model Replication）**として位置づけられます。事後学習に伴う表現幾何および因果回路の再構成（Reorganization）の比較・解釈は V2 の責務です。候補空間は 729 VAD。
+統合 CLI は `primary_small` の Base と Instruct を両方走らせる。比較軸は各モデル内の Reader ↔ Self である。Base↔Instruct の差そのものの解釈は V2 に置く。候補空間は 729 VAD。
 
 ## 実行順
 

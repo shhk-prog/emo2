@@ -1,5 +1,5 @@
 # V3 Primary
-## 論文対応: Section 6. From Decodability to Causal Leverage: Sufficiency, Specificity, and Spatiotemporal Dynamics
+## 論文対応: §7 From Representation to Causal Utilization
 
 V3 の正式実行面。設計・指標・解釈の本文は親の [`v3/README.md`](../README.md) を正本とする。
 
@@ -64,4 +64,4 @@ python v3/primary/run_rq1_state_induction.py \
 python v3/primary/run_rq1_state_induction.py --dry-run --family qwen
 ```
 
-`v3/scripts/legacy/` は主解析に使わない。
+`v3/scripts/legacy/` は主解析に使わない。`v3/scripts/build_paper_summary.py` は derived/raw から Table V3-1〜V3-4 と 19 列を書く presentation であり、ゲート判定の再計算はしない。

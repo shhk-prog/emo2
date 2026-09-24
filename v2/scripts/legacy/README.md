@@ -2,7 +2,7 @@
 
 `v2/scripts/legacy/` は、開発初期の探索・旧 SAE・旧 2×2 Qwen 専用スクリプトを隔離した場所である。主解析には使わない。
 
-現行の Primary は [`v2/primary/`](../../primary/README.md) である。設計の本文は [`v2/README.md`](../../README.md)。
+現行の実験正本は [`v2/primary/`](../../primary/README.md) である。設計の本文は [`v2/README.md`](../../README.md)。親ディレクトリの `build_paper_summary.py` はこの legacy には入らない。derived を読んで論文 19 列を書く presentation である。
 
 | 現行 RQ | 正本 (`v2/primary/`) | このディレクトリの旧稿 |
 |---|---|---|

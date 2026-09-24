@@ -184,17 +184,23 @@ V3 は同じ CSV から **clinical–neutral で `pair_id` が揃う対だけ** 
 behavioral/
 ├── README.md
 ├── primary/
+│   ├── README.md
 │   ├── run_behavioral_emobank.py   # EmoBank 3-Way VAD
 │   └── run_behavioral_aipsy.py     # AIPsy 4-Split
 ├── analysis/
-│   ├── summarize_behavioral_emobank.py
-│   └── summarize_behavioral_aipsy.py
-└── results/                        # 再実行前は .gitkeep 以外をクリアしてよい
-    ├── emobank_3way/
-    ├── emobank_3way_summary/
-    ├── aipsy_4split/
-    └── aipsy_4split_summary/
+│   ├── summarize_behavioral_emobank.py   # 生 CSV → 統計表
+│   ├── summarize_behavioral_aipsy.py
+│   └── build_paper_summary.py            # derived → 論文 19 列（再推論しない）
+└── results/
+    ├── raw/
+    │   ├── emobank_3way/
+    │   └── aipsy_4split/
+    └── derived/
+        ├── emobank_3way_summary/
+        └── aipsy_4split_summary/
 ```
+
+`--dry-run` は各 `raw/*/dry_run/` と `derived/*/dry_run/` に隔離する。
 
 ---
 
@@ -262,6 +268,28 @@ python behavioral/analysis/summarize_behavioral_aipsy.py \
 ```
 
 `--dry-run` を付けると `dry_run/` 配下だけを集計する。legacy パスへのフォールバックは `--allow-legacy-fallback` だけ。
+
+### 7.3 論文 19 列（presentation）
+
+`behavioral/analysis/build_paper_summary.py` は生の尤度を再計算しない。`derived/` の検証済み表を読み、共通 19 列と論文 CSV を書く。
+
+| 出力 | 内容 |
+|---|---|
+| `results/derived/paper_summary/tables/table_b1_emobank_correspondence.csv` | EmoBank の課題 × 次元 |
+| `table_b2_sensitivity.csv` | Clinical–Neutral の direction-aligned 感度 |
+| `table_b3_dose_response.csv` | IUT と二次スロープ |
+| `table_b4_specificity.csv` | Complex Neutral |
+| `table_b5_coupling.csv` | Primary は $\mathrm{corr}(\Delta_R,\Delta_S)$。生の $\mathrm{corr}(R,S)$ は secondary |
+| `table_b_summary.csv` | モデル横並び。総合点も順位も付けない |
+| `figure_data/figure_b1_emobank_corr.csv` 〜 `figure_b4_coupling_summary.csv` | 図用 |
+| `stage_summaries/behavioral/behavioral_paper_results.csv` | 19 列レコード |
+
+```bash
+python behavioral/analysis/build_paper_summary.py
+python behavioral/analysis/build_paper_summary.py --strict
+```
+
+4 Stage まとめて出すときは `python scripts/build_all_paper_summaries.py`。LaTeX は `scripts/summarize_behavioral_emobank.py` と `scripts/summarize_behavioral_aipsy.py` が、上記 tables を読んで `iclr2027/tables` へ書く。analysis 配下の summarize とは入力が違う。
 
 ---
 

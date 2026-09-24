@@ -6,6 +6,7 @@
 
 - 設計: [`v3/README.md`](../../README.md)
 - 実行面: [`v3/primary/README.md`](../../primary/README.md)
+- 論文表: `v3/scripts/build_paper_summary.py`（既存成果物の 19 列化。この legacy 文書からは生成しない）
 - 論文構成メモ: [`docs/v3_prerun_five_fixes/paper_outline.md`](../../../docs/v3_prerun_five_fixes/paper_outline.md)
 
 使わないもの（旧稿に残っている）:

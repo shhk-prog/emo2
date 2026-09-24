@@ -94,7 +94,14 @@ Stimulus
   - **Gemma 3 (1B)**: `google/gemma-3-1b-pt` $\leftrightarrow$ `google/gemma-3-1b-it`
   - **OLMo 2 (1B)**: `allenai/OLMo-2-0425-1B` $\leftrightarrow$ `allenai/OLMo-2-0425-1B-Instruct`
 - **Supplementary Scale Validation (`scale_validation`)**:
-  - **Mistral (7B)**: `mistralai/Mistral-7B-v0.3` $\leftrightarrow$ `mistralai/Mistral-7B-Instruct-v0.3`（大規模モデルでの頑健性・再現性検証）
+  - **Mistral (7B)**: `mistralai/Mistral-7B-v0.3` $\leftrightarrow$ `mistralai/Mistral-7B-Instruct-v0.3`（V2 パイプラインの外部スケール検証。Primary 主表には混ぜない）
+- **Scale ablation（Primary 成果物と物理分離）**:
+  - **`scale_3b`**: Qwen 2.5 3B、Llama 3.2 3B（OLMo 2 に 3B 版は無い）
+  - **`scale_7b`**: Qwen 2.5 7B、Llama 3.1 8B、OLMo 2 1124 7B
+  - 実行は `--stage v2 --model-set scale_3b|scale_7b`。成果物は `results/ablation/{model_set}/`。`primary_small` の `v2/results/` には書かない
+  - 現行 YAML の `scale_3b` / `scale_7b` には `base_revision` / `instruct_revision` が無い。pinned SHA は `primary_small` と `scale_validation` だけ
+
+`--model-set` の許容値は `primary_small`, `scale_validation`, `scale_3b`, `scale_7b`。未知 family は Qwen へ落とさず `KeyError`。`--base-model` / `--instruct-model` は `--family` と同時に指定する。
 
 ---
 
@@ -141,8 +148,9 @@ Stimulus
 
 現行レジストリが持つ運用固定値:
 
-- **pinned revision SHA**: 各 variant の `base_revision` / `instruct_revision`。本番単独実行は `--model-revision` 未指定なら registry から解決し、解決できなければ `ValueError`
-- **`inference_dtype: bfloat16`**: セット単位および family 単位。Behavioral 統合 CLI は `--dtype` にこれを渡す
+- **pinned revision SHA**: `primary_small` と `scale_validation` の各 variant に `base_revision` / `instruct_revision` がある。Behavioral / V1 の本番単独実行は `--model-revision` 未指定なら registry から解決し、解決できなければ `ValueError`。`--dry-run` はこの検査を通す
+- **`scale_3b` / `scale_7b`**: 現行 YAML は model ID と `inference_dtype` のみ。revision フィールドは空で、registry 上の revision は `None`
+- **`inference_dtype: bfloat16`**: セット単位および family 単位。Behavioral 統合 CLI は EmoBank に `--dtype` としてこれを渡す。AIPsy スクリプト自体に `--dtype` は無い
 - Hugging Face ID と revision を切り離して記録する。`main` 追従は本番禁止
 
 ### 4.5 データ
@@ -162,6 +170,26 @@ V3 は AIPsy の clinical–neutral 192 pair だけを wide 化する。EmoBank 
 
 `**/results/raw/**` と `**/results/derived/**` は追記専用で Git 管理しない（`.gitkeep` のみ残す）。再実行は別 `run_id`。失敗・拒否・パース不能は削除せず理由とともに残す。
 
+`save_experiment_result` は既存ファイルを消す前に、親が `raw` / `derived` / `dry_run` ならそのさらに親の `archive/` へコピーする。JSON 封筒は `execution_success`, `stage`, `experiment_id`, `completed_at`, `results` を持つ。`is_experiment_completed` は `execution_success` が真で、指定があれば manifest の model / config hash が一致するときだけスキップを許す。`--force` は常に再計算。
+
+出力先は `resolve_output_dirs` が決める。V2 Primary の 4 本（RQ1/RQ2、RQ3、RQ4、confirmatory）がこれを使う。
+
+| `model_set` | raw | derived |
+|---|---|---|
+| `primary_small` | YAML `output.raw_dir`、無ければ `{stage}/results/raw` | 同様に `{stage}/results/derived` |
+| それ以外（`scale_validation`, `scale_3b`, `scale_7b`） | `results/ablation/{model_set}/raw` | `results/ablation/{model_set}/derived` |
+
+`--dry-run` は上記の末尾に `dry_run/` を足す。
+
+ログは `resolve_log_dir`。統合 CLI は起動時に `run_{stage}_{YYYYMMDD_HHMMSS}.log` を FileHandler で書く。
+
+| `model_set` | ログ |
+|---|---|
+| `primary_small` | `results/logs/`（`--dry-run` は `results/logs/dry_run/`） |
+| それ以外 | `results/ablation/{model_set}/logs/`（dry-run も同様に `dry_run/`） |
+
+本番 bash はこれに加えて `tee` する。Primary は `results/logs/production_<stage>_TIMESTAMP.log`。スケール・アブレーションは `results/ablation/${MODEL_SET}/logs/production_v2_TIMESTAMP.log`。
+
 ### 4.7 統合 CLI のフラグ（`src/affective_empathy_eval/run.py`）
 
 `python -m affective_empathy_eval.run` が受け付ける引数。サブスクリプトへそのまま転送されるものと、特定 Stage だけが読むものがある。
@@ -169,7 +197,7 @@ V3 は AIPsy の clinical–neutral 192 pair だけを wide 化する。EmoBank 
 | フラグ | 既定 | 効く Stage | 意味 |
 |---|---|---|---|
 | `--stage` | 必須 | 全体 | `behavioral`, `v1`, `v2`, `v3`, `scale_validation`, `all` |
-| `--model-set` | `primary_small` | 全体 | `configs/models.yaml` のセット名 |
+| `--model-set` | `primary_small` | 全体 | `primary_small`, `scale_validation`, `scale_3b`, `scale_7b` |
 | `--family` / `--base-model` / `--instruct-model` | なし | 全体 | 1 family / 1 対に絞る。未指定ならセット全件 |
 | `--device` | `cpu` | 全体 | 本番 GPU では `cuda:0` |
 | `--dry-run` | off | 全体 | 重みを載せない。成果物は各 Stage の `dry_run/` へ隔離 |
@@ -239,8 +267,8 @@ uv pip install -e ".[dev]"
 |---|---|---|
 | 仮想環境 | `.venv` を activate する | 呼ばれた python をそのまま使う |
 | device 既定 | `cuda:0`（第1引数） | `cpu` |
-| ログ | `results/logs/production_<stage>_TIMESTAMP.log` に tee | 標準出力のみ |
-| モデル集合 | `primary_small` 固定 | `--model-set` で切替 |
+| ログ | Primary は `results/logs/production_<stage>_TIMESTAMP.log` に tee。`run_production_scale_ablation.sh` は `results/ablation/${MODEL_SET}/logs/production_v2_TIMESTAMP.log` | `resolve_log_dir` の `run_{stage}_TIMESTAMP.log` に FileHandler。標準出力にも出す |
+| モデル集合 | Primary 4 本は `primary_small` 固定。scale ablation は第1引数が `scale_3b` または `scale_7b` | `--model-set` で切替 |
 | 追加フラグ | 第2引数以降を `EXTRA_ARGS` として CLI へ転送 | 上表のフラグを直接指定 |
 | V1 全層 | **常に `--all-layers` を付与** | 明示したときだけ |
 | `--family` / `--max-samples` | `EXTRA_ARGS` 経由 | あり |
@@ -257,6 +285,7 @@ uv pip install -e ".[dev]"
 | `run_production_v2.sh` | `--stage v2 --model-set primary_small` | `EXTRA_ARGS` |
 | `run_production_v3.sh` | `--stage v3 --model-set primary_small` | `EXTRA_ARGS`（`--force-after-no-go` 等） |
 | `run_production_all.sh` | 上記 4 本を順に呼ぶ | 同じ `EXTRA_ARGS` を全 Stage へ転送 |
+| `run_production_scale_ablation.sh` | `--stage v2 --model-set <scale_3b\|scale_7b>` | 第1引数 model set、第2引数 device、以降 `EXTRA_ARGS` |
 
 ### 7.2 本番（4 family）
 
@@ -284,10 +313,19 @@ bash scripts/run_production_v3.sh cuda:0 --force-after-no-go
 
 `--stage all` も Behavioral → V1 → V2 → V3 の順（`PRODUCTION_STAGE_ORDER`）。各 Stage の中身は次のとおり。
 
-- **Behavioral**: 各 family × Base/Instruct で EmoBank → AIPsy。`--model-revision` と `--dtype`（registry の `inference_dtype`、既定 `bfloat16`）を付与。完了後に `summarize_behavioral_emobank.py` と `summarize_behavioral_aipsy.py` を自動実行する
+起動時の件数ログ（`PRODUCTION_DATASET_INVENTORY`）が読むファイルは次の 3 つである。Behavioral 本番の全件 EmoBank（`stimuli_vad_3way.csv`）はここには入らない。
+
+| ログ上の名前 | パス |
+|---|---|
+| EmoBank 3-way | `v1/data/processed/stimuli_vad_3way_test1k.csv` |
+| AIPsy 4-split | `v1/data/processed/aipsy_4split_all.csv` |
+| V1 Phase B rule-based controls | `v1/data/processed/v1_e5_semantic_controls.csv` |
+
+- **Behavioral**: 各 family × Base/Instruct で EmoBank → AIPsy。EmoBank には `--model-revision` と `--dtype`（registry の `inference_dtype`、既定 `bfloat16`）を付与する。AIPsy には `--dtype` を渡さない。完了後に `behavioral/analysis/summarize_behavioral_emobank.py` と `summarize_behavioral_aipsy.py` を自動実行する。論文 19 列集計（`build_paper_summary.py`）は自動では走らない
 - **V1**: Phase B 統制 CSV が無ければ生成。各モデルで Phase A → Phase B `--task-type reader` → Phase B `--task-type self` → Phase C → E6。最後に `summarize_phase_c.py`
-- **V2**: RQ1/RQ2 → RQ3 → RQ4。`--family` / `--base-model` / `--instruct-model` が無いときだけ `run_confirmatory_analysis.py` を自動実行する
-- **V3**: RQ1 のあと gate を読む。本番は `v3/results/derived/v3_gate_decision.json`、`--dry-run` は `v3/results/derived/dry_run/v3_gate_decision.json`。`decision` が完全一致の `GO` のときだけ RQ2 → RQ3 → Confirmatory
+- **V2**: RQ1/RQ2 → RQ3 → RQ4。`--family` / `--base-model` / `--instruct-model` が無いときだけ `run_confirmatory_analysis.py` を自動実行する。`model_set != primary_small` の成果物は `results/ablation/{model_set}/`
+- **V3**: RQ1 のあと gate を読む。本番は `v3/results/derived/v3_gate_decision.json`、`--dry-run` は `v3/results/derived/dry_run/v3_gate_decision.json`。`decision` が完全一致の `GO` のときだけ RQ2 → RQ3 → Confirmatory。それ以外は終了コード 2
+- **`--stage scale_validation`**: `scripts/run_scale_validation.py` を呼ぶ。転送するのは `--device`、`--dry-run`、`--max-samples` だけである。`--model-set` も `--force` も `--family` も渡さない。スクリプト既定は Mistral の `scale_validation` で、RQ1/RQ2 → RQ3 → RQ4 まで。confirmatory LMM は呼ばない。3B/7B はこちらでは動かない
 
 ```bash
 python -m affective_empathy_eval.run --stage behavioral --model-set primary_small --device cuda:0
@@ -296,8 +334,13 @@ python -m affective_empathy_eval.run --stage v2 --model-set primary_small --devi
 python -m affective_empathy_eval.run --stage v3 --model-set primary_small --device cuda:0
 
 python -m affective_empathy_eval.run --stage v2 --model-set scale_validation --device cuda:0
+python -m affective_empathy_eval.run --stage v2 --model-set scale_3b --device cuda:0
+python -m affective_empathy_eval.run --stage v2 --model-set scale_7b --family qwen --device cuda:0
+bash scripts/run_production_scale_ablation.sh scale_3b cuda:0
 python -m affective_empathy_eval.run --stage v3 --model-set primary_small --dry-run
 ```
+
+`scale_validation` を V2 ステージとして走らせると、family 未指定なら confirmatory も動く。`--stage scale_validation` は RQ4 で止まる。3B/7B の本番ラッパは `run_production_scale_ablation.sh` で、第1引数が model set、第2引数が device である。
 
 `--dry-run` はモデル重みを載せない。transformers 未導入でも Primary は起動する。実行開始時に実 CSV の行数・pair 数をログする（手書き件数は正本にしない）。
 
@@ -307,25 +350,85 @@ python -m affective_empathy_eval.run --stage v3 --model-set primary_small --dry-
 
 ---
 
-## 8. ディレクトリ構成
+## 8. 論文用集計（実験の再実行ではない）
 
-```text
-├── README.md                      # 本ドキュメント
-├── pyproject.toml                 # プロジェクト共通依存関係およびテスト設定定義（正本）
-├── setup_env.sh                   # 仮想環境自動構築スクリプト
-├── src/
-│   └── affective_empathy_eval/    # 共通基盤ライブラリ (唯一の正本パッケージ)
-│       ├── run.py                 # 統合実験実行 CLI
-│       ├── models/                # 共通 ModelRegistry & ModelAdapters
-│       └── ...
-├── tests/                         # 共通テストスイート (All tests should pass)
-├── configs/                       # 共通設定 (models.yaml / v1_experiments.yaml / v2_experiments.yaml / v3_experiments.yaml)
-├── scripts/                       # 本番 bash ランナーと感度分析
-├── behavioral/                    # 行動実験 Primary パイプライン & 分析
-├── v1/                            # V1 表現幾何・Prompt-End 因果パッチング実験
-├── v2/                            # V2 幾何・因果結合・分布回復実験 (Primary: v2/primary/)
-├── v3/                            # V3 時空間ダイナミクス・媒介分析実験 (Primary: v3/primary/)
-└── docs/                          # 実験記録・仕様書・決定ログ
+実験スクリプトが書いた `results/derived/` を読み、共通 19 列へ揃える presentation 層である。尤度も介入も再計算しない。`results/raw/` は書き換えない。
+
+スキーマ正本は `src/affective_empathy_eval/paper_summary/schema.py` の `PAPER_SUMMARY_COLUMNS`。
+
+`stage`, `rq`, `family`, `alignment`, `task`, `axis`, `condition`, `metric`, `estimate`, `value_text`, `ci_low`, `ci_high`, `p`, `q`, `n`, `is_primary`, `analysis_role`, `source_artifact`, `source_key`
+
+- `stage`: `behavioral`, `v1`, `v2`, `v3`
+- `alignment`: `base`, `instruct`, `both`, `all`, `none`
+- `analysis_role`: `primary`, `confirmatory`, `discovery`, `secondary`, `control`, `diagnostic`
+- Primary 行の一意キーは `stage, rq, family, alignment, task, axis, condition, metric`
+- `filter_primary_results`: `is_primary` が真、かつ role が `secondary` / `control` / `diagnostic` 以外。`discovery` の V3 RQ2 は Primary 側に残る
+- `filter_secondary_results`: `is_primary` が偽、または role が `secondary` / `control` / `diagnostic`
+
+| 入口 | 読むもの | 書くもの |
+|---|---|---|
+| `behavioral/analysis/build_paper_summary.py` | Behavioral derived | Table B1〜B5、`table_b_summary.csv`、Figure B1〜B4 |
+| `v1/scripts/build_paper_summary.py` | V1 derived | Table V1-1〜V1-6、Figure V1-1〜V1-4 |
+| `v2/scripts/build_paper_summary.py` | V2 derived | Table V2-1, V2-2, V2-3A/B/C, V2-4, confirmatory。図 CSV は `figure_v2_3_causal_relocation.csv` |
+| `v3/scripts/build_paper_summary.py` | V3 raw/derived | Table V3-1〜V3-4 と confirmatory matrix。図ディレクトリは作るが、現行コードは figure CSV を書かない |
+| `scripts/build_all_paper_summaries.py` | 上記 4 本 | `results/derived/paper_summary/` の横断成果物 |
+| `scripts/generate_paper_results_tables.py` | 上記 tables CSV | `iclr2027/tables/` の LaTeX と Markdown |
+
+Stage 単体の既定出力先も `results/derived/paper_summary`。Stage レコードは `stage_summaries/{behavioral,v1,v2,v3}/*_paper_results.csv` と `manifest_*.json`。
+
+マスターが書くファイル:
+
+- `primary_results.csv`, `secondary_results.csv`, `statistical_tests.csv`（`p` または `q` が非欠損の行）
+- `model_summary.csv`（`tables/table_b_summary.csv` が存在するとき、そのコピー。総合点も順位も付けない）
+- `paper_summary_manifest.json`, `qc_summary.json`, `results_summary.md`
+- `tables/*.csv`, `figure_data/*.csv`
+
+```bash
+python scripts/build_all_paper_summaries.py
+python scripts/build_all_paper_summaries.py --strict
+python scripts/generate_paper_results_tables.py
+python scripts/generate_paper_results_tables.py --out-dir iclr2027/tables
 ```
 
-各 Stage の本文は `behavioral/README.md`, `v1/README.md`, `v2/README.md`, `v3/README.md`。実行面の短い案内はそれぞれの `primary/README.md`。本番ラッパは [`scripts/README.md`](scripts/README.md)。モデル ID・revision・dtype は `configs/models.yaml` のみ。決定の記録は `docs/decision_log.md`。
+`--strict` は必須成果物の欠落、または 19 列検証の失敗で落とす。不変条件の自動検査は `tests/test_paper_summary_invariants.py`。
+
+LaTeX 側が読む CSV と生成スクリプト:
+
+| スクリプト | 入力 CSV |
+|---|---|
+| `scripts/summarize_behavioral_emobank.py` | `table_b1_emobank_correspondence.csv`, `table_b5_coupling.csv` |
+| `scripts/summarize_behavioral_aipsy.py` | `table_b2`〜`table_b5` |
+| `scripts/summarize_v1_internal_sharing.py` | `table_v1_1`〜`table_v1_6` |
+| `scripts/summarize_v2_reorganization.py` | `table_v2_confirmatory`, `table_v2_3a/3b/3c`, `table_v2_4_recovery` |
+| `scripts/summarize_v3_causal_utilization.py` | `table_v3_1`〜`table_v3_4`, `table_v3_confirmatory_matrix` |
+
+これらは `behavioral/analysis/summarize_*.py` とは別物である。後者は生 CSV から統計表を作り、前者は論文 19 列表から LaTeX を作る。
+
+---
+
+## 9. ディレクトリ構成
+
+```text
+├── README.md
+├── pyproject.toml
+├── setup_env.sh
+├── src/affective_empathy_eval/
+│   ├── run.py                     # 統合 CLI
+│   ├── io.py                      # resolve_output_dirs / resolve_log_dir / 逐次保存
+│   ├── models/                    # ModelRegistry と adapter
+│   └── paper_summary/             # 19 列スキーマと manifest
+├── tests/
+├── configs/                       # models.yaml, scale_validation.yaml, v{1,2,3}_experiments.yaml
+├── scripts/                       # 本番 bash、論文集計、LaTeX
+├── behavioral/                    # primary/ と analysis/
+├── v1/                            # primary/ と scripts/build_paper_summary.py
+├── v2/                            # primary/ と scripts/build_paper_summary.py
+├── v3/                            # primary/ と scripts/build_paper_summary.py
+├── results/
+│   ├── logs/                      # primary_small の統合 CLI / production ログ
+│   ├── derived/paper_summary/     # 19 列と tables/
+│   └── ablation/{model_set}/      # primary_small 以外の V2 raw/derived/logs
+└── docs/
+```
+
+各 Stage の本文は `behavioral/README.md`, `v1/README.md`, `v2/README.md`, `v3/README.md`。実行面の短い案内はそれぞれの `primary/README.md`。本番ラッパと集計入口は [`scripts/README.md`](scripts/README.md)。モデル ID・revision・dtype は `configs/models.yaml` のみ。決定の記録は `docs/decision_log.md`。

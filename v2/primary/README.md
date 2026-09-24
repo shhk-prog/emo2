@@ -1,5 +1,5 @@
 # V2 Primary
-## 論文対応: Section 5. Post-training-Associated Reorganization of Affect-Relevant Computations
+## 論文対応: §6 Post-training-Associated Reorganization of Affect-Relevant Computations
 
 V2 の正式実行面。設計・指標・解釈の本文は親の [`v2/README.md`](../README.md) を正本とする。
 
@@ -16,7 +16,7 @@ V2 の正式実行面。設計・指標・解釈の本文は親の [`v2/README.m
   - Native chat template vs matched plain prompt（プロンプト形式交絡の統制）
   - Aligned Procrustes transformation control in activation patching（表現空間アラインメント統制）
   - 線形混合効果モデル (LMM) によるファミリー横断効果の頑健性検証
-- **出力成果物**: `v2/results/` (`cross_decoding/`, `causal_maps/`, `recovery/`, `confirmatory_summary.json`)
+- **出力成果物**: `primary_small` は `v2/results/raw/` と `v2/results/derived/`。それ以外の `--model-set` は `results/ablation/{model_set}/`。ファイル名は `v2_geometry_{family}.json`, `v2_causal_map_{family}.json`, `v2_recovery_{family}.json`, 横断 summary と LMM JSON
 
 比較軸は同一ファミリーの **Base ↔ Instruct**。Reader ↔ Self の解釈は V1、状態誘導の時空間は V3。候補空間は 81 VA。データ既定は EmoBank test1k（`configs/v2_experiments.yaml`）。
 
@@ -29,7 +29,7 @@ V2 の正式実行面。設計・指標・解釈の本文は親の [`v2/README.m
 3. `run_rq4_recovery_patching.py`
 4. `--family` / `--base-model` / `--instruct-model` が無いときだけ `run_confirmatory_analysis.py`
 
-1 family 実行では 4 を省略する。scale validation（Mistral 7B）は `--model-set scale_validation` または `--stage scale_validation` で Primary と分離する。`--force` は各 RQ と confirmatory に転送される。設定正本は `configs/v2_experiments.yaml`（`normalize_length: true`）。
+1 family 実行では 4 を省略する。`--stage v2 --model-set scale_validation|scale_3b|scale_7b` は同じ 4 段で、成果物だけ `results/ablation/` に分かれる。`--stage scale_validation` は `scripts/run_scale_validation.py` 経由で RQ4 までであり、confirmatory も `--force` も `--model-set` の上書きも転送しない。`--force` が各 RQ と confirmatory に届くのは `--stage v2` だけである。設定正本は `configs/v2_experiments.yaml`（`normalize_length: true`）。
 
 ## スクリプト
 
@@ -60,4 +60,4 @@ python v2/primary/run_rq1_rq2_cross_decoding.py \
 python v2/primary/run_rq1_rq2_cross_decoding.py --dry-run --family qwen
 ```
 
-`v2/scripts/` と `v2/scripts/legacy/` は主解析に使わない。
+`v2/scripts/legacy/` と、`v2/scripts/` 直下の旧 plot / extract は主解析に使わない。`v2/scripts/build_paper_summary.py` だけは derived から論文 19 列を作る presentation である。

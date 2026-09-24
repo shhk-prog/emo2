@@ -72,3 +72,5 @@ python behavioral/primary/run_behavioral_aipsy.py \
 ```
 
 V3 は同じ AIPsy CSV から clinical–neutral pair だけを使う。Behavioral の 4-split 表を V3 指標の代わりにしない。
+
+論文 19 列は `behavioral/analysis/build_paper_summary.py` が derived 要約から作る。このディレクトリの 2 本は尤度評価であり、19 列 CSV は書かない。`scripts/summarize_behavioral_*.py` はさらにその 19 列表から LaTeX を作る。

@@ -1,6 +1,6 @@
 {
   "summary_schema_version": "1.0.0",
-  "generated_at_utc": "2026-09-22T15:54:10.705155+00:00",
+  "generated_at_utc": "2026-09-24T14:12:07.348156+00:00",
   "provenance_map": {
     "behavioral.table_b1.gemma_base_writer_valence_r": {
       "sources": [
@@ -3206,6 +3206,34 @@
       "derivation": "|argmax(r2_r)/(L-1) - argmax(r2_s)/(L-1)|",
       "notes": "Peak relative depth distance between Reader and Self probes"
     },
+    "v1.table_v1_1.llama_instruct_valence_peak_depth_distance": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_a/llama_instruct/e1_emobank_decodability.csv",
+          "key": "target_V_human_r2_reader"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_a/llama_instruct/e1_emobank_decodability.csv",
+          "key": "target_V_human_r2_self"
+        }
+      ],
+      "derivation": "|argmax(r2_r)/(L-1) - argmax(r2_s)/(L-1)|",
+      "notes": "Peak relative depth distance between Reader and Self probes"
+    },
+    "v1.table_v1_1.llama_instruct_arousal_peak_depth_distance": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_a/llama_instruct/e1_emobank_decodability.csv",
+          "key": "target_A_human_r2_reader"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_a/llama_instruct/e1_emobank_decodability.csv",
+          "key": "target_A_human_r2_self"
+        }
+      ],
+      "derivation": "|argmax(r2_r)/(L-1) - argmax(r2_s)/(L-1)|",
+      "notes": "Peak relative depth distance between Reader and Self probes"
+    },
     "v1.table_v1_1.olmo_base_valence_peak_depth_distance": {
       "sources": [
         {
@@ -3416,6 +3444,20 @@
       "derivation": "acc_original_minimal_pair - acc_word_shuffle",
       "notes": "Semantic syntax disruption drop"
     },
+    "v1.table_v1_3.llama_instruct_reader_shuffle_drop": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_b/reader/llama_instruct/phase_b_semantic_controls.csv",
+          "key": "acc_original_minimal_pair"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_b/reader/llama_instruct/phase_b_semantic_controls.csv",
+          "key": "acc_word_shuffle"
+        }
+      ],
+      "derivation": "acc_original_minimal_pair - acc_word_shuffle",
+      "notes": "Semantic syntax disruption drop"
+    },
     "v1.table_v1_3.olmo_base_self_shuffle_drop": {
       "sources": [
         {
@@ -3424,6 +3466,20 @@
         },
         {
           "artifact": "v1/results/derived/v1_phase_b/self/olmo_base/phase_b_semantic_controls.csv",
+          "key": "acc_word_shuffle"
+        }
+      ],
+      "derivation": "acc_original_minimal_pair - acc_word_shuffle",
+      "notes": "Semantic syntax disruption drop"
+    },
+    "v1.table_v1_3.llama_instruct_self_shuffle_drop": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_b/self/llama_instruct/phase_b_semantic_controls.csv",
+          "key": "acc_original_minimal_pair"
+        },
+        {
+          "artifact": "v1/results/derived/v1_phase_b/self/llama_instruct/phase_b_semantic_controls.csv",
           "key": "acc_word_shuffle"
         }
       ],
@@ -3574,6 +3630,26 @@
       "derivation": "matched_effect - mean(random_derangements)",
       "notes": "Reader-to-Self causal specificity at alpha=1.0"
     },
+    "v1.table_v1_5.llama_instruct_valence_specificity": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/llama_instruct/e4_interchangeability_results.csv",
+          "key": "aligned_specificity_V"
+        }
+      ],
+      "derivation": "matched_effect - mean(random_derangements)",
+      "notes": "Reader-to-Self causal specificity at alpha=1.0"
+    },
+    "v1.table_v1_5.llama_instruct_arousal_specificity": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/llama_instruct/e4_interchangeability_results.csv",
+          "key": "aligned_specificity_A"
+        }
+      ],
+      "derivation": "matched_effect - mean(random_derangements)",
+      "notes": "Reader-to-Self causal specificity at alpha=1.0"
+    },
     "v1.table_v1_5.olmo_base_valence_specificity": {
       "sources": [
         {
@@ -3674,10 +3750,40 @@
       "derivation": "direct_copy",
       "notes": "LMM task x site_type interaction effect"
     },
+    "v1.table_v1_6.llama_base_interaction": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/llama_base/e6_lmm_results.json",
+          "key": "coef_interaction"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "LMM task x site_type interaction effect"
+    },
+    "v1.table_v1_6.llama_instruct_interaction": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/llama_instruct/e6_lmm_results.json",
+          "key": "coef_interaction"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "LMM task x site_type interaction effect"
+    },
     "v1.table_v1_6.olmo_base_interaction": {
       "sources": [
         {
           "artifact": "v1/results/derived/v1_phase_c_prompt_end/olmo_base/e6_lmm_results.json",
+          "key": "coef_interaction"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "LMM task x site_type interaction effect"
+    },
+    "v1.table_v1_6.olmo_instruct_interaction": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/olmo_instruct/e6_lmm_results.json",
           "key": "coef_interaction"
         }
       ],
@@ -3693,6 +3799,136 @@
       ],
       "derivation": "direct_copy",
       "notes": "LMM task x site_type interaction effect"
+    },
+    "v1.table_v1_6.qwen_instruct_interaction": {
+      "sources": [
+        {
+          "artifact": "v1/results/derived/v1_phase_c_prompt_end/qwen_instruct/e6_lmm_results.json",
+          "key": "coef_interaction"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "LMM task x site_type interaction effect"
+    },
+    "v2.table_v2_1.qwen_reader_valence_distortion": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_cross_family_summary.json",
+          "key": "com_distortion_reader"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Procrustes alignment distortion between Base and Instruct"
+    },
+    "v2.table_v2_1.qwen_reader_arousal_distortion": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_cross_family_summary.json",
+          "key": "com_distortion_reader"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Procrustes alignment distortion between Base and Instruct"
+    },
+    "v2.table_v2_1.qwen_self_valence_distortion": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_cross_family_summary.json",
+          "key": "com_distortion_self"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Procrustes alignment distortion between Base and Instruct"
+    },
+    "v2.table_v2_1.qwen_self_arousal_distortion": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_cross_family_summary.json",
+          "key": "com_distortion_self"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Procrustes alignment distortion between Base and Instruct"
+    },
+    "v2.table_v2_1.llama_reader_valence_distortion": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_cross_family_summary.json",
+          "key": "com_distortion_reader"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Procrustes alignment distortion between Base and Instruct"
+    },
+    "v2.table_v2_1.llama_reader_arousal_distortion": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_cross_family_summary.json",
+          "key": "com_distortion_reader"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Procrustes alignment distortion between Base and Instruct"
+    },
+    "v2.table_v2_1.llama_self_valence_distortion": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_cross_family_summary.json",
+          "key": "com_distortion_self"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Procrustes alignment distortion between Base and Instruct"
+    },
+    "v2.table_v2_1.llama_self_arousal_distortion": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_cross_family_summary.json",
+          "key": "com_distortion_self"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Procrustes alignment distortion between Base and Instruct"
+    },
+    "v2.table_v2_1.gemma_reader_valence_distortion": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_cross_family_summary.json",
+          "key": "com_distortion_reader"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Procrustes alignment distortion between Base and Instruct"
+    },
+    "v2.table_v2_1.gemma_reader_arousal_distortion": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_cross_family_summary.json",
+          "key": "com_distortion_reader"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Procrustes alignment distortion between Base and Instruct"
+    },
+    "v2.table_v2_1.gemma_self_valence_distortion": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_cross_family_summary.json",
+          "key": "com_distortion_self"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Procrustes alignment distortion between Base and Instruct"
+    },
+    "v2.table_v2_1.gemma_self_arousal_distortion": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_cross_family_summary.json",
+          "key": "com_distortion_self"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Procrustes alignment distortion between Base and Instruct"
     },
     "v2.table_v2_1.olmo_reader_valence_distortion": {
       "sources": [
@@ -3737,7 +3973,7 @@
     "v2.table_v2_3b.olmo_base_plain_reader_valence_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_v_net_rand"
         }
       ],
@@ -3747,7 +3983,7 @@
     "v2.table_v2_3b.olmo_base_plain_reader_arousal_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_a_net_rand"
         }
       ],
@@ -3757,7 +3993,7 @@
     "v2.table_v2_3b.olmo_base_reader_valence_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_v_net_rand"
         }
       ],
@@ -3767,7 +4003,7 @@
     "v2.table_v2_3b.olmo_base_reader_arousal_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_a_net_rand"
         }
       ],
@@ -3777,7 +4013,7 @@
     "v2.table_v2_3b.olmo_base_plain_self_valence_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_v_net_rand"
         }
       ],
@@ -3787,7 +4023,7 @@
     "v2.table_v2_3b.olmo_base_plain_self_arousal_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_a_net_rand"
         }
       ],
@@ -3797,7 +4033,7 @@
     "v2.table_v2_3b.olmo_base_self_valence_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_v_net_rand"
         }
       ],
@@ -3807,7 +4043,7 @@
     "v2.table_v2_3b.olmo_base_self_arousal_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_a_net_rand"
         }
       ],
@@ -3817,7 +4053,7 @@
     "v2.table_v2_3b.olmo_inst_matched_plain_reader_valence_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_v_net_rand"
         }
       ],
@@ -3827,7 +4063,7 @@
     "v2.table_v2_3b.olmo_inst_matched_plain_reader_arousal_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_a_net_rand"
         }
       ],
@@ -3837,7 +4073,7 @@
     "v2.table_v2_3b.olmo_inst_matched_reader_valence_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_v_net_rand"
         }
       ],
@@ -3847,7 +4083,7 @@
     "v2.table_v2_3b.olmo_inst_matched_reader_arousal_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_a_net_rand"
         }
       ],
@@ -3857,7 +4093,7 @@
     "v2.table_v2_3b.olmo_inst_matched_plain_self_valence_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_v_net_rand"
         }
       ],
@@ -3867,7 +4103,7 @@
     "v2.table_v2_3b.olmo_inst_matched_plain_self_arousal_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_a_net_rand"
         }
       ],
@@ -3877,7 +4113,7 @@
     "v2.table_v2_3b.olmo_inst_matched_self_valence_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_v_net_rand"
         }
       ],
@@ -3887,7 +4123,7 @@
     "v2.table_v2_3b.olmo_inst_matched_self_arousal_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_a_net_rand"
         }
       ],
@@ -3897,7 +4133,7 @@
     "v2.table_v2_3b.olmo_inst_native_chat_reader_valence_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_v_net_rand"
         }
       ],
@@ -3907,7 +4143,7 @@
     "v2.table_v2_3b.olmo_inst_native_chat_reader_arousal_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_a_net_rand"
         }
       ],
@@ -3917,7 +4153,7 @@
     "v2.table_v2_3b.olmo_inst_native_reader_valence_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_v_net_rand"
         }
       ],
@@ -3927,7 +4163,7 @@
     "v2.table_v2_3b.olmo_inst_native_reader_arousal_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_a_net_rand"
         }
       ],
@@ -3937,7 +4173,7 @@
     "v2.table_v2_3b.olmo_deprecated_inst_reader_native_alias_valence_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_v_net_rand"
         }
       ],
@@ -3947,7 +4183,7 @@
     "v2.table_v2_3b.olmo_deprecated_inst_reader_native_alias_arousal_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_a_net_rand"
         }
       ],
@@ -3957,7 +4193,7 @@
     "v2.table_v2_3b.olmo_inst_native_chat_self_valence_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_v_net_rand"
         }
       ],
@@ -3967,7 +4203,7 @@
     "v2.table_v2_3b.olmo_inst_native_chat_self_arousal_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_a_net_rand"
         }
       ],
@@ -3977,7 +4213,7 @@
     "v2.table_v2_3b.olmo_inst_native_self_valence_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_v_net_rand"
         }
       ],
@@ -3987,7 +4223,7 @@
     "v2.table_v2_3b.olmo_inst_native_self_arousal_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_a_net_rand"
         }
       ],
@@ -3997,7 +4233,7 @@
     "v2.table_v2_3b.olmo_deprecated_inst_self_native_alias_valence_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_v_net_rand"
         }
       ],
@@ -4007,7 +4243,567 @@
     "v2.table_v2_3b.olmo_deprecated_inst_self_native_alias_arousal_c_net_rand": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_causal_dissociation_summary.json",
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_base_plain_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_base_plain_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_base_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_base_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_base_plain_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_base_plain_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_base_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_base_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_matched_plain_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_matched_plain_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_matched_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_matched_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_matched_plain_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_matched_plain_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_matched_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_matched_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_native_chat_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_native_chat_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_native_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_native_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_deprecated_inst_reader_native_alias_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_deprecated_inst_reader_native_alias_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_native_chat_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_native_chat_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_native_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_native_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_deprecated_inst_self_native_alias_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_deprecated_inst_self_native_alias_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_base_plain_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_base_plain_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_base_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_base_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_base_plain_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_base_plain_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_base_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_base_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_matched_plain_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_matched_plain_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_matched_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_matched_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_matched_plain_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_matched_plain_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_matched_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_matched_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_native_chat_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_native_chat_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_native_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_native_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_deprecated_inst_reader_native_alias_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_deprecated_inst_reader_native_alias_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_native_chat_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_native_chat_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_native_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_native_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_deprecated_inst_self_native_alias_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_deprecated_inst_self_native_alias_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
           "key": "c_a_net_rand"
         }
       ],
@@ -4017,47 +4813,27 @@
     "v2.table_v2_3c.valence_Intercept": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_lmm_confirmatory.json",
+          "artifact": "v2/results/derived/v2_lmm_confirmatory.json",
           "key": "params.Intercept"
         }
       ],
       "derivation": "direct_copy",
       "notes": "LMM fixed effect term Intercept"
     },
-    "v2.table_v2_3c.valence_C(family)[T.llama]": {
-      "sources": [
-        {
-          "artifact": "v2/results/derived/dry_run/v2_lmm_confirmatory.json",
-          "key": "params.C(family)[T.llama]"
-        }
-      ],
-      "derivation": "direct_copy",
-      "notes": "LMM fixed effect term C(family)[T.llama]"
-    },
     "v2.table_v2_3c.valence_C(family)[T.olmo]": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_lmm_confirmatory.json",
+          "artifact": "v2/results/derived/v2_lmm_confirmatory.json",
           "key": "params.C(family)[T.olmo]"
         }
       ],
       "derivation": "direct_copy",
       "notes": "LMM fixed effect term C(family)[T.olmo]"
     },
-    "v2.table_v2_3c.valence_C(family)[T.qwen]": {
-      "sources": [
-        {
-          "artifact": "v2/results/derived/dry_run/v2_lmm_confirmatory.json",
-          "key": "params.C(family)[T.qwen]"
-        }
-      ],
-      "derivation": "direct_copy",
-      "notes": "LMM fixed effect term C(family)[T.qwen]"
-    },
     "v2.table_v2_3c.valence_alignment": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_lmm_confirmatory.json",
+          "artifact": "v2/results/derived/v2_lmm_confirmatory.json",
           "key": "params.C(alignment)[T.inst]"
         }
       ],
@@ -4067,7 +4843,7 @@
     "v2.table_v2_3c.valence_task": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_lmm_confirmatory.json",
+          "artifact": "v2/results/derived/v2_lmm_confirmatory.json",
           "key": "params.C(task)[T.self]"
         }
       ],
@@ -4077,7 +4853,7 @@
     "v2.table_v2_3c.valence_alignment_x_task": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_lmm_confirmatory.json",
+          "artifact": "v2/results/derived/v2_lmm_confirmatory.json",
           "key": "params.C(alignment)[T.inst]:C(task)[T.self]"
         }
       ],
@@ -4087,7 +4863,7 @@
     "v2.table_v2_3c.valence_relative_depth": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_lmm_confirmatory.json",
+          "artifact": "v2/results/derived/v2_lmm_confirmatory.json",
           "key": "params.relative_depth"
         }
       ],
@@ -4097,7 +4873,7 @@
     "v2.table_v2_3c.valence_alignment_x_relative_depth": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_lmm_confirmatory.json",
+          "artifact": "v2/results/derived/v2_lmm_confirmatory.json",
           "key": "params.C(alignment)[T.inst]:relative_depth"
         }
       ],
@@ -4107,7 +4883,7 @@
     "v2.table_v2_3c.valence_task_x_relative_depth": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_lmm_confirmatory.json",
+          "artifact": "v2/results/derived/v2_lmm_confirmatory.json",
           "key": "params.C(task)[T.self]:relative_depth"
         }
       ],
@@ -4117,7 +4893,7 @@
     "v2.table_v2_3c.valence_alignment_x_task_x_relative_depth": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_lmm_confirmatory.json",
+          "artifact": "v2/results/derived/v2_lmm_confirmatory.json",
           "key": "params.C(alignment)[T.inst]:C(task)[T.self]:relative_depth"
         }
       ],
@@ -4127,7 +4903,107 @@
     "v2.table_v2_3c.valence_GroupVar": {
       "sources": [
         {
-          "artifact": "v2/results/derived/dry_run/v2_lmm_confirmatory.json",
+          "artifact": "v2/results/derived/v2_lmm_confirmatory.json",
+          "key": "params.Group Var"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "LMM fixed effect term Group Var"
+    },
+    "v2.table_v2_3c.arousal_Intercept": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_lmm_confirmatory.json",
+          "key": "params.Intercept"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "LMM fixed effect term Intercept"
+    },
+    "v2.table_v2_3c.arousal_C(family)[T.olmo]": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_lmm_confirmatory.json",
+          "key": "params.C(family)[T.olmo]"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "LMM fixed effect term C(family)[T.olmo]"
+    },
+    "v2.table_v2_3c.arousal_alignment": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_lmm_confirmatory.json",
+          "key": "params.C(alignment)[T.inst]"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "LMM fixed effect term C(alignment)[T.inst]"
+    },
+    "v2.table_v2_3c.arousal_task": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_lmm_confirmatory.json",
+          "key": "params.C(task)[T.self]"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "LMM fixed effect term C(task)[T.self]"
+    },
+    "v2.table_v2_3c.arousal_alignment_x_task": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_lmm_confirmatory.json",
+          "key": "params.C(alignment)[T.inst]:C(task)[T.self]"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "LMM fixed effect term C(alignment)[T.inst]:C(task)[T.self]"
+    },
+    "v2.table_v2_3c.arousal_relative_depth": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_lmm_confirmatory.json",
+          "key": "params.relative_depth"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "LMM fixed effect term relative_depth"
+    },
+    "v2.table_v2_3c.arousal_alignment_x_relative_depth": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_lmm_confirmatory.json",
+          "key": "params.C(alignment)[T.inst]:relative_depth"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "LMM fixed effect term C(alignment)[T.inst]:relative_depth"
+    },
+    "v2.table_v2_3c.arousal_task_x_relative_depth": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_lmm_confirmatory.json",
+          "key": "params.C(task)[T.self]:relative_depth"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "LMM fixed effect term C(task)[T.self]:relative_depth"
+    },
+    "v2.table_v2_3c.arousal_alignment_x_task_x_relative_depth": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_lmm_confirmatory.json",
+          "key": "params.C(alignment)[T.inst]:C(task)[T.self]:relative_depth"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "LMM fixed effect term C(alignment)[T.inst]:C(task)[T.self]:relative_depth"
+    },
+    "v2.table_v2_3c.arousal_GroupVar": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_lmm_confirmatory.json",
           "key": "params.Group Var"
         }
       ],

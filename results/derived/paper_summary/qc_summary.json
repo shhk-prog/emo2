@@ -1,5 +1,5 @@
 {
-  "updated_at_utc": "2026-09-22T15:54:10.707732+00:00",
+  "updated_at_utc": "2026-09-24T14:12:07.351005+00:00",
   "stages": {
     "behavioral": {
       "stage": "behavioral",
@@ -25,22 +25,22 @@
       "stage": "v1",
       "tables": {
         "table_v1_1": {
-          "n_rows": 28
+          "n_rows": 32
         },
         "table_v1_2": {
-          "n_rows": 312
+          "n_rows": 344
         },
         "table_v1_3": {
-          "n_rows": 14
+          "n_rows": 16
         },
         "table_v1_4": {
-          "n_rows": 14
+          "n_rows": 16
         },
         "table_v1_5": {
-          "n_rows": 14
+          "n_rows": 16
         },
         "table_v1_6": {
-          "n_rows": 4
+          "n_rows": 8
         }
       }
     },
@@ -48,22 +48,25 @@
       "stage": "v2",
       "tables": {
         "table_v2_1": {
-          "n_rows": 4
+          "n_rows": 16
         },
         "table_v2_2": {
-          "n_rows": 2
+          "n_rows": 8
         },
         "table_v2_3a": {
-          "n_rows": 28
+          "n_rows": 92
         },
         "table_v2_3b": {
-          "n_rows": 28
+          "n_rows": 92
         },
         "table_v2_3c": {
-          "n_rows": 12
+          "n_rows": 20
         },
         "table_v2_4": {
-          "n_rows": 2
+          "n_rows": 8
+        },
+        "table_v2_confirmatory": {
+          "n_rows": 12
         }
       }
     },
@@ -82,7 +85,7 @@
           "n_rows": 2
         },
         "table_v3_4": {
-          "n_rows": 12
+          "n_rows": 36
         }
       }
     }

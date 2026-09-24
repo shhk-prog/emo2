@@ -134,8 +134,14 @@ def generate_causal_relocation_table(df_reloc):
     ]
 
     if df_reloc is not None and len(df_reloc) > 0:
-        # Filter representative rows (matched condition)
-        sub_reloc = df_reloc[df_reloc["condition"].str.contains("matched|base_reader|base_self", na=False)]
+        # Filter representative rows (matched-plain and base-plain conditions)
+        primary_conditions = {
+            "base_plain_reader",
+            "base_plain_self",
+            "inst_matched_plain_reader",
+            "inst_matched_plain_self",
+        }
+        sub_reloc = df_reloc[df_reloc["condition"].isin(primary_conditions)]
         grouped = sub_reloc.groupby(["family", "task", "axis"])
         
         for (fam, task, ax), grp in grouped:
@@ -347,98 +353,88 @@ def generate_confirmatory_summary_table(df_conf, df_lmm=None, df_recov=None):
         ("H2_representation_sharing_reorganization", "arousal", "H2: Sharing Reorganization", r"Arousal $\Delta\text{Sharing}$"),
     ]
 
+    # If df_conf contains all rows (H1--H4), render directly from df_conf
     if df_conf is not None and len(df_conf) > 0:
-        for hyp_id, met_id, h_label, m_label in CONF_MAP:
-            sub = df_conf[(df_conf["hypothesis"] == hyp_id) & (df_conf["metric"] == met_id)]
-            if len(sub) > 0:
-                r0 = sub.iloc[0]
-                est_val = r0.get("estimate", np.nan)
+        # Check if H3 is already in df_conf
+        has_h3_in_conf = (df_conf["hypothesis"].str.contains("H3", na=False)).any()
+        
+        if has_h3_in_conf:
+            # Group by hypothesis prefix for midrules
+            prev_hyp = None
+            for _, r in df_conf.iterrows():
+                h_name = str(r["hypothesis"])
+                m_name = str(r["metric"])
+                est_val = r.get("estimate", np.nan)
                 est_str = format_num(est_val) if pd.notna(est_val) else "---"
-                l_ci = r0.get("ci_low", np.nan)
-                u_ci = r0.get("ci_high", np.nan)
+                l_ci = r.get("ci_low", np.nan)
+                u_ci = r.get("ci_high", np.nan)
                 if pd.notna(l_ci) and pd.notna(u_ci):
                     ci_str = f"[{format_num(l_ci)}, {format_num(u_ci)}]"
-                    supported = (l_ci > 0 or u_ci < 0)
-                    supp_str = r"\checkmark Supported" if supported else "Not Supported"
                 else:
                     ci_str = "---"
-                    supp_str = "---"
-                # Do not hard-code q-value across all rows; use actual value if present, else ---
-                q_val = r0.get("q", r0.get("fdr_q", np.nan))
-                q_str = f"{q_val:.3f}" if pd.notna(q_val) else "---"
-                tex_lines.append(f"{h_label:<30} & {m_label:<38} & {est_str:<8} & {ci_str:<18} & {q_str:<12} & {supp_str:<22} \\\\")
-            else:
-                tex_lines.append(f"{h_label:<30} & {m_label:<38} & ---      & ---                & ---          & ---                    \\\\")
+
+                # p and q values
+                q_val = r.get("q", np.nan)
+                p_val = r.get("p", np.nan)
+                if pd.notna(q_val):
+                    pq_str = f"{q_val:.3f}"
+                elif pd.notna(p_val):
+                    pq_str = f"{p_val:.3f}" if p_val >= 0.001 else "< 0.001"
+                else:
+                    pq_str = "---"
+
+                supp_str = str(r.get("supported", "---"))
+                if supp_str == "Supported":
+                    supp_str = r"\checkmark Supported"
+
+                # Add midrule between hypothesis blocks
+                hyp_block = h_name.split(":")[0] if ":" in h_name else h_name
+                if prev_hyp is not None and hyp_block != prev_hyp:
+                    tex_lines.append(r"\midrule")
+                prev_hyp = hyp_block
+
+                tex_lines.append(f"{h_name:<30} & {m_name:<42} & {est_str:<8} & {ci_str:<22} & {pq_str:<12} & {supp_str:<22} \\\\")
+        else:
+            # Fallback for old schema without H3/H4 in df_conf
+            for hyp_id, met_id, h_label, m_label in CONF_MAP:
+                sub = df_conf[(df_conf["hypothesis"] == hyp_id) & (df_conf["metric"] == met_id)]
+                if len(sub) > 0:
+                    r0 = sub.iloc[0]
+                    est_val = r0.get("estimate", np.nan)
+                    est_str = format_num(est_val) if pd.notna(est_val) else "---"
+                    l_ci = r0.get("ci_low", np.nan)
+                    u_ci = r0.get("ci_high", np.nan)
+                    ci_str = f"[{format_num(l_ci)}, {format_num(u_ci)}]" if (pd.notna(l_ci) and pd.notna(u_ci)) else "---"
+                    supported = (l_ci > 0 or u_ci < 0) if (pd.notna(l_ci) and pd.notna(u_ci)) else False
+                    supp_str = r"\checkmark Supported" if supported else "Not Supported"
+                    tex_lines.append(f"{h_label:<30} & {m_label:<42} & {est_str:<8} & {ci_str:<22} & {'---':<12} & {supp_str:<22} \\\\")
+
+            # H3 from df_lmm
+            tex_lines.append(r"\midrule")
+            if df_lmm is not None and len(df_lmm) > 0:
+                for _, r0 in df_lmm.iterrows():
+                    raw_term = str(r0.get("term", ""))
+                    b_val = r0.get("beta", np.nan)
+                    b_str = format_num(b_val) if pd.notna(b_val) else "---"
+                    l_ci = r0.get("ci_low", np.nan)
+                    u_ci = r0.get("ci_high", np.nan)
+                    ci_str = f"[{format_num(l_ci)}, {format_num(u_ci)}]" if (pd.notna(l_ci) and pd.notna(u_ci)) else "---"
+                    p_val = r0.get("p", np.nan)
+                    q_val = r0.get("q", np.nan)
+                    pq_str = f"{q_val:.3f}" if pd.notna(q_val) else (f"{p_val:.3f}" if pd.notna(p_val) else "---")
+                    supp_str = r"\checkmark Supported" if (pd.notna(q_val) and q_val < 0.05) else "Not Supported"
+                    tex_lines.append(f"{'H3: LMM Term':<30} & {raw_term:<42} & {b_str:<8} & {ci_str:<22} & {pq_str:<12} & {supp_str:<22} \\\\")
+
+            # H4 from df_recov
+            tex_lines.append(r"\midrule")
+            if df_recov is not None and len(df_recov) > 0:
+                r_auc = df_recov[df_recov["task"] == "reader"]["matched_auc"].dropna().mean()
+                s_auc = df_recov[df_recov["task"] == "self"]["matched_auc"].dropna().mean()
+                diff_auc = s_auc - r_auc if (pd.notna(s_auc) and pd.notna(r_auc)) else np.nan
+                diff_str = format_num(diff_auc) if pd.notna(diff_auc) else "---"
+                tex_lines.append(f"{'H4: Recovery Asymmetry':<30} & {'Self--Reader AUC diff (\\textbf{Primary})':<42} & {diff_str:<8} & {'---':<22} & {'---':<12} & Not Supported (Incomp.) \\\\")
     else:
         tex_lines.append(r"--- & --- & --- & --- & --- & --- \\")
-
-    # -------------------------------------------------------------------------
-    # H3: Causal Profile Reorganization (from LMM)
-    # -------------------------------------------------------------------------
-    tex_lines.append(r"\midrule")
-    # Prespecified Primary Terms (interactions)
-    LMM_PRIMARY_TERMS = [
-        ("C(alignment)[T.inst]:relative_depth", "H3: Causal Reorganization", r"Alignment $\times$ Depth (\textbf{Primary})", 0.878),
-        ("C(alignment)[T.inst]:C(task)[T.self]", "H3: Causal Reorganization", r"Alignment $\times$ Task (\textbf{Primary})", 0.878),
-        ("C(alignment)[T.inst]:C(task)[T.self]:relative_depth", "H3: Causal Reorganization", r"Alignment $\times$ Task $\times$ Depth (\textbf{Primary})", 0.961),
-    ]
-    # Secondary descriptive term (main effect)
-    LMM_SECONDARY_TERMS = [
-        ("C(alignment)[T.inst]", "H3: Alignment Main Effect", r"Alignment main effect (\textit{Secondary})", "< 0.001"),
-    ]
-
-    if df_lmm is not None and len(df_lmm) > 0:
-        for term_key, h_label, m_label, q_val in LMM_PRIMARY_TERMS:
-            row = df_lmm[df_lmm["term"] == term_key]
-            if len(row) > 0:
-                r0 = row.iloc[0]
-                b_val = r0.get("beta", r0.get("estimate", np.nan))
-                b_str = format_num(b_val)
-                l_ci = r0.get("ci_low", np.nan)
-                u_ci = r0.get("ci_high", np.nan)
-                ci_str = f"[{format_num(l_ci)}, {format_num(u_ci)}]" if (pd.notna(l_ci) and pd.notna(u_ci)) else "---"
-                q_str = f"{q_val:.3f}" if isinstance(q_val, float) else str(q_val)
-                tex_lines.append(f"{h_label:<30} & {m_label:<38} & {b_str:<8} & {ci_str:<18} & {q_str:<12} & Not Supported         \\\\")
-            else:
-                tex_lines.append(f"{h_label:<30} & {m_label:<38} & ---      & ---                & ---          & ---                    \\\\")
-
-        for term_key, h_label, m_label, p_str_val in LMM_SECONDARY_TERMS:
-            row = df_lmm[df_lmm["term"] == term_key]
-            if len(row) > 0:
-                r0 = row.iloc[0]
-                b_val = r0.get("beta", r0.get("estimate", np.nan))
-                b_str = format_num(b_val)
-                l_ci = r0.get("ci_low", np.nan)
-                u_ci = r0.get("ci_high", np.nan)
-                ci_str = f"[{format_num(l_ci)}, {format_num(u_ci)}]" if (pd.notna(l_ci) and pd.notna(u_ci)) else "---"
-                tex_lines.append(f"{h_label:<30} & {m_label:<38} & {b_str:<8} & {ci_str:<18} & {p_str_val:<12} & \\checkmark Supported  \\\\")
-    else:
-        tex_lines.append(r"H3: Causal Reorganization      & Primary interaction terms              & ---      & ---                & ---          & Not Supported          \\\\")
-
-    # -------------------------------------------------------------------------
-    # H4: Distribution Recovery
-    # -------------------------------------------------------------------------
-    tex_lines.append(r"\midrule")
-    if df_recov is not None and len(df_recov) > 0 and "matched_auc" in df_recov.columns:
-        valid_auc = df_recov["matched_auc"].dropna()
-        if len(valid_auc) > 0:
-            # Self - Reader difference (Primary)
-            r_auc = df_recov[df_recov["task"] == "reader"]["matched_auc"].dropna().mean()
-            s_auc = df_recov[df_recov["task"] == "self"]["matched_auc"].dropna().mean()
-            diff_auc = s_auc - r_auc if (pd.notna(s_auc) and pd.notna(r_auc)) else np.nan
-            diff_auc_str = format_num(diff_auc)
-
-            # Descriptive mean
-            mean_auc = valid_auc.mean()
-            mean_auc_str = format_num(mean_auc)
-
-            # Primary H4 line (Incomplete coverage: 2/4 families only, CI crosses zero)
-            tex_lines.append(f"{'H4: Recovery Asymmetry':<30} & {'Self--Reader AUC diff (\\textbf{Primary})':<38} & {diff_auc_str:<8} & [$-$0.015, 0.078] & ---          & Not Supported (Incomp.) \\\\")
-            tex_lines.append(f"{'H4: Recovery Asymmetry':<30} & {'Matched-Plain AUC (\\textit{Descriptive})':<38} & {mean_auc_str:<8} & ---                & ---          & ---                    \\\\")
-        else:
-            tex_lines.append(r"H4: Recovery Asymmetry         & Self--Reader AUC diff (\textbf{Primary}) & ---      & ---                & ---          & Not Supported (Incomp.) \\\\")
-    else:
-        tex_lines.append(r"H4: Recovery Asymmetry         & Self--Reader AUC diff (\textbf{Primary}) & ---      & ---                & ---          & Not Supported (Incomp.) \\\\")
 
     tex_lines.extend([
         r"\bottomrule",

@@ -412,11 +412,25 @@ def build_v3_summary(
                         "family": fam_name,
                         "hypothesis": "H1_dissociation",
                         "axis": ax,
+                        "metric": "peak_dissociation",
                         "estimate": pk_val,
                         "ci_low": float(pk_ci[0]),
                         "ci_high": float(pk_ci[1]),
                         "threshold": "CI_low > 0",
-                        "pass": pass_h1,
+                        "pass": bool(pk_ci[0] > 0),
+                    }
+                )
+                table_v3_4_rows.append(
+                    {
+                        "family": fam_name,
+                        "hypothesis": "H1_dissociation",
+                        "axis": ax,
+                        "metric": "center_dissociation",
+                        "estimate": ct_val,
+                        "ci_low": float(ct_ci[0]),
+                        "ci_high": float(ct_ci[1]),
+                        "threshold": "CI_low > 0",
+                        "pass": bool(ct_ci[0] > 0),
                     }
                 )
 
@@ -434,6 +448,7 @@ def build_v3_summary(
                         "family": fam_name,
                         "hypothesis": "H2_sufficiency",
                         "axis": ax,
+                        "metric": "sufficiency_slope",
                         "estimate": h2_val,
                         "ci_low": float(h2_ci[0]),
                         "ci_high": float(h2_ci[1]),
@@ -450,7 +465,9 @@ def build_v3_summary(
                 h3_val = float(ax_d.get("mediated_attenuation", np.nan))
                 h3_ci = ax_d.get("mediated_attenuation_ci", [np.nan, np.nan])
                 net_info = h3.get("random_subspace_control", {}).get(ax, {}).get("net_attenuation_vs_random", {})
-                net_ci_low = float(net_info.get("ci_lower", 0.0))
+                net_mean = float(net_info.get("mean", np.nan))
+                net_ci_low = float(net_info.get("ci_lower", np.nan))
+                net_ci_high = float(net_info.get("ci_upper", np.nan))
                 pass_h3 = bool(h3_ci[0] > 0.0 and net_ci_low > 0.0)
                 h3_passes.append(pass_h3)
 
@@ -459,11 +476,25 @@ def build_v3_summary(
                         "family": fam_name,
                         "hypothesis": "H3_mediation",
                         "axis": ax,
+                        "metric": "mediated_M",
                         "estimate": h3_val,
                         "ci_low": float(h3_ci[0]),
                         "ci_high": float(h3_ci[1]),
-                        "threshold": "CI_low(M) > 0 and CI_low(M_net) > 0",
-                        "pass": pass_h3,
+                        "threshold": "CI_low(M) > 0",
+                        "pass": bool(h3_ci[0] > 0.0),
+                    }
+                )
+                table_v3_4_rows.append(
+                    {
+                        "family": fam_name,
+                        "hypothesis": "H3_mediation",
+                        "axis": ax,
+                        "metric": "net_vs_random",
+                        "estimate": net_mean,
+                        "ci_low": net_ci_low,
+                        "ci_high": net_ci_high,
+                        "threshold": "CI_low(M_net) > 0",
+                        "pass": bool(net_ci_low > 0.0),
                     }
                 )
 
@@ -481,6 +512,7 @@ def build_v3_summary(
                         "family": fam_name,
                         "hypothesis": "H4_temporal_contrast",
                         "axis": ax,
+                        "metric": "temporal_contrast",
                         "estimate": h4_val,
                         "ci_low": float(h4_ci[0]),
                         "ci_high": float(h4_ci[1]),

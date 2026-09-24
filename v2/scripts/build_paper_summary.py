@@ -34,14 +34,19 @@ from affective_empathy_eval.paper_summary.schema import (
 )
 
 
-def find_v2_artifact(v2_dir: Path, filename: str) -> Path | None:
-    """derived/ または derived/dry_run/ からファイルを探索"""
-    p1 = v2_dir / "results" / "derived" / filename
-    if p1.exists():
-        return p1
-    p2 = v2_dir / "results" / "derived" / "dry_run" / filename
-    if p2.exists():
-        return p2
+def find_v2_artifact(
+    v2_dir: Path,
+    filename: str,
+    allow_dry_run: bool = False,
+) -> Path | None:
+    """derived/ または derived/dry_run/ からファイルを探索（productionではdry_run禁止）"""
+    p = v2_dir / "results" / "derived" / filename
+    if p.exists():
+        return p
+    if allow_dry_run:
+        p_dry = v2_dir / "results" / "derived" / "dry_run" / filename
+        if p_dry.exists():
+            return p_dry
     return None
 
 
@@ -77,7 +82,7 @@ def build_v2_summary(
         if fam_name not in cd_data["per_family"]:
             cmap_file = v2_dir / f"results/raw/v2_causal_map_{fam_name}.json"
             if cmap_file.exists():
-                cd_data["per_family"][fam_name] = load_json(cmap_file)
+                cd_data["per_family"][fam_name] = load_json_if_exists(cmap_file)
 
     # 3. LMM confirmatory artifact
     lmm_path = find_v2_artifact(v2_dir, "v2_lmm_confirmatory.json")
@@ -259,6 +264,7 @@ def build_v2_summary(
     fig_v2_3_rows = []
 
     cd_families = ["olmo", "llama", "gemma", "qwen"]
+    per_fam_cd = cd_data.get("per_family", {})
 
     for fam in cd_families:
         fam_entry = per_fam_cd.get(fam, {})
@@ -433,6 +439,7 @@ def build_v2_summary(
         ci_0 = conf_int.get("0", {})
         ci_1 = conf_int.get("1", {})
 
+        primary_fdr = h3_lmm.get("primary_fdr_adjusted_p_values", {})
         for raw_term, beta_val in params.items():
             # Clean term name for unique metric convention: metric = "lmm_beta::<term>"
             clean_term = (
@@ -446,6 +453,7 @@ def build_v2_summary(
             p_val = float(pvalues.get(raw_term, np.nan))
             ci_l = float(ci_0.get(raw_term, np.nan))
             ci_h = float(ci_1.get(raw_term, np.nan))
+            q_val = float(primary_fdr.get(f"{axis_name}_{raw_term}", np.nan))
 
             table_v2_3c_rows.append(
                 {
@@ -456,6 +464,7 @@ def build_v2_summary(
                     "ci_low": ci_l,
                     "ci_high": ci_h,
                     "p": p_val,
+                    "q": q_val,
                 }
             )
 
@@ -473,6 +482,7 @@ def build_v2_summary(
                     ci_low=ci_l,
                     ci_high=ci_h,
                     p=p_val,
+                    q=q_val,
                     is_primary=True if "alignment_x_depth" in clean_term else False,
                     analysis_role="primary" if "alignment_x_depth" in clean_term else "control",
                     source_artifact=str(lmm_path.relative_to(v2_dir.parent))
@@ -500,7 +510,7 @@ def build_v2_summary(
     # 5. Table V2-4: Distribution Recovery (RQ4)
     # =========================================================================
     table_v2_4_rows = []
-    h4 = lmm_data.get("hypotheses", {}).get("H4_distribution_recovery", {})
+    h4 = lmm_data.get("hypotheses", {}).get("H4_recovery_asymmetry", lmm_data.get("hypotheses", {}).get("H4_distribution_recovery", {}))
     rec_families = h4.get("per_family_recovery", {})
 
     for fam in families:
@@ -572,26 +582,126 @@ def build_v2_summary(
     # 6. V2 Confirmatory Summary Table
     # =========================================================================
     conf_rows = []
-    for hyp_name, hyp_dict in lmm_data.get("hypotheses", {}).items():
-        interp = hyp_dict.get("interpretation", "")
-        effects = hyp_dict.get("effects", hyp_dict.get("primary_effects", {}))
-        for eff_name, eff_dict in effects.items():
-            if isinstance(eff_dict, dict):
-                mean_val = float(eff_dict.get("mean", eff_dict.get("mean_shift", np.nan)))
-                ci = eff_dict.get("bootstrap_ci_95", [np.nan, np.nan])
-                conf_rows.append(
-                    {
-                        "hypothesis": hyp_name,
-                        "metric": eff_name,
-                        "estimate": mean_val,
-                        "ci_low": float(ci[0]),
-                        "ci_high": float(ci[1]),
-                        "interpretation": interp,
-                    }
-                )
+    # H1a
+    h1a_data = lmm_data.get("hypotheses", {}).get("H1a_geometry_reorganization", {})
+    for mk, label in [("reader_distortion", "Reader Procrustes Distortion"), ("self_distortion", "Self Procrustes Distortion")]:
+        eff = h1a_data.get("effects", {}).get(mk, {})
+        est = eff.get("mean", np.nan)
+        ci = eff.get("bootstrap_ci_95", [np.nan, np.nan])
+        supp = bool(ci[0] > 0.0) if not np.isnan(ci[0]) else False
+        conf_rows.append({
+            "hypothesis": "H1a: Geometry Reorganization",
+            "metric": label,
+            "estimate": est,
+            "ci_low": ci[0],
+            "ci_high": ci[1],
+            "p": np.nan,
+            "q": np.nan,
+            "supported": "Supported" if supp else "Not Supported",
+        })
+
+    # H1b
+    h1b_data = lmm_data.get("hypotheses", {}).get("H1b_decodability_peak_reorganization", lmm_data.get("hypotheses", {}).get("H1_decodability_peak_reorganization", {}))
+    for mk, label in [("valence.reader.shift", "Valence Reader Peak Shift Delta d*"), ("arousal.reader.shift", "Arousal Reader Peak Shift Delta d*")]:
+        eff = h1b_data.get("primary_effects", {}).get(mk, {})
+        est = eff.get("mean_shift", np.nan)
+        ci = eff.get("bootstrap_ci_95", [np.nan, np.nan])
+        supp = bool(ci[0] > 0.0) if not np.isnan(ci[0]) else False
+        conf_rows.append({
+            "hypothesis": "H1b: Decodability Peak Shift",
+            "metric": label,
+            "estimate": est,
+            "ci_low": ci[0],
+            "ci_high": ci[1],
+            "p": np.nan,
+            "q": np.nan,
+            "supported": "Supported" if supp else "Not Supported",
+        })
+
+    # H2
+    h2_data = lmm_data.get("hypotheses", {}).get("H2_representation_sharing_reorganization", {})
+    for ax, label in [("valence", "Valence Delta Sharing"), ("arousal", "Arousal Delta Sharing")]:
+        eff = h2_data.get("primary_effects", {}).get(ax, {})
+        est = eff.get("mean_delta_sharing", np.nan)
+        ci = eff.get("bootstrap_ci_95", [np.nan, np.nan])
+        supp = bool(ci[1] < 0.0 or ci[0] > 0.0) if not np.isnan(ci[0]) else False
+        conf_rows.append({
+            "hypothesis": "H2: Sharing Reorganization",
+            "metric": label,
+            "estimate": est,
+            "ci_low": ci[0],
+            "ci_high": ci[1],
+            "p": np.nan,
+            "q": np.nan,
+            "supported": "Supported" if supp else "Not Supported",
+        })
+
+    # H3
+    h3_models = h3_lmm.get("models", {})
+    val_model = h3_models.get("valence", {})
+    val_params = val_model.get("params", {})
+    val_conf = val_model.get("conf_int", {})
+    val_p = val_model.get("pvalues", {})
+    fdr_q = h3_lmm.get("primary_fdr_adjusted_p_values", {})
+
+    terms_h3 = [
+        ("C(alignment)[T.inst]:relative_depth", "Alignment x Depth (Primary)"),
+        ("C(alignment)[T.inst]:C(task)[T.self]", "Alignment x Task (Primary)"),
+        ("C(alignment)[T.inst]:C(task)[T.self]:relative_depth", "Alignment x Task x Depth (Primary)"),
+        ("C(alignment)[T.inst]", "Alignment main effect (Secondary)"),
+    ]
+    for raw_t, label in terms_h3:
+        b_val = val_params.get(raw_t, np.nan)
+        c0 = val_conf.get("0", {}).get(raw_t, np.nan)
+        c1 = val_conf.get("1", {}).get(raw_t, np.nan)
+        p_val = val_p.get(raw_t, np.nan)
+        q_val = fdr_q.get(f"valence_{raw_t}", np.nan)
+        is_sec = "Secondary" in label
+        supp = "Supported" if (q_val < 0.05 if not np.isnan(q_val) else p_val < 0.05) else "Not Supported"
+        conf_rows.append({
+            "hypothesis": "H3: Alignment Main Effect" if is_sec else "H3: Causal Reorganization",
+            "metric": label,
+            "estimate": b_val,
+            "ci_low": c0,
+            "ci_high": c1,
+            "p": p_val,
+            "q": q_val,
+            "supported": supp,
+        })
+
+    # H4
+    h4_data = lmm_data.get("hypotheses", {}).get("H4_recovery_asymmetry", {})
+    h4_prim = h4_data.get("primary_auc_recovery", {})
+    h4_diff = h4_prim.get("diff_self_minus_reader_mean", np.nan)
+    h4_ci = h4_prim.get("diff_bootstrap_ci_95", [np.nan, np.nan])
+    conf_rows.append({
+        "hypothesis": "H4: Recovery Asymmetry",
+        "metric": "Self--Reader AUC diff (Primary)",
+        "estimate": h4_diff,
+        "ci_low": h4_ci[0],
+        "ci_high": h4_ci[1],
+        "p": np.nan,
+        "q": np.nan,
+        "supported": "Not Supported (Incomp.)",
+    })
+    # H4 descriptive
+    reader_m = h4_prim.get("reader_mean_auc", np.nan)
+    self_m = h4_prim.get("self_mean_auc", np.nan)
+    avg_m = np.nanmean([reader_m, self_m]) if not np.isnan(reader_m) else np.nan
+    conf_rows.append({
+        "hypothesis": "H4: Recovery Asymmetry",
+        "metric": "Matched-Plain AUC (Descriptive)",
+        "estimate": avg_m,
+        "ci_low": np.nan,
+        "ci_high": np.nan,
+        "p": np.nan,
+        "q": np.nan,
+        "supported": "---",
+    })
 
     df_conf = pd.DataFrame(conf_rows)
     safe_save_csv(df_conf, tables_dir / "table_v2_confirmatory.csv")
+    qc_info["tables"]["table_v2_confirmatory"] = {"n_rows": len(df_conf)}
 
     # 全レコードDataFrame化
     df_records = pd.DataFrame(records)

@@ -201,3 +201,24 @@ def test_invariant_7_manifest_provenance_completeness(summary_data):
         assert "sources" in entry, f"Missing sources in manifest for {rec_id}"
         assert "derivation" in entry, f"Missing derivation in manifest for {rec_id}"
         assert len(entry["sources"]) > 0, f"Empty sources list in manifest for {rec_id}"
+
+
+def test_paper_summary_contains_no_dry_run_sources():
+    """
+    不変条件 8: 論文用 summary 成果物に dry_run 由来のアーティファクトが含まれないこと
+    """
+    for csv_path in [
+        SUMMARY_DIR / "primary_results.csv",
+        SUMMARY_DIR / "secondary_results.csv",
+    ]:
+        if csv_path.exists():
+            df = pd.read_csv(csv_path)
+            assert not df["source_artifact"].astype(str).str.contains(r"/dry_run/").any(), (
+                f"Found dry_run artifacts in {csv_path}"
+            )
+
+    manifest_file = SUMMARY_DIR / "paper_summary_manifest.json"
+    if manifest_file.exists():
+        manifest_text = manifest_file.read_text(encoding="utf-8")
+        assert "/dry_run/" not in manifest_text, "Found dry_run artifacts in paper_summary_manifest.json"
+

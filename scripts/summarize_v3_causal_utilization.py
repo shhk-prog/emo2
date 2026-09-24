@@ -85,7 +85,7 @@ def generate_gate_table(df_gate):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} 事前登録 Gate 判定基準（Sufficiency: $\text{CI}_{\text{low}} > 0.10$, Specificity: $\text{CI}_{\text{low}} > 0.05$, Endogenous Relevance: $\text{CI}_{\text{low}} > 0.05$, Topic TVD: $\text{CI}_{\text{high}} < 0.15$）。全軸で Sufficiency / Specificity / Endogenous が未達（$\text{CI}_{\text{low}} \le 0$）のため、パイプライン判定は \textbf{NO\_GO}（\texttt{pipeline\_continues = False}）となり、以降の分析は探索的・定性的分析として位置づけられる。",
+        r"\textbf{Note:} 事前登録 Gate 判定基準（Sufficiency: $\text{CI}_{\text{low}} > 0.10$, Specificity: $\text{CI}_{\text{low}} > 0.05$, Endogenous Relevance: $\text{CI}_{\text{low}} > 0.05$, Topic TVD: $\text{CI}_{\text{high}} < 0.15$）。全軸でSufficiency / Specificity / Endogenousの事前定義thresholdを満たさなかったため、パイプライン判定は \textbf{NO\_GO}（\texttt{pipeline\_continues = False}）となり、以降の分析は探索的・定性的分析として位置づけられる。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -203,73 +203,51 @@ def generate_confirmatory_details_table(df_conf, repo_root="."):
         r"\midrule",
     ]
 
-    rep_path = os.path.join(repo_root, "v3/results/derived/v3_cross_model_replication_summary.json")
-    if os.path.exists(rep_path):
-        import json
-        with open(rep_path) as f:
-            rep_data = json.load(f)
-        fam_wise = rep_data.get("family_wise_results", {})
+    if df_conf is not None and len(df_conf) > 0:
         fams = ["Llama 3.2", "Gemma 3", "OLMo 2"]
+        # In case family names differ slightly in CSV
+        csv_fams = df_conf["family"].unique()
+        ordered_fams = [f for f in fams if f in csv_fams] or list(csv_fams)
 
-        for idx_fam, fam in enumerate(fams):
-            fd = fam_wise.get(fam, {})
-            fam_str = f"\\multirow{{10}}{{*}}{{\\textbf{{{fam}}}}}"
+        METRIC_ORDER = [
+            ("H1_dissociation", "peak_dissociation", r"H1 Peak Dissoc. ($\Delta d^*$)", 2, r"$\text{CI}_{\text{low}} > 0$"),
+            ("H1_dissociation", "center_dissociation", r"H1 Center Dissoc. ($\Delta\bar{d}$)", 2, r"$\text{CI}_{\text{low}} > 0$"),
+            ("H2_sufficiency", "sufficiency_slope", r"H2: Sufficiency ($\beta_1$)", 4, r"$\text{CI}_{\text{low}} > 0.10$"),
+            ("H3_mediation", "mediated_M", r"H3: Mediation ($M$)", 4, r"$\text{CI}_{\text{low}}(M) > 0$"),
+            ("H3_mediation", "net_vs_random", r"H3: Net vs. Random ($M_{\text{net}}$)", 4, r"$\text{CI}_{\text{low}}(M_{\text{net}}) > 0$"),
+            ("H4_temporal_contrast", "temporal_contrast", r"H4: Contrast ($\Delta C$)", 4, r"$\text{CI}_{\text{low}} > 0$"),
+        ]
 
-            # H1: Peak and Center Dissociation (Methods: Delta d* > 0 and Delta bar_d > 0)
-            h1 = fd.get("h1_dissociation", {})
-            for ax_idx, ax in enumerate(["valence", "arousal"]):
-                ax_d = h1.get(ax, {})
-                pk_est = ax_d.get("delta_d_peak", ax_d.get("delta_d_star", np.nan))
-                pk_ci = ax_d.get("delta_d_peak_ci", [np.nan, np.nan])
-                pk_pass = (pk_ci[0] > 0 and pk_est > 0)
-                pk_p_str = r"\checkmark \textbf{PASS}" if pk_pass else r"$\times$ FAIL"
-                pk_ci_str = f"[{format_num(pk_ci[0], 2)}, {format_num(pk_ci[1], 2)}]"
+        for idx_fam, fam in enumerate(ordered_fams):
+            sub_fam = df_conf[df_conf["family"] == fam]
+            fam_str = f"\\multirow{{12}}{{*}}{{\\textbf{{{fam}}}}}"
+            first_row = True
 
-                ct_est = ax_d.get("delta_d_center", ax_d.get("delta_bar_d", np.nan))
-                ct_ci = ax_d.get("delta_d_center_ci", [np.nan, np.nan])
-                ct_pass = (ct_ci[0] > 0 and ct_est > 0)
-                ct_p_str = r"\checkmark \textbf{PASS}" if ct_pass else r"$\times$ FAIL"
-                ct_ci_str = f"[{format_num(ct_ci[0], 2)}, {format_num(ct_ci[1], 2)}]"
+            for hyp, met, h_label, prec, th_str in METRIC_ORDER:
+                for ax in ["valence", "arousal"]:
+                    match = sub_fam[(sub_fam["hypothesis"] == hyp) & (sub_fam["axis"] == ax)]
+                    if "metric" in sub_fam.columns:
+                        match = match[match["metric"] == met]
 
-                f_label = fam_str if ax_idx == 0 else ""
-                tex_lines.append(f"{f_label:<28} & H1 Peak Dissoc. ($\\Delta d^*$) & {ax.capitalize():<8} & {format_num(pk_est, 3):<10} & {pk_ci_str:<18} & $\\text{{CI}}_{{\\text{{low}}}} > 0$ & {pk_p_str} \\\\")
-                tex_lines.append(f"{'':<28} & H1 Center Dissoc. ($\\Delta\\bar{{d}}$) & {ax.capitalize():<8} & {format_num(ct_est, 3):<10} & {ct_ci_str:<18} & $\\text{{CI}}_{{\\text{{low}}}} > 0$ & {ct_p_str} \\\\")
+                    if len(match) > 0:
+                        r0 = match.iloc[0]
+                        est_val = r0.get("estimate", np.nan)
+                        est_str = format_num(est_val, prec)
+                        l_ci = r0.get("ci_low", np.nan)
+                        u_ci = r0.get("ci_high", np.nan)
+                        ci_str = f"[{format_num(l_ci, prec)}, {format_num(u_ci, prec)}]" if (pd.notna(l_ci) and pd.notna(u_ci)) else "---"
+                        passed = bool(r0.get("pass", False))
+                        p_str = r"\checkmark \textbf{PASS}" if passed else r"$\times$ FAIL"
+                    else:
+                        est_str = "---"
+                        ci_str = "---"
+                        p_str = "---"
 
-            # H2: Sufficiency Slope (Threshold: CI_low > 0.10)
-            h2 = fd.get("h2_sufficiency", {})
-            for ax, key_s, key_ci in [("valence", "slope_v", "slope_v_ci"), ("arousal", "slope_a", "slope_a_ci")]:
-                est = h2.get(key_s, np.nan)
-                ci = h2.get(key_ci, [np.nan, np.nan])
-                passed = (ci[0] > 0.10)
-                p_str = r"\checkmark \textbf{PASS}" if passed else r"$\times$ FAIL"
-                ci_str = f"[{format_num(ci[0], 4)}, {format_num(ci[1], 4)}]"
-                tex_lines.append(f"{'':<28} & H2: Sufficiency ($\\beta_1$)   & {ax.capitalize():<8} & {format_num(est, 4):<10} & {ci_str:<18} & $\\text{{CI}}_{{\\text{{low}}}} > 0.10$ & {p_str} \\\\")
+                    f_label = fam_str if first_row else ""
+                    first_row = False
+                    tex_lines.append(f"{f_label:<28} & {h_label:<38} & {ax.capitalize():<8} & {est_str:<10} & {ci_str:<18} & {th_str:<26} & {p_str} \\\\")
 
-            # H3: Endogenous Mediation (Methods: CI_low(M) > 0 and CI_low(M_net) > 0)
-            h3 = fd.get("h3_endogenous_relevance", {})
-            for ax in ["valence", "arousal"]:
-                ax_d = h3.get(ax, {})
-                est = ax_d.get("mediated_attenuation", np.nan)
-                ci = ax_d.get("mediated_attenuation_ci", [np.nan, np.nan])
-                # Check random net CI if present
-                net_info = h3.get("random_subspace_control", {}).get(ax, {}).get("net_attenuation_vs_random", {})
-                net_ci_l = net_info.get("ci_lower", 0.0)
-                passed = (ci[0] > 0.0 and net_ci_l > 0.0)
-                p_str = r"\checkmark \textbf{PASS}" if passed else r"$\times$ FAIL"
-                ci_str = f"[{format_num(ci[0], 4)}, {format_num(ci[1], 4)}]"
-                tex_lines.append(f"{'':<28} & H3: Mediation ($M$)           & {ax.capitalize():<8} & {format_num(est, 4):<10} & {ci_str:<18} & $\\text{{CI}}_{{\\text{{low}}}} > 0$ & {p_str} \\\\")
-
-            # H4: Temporal Contrast (Methods: CI_low(Delta C) > 0)
-            h4 = fd.get("h4_temporal_emergence", {})
-            for ax, key_c, key_ci in [("valence", "contrast_v", "contrast_v_ci"), ("arousal", "contrast_a", "contrast_a_ci")]:
-                est = h4.get(key_c, np.nan)
-                ci = h4.get(key_ci, [np.nan, np.nan])
-                passed = (ci[0] > 0.0)
-                p_str = r"\checkmark \textbf{PASS}" if passed else r"$\times$ FAIL"
-                ci_str = f"[{format_num(ci[0], 4)}, {format_num(ci[1], 4)}]"
-                tex_lines.append(f"{'':<28} & H4: Contrast ($\\Delta C$)     & {ax.capitalize():<8} & {format_num(est, 4):<10} & {ci_str:<18} & $\\text{{CI}}_{{\\text{{low}}}} > 0$ & {p_str} \\\\")
-
-            if idx_fam < len(fams) - 1:
+            if idx_fam < len(ordered_fams) - 1:
                 tex_lines.append(r"\midrule")
     else:
         tex_lines.append(r"--- & --- & --- & --- & --- & --- & --- \\")
@@ -280,7 +258,7 @@ def generate_confirmatory_details_table(df_conf, repo_root="."):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} 各ファミリー固有の95\%ブートストラップ信頼区間および事前登録判定基準（H1: $\text{CI}_{\text{low}} > 0$; H2: $\text{CI}_{\text{low}} > 0.10$; H3: $\text{CI}_{\text{low}} > 0$; H4: $\text{CI}_{\text{low}} > 0$）に基づく評価。H1--H3はいずれのモデル・軸でも事前登録基準を満たさなかった（FAIL）。H4では各モデルで軸レベルの正の効果量（$\text{CI}_{\text{low}} > 0$）が観測されたが、Gate判定がNO\_GOであるため事前登録パイプライン全体のConfirmationは不成立となった。",
+        r"\textbf{Note:} 各ファミリー固有の95\%ブートストラップ信頼区間および事前登録判定基準（H1: $\text{CI}_{\text{low}} > 0$; H2: $\text{CI}_{\text{low}} > 0.10$; H3: $\text{CI}_{\text{low}}(M) > 0$ かつ $\text{CI}_{\text{low}}(M_{\text{net}}) > 0$; H4: $\text{CI}_{\text{low}} > 0$）に基づく評価。H3の支持には内因性変位減衰量 $M$ の信頼区間下限が正であること（$\text{CI}_{\text{low}}(M) > 0$）に加え、ランダム部分空間統制を差し引いた正味減衰量 $M_{\text{net}}$ の信頼区間下限も正であること（$\text{CI}_{\text{low}}(M_{\text{net}}) > 0$）が要求される。H1--H3はいずれのモデル・軸でも事前登録基準を満たさなかった（FAIL）。H4では各モデルで軸レベルの正の効果量（$\text{CI}_{\text{low}} > 0$）が観測されたが、Gate判定がNO\_GOであるため事前登録パイプライン全体のConfirmationは不成立となった。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -302,51 +280,15 @@ def generate_confirmatory_table(df_conf, df_conf_matrix, repo_root="."):
         r"\midrule",
     ]
 
-    rep_path = os.path.join(repo_root, "v3/results/derived/v3_cross_model_replication_summary.json")
-    if os.path.exists(rep_path):
-        import json
-        with open(rep_path) as f:
-            rep_data = json.load(f)
-        fam_wise = rep_data.get("family_wise_results", {})
-        fams = ["Llama 3.2", "Gemma 3", "OLMo 2"]
-
-        for fam in fams:
-            fd = fam_wise.get(fam, {})
-            # H1: dissociation requires peak_ci_low > 0 and center_ci_low > 0 for both V and A
-            h1 = fd.get("h1_dissociation", {})
-            h1_v_pk_ci = h1.get("valence", {}).get("delta_d_peak_ci", [-1, -1])
-            h1_v_ct_ci = h1.get("valence", {}).get("delta_d_center_ci", [-1, -1])
-            h1_a_pk_ci = h1.get("arousal", {}).get("delta_d_peak_ci", [-1, -1])
-            h1_a_ct_ci = h1.get("arousal", {}).get("delta_d_center_ci", [-1, -1])
-            h1_pass = (h1_v_pk_ci[0] > 0 and h1_v_ct_ci[0] > 0 and h1_a_pk_ci[0] > 0 and h1_a_ct_ci[0] > 0)
-
-            # H2: sufficiency slope CI_low > 0.10 for both V and A
-            h2_v_ci = fd.get("h2_sufficiency", {}).get("slope_v_ci", [0, 0])
-            h2_a_ci = fd.get("h2_sufficiency", {}).get("slope_a_ci", [0, 0])
-            h2_pass = (h2_v_ci[0] > 0.10 and h2_a_ci[0] > 0.10)
-
-            # H3: mediated attenuation CI_low > 0 and net attenuation vs random CI_low > 0 for both V and A
-            h3 = fd.get("h3_endogenous_relevance", {})
-            h3_v_ci = h3.get("valence", {}).get("mediated_attenuation_ci", [0, 0])
-            h3_a_ci = h3.get("arousal", {}).get("mediated_attenuation_ci", [0, 0])
-            net_v_l = h3.get("random_subspace_control", {}).get("valence", {}).get("net_attenuation_vs_random", {}).get("ci_lower", 0.0)
-            net_a_l = h3.get("random_subspace_control", {}).get("arousal", {}).get("net_attenuation_vs_random", {}).get("ci_lower", 0.0)
-            h3_pass = (h3_v_ci[0] > 0.0 and net_v_l > 0.0 and h3_a_ci[0] > 0.0 and net_a_l > 0.0)
-
-            # H4: temporal contrast CI_low > 0 for both V and A
-            h4_v_ci = fd.get("h4_temporal_emergence", {}).get("contrast_v_ci", [0, 0])
-            h4_a_ci = fd.get("h4_temporal_emergence", {}).get("contrast_a_ci", [0, 0])
-            h4_pass = (h4_v_ci[0] > 0.0 and h4_a_ci[0] > 0.0)
-
-            all_c = (h1_pass and h2_pass and h3_pass and h4_pass)
-
-            h1_str = r"\checkmark" if h1_pass else r"$\times$"
-            h2_str = r"\checkmark" if h2_pass else r"$\times$"
-            h3_str = r"\checkmark" if h3_pass else r"$\times$"
-            h4_str = r"\checkmark" if h4_pass else r"$\times$"
-            all_str = r"\textbf{YES}" if all_c else r"\textbf{NO}"
-
-            tex_lines.append(f"{fam:<12} & {h1_str:<12} & {h2_str:<12} & {h3_str:<12} & {h4_str:<12} & {all_str} \\\\")
+    if df_conf_matrix is not None and len(df_conf_matrix) > 0:
+        for _, r in df_conf_matrix.iterrows():
+            fam = str(r["family"])
+            h1 = r"\checkmark" if r["H1"] else r"$\times$"
+            h2 = r"\checkmark" if r["H2"] else r"$\times$"
+            h3 = r"\checkmark" if r["H3"] else r"$\times$"
+            h4 = r"\checkmark" if r["H4"] else r"$\times$"
+            all_c = r"\textbf{YES}" if r["all_confirmed"] else r"\textbf{NO}"
+            tex_lines.append(f"{fam:<14} & {h1:<12} & {h2:<12} & {h3:<12} & {h4:<12} & {all_c} \\\\")
     else:
         tex_lines.append(r"--- & --- & --- & --- & --- & --- \\")
 
@@ -356,11 +298,12 @@ def generate_confirmatory_table(df_conf, df_conf_matrix, repo_root="."):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} 事前登録された二軸同時達成基準（Valence pass AND Arousal pass）および効果量閾値による判定。H4単独では各モデルで二軸達成されたが、Gate不通過およびH1--H3の未達により、全体としての事前登録Confirmationは成立しなかった（All Confirmed: \textbf{NO}）。",
+        r"\textbf{Note:} 全4仮説の総合判定マトリックス。各セルは該当仮説においてValenceおよびArousalの双方が事前登録基準（95\% CI）を満たした場合に合致（$\checkmark$）とする。全モデルファミリーにおいてH1--H3は棄却され、H4のみが支持されたため、全体結論として情動表現の機能的・因果的活用仮説は支持されなかった（All Confirmed = NO）。",
         r"\end{minipage}",
         r"\end{table}",
     ])
     return "\n".join(tex_lines)
+
 
 # =========================================================================
 # Markdown Summary
@@ -401,7 +344,7 @@ def generate_markdown_summary(df_gate, df_spatio, df_atten, df_conf, df_conf_mat
         "",
         "## 3. Confirmatory Replication Matrix across Independent Families",
         "",
-        "| Family | H1 (Dissociation $\\Delta d < 0$) | H2 (Sufficiency $\\beta > 0$) | H3 (Mediation $\\beta > 0$) | H4 (Temporal Contrast $\\beta > 0$) | All Confirmed? |",
+        "| Family | H1 (Dissociation $\\Delta d > 0$) | H2 (Sufficiency $\\beta_1 > 0.10$) | H3 (Mediation $M > 0$) | H4 (Temporal Contrast $\\Delta C > 0$) | All Confirmed? |",
         "| :--- | :---: | :---: | :---: | :---: | :---: |",
     ])
     for _, row in df_conf_matrix.iterrows():

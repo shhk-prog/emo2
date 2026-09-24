@@ -1,15 +1,13 @@
-hypothesis,metric,estimate,ci_low,ci_high,interpretation
-H1a_geometry_reorganization,reader_distortion,0.35250000000000004,0.32999999999999996,0.37,post-training-associated geometric distortion and representational similarity under matched-plain conditions
-H1a_geometry_reorganization,self_distortion,0.425,0.40249999999999997,0.445,post-training-associated geometric distortion and representational similarity under matched-plain conditions
-H1a_geometry_reorganization,rsa_reader,0.6475000000000001,0.63,0.67,post-training-associated geometric distortion and representational similarity under matched-plain conditions
-H1a_geometry_reorganization,rsa_self,0.575,0.555,0.5975,post-training-associated geometric distortion and representational similarity under matched-plain conditions
-H1b_decodability_peak_reorganization,valence.reader.shift,0.11249999999999999,0.09000000000000001,0.1375,post-training-associated reorganization of decodability peak (Primary: matched-plain)
-H1b_decodability_peak_reorganization,valence.self.shift,0.0775,0.06,0.1,post-training-associated reorganization of decodability peak (Primary: matched-plain)
-H1b_decodability_peak_reorganization,arousal.reader.shift,0.09000000000000001,0.07,0.11,post-training-associated reorganization of decodability peak (Primary: matched-plain)
-H1b_decodability_peak_reorganization,arousal.self.shift,0.06,0.045,0.08,post-training-associated reorganization of decodability peak (Primary: matched-plain)
-H1_decodability_peak_reorganization,valence.reader.shift,0.11249999999999999,0.09000000000000001,0.1375,post-training-associated reorganization of decodability peak (Primary: matched-plain)
-H1_decodability_peak_reorganization,valence.self.shift,0.0775,0.06,0.1,post-training-associated reorganization of decodability peak (Primary: matched-plain)
-H1_decodability_peak_reorganization,arousal.reader.shift,0.09000000000000001,0.07,0.11,post-training-associated reorganization of decodability peak (Primary: matched-plain)
-H1_decodability_peak_reorganization,arousal.self.shift,0.06,0.045,0.08,post-training-associated reorganization of decodability peak (Primary: matched-plain)
-H2_representation_sharing_reorganization,valence,-0.0825,-0.105,-0.06,post-training-associated reorganization of Reader-Self representation sharing
-H2_representation_sharing_reorganization,arousal,-0.055,-0.065,-0.045,post-training-associated reorganization of Reader-Self representation sharing
+hypothesis,metric,estimate,ci_low,ci_high,p,q,supported
+H1a: Geometry Reorganization,Reader Procrustes Distortion,1.4552528510627512,0.6387456352157252,2.8125523110994926,,,Supported
+H1a: Geometry Reorganization,Self Procrustes Distortion,2.8715983786630432,0.6603241244863186,6.995424955008694,,,Supported
+H1b: Decodability Peak Shift,Valence Reader Peak Shift Delta d*,-0.11851851851851852,-0.21851851851851856,-0.033333333333333326,,,Not Supported
+H1b: Decodability Peak Shift,Arousal Reader Peak Shift Delta d*,0.19962962962962963,-0.02666666666666665,0.42592592592592593,,,Not Supported
+H2: Sharing Reorganization,Valence Delta Sharing,-0.5529315215451406,-1.3236456655714326,0.07598084605444852,,,Not Supported
+H2: Sharing Reorganization,Arousal Delta Sharing,-0.27844513160965323,-0.6150975782892856,0.04893309729879739,,,Not Supported
+H3: Causal Reorganization,Alignment x Depth (Primary),0.00014652244409162115,-4.9812471200241494e-05,0.0003428573593834838,0.14354999823864487,0.28709999647728973,Not Supported
+H3: Causal Reorganization,Alignment x Task (Primary),0.0001920383911220997,2.9733855851501317e-05,0.00035434292639269807,0.020393662333998905,0.12236197400399343,Not Supported
+H3: Causal Reorganization,Alignment x Task x Depth (Primary),-0.00021300620145973354,-0.0004906657014328585,6.465329851339135e-05,0.13268841901321607,0.28709999647728973,Not Supported
+H3: Alignment Main Effect,Alignment main effect (Secondary),-0.00011448554898412532,-0.00022925218649129666,2.8108852304602324e-07,0.050563762779061674,,Not Supported
+H4: Recovery Asymmetry,Self--Reader AUC diff (Primary),0.03190227216130493,0.010355544583598969,0.05344899973901089,,,Not Supported (Incomp.)
+H4: Recovery Asymmetry,Matched-Plain AUC (Descriptive),-0.09526214923734082,,,,,---

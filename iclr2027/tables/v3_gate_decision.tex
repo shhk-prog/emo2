@@ -16,6 +16,6 @@ Arousal    & -5.13e-05  & $\times$ & -4.18e-04  & $\times$ & 0.0013     & $\time
 \vspace{1ex}
 \begin{minipage}{\linewidth}
 \footnotesize
-\textbf{Note:} 事前登録 Gate 判定基準（Sufficiency: $\text{CI}_{\text{low}} > 0.10$, Specificity: $\text{CI}_{\text{low}} > 0.05$, Endogenous Relevance: $\text{CI}_{\text{low}} > 0.05$, Topic TVD: $\text{CI}_{\text{high}} < 0.15$）。全軸で Sufficiency / Specificity / Endogenous が未達（$\text{CI}_{\text{low}} \le 0$）のため、パイプライン判定は \textbf{NO\_GO}（\texttt{pipeline\_continues = False}）となり、以降の分析は探索的・定性的分析として位置づけられる。
+\textbf{Note:} 事前登録 Gate 判定基準（Sufficiency: $\text{CI}_{\text{low}} > 0.10$, Specificity: $\text{CI}_{\text{low}} > 0.05$, Endogenous Relevance: $\text{CI}_{\text{low}} > 0.05$, Topic TVD: $\text{CI}_{\text{high}} < 0.15$）。全軸でSufficiency / Specificity / Endogenousの事前定義thresholdを満たさなかったため、パイプライン判定は \textbf{NO\_GO}（\texttt{pipeline\_continues = False}）となり、以降の分析は探索的・定性的分析として位置づけられる。
 \end{minipage}
 \end{table}

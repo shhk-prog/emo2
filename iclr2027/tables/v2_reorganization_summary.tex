@@ -11,18 +11,18 @@
 \toprule
 \textbf{Hypothesis} & \textbf{Metric} & \textbf{Estimate} & \textbf{95\% CI} & \textbf{Condition} \\
 \midrule
-\multirow{4}{*}{H1a: Geometric Distortion} & Reader Procrustes Distortion         & 0.352    & [0.330, 0.370]     & Matched-Plain \\
-                                 & Self Procrustes Distortion           & 0.425    & [0.402, 0.445]     & Matched-Plain \\
-                                 & RSA Reader ($\rho_{\text{RSA}}$)     & 0.648    & [0.630, 0.670]     & Matched-Plain \\
-                                 & RSA Self ($\rho_{\text{RSA}}$)       & 0.575    & [0.555, 0.598]     & Matched-Plain \\
+\multirow{4}{*}{H1a: Geometric Distortion} & Reader Procrustes Distortion         & ---      & ---                & Matched-Plain \\
+                                 & Self Procrustes Distortion           & ---      & ---                & Matched-Plain \\
+                                 & RSA Reader ($\rho_{\text{RSA}}$)     & ---      & ---                & Matched-Plain \\
+                                 & RSA Self ($\rho_{\text{RSA}}$)       & ---      & ---                & Matched-Plain \\
 \midrule
-\multirow{4}{*}{H1b: Decodability Peak Shift} & Valence Reader $\Delta d^*$          & 0.112    & [0.090, 0.138]     & Matched-Plain \\
-                                 & Valence Self $\Delta d^*$            & 0.077    & [0.060, 0.100]     & Matched-Plain \\
-                                 & Arousal Reader $\Delta d^*$          & 0.090    & [0.070, 0.110]     & Matched-Plain \\
-                                 & Arousal Self $\Delta d^*$            & 0.060    & [0.045, 0.080]     & Matched-Plain \\
+\multirow{4}{*}{H1b: Decodability Peak Shift} & Valence Reader $\Delta d^*$          & ---      & ---                & Matched-Plain \\
+                                 & Valence Self $\Delta d^*$            & ---      & ---                & Matched-Plain \\
+                                 & Arousal Reader $\Delta d^*$          & ---      & ---                & Matched-Plain \\
+                                 & Arousal Self $\Delta d^*$            & ---      & ---                & Matched-Plain \\
 \midrule
-\multirow{2}{*}{H2: Sharing Reorganization} & $\Delta\text{Sharing}$ (Valence)     & $-$0.083 & [$-$0.105, $-$0.060] & Matched-Plain \\
-                                 & $\Delta\text{Sharing}$ (Arousal)     & $-$0.055 & [$-$0.065, $-$0.045] & Matched-Plain \\
+\multirow{2}{*}{H2: Sharing Reorganization} & $\Delta\text{Sharing}$ (Valence)     & ---      & ---                & Matched-Plain \\
+                                 & $\Delta\text{Sharing}$ (Arousal)     & ---      & ---                & Matched-Plain \\
 \bottomrule
 \end{tabular}
 \vspace{1ex}
@@ -41,22 +41,22 @@
 \toprule
 \textbf{Family} & \textbf{Task} & \textbf{Axis} & \textbf{Base Peak ($d^*$)} & \textbf{Instruct Peak ($d^*$)} & $\Delta d_C^*$ & $\Delta d_{\text{center}}$ \\
 \midrule
-GEMMA      & Reader   & Arousal  & ---            & 0.440            & ---        & ---        \\
-GEMMA      & Reader   & Valence  & ---            & 0.480            & ---        & ---        \\
-GEMMA      & Self     & Arousal  & ---            & 0.440            & ---        & ---        \\
-GEMMA      & Self     & Valence  & ---            & 0.480            & ---        & ---        \\
+GEMMA      & Reader   & Arousal  & 0.760          & 0.560            & $-$0.200   & $-$0.106   \\
+GEMMA      & Reader   & Valence  & 0.520          & 0.080            & $-$0.440   & 0.098      \\
+GEMMA      & Self     & Arousal  & 0.560          & 0.240            & $-$0.320   & 0.010      \\
+GEMMA      & Self     & Valence  & 0.000          & 0.520            & 0.520      & 0.044      \\
 LLAMA      & Reader   & Arousal  & ---            & ---              & ---        & ---        \\
 LLAMA      & Reader   & Valence  & ---            & ---              & ---        & ---        \\
 LLAMA      & Self     & Arousal  & ---            & ---              & ---        & ---        \\
 LLAMA      & Self     & Valence  & ---            & ---              & ---        & ---        \\
-OLMO       & Reader   & Arousal  & ---            & 1.000            & ---        & ---        \\
-OLMO       & Reader   & Valence  & ---            & 1.000            & ---        & ---        \\
-OLMO       & Self     & Arousal  & ---            & 1.000            & ---        & ---        \\
-OLMO       & Self     & Valence  & ---            & 1.000            & ---        & ---        \\
-QWEN       & Reader   & Arousal  & ---            & 0.630            & ---        & ---        \\
-QWEN       & Reader   & Valence  & ---            & 0.556            & ---        & ---        \\
-QWEN       & Self     & Arousal  & ---            & 0.741            & ---        & ---        \\
-QWEN       & Self     & Valence  & ---            & 0.481            & ---        & ---        \\
+OLMO       & Reader   & Arousal  & 0.200          & 0.600            & 0.400      & 0.043      \\
+OLMO       & Reader   & Valence  & 0.600          & 0.267            & $-$0.333   & $-$0.170   \\
+OLMO       & Self     & Arousal  & 0.067          & 0.333            & 0.267      & $-$0.087   \\
+OLMO       & Self     & Valence  & 0.600          & 0.133            & $-$0.467   & $-$0.296   \\
+QWEN       & Reader   & Arousal  & 0.037          & 0.000            & $-$0.037   & $-$0.144   \\
+QWEN       & Reader   & Valence  & 0.778          & 0.111            & $-$0.667   & $-$0.042   \\
+QWEN       & Self     & Arousal  & 0.296          & 0.852            & 0.556      & 0.027      \\
+QWEN       & Self     & Valence  & 0.593          & 0.259            & $-$0.333   & $-$0.178   \\
 \bottomrule
 \end{tabular}
 \vspace{1ex}
@@ -75,14 +75,14 @@ QWEN       & Self     & Valence  & ---            & 0.481            & ---      
 \toprule
 \textbf{Family} & \textbf{Task} & \textbf{Condition} & \textbf{Axis} & $C_{\text{raw}}$ & $C_{\text{rand}}$ & $C_{\text{perp}}$ & $C_{\text{net,rand}}$ (\textbf{Primary}) & Zero-Ablation \\
 \midrule
-GEMMA      & Reader   & Base-Plain       & Valence  & 0.005      & 0.005      & 0.005      & 0.000              & 0.013        \\
-GEMMA      & Reader   & Base-Plain       & Arousal  & 0.001      & 0.001      & 0.001      & 0.000              & 0.057        \\
-GEMMA      & Self     & Base-Plain       & Valence  & 0.005      & 0.005      & 0.005      & 0.000              & 0.013        \\
-GEMMA      & Self     & Base-Plain       & Arousal  & 0.001      & 0.001      & 0.001      & 0.000              & 0.057        \\
-GEMMA      & Reader   & Matched-Plain    & Valence  & 0.005      & 0.005      & 0.005      & 0.000              & 0.014        \\
-GEMMA      & Reader   & Matched-Plain    & Arousal  & 0.001      & 0.001      & 0.001      & 0.000              & 0.061        \\
-GEMMA      & Self     & Matched-Plain    & Valence  & 0.005      & 0.005      & 0.005      & 0.000              & 0.014        \\
-GEMMA      & Self     & Matched-Plain    & Arousal  & 0.001      & 0.001      & 0.001      & 0.000              & 0.061        \\
+OLMO       & Reader   & Base-Plain       & Valence  & 0.002      & 0.002      & 0.002      & $-$0.000           & 0.016        \\
+OLMO       & Reader   & Base-Plain       & Arousal  & 0.001      & 0.001      & 0.001      & 0.000              & 0.019        \\
+OLMO       & Self     & Base-Plain       & Valence  & 0.002      & 0.002      & 0.002      & $-$0.000           & 0.016        \\
+OLMO       & Self     & Base-Plain       & Arousal  & 0.001      & 0.001      & 0.001      & 0.000              & 0.020        \\
+OLMO       & Reader   & Matched-Plain    & Valence  & 0.004      & 0.004      & 0.004      & $-$0.000           & 0.053        \\
+OLMO       & Reader   & Matched-Plain    & Arousal  & 0.001      & 0.001      & 0.001      & $-$0.000           & 0.016        \\
+OLMO       & Self     & Matched-Plain    & Valence  & 0.004      & 0.004      & 0.004      & $-$0.000           & 0.075        \\
+OLMO       & Self     & Matched-Plain    & Arousal  & 0.001      & 0.001      & 0.001      & 0.000              & 0.037        \\
 LLAMA      & Reader   & Base-Plain       & Valence  & ---        & ---        & ---        & ---                & ---          \\
 LLAMA      & Reader   & Base-Plain       & Arousal  & ---        & ---        & ---        & ---                & ---          \\
 LLAMA      & Self     & Base-Plain       & Valence  & ---        & ---        & ---        & ---                & ---          \\
@@ -91,22 +91,22 @@ LLAMA      & Reader   & Matched-Plain    & Valence  & ---        & ---        & 
 LLAMA      & Reader   & Matched-Plain    & Arousal  & ---        & ---        & ---        & ---                & ---          \\
 LLAMA      & Self     & Matched-Plain    & Valence  & ---        & ---        & ---        & ---                & ---          \\
 LLAMA      & Self     & Matched-Plain    & Arousal  & ---        & ---        & ---        & ---                & ---          \\
-OLMO       & Reader   & Base-Plain       & Valence  & 0.487      & 0.152      & 0.135      & 0.335              & 0.873        \\
-OLMO       & Reader   & Base-Plain       & Arousal  & 0.433      & 0.112      & 0.095      & 0.321              & 0.788        \\
-OLMO       & Self     & Base-Plain       & Valence  & 0.487      & 0.152      & 0.135      & 0.335              & 0.873        \\
-OLMO       & Self     & Base-Plain       & Arousal  & 0.433      & 0.112      & 0.095      & 0.321              & 0.788        \\
-OLMO       & Reader   & Matched-Plain    & Valence  & 0.487      & 0.152      & 0.135      & 0.335              & 0.873        \\
-OLMO       & Reader   & Matched-Plain    & Arousal  & 0.433      & 0.112      & 0.095      & 0.321              & 0.788        \\
-OLMO       & Self     & Matched-Plain    & Valence  & 0.487      & 0.152      & 0.135      & 0.335              & 0.873        \\
-OLMO       & Self     & Matched-Plain    & Arousal  & 0.433      & 0.112      & 0.095      & 0.321              & 0.788        \\
-QWEN       & Reader   & Base-Plain       & Valence  & 0.003      & 0.003      & 0.003      & 0.000              & 0.017        \\
-QWEN       & Reader   & Base-Plain       & Arousal  & 0.001      & 0.001      & 0.001      & 0.000              & 0.048        \\
-QWEN       & Self     & Base-Plain       & Valence  & 0.003      & 0.003      & 0.003      & 0.000              & 0.017        \\
-QWEN       & Self     & Base-Plain       & Arousal  & 0.001      & 0.001      & 0.001      & 0.000              & 0.048        \\
-QWEN       & Reader   & Matched-Plain    & Valence  & 0.003      & 0.003      & 0.003      & 0.000              & 0.018        \\
-QWEN       & Reader   & Matched-Plain    & Arousal  & 0.001      & 0.001      & 0.001      & 0.000              & 0.052        \\
-QWEN       & Self     & Matched-Plain    & Valence  & 0.003      & 0.003      & 0.003      & 0.000              & 0.018        \\
-QWEN       & Self     & Matched-Plain    & Arousal  & 0.001      & 0.001      & 0.001      & 0.000              & 0.052        \\
+GEMMA      & Reader   & Base-Plain       & Valence  & 0.005      & 0.005      & 0.005      & 0.000              & 0.031        \\
+GEMMA      & Reader   & Base-Plain       & Arousal  & 0.001      & 0.001      & 0.001      & 0.000              & 0.051        \\
+GEMMA      & Self     & Base-Plain       & Valence  & 0.005      & 0.005      & 0.005      & $-$0.000           & 0.036        \\
+GEMMA      & Self     & Base-Plain       & Arousal  & 0.001      & 0.001      & 0.001      & $-$0.000           & 0.054        \\
+GEMMA      & Reader   & Matched-Plain    & Valence  & 0.006      & 0.006      & 0.006      & $-$0.000           & 0.054        \\
+GEMMA      & Reader   & Matched-Plain    & Arousal  & 0.001      & 0.001      & 0.001      & 0.000              & 0.036        \\
+GEMMA      & Self     & Matched-Plain    & Valence  & 0.006      & 0.006      & 0.006      & 0.000              & 0.059        \\
+GEMMA      & Self     & Matched-Plain    & Arousal  & 0.001      & 0.001      & 0.001      & 0.000              & 0.030        \\
+QWEN       & Reader   & Base-Plain       & Valence  & 0.004      & 0.004      & 0.004      & 0.000              & 0.029        \\
+QWEN       & Reader   & Base-Plain       & Arousal  & 0.001      & 0.001      & 0.001      & 0.000              & 0.008        \\
+QWEN       & Self     & Base-Plain       & Valence  & 0.004      & 0.004      & 0.004      & $-$0.000           & 0.022        \\
+QWEN       & Self     & Base-Plain       & Arousal  & 0.001      & 0.001      & 0.001      & $-$0.000           & 0.007        \\
+QWEN       & Reader   & Matched-Plain    & Valence  & 0.007      & 0.007      & 0.007      & $-$0.000           & 0.122        \\
+QWEN       & Reader   & Matched-Plain    & Arousal  & 0.001      & 0.001      & 0.001      & 0.000              & 0.028        \\
+QWEN       & Self     & Matched-Plain    & Valence  & 0.007      & 0.007      & 0.007      & 0.000              & 0.121        \\
+QWEN       & Self     & Matched-Plain    & Arousal  & 0.001      & 0.001      & 0.001      & $-$0.000           & 0.027        \\
 \bottomrule
 \end{tabular}
 \vspace{1ex}
@@ -125,14 +125,14 @@ QWEN       & Self     & Matched-Plain    & Arousal  & 0.001      & 0.001      & 
 \toprule
 \textbf{Predictor / Parameter} & \textbf{Estimate ($\beta$)} & \textbf{Std. Error} & $t$ / $z$ & $p$-value & \textbf{95\% CI} \\
 \midrule
-Intercept                                        & $-$0.444     & ---        & ---      & < 0.001    & [$-$0.472, $-$0.416] \\
-Post-training ($\text{Instruct} = 1$)            & 0.181        & ---        & ---      & < 0.001    & [0.145, 0.217]     \\
-Task ($\text{Self} = 1$)                         & $-$0.010     & ---        & ---      & 0.594      & [$-$0.046, 0.026]  \\
-$\text{Post-training} \times \text{Task}$        & 0.004        & ---        & ---      & 0.878      & [$-$0.047, 0.055]  \\
-Relative Depth                                   & 0.959        & ---        & ---      & < 0.001    & [0.917, 1.002]     \\
-$\text{Post-training} \times \text{Depth}$       & 0.025        & ---        & ---      & 0.418      & [$-$0.035, 0.085]  \\
-$\text{Task} \times \text{Depth}$                & 0.018        & ---        & ---      & 0.549      & [$-$0.042, 0.078]  \\
-$\text{Post-training} \times \text{Task} \times \text{Depth}$ & $-$0.002     & ---        & ---      & 0.961      & [$-$0.087, 0.083]  \\
+Intercept                                        & 0.000        & ---        & ---      & ---        & ---                \\
+Post-training ($\text{Instruct} = 1$)            & $-$0.000     & ---        & ---      & 0.051      & [$-$0.000, 0.000]  \\
+Task ($\text{Self} = 1$)                         & $-$0.000     & ---        & ---      & 0.024      & [$-$0.000, $-$0.000] \\
+$\text{Post-training} \times \text{Task}$        & 0.000        & ---        & ---      & 0.020      & [0.000, 0.000]     \\
+Relative Depth                                   & $-$0.000     & ---        & ---      & 0.345      & [$-$0.000, 0.000]  \\
+$\text{Post-training} \times \text{Depth}$       & 0.000        & ---        & ---      & 0.144      & [$-$0.000, 0.000]  \\
+$\text{Task} \times \text{Depth}$                & 0.000        & ---        & ---      & 0.138      & [$-$0.000, 0.000]  \\
+$\text{Post-training} \times \text{Task} \times \text{Depth}$ & $-$0.000     & ---        & ---      & 0.133      & [$-$0.000, 0.000]  \\
 \bottomrule
 \end{tabular}
 \vspace{1ex}
@@ -151,14 +151,14 @@ $\text{Post-training} \times \text{Task} \times \text{Depth}$ & $-$0.002     & -
 \toprule
 \textbf{Family} & \textbf{Task} & \textbf{Matched AUC} & $\Delta\text{EMD AUC}$ & \textbf{Max Recovery} & \textbf{Best Depth ($d^*$)} & \textbf{Native AUC} & \textbf{Aligned AUC} \\
 \midrule
-GEMMA      & Reader   & $-$0.052     & $-$0.012       & 0.142        & 0.040            & $-$0.072   & $-$0.011   \\
-GEMMA      & Self     & 0.001        & 0.005          & 0.326        & 0.000            & $-$0.025   & $-$0.009   \\
-LLAMA      & Reader   & ---          & ---            & ---          & ---              & ---        & ---        \\
-LLAMA      & Self     & ---          & ---            & ---          & ---              & ---        & ---        \\
-OLMO       & Reader   & $-$0.170     & $-$0.037       & 0.006        & 0.800            & 0.044      & 0.001      \\
-OLMO       & Self     & $-$0.160     & $-$0.045       & 0.000        & 1.000            & 0.070      & $-$0.001   \\
 QWEN       & Reader   & ---          & ---            & ---          & ---              & ---        & ---        \\
 QWEN       & Self     & ---          & ---            & ---          & ---              & ---        & ---        \\
+LLAMA      & Reader   & ---          & ---            & ---          & ---              & ---        & ---        \\
+LLAMA      & Self     & ---          & ---            & ---          & ---              & ---        & ---        \\
+GEMMA      & Reader   & $-$0.052     & $-$0.012       & 0.142        & 0.040            & $-$0.072   & $-$0.011   \\
+GEMMA      & Self     & 0.001        & 0.005          & 0.326        & 0.000            & $-$0.025   & $-$0.009   \\
+OLMO       & Reader   & ---          & ---            & ---          & ---              & ---        & ---        \\
+OLMO       & Self     & ---          & ---            & ---          & ---              & ---        & ---        \\
 \bottomrule
 \end{tabular}
 \vspace{1ex}
@@ -177,20 +177,22 @@ QWEN       & Self     & ---          & ---            & ---          & ---      
 \toprule
 \textbf{Hypothesis} & \textbf{Key Pre-registered Metric} & \textbf{Estimate} & \textbf{95\% CI} & $p$ / FDR $q$ & \textbf{Supported?} \\
 \midrule
-H1a: Geometry Reorganization   & Reader Procrustes Distortion           & 0.352    & [0.330, 0.370]     & ---          & \checkmark Supported   \\
-H1a: Geometry Reorganization   & Self Procrustes Distortion             & 0.425    & [0.402, 0.445]     & ---          & \checkmark Supported   \\
-H1b: Decodability Peak Shift   & Valence Reader Peak Shift $\Delta d^*$ & 0.112    & [0.090, 0.138]     & ---          & \checkmark Supported   \\
-H1b: Decodability Peak Shift   & Arousal Reader Peak Shift $\Delta d^*$ & 0.090    & [0.070, 0.110]     & ---          & \checkmark Supported   \\
-H2: Sharing Reorganization     & Valence $\Delta\text{Sharing}$         & $-$0.083 & [$-$0.105, $-$0.060] & ---          & \checkmark Supported   \\
-H2: Sharing Reorganization     & Arousal $\Delta\text{Sharing}$         & $-$0.055 & [$-$0.065, $-$0.045] & ---          & \checkmark Supported   \\
+H1a: Geometry Reorganization   & Reader Procrustes Distortion               & 1.455    & [0.639, 2.813]         & ---          & \checkmark Supported   \\
+H1a: Geometry Reorganization   & Self Procrustes Distortion                 & 2.872    & [0.660, 6.995]         & ---          & \checkmark Supported   \\
 \midrule
-H3: Causal Reorganization      & Alignment $\times$ Depth (\textbf{Primary}) & 0.025    & [$-$0.035, 0.085]  & 0.878        & Not Supported         \\
-H3: Causal Reorganization      & Alignment $\times$ Task (\textbf{Primary}) & 0.004    & [$-$0.047, 0.055]  & 0.878        & Not Supported         \\
-H3: Causal Reorganization      & Alignment $\times$ Task $\times$ Depth (\textbf{Primary}) & $-$0.002 & [$-$0.087, 0.083]  & 0.961        & Not Supported         \\
-H3: Alignment Main Effect      & Alignment main effect (\textit{Secondary}) & 0.181    & [0.145, 0.217]     & < 0.001      & \checkmark Supported  \\
+H1b: Decodability Peak Shift   & Valence Reader Peak Shift Delta d*         & $-$0.119 & [$-$0.219, $-$0.033]   & ---          & Not Supported          \\
+H1b: Decodability Peak Shift   & Arousal Reader Peak Shift Delta d*         & 0.200    & [$-$0.027, 0.426]      & ---          & Not Supported          \\
 \midrule
-H4: Recovery Asymmetry         & Self--Reader AUC diff (\textbf{Primary}) & 0.032    & [$-$0.015, 0.078] & ---          & Not Supported (Incomp.) \\
-H4: Recovery Asymmetry         & Matched-Plain AUC (\textit{Descriptive}) & $-$0.095 & ---                & ---          & ---                    \\
+H2: Sharing Reorganization     & Valence Delta Sharing                      & $-$0.553 & [$-$1.324, 0.076]      & ---          & Not Supported          \\
+H2: Sharing Reorganization     & Arousal Delta Sharing                      & $-$0.278 & [$-$0.615, 0.049]      & ---          & Not Supported          \\
+\midrule
+H3: Causal Reorganization      & Alignment x Depth (Primary)                & 0.000    & [$-$0.000, 0.000]      & 0.287        & Not Supported          \\
+H3: Causal Reorganization      & Alignment x Task (Primary)                 & 0.000    & [0.000, 0.000]         & 0.122        & Not Supported          \\
+H3: Causal Reorganization      & Alignment x Task x Depth (Primary)         & $-$0.000 & [$-$0.000, 0.000]      & 0.287        & Not Supported          \\
+H3: Alignment Main Effect      & Alignment main effect (Secondary)          & $-$0.000 & [$-$0.000, 0.000]      & 0.051        & Not Supported          \\
+\midrule
+H4: Recovery Asymmetry         & Self--Reader AUC diff (Primary)            & 0.032    & [0.010, 0.053]         & ---          & Not Supported (Incomp.) \\
+H4: Recovery Asymmetry         & Matched-Plain AUC (Descriptive)            & $-$0.095 & ---                    & ---          & ---                    \\
 \bottomrule
 \end{tabular}
 \vspace{1ex}

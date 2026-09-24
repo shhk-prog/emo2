@@ -297,7 +297,7 @@ def generate_rq4_coupling_table(df_b5):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} 全条件で $q < 10^{-15}$ の強固な結合を示し、事後学習を経てもモデル内部における感情認識と自己報告の連動ダイナミクスが破綻せず一貫して保たれていることが実証される。",
+        r"\textbf{Note:} 全8 modelsのValence / ArousalでReader changeとSelf changeの間に強い正のcouplingが観測された。これは、controlled stimulus manipulationに対するReader PredictionとSelf-Reportの変化量がoutput levelで一貫して共変動することを示す。ただし、このbehavioral couplingのみから、両taskが同一の内部representationやcausal pathwayを共有すること、あるいはBase--Instruct差をpost-trainingの因果効果として解釈することはできない。",
         r"\end{minipage}",
         r"\end{table}",
     ])

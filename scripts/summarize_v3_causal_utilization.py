@@ -298,7 +298,7 @@ def generate_confirmatory_table(df_conf, df_conf_matrix, repo_root="."):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} 全4仮説の総合判定マトリックス。各セルは該当仮説においてValenceおよびArousalの双方が事前登録基準（95\% CI）を満たした場合に合致（$\checkmark$）とする。全モデルファミリーにおいてH1--H3は棄却され、H4のみが支持されたため、全体結論として情動表現の機能的・因果的活用仮説は支持されなかった（All Confirmed = NO）。",
+        r"\textbf{Note:} 全4仮説の判定マトリックス。各セルは該当仮説についてValenceおよびArousalの双方が事前定義された95\% CI criterionを満たした場合に$\checkmark$ とする。H1--H3はいずれのconfirmatory familyでも支持されなかった。H4のtemporal contrastは3 familyすべてでValence / Arousal双方がaxis-level criterionを満たした。ただし、事前のState Induction GateがNO\_GOであったため、V3全体としてprespecified confirmatory causal mechanismが確立されたとは解釈しない（All Confirmed = NO）。",
         r"\end{minipage}",
         r"\end{table}",
     ])

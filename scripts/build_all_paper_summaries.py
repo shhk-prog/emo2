@@ -235,8 +235,15 @@ def main():
         action="store_true",
         help="Fail if any required artifact is missing or schema fails",
     )
+    parser.add_argument(
+        "--stages",
+        nargs="+",
+        default=["behavioral", "v1", "v2", "v3"],
+        help="Stages to aggregate (e.g. --stages behavioral v1 v3)",
+    )
     args = parser.parse_args()
 
+    stages = [s.lower() for s in args.stages]
     out_dir = (PROJECT_ROOT / args.out_dir).resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -246,48 +253,52 @@ def main():
     all_stage_dfs = []
 
     # 1. Behavioral
-    print("[1/4] Aggregating Behavioral Results...")
-    df_beh, qc_beh = beh_mod.build_behavioral_summary(
-        behavioral_dir=PROJECT_ROOT / "behavioral",
-        out_dir=out_dir,
-        manifest=master_manifest,
-        strict=args.strict,
-    )
-    all_stage_dfs.append(df_beh)
-    qc_builder.set_stage_qc("behavioral", qc_beh)
+    if "behavioral" in stages:
+        print("[1/4] Aggregating Behavioral Results...")
+        df_beh, qc_beh = beh_mod.build_behavioral_summary(
+            behavioral_dir=PROJECT_ROOT / "behavioral",
+            out_dir=out_dir,
+            manifest=master_manifest,
+            strict=args.strict,
+        )
+        all_stage_dfs.append(df_beh)
+        qc_builder.set_stage_qc("behavioral", qc_beh)
 
     # 2. V1
-    print("[2/4] Aggregating V1 Results...")
-    df_v1, qc_v1 = v1_mod.build_v1_summary(
-        v1_dir=PROJECT_ROOT / "v1",
-        out_dir=out_dir,
-        manifest=master_manifest,
-        strict=args.strict,
-    )
-    all_stage_dfs.append(df_v1)
-    qc_builder.set_stage_qc("v1", qc_v1)
+    if "v1" in stages:
+        print("[2/4] Aggregating V1 Results...")
+        df_v1, qc_v1 = v1_mod.build_v1_summary(
+            v1_dir=PROJECT_ROOT / "v1",
+            out_dir=out_dir,
+            manifest=master_manifest,
+            strict=args.strict,
+        )
+        all_stage_dfs.append(df_v1)
+        qc_builder.set_stage_qc("v1", qc_v1)
 
     # 3. V2
-    print("[3/4] Aggregating V2 Results...")
-    df_v2, qc_v2 = v2_mod.build_v2_summary(
-        v2_dir=PROJECT_ROOT / "v2",
-        out_dir=out_dir,
-        manifest=master_manifest,
-        strict=args.strict,
-    )
-    all_stage_dfs.append(df_v2)
-    qc_builder.set_stage_qc("v2", qc_v2)
+    if "v2" in stages:
+        print("[3/4] Aggregating V2 Results...")
+        df_v2, qc_v2 = v2_mod.build_v2_summary(
+            v2_dir=PROJECT_ROOT / "v2",
+            out_dir=out_dir,
+            manifest=master_manifest,
+            strict=args.strict,
+        )
+        all_stage_dfs.append(df_v2)
+        qc_builder.set_stage_qc("v2", qc_v2)
 
     # 4. V3
-    print("[4/4] Aggregating V3 Results...")
-    df_v3, qc_v3 = v3_mod.build_v3_summary(
-        v3_dir=PROJECT_ROOT / "v3",
-        out_dir=out_dir,
-        manifest=master_manifest,
-        strict=args.strict,
-    )
-    all_stage_dfs.append(df_v3)
-    qc_builder.set_stage_qc("v3", qc_v3)
+    if "v3" in stages:
+        print("[4/4] Aggregating V3 Results...")
+        df_v3, qc_v3 = v3_mod.build_v3_summary(
+            v3_dir=PROJECT_ROOT / "v3",
+            out_dir=out_dir,
+            manifest=master_manifest,
+            strict=args.strict,
+        )
+        all_stage_dfs.append(df_v3)
+        qc_builder.set_stage_qc("v3", qc_v3)
 
     # 全レコード連結
     df_all = pd.concat(all_stage_dfs, ignore_index=True)

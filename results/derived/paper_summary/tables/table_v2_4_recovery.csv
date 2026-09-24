@@ -1,9 +1,0 @@
-family,task,matched_auc,matched_delta_emd_auc,matched_max_recovery,matched_best_depth,native_auc,aligned_auc
-qwen,reader,,,,,,
-qwen,self,,,,,,
-llama,reader,,,,,,
-llama,self,,,,,,
-gemma,reader,-0.052013516797435405,-0.012352651223519385,0.14248958422327557,0.04,-0.07155397861726791,-0.011178733506732748
-gemma,self,0.0014354829415754854,0.005182109122047112,0.32635246831660825,0.0,-0.024659465128603574,-0.00924759843238602
-olmo,reader,,,,,,
-olmo,self,,,,,,

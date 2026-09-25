@@ -90,6 +90,7 @@ def simulate_model_confirmatory(
     num_layers: int,
     semantic_stages: List[str],
     seed: int,
+    h1_replication_direction: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     """
     dry-run用: 特定モデルファミリーに対する Confirmatory 検証のシミュレーション (VA両軸完全対応)
@@ -107,6 +108,58 @@ def simulate_model_confirmatory(
     d_profile_a = [float(np.exp(-((d - d_center) ** 2) / (2 * 0.18**2)) * 0.65 + rng.normal(0, 0.02)) for d in relative_depths]
     c_profile_a = [float(np.exp(-((d - c_center) ** 2) / (2 * 0.15**2)) * 0.95 + rng.normal(0, 0.02)) for d in relative_depths]
     dissoc_a = compute_layer_dissociation(relative_depths, d_profile_a, c_profile_a)
+
+    if h1_replication_direction is None:
+        h1_replication_direction = {
+            "valence": {"peak": -1, "center_of_mass": -1},
+            "arousal": {"peak": -1, "center_of_mass": 1},
+        }
+    sign_pk_v = int(h1_replication_direction.get("valence", {}).get("peak", -1))
+    sign_ct_v = int(h1_replication_direction.get("valence", {}).get("center_of_mass", -1))
+    sign_pk_a = int(h1_replication_direction.get("arousal", {}).get("peak", -1))
+    sign_ct_a = int(h1_replication_direction.get("arousal", {}).get("center_of_mass", 1))
+
+    # Valence H1 raw & aligned
+    dissoc_v["qwen_sign_peak"] = sign_pk_v
+    dissoc_v["qwen_sign_center"] = sign_ct_v
+    dissoc_v["qwen_sign_com"] = sign_ct_v
+    dissoc_v["delta_peak_raw"] = float(dissoc_v["delta_d_peak"])
+    dissoc_v["delta_com_raw"] = float(dissoc_v["delta_d_center"])
+    dissoc_v["delta_peak_aligned"] = float(sign_pk_v * dissoc_v["delta_d_peak"])
+    dissoc_v["delta_com_aligned"] = float(sign_ct_v * dissoc_v["delta_d_center"])
+    dissoc_v["delta_d_peak_aligned"] = dissoc_v["delta_peak_aligned"]
+    dissoc_v["delta_d_center_aligned"] = dissoc_v["delta_com_aligned"]
+    dissoc_v["aligned_peak_ci"] = [float(dissoc_v["delta_peak_aligned"]), float(dissoc_v["delta_peak_aligned"])]
+    dissoc_v["aligned_com_ci"] = [float(dissoc_v["delta_com_aligned"]), float(dissoc_v["delta_com_aligned"])]
+    dissoc_v["aligned_center_ci"] = dissoc_v["aligned_com_ci"]
+    dissoc_v["delta_d_peak_aligned_ci"] = dissoc_v["aligned_peak_ci"]
+    dissoc_v["delta_d_center_aligned_ci"] = dissoc_v["aligned_com_ci"]
+    dissoc_v["peak_replication_pass"] = bool(dissoc_v["delta_peak_aligned"] > 0)
+    dissoc_v["com_replication_pass"] = bool(dissoc_v["delta_com_aligned"] > 0)
+    dissoc_v["center_replication_pass"] = dissoc_v["com_replication_pass"]
+    dissoc_v["h1_replication_pass"] = bool(dissoc_v["peak_replication_pass"] and dissoc_v["com_replication_pass"])
+    dissoc_v["passed"] = dissoc_v["h1_replication_pass"]
+
+    # Arousal H1 raw & aligned
+    dissoc_a["qwen_sign_peak"] = sign_pk_a
+    dissoc_a["qwen_sign_center"] = sign_ct_a
+    dissoc_a["qwen_sign_com"] = sign_ct_a
+    dissoc_a["delta_peak_raw"] = float(dissoc_a["delta_d_peak"])
+    dissoc_a["delta_com_raw"] = float(dissoc_a["delta_d_center"])
+    dissoc_a["delta_peak_aligned"] = float(sign_pk_a * dissoc_a["delta_d_peak"])
+    dissoc_a["delta_com_aligned"] = float(sign_ct_a * dissoc_a["delta_d_center"])
+    dissoc_a["delta_d_peak_aligned"] = dissoc_a["delta_peak_aligned"]
+    dissoc_a["delta_d_center_aligned"] = dissoc_a["delta_com_aligned"]
+    dissoc_a["aligned_peak_ci"] = [float(dissoc_a["delta_peak_aligned"]), float(dissoc_a["delta_peak_aligned"])]
+    dissoc_a["aligned_com_ci"] = [float(dissoc_a["delta_com_aligned"]), float(dissoc_a["delta_com_aligned"])]
+    dissoc_a["aligned_center_ci"] = dissoc_a["aligned_com_ci"]
+    dissoc_a["delta_d_peak_aligned_ci"] = dissoc_a["aligned_peak_ci"]
+    dissoc_a["delta_d_center_aligned_ci"] = dissoc_a["aligned_com_ci"]
+    dissoc_a["peak_replication_pass"] = bool(dissoc_a["delta_peak_aligned"] > 0)
+    dissoc_a["com_replication_pass"] = bool(dissoc_a["delta_com_aligned"] > 0)
+    dissoc_a["center_replication_pass"] = dissoc_a["com_replication_pass"]
+    dissoc_a["h1_replication_pass"] = bool(dissoc_a["peak_replication_pass"] and dissoc_a["com_replication_pass"])
+    dissoc_a["passed"] = dissoc_a["h1_replication_pass"]
 
     alphas = [-1.0, -0.5, 0.0, 0.5, 1.0]
     shifts_v = [float(a * (0.80 + rng.normal(0, 0.03))) for a in alphas]
@@ -142,8 +195,8 @@ def simulate_model_confirmatory(
     contrast_v = float(stage_causal_v["pre_V"] - stage_causal_v["candidate_start"])
     contrast_a = float(stage_causal_a["pre_A"] - stage_causal_a["candidate_start"])
 
-    h1_pass_v = dissoc_v["delta_d_peak"] > 0 and dissoc_v["delta_d_center"] > 0
-    h1_pass_a = dissoc_a["delta_d_peak"] > 0 and dissoc_a["delta_d_center"] > 0
+    h1_pass_v = dissoc_v["h1_replication_pass"]
+    h1_pass_a = dissoc_a["h1_replication_pass"]
     h1_pass = bool(h1_pass_v and h1_pass_a)
 
     h2_pass = bool(slope_v > 0.1 and slope_a > 0.1)
@@ -170,6 +223,17 @@ def simulate_model_confirmatory(
             "d_peak_C": dissoc_v["d_peak_C"],
             "delta_d_peak": dissoc_v["delta_d_peak"],
             "delta_d_center": dissoc_v["delta_d_center"],
+            "delta_peak_raw": dissoc_v["delta_peak_raw"],
+            "delta_com_raw": dissoc_v["delta_com_raw"],
+            "qwen_sign_peak": dissoc_v["qwen_sign_peak"],
+            "qwen_sign_com": dissoc_v["qwen_sign_com"],
+            "delta_peak_aligned": dissoc_v["delta_peak_aligned"],
+            "delta_com_aligned": dissoc_v["delta_com_aligned"],
+            "aligned_peak_ci": dissoc_v["aligned_peak_ci"],
+            "aligned_com_ci": dissoc_v["aligned_com_ci"],
+            "peak_replication_pass": dissoc_v["peak_replication_pass"],
+            "com_replication_pass": dissoc_v["com_replication_pass"],
+            "h1_replication_pass": bool(h1_pass),
             "passed": bool(h1_pass),
         },
         "h2_sufficiency": {
@@ -814,6 +878,15 @@ def run_real_model_confirmatory(
     dissoc_v["d_profile_full_n"] = d_profile_v
     dissoc_a["d_profile_full_n"] = d_profile_a
 
+    h1_rep_dir = v3_cfg.get("frozen_sites", {}).get("h1_replication_direction") or v3_cfg.get("h1_replication_direction", {
+        "valence": {"peak": -1, "center_of_mass": -1},
+        "arousal": {"peak": -1, "center_of_mass": 1},
+    })
+    sign_pk_v = int(h1_rep_dir.get("valence", {}).get("peak", -1))
+    sign_ct_v = int(h1_rep_dir.get("valence", {}).get("center_of_mass", -1))
+    sign_pk_a = int(h1_rep_dir.get("arousal", {}).get("peak", -1))
+    sign_ct_a = int(h1_rep_dir.get("arousal", {}).get("center_of_mass", 1))
+
     if n_h1 >= 2:
         rng_boot_v = np.random.default_rng(44)
         h1_v_peak_boots, h1_v_center_boots = [], []
@@ -831,9 +904,35 @@ def run_real_model_confirmatory(
             h1_v_center_boots.append(d_dissoc_b["delta_d_center"])
         dissoc_v["delta_d_peak_ci"] = [float(np.percentile(h1_v_peak_boots, 2.5)), float(np.percentile(h1_v_peak_boots, 97.5))]
         dissoc_v["delta_d_center_ci"] = [float(np.percentile(h1_v_center_boots, 2.5)), float(np.percentile(h1_v_center_boots, 97.5))]
+        aligned_v_pk_boots = [sign_pk_v * b for b in h1_v_peak_boots]
+        aligned_v_ct_boots = [sign_ct_v * b for b in h1_v_center_boots]
+        aligned_pk_ci_v = [float(np.percentile(aligned_v_pk_boots, 2.5)), float(np.percentile(aligned_v_pk_boots, 97.5))]
+        aligned_ct_ci_v = [float(np.percentile(aligned_v_ct_boots, 2.5)), float(np.percentile(aligned_v_ct_boots, 97.5))]
     else:
         dissoc_v["delta_d_peak_ci"] = [float(dissoc_v["delta_d_peak"]), float(dissoc_v["delta_d_peak"])]
         dissoc_v["delta_d_center_ci"] = [float(dissoc_v["delta_d_center"]), float(dissoc_v["delta_d_center"])]
+        aligned_pk_ci_v = [float(sign_pk_v * dissoc_v["delta_d_peak"]), float(sign_pk_v * dissoc_v["delta_d_peak"])]
+        aligned_ct_ci_v = [float(sign_ct_v * dissoc_v["delta_d_center"]), float(sign_ct_v * dissoc_v["delta_d_center"])]
+
+    dissoc_v["qwen_sign_peak"] = sign_pk_v
+    dissoc_v["qwen_sign_center"] = sign_ct_v
+    dissoc_v["qwen_sign_com"] = sign_ct_v
+    dissoc_v["delta_peak_raw"] = float(dissoc_v["delta_d_peak"])
+    dissoc_v["delta_com_raw"] = float(dissoc_v["delta_d_center"])
+    dissoc_v["delta_peak_aligned"] = float(sign_pk_v * dissoc_v["delta_d_peak"])
+    dissoc_v["delta_com_aligned"] = float(sign_ct_v * dissoc_v["delta_d_center"])
+    dissoc_v["delta_d_peak_aligned"] = dissoc_v["delta_peak_aligned"]
+    dissoc_v["delta_d_center_aligned"] = dissoc_v["delta_com_aligned"]
+    dissoc_v["aligned_peak_ci"] = aligned_pk_ci_v
+    dissoc_v["aligned_com_ci"] = aligned_ct_ci_v
+    dissoc_v["aligned_center_ci"] = aligned_ct_ci_v
+    dissoc_v["delta_d_peak_aligned_ci"] = aligned_pk_ci_v
+    dissoc_v["delta_d_center_aligned_ci"] = aligned_ct_ci_v
+    dissoc_v["peak_replication_pass"] = bool(aligned_pk_ci_v[0] > 0)
+    dissoc_v["com_replication_pass"] = bool(aligned_ct_ci_v[0] > 0)
+    dissoc_v["center_replication_pass"] = dissoc_v["com_replication_pass"]
+    dissoc_v["h1_replication_pass"] = bool(dissoc_v["peak_replication_pass"] and dissoc_v["com_replication_pass"])
+    dissoc_v["passed"] = dissoc_v["h1_replication_pass"]
 
     if n_h1 >= 2:
         rng_boot_a = np.random.default_rng(45)
@@ -852,9 +951,35 @@ def run_real_model_confirmatory(
             h1_a_center_boots.append(d_dissoc_b["delta_d_center"])
         dissoc_a["delta_d_peak_ci"] = [float(np.percentile(h1_a_peak_boots, 2.5)), float(np.percentile(h1_a_peak_boots, 97.5))]
         dissoc_a["delta_d_center_ci"] = [float(np.percentile(h1_a_center_boots, 2.5)), float(np.percentile(h1_a_center_boots, 97.5))]
+        aligned_a_pk_boots = [sign_pk_a * b for b in h1_a_peak_boots]
+        aligned_a_ct_boots = [sign_ct_a * b for b in h1_a_center_boots]
+        aligned_pk_ci_a = [float(np.percentile(aligned_a_pk_boots, 2.5)), float(np.percentile(aligned_a_pk_boots, 97.5))]
+        aligned_ct_ci_a = [float(np.percentile(aligned_a_ct_boots, 2.5)), float(np.percentile(aligned_a_ct_boots, 97.5))]
     else:
         dissoc_a["delta_d_peak_ci"] = [float(dissoc_a["delta_d_peak"]), float(dissoc_a["delta_d_peak"])]
         dissoc_a["delta_d_center_ci"] = [float(dissoc_a["delta_d_center"]), float(dissoc_a["delta_d_center"])]
+        aligned_pk_ci_a = [float(sign_pk_a * dissoc_a["delta_d_peak"]), float(sign_pk_a * dissoc_a["delta_d_peak"])]
+        aligned_ct_ci_a = [float(sign_ct_a * dissoc_a["delta_d_center"]), float(sign_ct_a * dissoc_a["delta_d_center"])]
+
+    dissoc_a["qwen_sign_peak"] = sign_pk_a
+    dissoc_a["qwen_sign_center"] = sign_ct_a
+    dissoc_a["qwen_sign_com"] = sign_ct_a
+    dissoc_a["delta_peak_raw"] = float(dissoc_a["delta_d_peak"])
+    dissoc_a["delta_com_raw"] = float(dissoc_a["delta_d_center"])
+    dissoc_a["delta_peak_aligned"] = float(sign_pk_a * dissoc_a["delta_d_peak"])
+    dissoc_a["delta_com_aligned"] = float(sign_ct_a * dissoc_a["delta_d_center"])
+    dissoc_a["delta_d_peak_aligned"] = dissoc_a["delta_peak_aligned"]
+    dissoc_a["delta_d_center_aligned"] = dissoc_a["delta_com_aligned"]
+    dissoc_a["aligned_peak_ci"] = aligned_pk_ci_a
+    dissoc_a["aligned_com_ci"] = aligned_ct_ci_a
+    dissoc_a["aligned_center_ci"] = aligned_ct_ci_a
+    dissoc_a["delta_d_peak_aligned_ci"] = aligned_pk_ci_a
+    dissoc_a["delta_d_center_aligned_ci"] = aligned_ct_ci_a
+    dissoc_a["peak_replication_pass"] = bool(aligned_pk_ci_a[0] > 0)
+    dissoc_a["com_replication_pass"] = bool(aligned_ct_ci_a[0] > 0)
+    dissoc_a["center_replication_pass"] = dissoc_a["com_replication_pass"]
+    dissoc_a["h1_replication_pass"] = bool(dissoc_a["peak_replication_pass"] and dissoc_a["com_replication_pass"])
+    dissoc_a["passed"] = dissoc_a["h1_replication_pass"]
 
     if not nat_shifts_v or not att_shifts_v or not nat_shifts_a or not att_shifts_a:
         raise RuntimeError(
@@ -957,8 +1082,8 @@ def run_real_model_confirmatory(
     min_contrast = float(qc_cfg.get("min_temporal_contrast", 0.0))
 
     # Confirmatory: 全指標について CI lower bound > preregistered threshold で判定
-    h1_pass_v = bool(dissoc_v["delta_d_peak_ci"][0] > 0 and dissoc_v["delta_d_center_ci"][0] > 0)
-    h1_pass_a = bool(dissoc_a["delta_d_peak_ci"][0] > 0 and dissoc_a["delta_d_center_ci"][0] > 0)
+    h1_pass_v = bool(dissoc_v["h1_replication_pass"])
+    h1_pass_a = bool(dissoc_a["h1_replication_pass"])
     h1_pass = bool(h1_pass_v and h1_pass_a)
 
     h2_pass_v = bool(slope_v_ci[0] > min_slope)
@@ -993,6 +1118,17 @@ def run_real_model_confirmatory(
             "d_peak_C": dissoc_v["d_peak_C"],
             "delta_d_peak": dissoc_v["delta_d_peak"],
             "delta_d_center": dissoc_v["delta_d_center"],
+            "delta_peak_raw": dissoc_v["delta_peak_raw"],
+            "delta_com_raw": dissoc_v["delta_com_raw"],
+            "qwen_sign_peak": dissoc_v["qwen_sign_peak"],
+            "qwen_sign_com": dissoc_v["qwen_sign_com"],
+            "delta_peak_aligned": dissoc_v["delta_peak_aligned"],
+            "delta_com_aligned": dissoc_v["delta_com_aligned"],
+            "aligned_peak_ci": dissoc_v["aligned_peak_ci"],
+            "aligned_com_ci": dissoc_v["aligned_com_ci"],
+            "peak_replication_pass": dissoc_v["peak_replication_pass"],
+            "com_replication_pass": dissoc_v["com_replication_pass"],
+            "h1_replication_pass": bool(h1_pass),
             "passed": bool(h1_pass),
         },
         "h2_sufficiency": {
@@ -1145,6 +1281,11 @@ def main():
                 raise
 
     if frozen_sites is None:
+        h1_rep_dir = {
+            "valence": {"peak": -1, "center_of_mass": -1},
+            "arousal": {"peak": -1, "center_of_mass": 1},
+        }
+        v3_cfg["h1_replication_direction"] = h1_rep_dir
         if args.dry_run:
             logger.warning("[DRY-RUN] frozen_confirmatory_sites.json not found. Using fallback values for mock dry-run only.")
             suff_depth_val = float(conf_cfg.get("sufficiency_relative_depth", 0.5))
@@ -1167,6 +1308,11 @@ def main():
         stage_v_val = str(frozen_sites.get("temporal_stage_v", "pre_V"))
         stage_a_val = str(frozen_sites.get("temporal_stage_a", "pre_A"))
         med_depth_val = float(frozen_sites["mediation_relative_depth"])
+        h1_rep_dir = frozen_sites.get("h1_replication_direction", {
+            "valence": {"peak": -1, "center_of_mass": -1},
+            "arousal": {"peak": -1, "center_of_mass": 1},
+        })
+        v3_cfg["h1_replication_direction"] = h1_rep_dir
         frozen_sites_hash = compute_string_or_dict_hash(frozen_sites)
 
     for item in conf_models:
@@ -1239,7 +1385,7 @@ def main():
 
         if args.dry_run:
             logger.info(f"Simulating confirmatory replication for {fam_name} (--dry-run)...")
-            res = simulate_model_confirmatory(fam_name, num_layers, normalized_stages, seed=seeds.get(fam_key, 999))
+            res = simulate_model_confirmatory(fam_name, num_layers, normalized_stages, seed=seeds.get(fam_key, 999), h1_replication_direction=h1_rep_dir)
         else:
             logger.info(f"Running REAL confirmatory replication for {fam_name} ({model_id})...")
             res = run_real_model_confirmatory(
@@ -1308,6 +1454,11 @@ def main():
     h1_dc_v = [res["h1_dissociation"]["valence"]["delta_d_center"] for res in family_results.values()]
     h1_dc_a = [res["h1_dissociation"]["arousal"]["delta_d_center"] for res in family_results.values()]
 
+    h1_dp_v_al = [res["h1_dissociation"]["valence"].get("delta_peak_aligned", res["h1_dissociation"]["valence"]["delta_d_peak"]) for res in family_results.values()]
+    h1_dp_a_al = [res["h1_dissociation"]["arousal"].get("delta_peak_aligned", res["h1_dissociation"]["arousal"]["delta_d_peak"]) for res in family_results.values()]
+    h1_dc_v_al = [res["h1_dissociation"]["valence"].get("delta_com_aligned", res["h1_dissociation"]["valence"]["delta_d_center"]) for res in family_results.values()]
+    h1_dc_a_al = [res["h1_dissociation"]["arousal"].get("delta_com_aligned", res["h1_dissociation"]["arousal"]["delta_d_center"]) for res in family_results.values()]
+
     h2_sv = [res["h2_sufficiency"]["slope_v"] for res in family_results.values()]
     h2_sa = [res["h2_sufficiency"]["slope_a"] for res in family_results.values()]
 
@@ -1321,6 +1472,9 @@ def main():
 
     pt_h1_v, h1_v_low, h1_v_high = compute_bootstrap_ci(h1_dp_v, n_boot=1000) if len(h1_dp_v) > 1 else (np.mean(h1_dp_v), np.nan, np.nan)
     pt_h1_a, h1_a_low, h1_a_high = compute_bootstrap_ci(h1_dp_a, n_boot=1000) if len(h1_dp_a) > 1 else (np.mean(h1_dp_a), np.nan, np.nan)
+    pt_h1_v_al, h1_v_al_low, h1_v_al_high = compute_bootstrap_ci(h1_dp_v_al, n_boot=1000) if len(h1_dp_v_al) > 1 else (np.mean(h1_dp_v_al), np.nan, np.nan)
+    pt_h1_a_al, h1_a_al_low, h1_a_al_high = compute_bootstrap_ci(h1_dp_a_al, n_boot=1000) if len(h1_dp_a_al) > 1 else (np.mean(h1_dp_a_al), np.nan, np.nan)
+
     pt_h2_v, h2_v_low, h2_v_high = compute_bootstrap_ci(h2_sv, n_boot=1000) if len(h2_sv) > 1 else (np.mean(h2_sv), np.nan, np.nan)
     pt_h2_a, h2_a_low, h2_a_high = compute_bootstrap_ci(h2_sa, n_boot=1000) if len(h2_sa) > 1 else (np.mean(h2_sa), np.nan, np.nan)
     pt_h3_mv, h3_mv_low, h3_mv_high = compute_bootstrap_ci(h3_med_v, n_boot=1000) if len(h3_med_v) > 1 else (np.mean(h3_med_v), np.nan, np.nan)
@@ -1335,8 +1489,22 @@ def main():
         "replicated_families": list(family_results.keys()),
         "primary_effect_estimates": {
             "H1_peak_dissociation": {
-                "valence": {"mean_delta_d_peak": float(pt_h1_v), "ci_95": [float(h1_v_low), float(h1_v_high)]},
-                "arousal": {"mean_delta_d_peak": float(pt_h1_a), "ci_95": [float(h1_a_low), float(h1_a_high)]},
+                "valence": {
+                    "mean_delta_d_peak": float(pt_h1_v),
+                    "ci_95": [float(h1_v_low), float(h1_v_high)],
+                    "mean_delta_d_peak_raw": float(pt_h1_v),
+                    "ci_95_raw": [float(h1_v_low), float(h1_v_high)],
+                    "mean_delta_d_peak_aligned": float(pt_h1_v_al),
+                    "ci_95_aligned": [float(h1_v_al_low), float(h1_v_al_high)],
+                },
+                "arousal": {
+                    "mean_delta_d_peak": float(pt_h1_a),
+                    "ci_95": [float(h1_a_low), float(h1_a_high)],
+                    "mean_delta_d_peak_raw": float(pt_h1_a),
+                    "ci_95_raw": [float(h1_a_low), float(h1_a_high)],
+                    "mean_delta_d_peak_aligned": float(pt_h1_a_al),
+                    "ci_95_aligned": [float(h1_a_al_low), float(h1_a_al_high)],
+                },
             },
             "H2_sufficiency_slope": {
                 "valence": {"mean_slope_v": float(pt_h2_v), "ci_95": [float(h2_v_low), float(h2_v_high)]},

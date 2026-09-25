@@ -111,3 +111,60 @@ def test_v3_confirmatory_h1_joint_bootstrap():
     assert ci_center[0] <= pt_dissoc["delta_d_center"] <= ci_center[1]
     assert ci_peak[1] - ci_peak[0] > 0
     assert ci_center[1] - ci_center[0] > 0
+
+
+def test_v3_confirmatory_h1_directional_alignment():
+    """H1 directional replication criterion の符号整列と合否判定ロジックを検証"""
+    import numpy as np
+
+    # Case 1: Qwen discovery sign is negative (-1)
+    # Target: d_C* < d_D* (delta_d_peak < 0)
+    sign = -1
+    # Sample A: replicated in the same direction (strictly negative CI)
+    delta_boots_rep = np.array([-0.8, -0.6, -0.5, -0.7, -0.9])
+    raw_ci_rep = [float(np.percentile(delta_boots_rep, 2.5)), float(np.percentile(delta_boots_rep, 97.5))]
+    aligned_boots_rep = sign * delta_boots_rep
+    aligned_ci_rep = [float(np.percentile(aligned_boots_rep, 2.5)), float(np.percentile(aligned_boots_rep, 97.5))]
+
+    assert raw_ci_rep[1] < 0  # Upper bound is negative
+    assert aligned_ci_rep[0] > 0  # Aligned lower bound is positive -> PASS!
+
+    # Sample B: opposite direction (positive delta)
+    delta_boots_opp = np.array([0.2, 0.4, 0.3, 0.5, 0.6])
+    aligned_boots_opp = sign * delta_boots_opp
+    aligned_ci_opp = [float(np.percentile(aligned_boots_opp, 2.5)), float(np.percentile(aligned_boots_opp, 97.5))]
+    assert aligned_ci_opp[0] < 0  # Aligned lower bound is negative -> FAIL!
+
+    # Sample C: straddles zero
+    delta_boots_zero = np.array([-0.3, -0.1, 0.1, 0.2, -0.2])
+    aligned_boots_zero = sign * delta_boots_zero
+    aligned_ci_zero = [float(np.percentile(aligned_boots_zero, 2.5)), float(np.percentile(aligned_boots_zero, 97.5))]
+    assert aligned_ci_zero[0] <= 0  # Lower bound does not exclude zero -> FAIL!
+
+
+def test_frozen_h1_replication_direction_consistency():
+    """frozen_confirmatory_sites.json の H1 方向が Qwen Discovery サマリーと完全に一致することを検証"""
+    import json
+    repo_root = Path(__file__).resolve().parent.parent
+    spatio_path = repo_root / "v3" / "results" / "derived" / "v3_spatiotemporal_summary.json"
+    frozen_path = repo_root / "v3" / "results" / "derived" / "frozen_confirmatory_sites.json"
+
+    if spatio_path.exists() and frozen_path.exists():
+        with open(spatio_path, "r", encoding="utf-8") as f:
+            spatio = json.load(f)
+        with open(frozen_path, "r", encoding="utf-8") as f:
+            frozen = json.load(f)
+
+        assert "h1_replication_direction" in frozen
+        h1_dir = frozen["h1_replication_direction"]
+
+        assert h1_dir["valence"]["peak"] == int(np.sign(spatio["valence"]["delta_d_peak"]))
+        assert h1_dir["valence"]["center_of_mass"] == int(np.sign(spatio["valence"]["delta_d_center"]))
+        assert h1_dir["arousal"]["peak"] == int(np.sign(spatio["arousal"]["delta_d_peak"]))
+        assert h1_dir["arousal"]["center_of_mass"] == int(np.sign(spatio["arousal"]["delta_d_center"]))
+
+        assert h1_dir["valence"]["peak"] == -1
+        assert h1_dir["valence"]["center_of_mass"] == -1
+        assert h1_dir["arousal"]["peak"] == -1
+        assert h1_dir["arousal"]["center_of_mass"] == 1
+

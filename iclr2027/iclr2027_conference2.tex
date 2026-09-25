@@ -465,8 +465,6 @@ acknowledgments, including those to funding agencies, go at the end of the paper
 \appendix
 \section{Appendix}
 You may include other additional sections here.
-
-\appendix
 % ================================================================
 % A. Background
 % ================================================================
@@ -752,7 +750,7 @@ post-training後にもaffect-relevant informationが保持されながら、
 
 本研究はこのギャップに対して、4 Stageの分析を行う。
 
-その目的は、AIに主観的感情が存在するかを判定することではなく，将来的に、他者の感情を理解して心理的支援を行う能力を維持しながら、過度な感情的同調や依存を促進し得る応答をより選択的に制御するために、Reader PredictionとSelf-Reportを結ぶ内部mechanismを明らかにすることにある。
+その目的は、AIに主観的感情が存在するかを判定することではなく、将来的に、他者の感情を理解して心理的支援を行う能力を維持しながら、過度な感情的同調や依存を促進し得る応答をより選択的に制御するために、Reader PredictionとSelf-Reportを結ぶ内部mechanismを明らかにすることにある。
 
 % ================================================================
 % C. Overall Experimental Design
@@ -763,7 +761,7 @@ post-training後にもaffect-relevant informationが保持されながら、
 
 本研究の中心的なResearch Question（RQ）は、「LLMの情動関連内部表現はSelf-reportとどのように結びついており、その関係はタスク、post-training、計算過程を通じてどのように変化するのか」である。
 
-この問いに対して、以下の4つの段階に分け実験を構成する．
+この問いに対して、以下の4つの段階に分け実験を構成する。
 \[
 \text{Behavioral}
 \rightarrow
@@ -1330,7 +1328,7 @@ OLMo 2~\citep{olmo20242,olmo20242olmo2furious} &
 
 各modelについて、実験期間中に使用するmodel revisionを固定し、同一Stage内でrevisionが変化しないようにした。production inferenceでは、Primary modelsを原則としてbfloat16で評価する。
 V3ではInstruct modelsのみを使用する。
-そのうち、Qwen 2.5 1.5B-InstructをDiscovery modelとし、Llama 3.2、Gemma 3、OLMo 2のInstruct modelsをconfirmatory familiesとする。
+そのうち、Qwen 2.5 1.5B-InstructをDiscovery modelとし、Llama 3.2、Gemma 3、OLMo 2のInstruct modelsをprespecified replication familiesとする。
 
 
 % ----------------------------------------------------------------
@@ -1978,7 +1976,7 @@ Behavioral Stageでは前節の共通仕様を用いて、内部representation�
 Behavioral Stageの中心的なResearch Questionは、「制御された情動刺激の変化に対して、
 Reader PredictionとSelf-Reportは連動して変化するか」である。
 
-本Stageでは、単一の相関指標だけでReader--Self relationを判断せず，まずEmoBankを用いて、
+本Stageでは、単一の相関指標だけでReader--Self relationを判断せず、まずEmoBankを用いて、
 モデルが人間の情動評定に対応するvariationを捉えているかを確認する。次にAIPsy-Affectの統制されたstimulus manipulationを用いて、
 \begin{enumerate}
     \item \textbf{Sensitivity}：
@@ -3688,7 +3686,7 @@ x_{\mathrm{reversed}}
 % ----------------------------------------------------------------
 \subsection{Phase Bの証拠範囲}
 
-Phase Bは、representationが人間と同じ意味理解を行っていることを証明するものではない。また、deterministic rule-based controlsが可能な全lexical confoundを網羅するわけでもない。Phase Bが提供する証拠は、Phase Aのdecodabilityが，少なくとも一部のsurface-form perturbationやcontextual manipulationに対してsystematicに変化するかを評価するための
+Phase Bは、representationが人間と同じ意味理解を行っていることを証明するものではない。また、deterministic rule-based controlsが可能な全lexical confoundを網羅するわけでもない。Phase Bが提供する証拠は、Phase Aのdecodabilityが、少なくとも一部のsurface-form perturbationやcontextual manipulationに対してsystematicに変化するかを評価するための
 representational-validity controlである。
 
 
@@ -3761,7 +3759,7 @@ h_{T,i,l}^{N}
 \[
 \Delta h_{T,i,l}
 \]
-を``pure emotion vector''とは呼ばず，affect-manipulation-associated hidden-state differenceと解釈する。
+を``pure emotion vector''とは呼ばず、affect-manipulation-associated hidden-state differenceと解釈する。
 
 
 % ----------------------------------------------------------------
@@ -4501,8 +4499,10 @@ random-direction controlに対してFDR補正後にrobustなspecificityを示さ
 
 これは本研究にとって重要なnegative resultである。Behavioral coupling、linear decodability、representation geometry、layer-wise causal profileの類似だけから、ReaderとSelfが同じcausal codeを直接共有しているとは言えない。
 
-最後にE6では、Task $\times$ SiteType interactionが一部modelsではFDR補正後にも支持された一方、全familyには一般化しなかった。したがってReaderとSelfの計算にはpartial causal specializationが存在する可能性があるが、普遍的な二回路構造を示すとは言えない。
-
+\color{red}
+9/25 13:57修正
+最後にE6では、Task \(\times\) SiteType interactionが一部のmodelsで支持された一方、そのpatternは全model familiesには一貫して一般化しなかった。したがって、ReaderとSelfの計算にはpartial causal specializationが存在する可能性があるが、family-generalな二回路構造を示す証拠とは解釈しない。
+\color{black}
 以上からV1は、ReaderとSelfはaffect-relevant informationとlayer-level causal sensitivityを部分的に共有するが、そのrepresentationは直接交換可能ではなく、causal organizationにはtask-specificな差も存在するという構造を支持する。
 
 
@@ -5208,29 +5208,17 @@ E[A]_{\mathrm{clean}}
 % ----------------------------------------------------------------
 \subsection{Net causal effect}
 
-RQ3のPrimary causal metricは、raw affect-direction effectそのものではなく，random perturbationによるgeneric sensitivityを差し引いた、
+RQ3のPrimary causal metricは、raw affect-direction effectそのものではなく、random perturbationによるgeneric sensitivityを差し引いた、
 \[
-C_{V,\mathrm{net,rand}}
-=
-C_{V,\mathrm{raw}}
--
-C_{V,\mathrm{rand}}
+C_{V,\mathrm{net,rand}} = C_{V,\mathrm{raw}} - C_{V,\mathrm{rand}},
+\qquad
+C_{A,\mathrm{net,rand}} = C_{A,\mathrm{raw}} - C_{A,\mathrm{rand}}
 \]
-
+をPrimaryとする。また、orthogonal controlを用いた、
 \[
-C_{A,\mathrm{net,rand}}
-=
-C_{A,\mathrm{raw}}
--
-C_{A,\mathrm{rand}}
-\]
-をPrimaryとする。また，orthogonal controlを用いた、
-\[
-C_{V,\mathrm{net,\perp}}
-=
-C_{V,\mathrm{raw}}
--
-C_{V,\perp}
+C_{V,\mathrm{net,\perp}} = C_{V,\mathrm{raw}} - C_{V,\perp},
+\qquad
+C_{A,\mathrm{net,\perp}} = C_{A,\mathrm{raw}} - C_{A,\perp}
 \]
 
 \[
@@ -6094,6 +6082,116 @@ Procrustes-aligned recovery \\
 \section{V2考察}
 \label{sec:v2-discussion}
 
+V2では、V1で確認されたaffect-relevant representationが、BaseからInstructへの差に伴って単純に失われるのか、それともrepresentation geometry、Reader--Self sharing、causal leverage、およびoutput distributionへのreadoutの関係が再編されるのかを検証した。
+
+V2の結果は、単純なrepresentation erasureよりも、affect-relevant informationを保持したまま、その内部的なorganizationが変化するという説明と整合する。一方、その変化を一様な後段化、Reader--Self separation、あるいは単一のcausal bottleneckとする証拠は得られなかった。
+
+
+\subsection{Base--Instruct差は情報消失より表現幾何の差として明瞭に現れた}
+
+H1aでは、Matched-Plain conditionにおけるBase--Instruct Procrustes Distortionが、Readerで
+\[
+1.455
+\qquad
+95\%\,CI=[0.639,2.813],
+\]
+Selfで
+\[
+2.872
+\qquad
+95\%\,CI=[0.660,6.995]
+\]
+となり、prespecified 4-family summaryにおいてgeometric reorganization criterionが支持された。
+V1においてBase / Instructの双方からhuman Reader V/Aに関係するinformationがheld-outでdecode可能であったことが重要である。
+したがってBase--Instruct differenceを、
+\[
+\text{Base: information exists}
+\qquad
+\rightarrow
+\qquad
+\text{Instruct: information disappears}
+\]
+という単純なerasureとして解釈するのではなく、本研究の結果は、
+\[
+\text{affect-relevant information remains decodable}
+\quad+\quad
+\text{its representational geometry differs}
+\]
+と解釈できる。
+
+これは、事後学習に伴う行動変容（post-training-associated behavioral change）を理解する際に、情報の有無だけではなく、同じ外部感情変数が内部隠れ層空間内でどのような幾何学的配置（coordinate organization）を持つかを明確に区別する必要があることを示す。
+
+
+\subsection{Geometric reorganizationは一様な後段シフトを意味しない}
+
+一方、H1bで想定した「Instructモデルではdecodability peakが一貫してdeeper（後段）へ移行する」という単純なrelocation仮説は支持されなかった。Valence Readerでは、
+\[
+\Delta d_D^* = -0.119, \qquad 95\%\,\text{CI} = [-0.219, -0.033]
+\]
+となり、事前定義された正方向（後段化）のシフトとは反対に、Instructでより前段側へ移る傾向が観測された。
+さらに、Valence Self（$\Delta d_D^* = 0.007$, $95\%\,\text{CI} = [-0.053, 0.100]$）、Arousal Self（$\Delta d_D^* = 0.017$, $95\%\,\text{CI} = [-0.200, 0.250]$）はいずれもほぼ0であり、Arousal Reader（$\Delta d_D^* = 0.200$, $95\%\,\text{CI} = [-0.027, 0.426]$）も信頼区間が0を含んだ。したがって、
+\[
+\text{geometric reorganization}
+\quad\neq\quad
+\text{uniform deeper relocation}
+\]
+である。Base--Instruct間の表現差異は存在するものの、それがすべてのtask / axisにおいて一様な深層シフトとして発現するわけではない。
+
+
+\subsection{Reader--Self sharingの一貫した低下は支持されなかった}
+
+H2では、Matched-Plain条件におけるReader--Self表現共有度の変位 $\Delta\text{Sharing}$ は、Valenceで $-0.553$（$95\%\,\text{CI} = [-1.324, 0.076]$）、Arousalで $-0.278$（$95\%\,\text{CI} = [-0.615, 0.049]$）となり、点推定値としてはタスク分離方向を示したものの、双方とも95\%信頼区間が0を跨いだ。
+
+したがって、事後学習に伴ってReaderとSelfの情動関連表現が全ファミリーで一貫して分離するというH2仮説は支持されない。さらにSecondaryのNative Chat条件では、プロンプト形式の相違（Format Effect）によって見かけの共有度低下が大きく増幅されたことから、プロンプト指示形式を厳密に統制すること（Matched-Plain）の不可欠性が示された。
+すなわち、
+\[
+\text{geometric reorganization}
+\quad\not\Rightarrow\quad
+\text{Reader--Self sharing uniformly decreases}
+\]
+である。
+
+
+\subsection{Causal reorganizationはValenceのtask依存成分に限定して支持された}
+
+RQ3では、control-adjusted causal leverage \(c_{\mathrm{net,rand}}\) を用いたsample-level LMMによって、Base--Instruct間の因果プロファイルの差を評価した。
+その結果、ValenceにおけるPost-training $\times$ Task交互作用項が、
+\[
+\beta = 1.63\times10^{-4}, \qquad \text{FDR } q = 0.044
+\]
+となり、Primary interactionの中で唯一FDR補正後にも有意に支持された（さらにSecondaryのPost-training主効果も $q = 0.027$ で有意）。
+一方、層深度の再配置を表すPost-training $\times$ Depth（FDR $q = 0.304$）および三者交互作用（Post-training $\times$ Task $\times$ Depth, FDR $q = 0.196$）は支持されず、Arousalの全交互作用項（FDR $q = 0.304$）も支持されなかった。
+
+したがってH3の結果は、因果構造が全面的に不変であるとも、一様に深層へ移行するとも言えない。限定された解釈として、Valenceにおいてはタスク依存的な因果プロファイルの再編（Alignment $\times$ Task）が存在するものの、全ファミリーに一貫した層深度への再配置（depth relocation）は統計的に支持されなかったと結論づけられる。
+
+
+\subsection{Base representationの移植による回復は強くfamily-dependentであった}
+
+RQ4では、Instructモデルの内部表現を同一familyのBaseモデル由来表現で置換または整列した場合に、InstructのVA output distributionがBase distributionへどの程度接近するかを検証した。
+結果はモデルファミリー間で強く乖離した。QwenではMatched-Plain Recovery AUCがReaderで $0.189$、Selfで $0.181$（Max Recoveryは約0.42--0.44）に達した一方、LlamaではMatched-Plain AUCはほぼ0（Reader $0.005$, Self $-0.006$）、Gemma（Reader $-0.052$, Self $0.001$）およびOLMo（Reader $-0.170$, Self $-0.160$）では負値となった。
+したがって、
+\[
+\text{Base representation patching}
+\quad\not\Rightarrow\quad
+\text{universal Base-like recovery}
+\]
+である。さらにPrimary H4であるSelf--Reader recovery asymmetryは、
+\[
+\Delta\text{AUC}_{\mathrm{Recovery}} = 0.011, \qquad 95\%\,\text{CI} = [-0.010, 0.038]
+\]
+と0を跨ぎ、Selfの方がReaderより一貫してBase類似分布へ回復しやすいという仮説は支持されなかった。またProcrustes-aligned AUCも各ファミリーでほぼ0であり、Base--Instruct間の差異を単純な線形座標の不整合として補正することはできない。
+
+
+\subsection{V2の統合的解釈}
+
+以上からV2の結果は、単純な情報消去（Erasure）、一様な深層移行（Uniform deeper relocation）、一様なタスク分離（Uniform Reader--Self separation）、単一の回復可能ボトルネック（Single recoverable bottleneck）のいずれにも還元できない。
+
+Matched-Plain条件では、BaseとInstructの間にReader / Self双方について一貫したrepresentation-geometric disparityが観測された一方、Instruct modelにおいてもaffect-relevant informationはdecode可能であった。しかし、この差異は一様なdecodability peakの後段化やReader--Self sharingの低下としては現れなかった。
+
+causal profileについてはValenceのPost-training \(\times\) Task interactionがPrimary criterionを満たした一方、depth-dependent relocationは支持されなかった。またBase representationによるdistribution recoveryはmodel familyによって大きく異なった。
+
+したがって、本結果は単一の局所的mechanismではなく、representation geometry、task-dependent causal sensitivity、およびmodel-specific recoverabilityにまたがるpost-training-associated reorganizationと整合する。ただし、BaseとInstructは無作為化されたpost-training interventionによって得られた実験条件ではないため、これをpost-trainingそのものの因果効果とは解釈しない。
+
 
 
 % ================================================================
@@ -6102,7 +6200,22 @@ Procrustes-aligned recovery \\
 \section{V2からV3への接続}
 \label{sec:v2-to-v3}
 
+V2では、Base--Instruct間に明瞭な表現幾何学的差異（Procrustes Distortion）が存在する一方、その差異を一貫したデコードピークの後段化、Reader--Self共有度の低下、因果レバレッジの層深度移行、あるいはBase表現の単純な線形移植によって説明することはできなかった。
 
+特に、ValenceでPost-training $\times$ Task交互作用が部分支持された一方、層深度に関する交互作用は支持されなかった。したがって、事後学習に伴う変化を解明するためには、「どの層が異なるか」という静的な層比較（layer-wise static comparison）だけでは不十分である。
+
+V2で解析した内部表現および因果プロファイルは、主として入力プロンプト処理終了時点（prompt-end）の隠れ状態を対象としていた。しかしモデルの自己報告（Self-Report）は、プロンプト末尾から直ちに確定するのではなく、応答トークン系列を自己回帰的に生成する動的な計算過程（generation stages）を通じて決定される。
+したがって次の段階では、解析軸を「静的な層（layer）」から、
+\[
+\text{layer} \times \text{generation stage}
+\]
+という時空間の二次元座標へと拡張する必要がある。
+
+さらにV2 RQ4で示されたように、内部表現が存在することと、その表現が出力分布を頑健に因果制御できることは同義ではない。加えて、外部介入によって出力を動かし得る人工的感受性と、モデルの自然な推論計算（natural forward processing）においてその表現が実際に媒介されているかも厳密に区別されなければならない。
+
+そこでV3では、Instruct model内部のSelf-Report computationを、prompt-endのみの静的解析からresponse-generation trajectoryへ拡張する。具体的には、事前定義されたState Induction Gate（Sufficiency, Specificity, Endogenous Relevance）によってaffect-related directionの因果操作可能性を検証した上で、固定したcanonical response candidateをteacher forcingしたtrajectory上で、layer（空間）\(\times\) generation stage（時間）のcausal sensitivityを解析する。
+
+したがってV3が対象とするgeneration-stage analysisは、モデルが実際に自由生成したresponse trajectoryそのものではなく、candidate contentを統制した固定trajectory上でのspatiotemporal comparisonである。
 
 
 % ================================================================
@@ -6114,12 +6227,8 @@ Procrustes-aligned recovery \\
 \subsection{目的と位置づけ}
 
 V3の中心的なResearch Questionは、「情動関連情報は、Instructモデルのどのlayer・どのgeneration stageにおいて、自己報告（Self-Report）に対して測定可能なcausal leverageを持つのか」である。
-ここで厳密に区別するのは、
-\[
-\text{Information is decodable} \quad\neq\quad \text{Information has causal leverage}
-\]
-である。ある内部表現から高精度に情動がデコード可能であることと、その情報が出力生成を因果的に駆動していることは一致しない。
-V3では、State Induction Gateによる前提検証を経て、Instructモデル内部の時空間因果マップを特定し、独立検証セットおよびクロスモデルで再現性を評価する。
+
+前節で整理された「デコード可能な表現が必ずしも出力生成を因果的に駆動しているとは限らない」という境界を踏まえ、V3では受動的な線形プロービングを超えて、内部隠れ状態への体系的介入により時空間因果マップを特定し、独立検証セットおよびクロスモデルでその再現性を評価する。
 \[
 \begin{aligned}
 &\text{State Induction / Sufficiency}\\
@@ -6138,7 +6247,11 @@ V3では、State Induction Gateによる前提検証を経て、Instructモデ�
 % ----------------------------------------------------------------
 \subsection{V3の全体構成}
 
-V3は、Qwen 2.5 1.5B-Instructを用いたDiscovery analysisと、他model familiesを用いたConfirmatory replicationから構成する。Discovery modelは、Qwen 2.5 1.5B-Instructである。Confirmatory familiesは、
+V3は、Qwen 2.5 1.5B-Instructを用いたDiscovery analysisと、Llama 3.2、Gemma 3、OLMo 2を用いたprespecified cross-family replicationから構成する。V3ではBase modelを使用しない。
+
+Discovery modelはQwen 2.5 1.5B-Instructである。Qwen上では、まず事前定義されたState Induction Gateによって、Reader-grounded affect-related directionがSelf-Reportに対して十分かつspecificなcausal effectを持ち、自然なstimulus-induced Self shiftにendogenously relevantであるかを評価する。続いて、Gate criterionを満たした場合には、layer $\times$ generation stageにわたるspatiotemporal mapping、mediated attenuation、およびcross-family replicationへ進む。
+
+cross-family replicationには、
 \[
 \{
 \text{Llama 3.2 Instruct},
@@ -6146,12 +6259,18 @@ V3は、Qwen 2.5 1.5B-Instructを用いたDiscovery analysisと、他model famil
 \text{OLMo 2 Instruct}
 \}
 \]
-である。V3にBase modelは含めない。表~\ref{tab:v3-overview}にV3を構成するanalysisを示す。
+を使用する。これら3 familiesにおける解析siteおよびgeneration stageは、Qwen Discoveryの結果に基づいて事前に固定し、各familyのoutcomeを観察した後には再選択しない。ただし、hidden dimensionalityおよびrepresentation basisはmodel family間で異なるため、Qwenで得られたhidden vectorそのものを他familyへ直接移植するのではなく、固定されたsite / stageにおいて各family内部でaffect-related directionを再推定する。
+
+cross-family replicationをconfirmatory evidenceとして解釈するのは、事前定義されたState Induction Gateが\texttt{GO}となった場合に限る。Gateが\texttt{GO}でない場合、通常のproduction pipelineではRQ2以降へ進まない。ただし、Gate failure後の内部計算を探索的に特徴づけるため、明示的overrideによってRQ2以降を実行できる。この場合、Qwenで選択されたsite / stageおよび事前定義された解析手順は維持するものの、そのinferential statusはconfirmatoryではなく、exploratory / descriptive analysisとして扱う。
+
+したがって、V3におけるDiscovery / replicationの分離は、解析siteのpost hoc selectionを防ぐための設計上の分離であり、その結果がconfirmatory evidenceとして解釈可能かどうかはState Induction Gateの結果によって決定される。
+
+表~\ref{tab:v3-overview}に、V3を構成する各analysisの役割を示す。
 
 \begin{table}[htbp]
 \centering
 \small
-\caption{V3におけるDiscoveryおよびConfirmatory analyses。}
+\caption{V3におけるDiscovery analysesとprespecified cross-family replication。State Induction Gateが\texttt{GO}でない場合、RQ2以降の解析はexploratory / descriptive evidenceとして解釈する。}
 \label{tab:v3-overview}
 \begin{tabularx}{\linewidth}{
 @{}
@@ -6165,32 +6284,25 @@ V3は、Qwen 2.5 1.5B-Instructを用いたDiscovery analysisと、他model famil
 \textbf{Analysis} &
 \textbf{Question} \\
 \midrule
+
 RQ1 &
-State Induction \& Go/No-Go Gate &
-affect-related directionへの介入はSelf-Reportを
-dose-dependentかつspecificに変化させ、
-自然刺激中の同subspace除去はSelf shiftを減衰させるか \\
+State Induction / Go--No-Go Gate &
+affect-related directionへの介入はSelf-Reportをdose-dependentかつspecificに変化させ、自然刺激中の同subspace除去はstimulus-induced Self shiftを減衰させるか \\
 
 RQ2 &
 Spatiotemporal 4-Maps &
-decodability、内部関連、interventional slope、
-causal displacementは
-layer $\times$ generation stageのどこに分布するか \\
+decodability、partial association、interventional slope、およびcausal displacementは、layer $\times$ generation stage上でどのように分布するか \\
 
 RQ3 &
 Mediated Attenuation &
-Discoveryで選択されたaffect-related subspaceを除去すると、
-独立Confirmation pairsの自然なSelf shiftはどの程度減衰するか \\
+Discoveryで選択されたaffect-related subspaceを除去すると、独立したConfirmation pairsにおける自然なSelf shiftはどの程度減衰するか \\
 
-Confirmation &
+Replication &
 Cross-family Replication &
-Qwenで選択されたsite / stageを固定したとき、
-同じmechanistic patternが
-Llama、Gemma、OLMoでも確認されるか \\
+Qwen Discoveryで選択されたsite / stageを固定したとき、同じmechanistic patternがLlama、Gemma、OLMoでも再現されるか \\
 \bottomrule
 \end{tabularx}
 \end{table}
-
 
 % ----------------------------------------------------------------
 \subsection{V3のデータと測定対象}
@@ -6211,33 +6323,13 @@ ModerateおよびComplex NeutralはV3 Primary analysisには使用しない。�
 % ----------------------------------------------------------------
 \subsection{Primary affective grounding}
 
-AIPsy-Affectには、EmoBankのようなhuman continuous Valence / Arousal annotationが存在しないため，存在しないhuman V/A labelをground truthとして使用しない。代わりに各stimulusについて、同じInstruct modelをReader taskとして評価して得られる、
+AIPsy-Affectには、EmoBankのようなhuman continuous Valence / Arousal annotationが存在しないため、存在しないhuman V/A labelをground truthとして使用しない。代わりに各stimulusについて、同じInstruct modelをReader taskとして評価して得られる $R_V(x)$ および $R_A(x)$ をPrimary affective targetsとする。すなわち、
 \[
-R_V(x)
+Y_V = R_V(x), \qquad Y_A = R_A(x)
 \]
-および、
+である。これはhuman affective ground truthではなく、モデルの他者情動予測（model Reader Prediction）に基づくグラウンディングである。V3ではSelf hidden representationにどの程度Reader-grounded affective informationが存在し、その情報を操作した際にSelf-reportがどのように変化するかを測定する。したがって、V3の検証軸は、
 \[
-R_A(x)
-\]
-をPrimary affective targetsとする。すなわち、
-\[
-Y_V
-=
-R_V(x),
-\qquad
-Y_A
-=
-R_A(x)
-\]
-である。これはhuman affective ground truthではなく、
-\[
-\text{model Reader Prediction}
-\]
-である。V3ではSelf hidden representationにどの程度Reader-grounded affective informationが存在し、その情報を操作した際にSelf-reportがどのように変化するかを測定する。したがって、v3は
-\[
-\text{Reader-grounded representation}
-\rightarrow
-\text{Self-report causal utilization}
+\text{Reader-grounded representation} \rightarrow \text{Self-report causal utilization}
 \]
 である。一方、Self-Report自身をtargetとして抽出した方向はSecondary characterizationとして扱う。
 
@@ -6265,12 +6357,7 @@ Respond strictly in JSON format:
 
 candidate setは、
 \[
-\{
-\texttt{medical},
-\texttt{family},
-\texttt{work},
-\texttt{daily\_life}
-\}
+\{\texttt{medical}, \texttt{family}, \texttt{work}, \texttt{daily\_life}\}
 \]
 の4 categoriesである。
 
@@ -6282,7 +6369,7 @@ candidate setは、
 \subsection{RQ1：State Induction and Go/No-Go Gate}
 \label{app:v3-rq1}
 
-RQ1では、後続の時空間causal analysisへ進む前に、Reader-grounded affect directionへの介入がSelf-Reportに対して十分なcausal effectを持つかを検証する。ここで検証するのは、単に方向を注入するとoutputが何らかの形で変化するかではなく，以下を同時に要求する。
+RQ1では、後続の時空間causal analysisへ進む前に、Reader-grounded affect directionへの介入がSelf-Reportに対して十分なcausal effectを持つかを検証する。ここで検証するのは、単に方向を注入するとoutputが何らかの形で変化するかではなく、以下を同時に要求する。
 
 \begin{enumerate}
     \item \textbf{Sufficiency / Dose-response}：
@@ -6387,15 +6474,9 @@ Ridge regularizationは、
 \]
 を得る。単位方向を、
 \[
-d_V
-=
-\frac{\beta_V}{\|\beta_V\|_2}
-\]
-，
-\[
-d_A
-=
-\frac{\beta_A}{\|\beta_A\|_2}
+d_V = \frac{\beta_V}{\|\beta_V\|_2},
+\qquad
+d_A = \frac{\beta_A}{\|\beta_A\|_2}
 \]
 と定義する。同じtraining representationsに対し、Self-report V/Aをtargetとして抽出した方向もSecondaryとして求め、
 \[
@@ -6764,11 +6845,12 @@ NO\_GO & NO\_GO & \texttt{NO\_GO} \\
 \texttt{GO (Arousal-only)}
 \]
 は、部分的にaxis criterionを満たしたことを記録するlabelではあるが、通常経路ではRQ2以降を自動的に継続する完全なGOとはみなさない。
-\color{red}
-5:14追記
+% \color{red}
+% 5:14追記
+% 追記済み
 \paragraph{Gate failure後の探索的継続。}
 overall Gate decisionが\texttt{GO}でない場合、通常のproduction pipelineはRQ2以降を実行しない。ただし、Gate failure後の内部計算を探索的に特徴づける目的で、\texttt{--force-after-no-go}による明示的overrideを可能とする。このoverrideの下で実行されたRQ2、RQ3、およびcross-family replicationは、prespecified confirmatory evidenceとしては扱わず、exploratory / descriptive analysisとして解釈する。
-\color{black}
+% \color{black}
 
 % ================================================================
 % RQ2
@@ -7169,7 +7251,7 @@ d_C^{*}-d_D^{*}
 \[
 \text{Qwen Discovery site selection}
 \]
-として扱い、後続のconfirmatory familiesで再探索しない。Valence causal peakについて、
+として扱い、後続のprespecified replication familiesで再探索しない。Valence causal peakについて、
 \[
 (d_{C,V}^{*},t_{C,V}^{*})
 \]
@@ -7605,7 +7687,7 @@ RQ3によって直接検証されるのは、Discoveryで定義されたaffect-r
 % Cross-family Confirmation
 % ================================================================
 
-\subsection{Cross-family Confirmatory Replication}
+\subsection{Prespecified Cross-family Replication}
 \label{app:v3-confirmatory}
 
 Qwen Discoveryだけで観測されたlayer / stage patternは、単一architectureに固有である可能性がある。そこで、
@@ -7622,7 +7704,7 @@ Qwen Discoveryだけで観測されたlayer / stage patternは、単一architect
 % ----------------------------------------------------------------
 \subsection{Frozen-site principle}
 
-confirmatory familiesの結果を見てsiteを再選択しない。Qwen RQ1--RQ3終了後に、以下のrelative-depth / stage informationを固定する。
+prespecified replication familiesの結果を見てsiteを再選択しない。Qwen RQ1--RQ3終了後に、以下のrelative-depth / stage informationを固定する。
 
 \begin{enumerate}
     \item \textbf{Sufficiency site}：
@@ -7648,7 +7730,7 @@ confirmatory familiesの結果を見てsiteを再選択しない。Qwen RQ1--RQ3
 
 
 % ----------------------------------------------------------------
-\subsection{Confirmatory sample-level cross-fitting}
+\subsection{Replication sample-level cross-fitting}
 
 各confirmatory familyでは、AIPsyの192 matched pairsをすべて使用する。pair identityをgroupとしたGroupKFoldを使用し、
 \[
@@ -7665,7 +7747,7 @@ K\le5
 
 
 % ----------------------------------------------------------------
-\subsection{Confirmatory intervention sampling}
+\subsection{Replication intervention sampling}
 
 causal interventionは計算量が大きいため、各test foldからseeded random samplingによって、
 \[
@@ -7675,8 +7757,9 @@ causal interventionは計算量が大きいため、各test foldからseeded ran
 
 
 % ----------------------------------------------------------------
-\subsection{Confirmatory H1：Decodability--Causal Dissociation}
-
+\color{red}
+\subsection{Replication H1：Directional Decodability--Causal Dissociation}
+\color{black}
 H1ではまず全192 pairsについて、Self prompt-end representationからReader Prediction V/Aをdecodeする。最大5-fold GroupKFoldにより、
 \[
 D_V(l),
@@ -7709,19 +7792,68 @@ center-of-mass dissociationを、
 \[
 B=1000
 \]
-で両quantityの95\% CIを算出する。Valence / Arousalそれぞれについて、
+で両quantityの95\% CIを算出する。
+\color{red}
+9/25 14:00修正
+Qwen Discoveryでは、decodability profileとcausal-displacement profileの空間的乖離を、
 \[
-CI_{\mathrm{low}}(\Delta d^{*})>0
+\Delta d^{*}
+=
+d_C^{*}-d_D^{*}
+\]
+および、
+\[
+\Delta\bar d
+=
+\bar d_C-\bar d_D
+\]
+によって記述する。
+
+cross-family replicationでは、単にこれらのquantityが正であることを要求するのではなく、Qwen Discoveryで観測されたdirectionをreplication targetとして固定する。
+
+axis \(a\in\{V,A\}\) およびsummary \(m\in\{\mathrm{peak},\mathrm{COM}\}\) について、Qwen Discoveryで得られたdissociationの符号を、
+\[
+s_{a,m}
+=
+\operatorname{sign}
+\left(
+\Delta_{a,m}^{\mathrm{Qwen}}
+\right)
+\]
+と定義する。
+
+このsignはQwen Discovery終了後、Llama、Gemma、OLMoのoutcomeを評価する前にfreezeする。
+
+各replication familyでは、対応するdissociation quantityを
+\[
+\widetilde{\Delta}_{a,m}
+=
+s_{a,m}\Delta_{a,m}
+\]
+とdirection-alignし、intervention sample setをjointly bootstrapして95\% confidence intervalを求める。
+
+H1のprespecified replication criterionは、
+\[
+CI_{\mathrm{low}}
+\left(
+\widetilde{\Delta d^{*}}_a
+\right)>0
 \]
 かつ、
 \[
-CI_{\mathrm{low}}(\Delta\bar d)>0
+CI_{\mathrm{low}}
+\left(
+\widetilde{\Delta\bar d}_a
+\right)>0
 \]
-をconfirmatory criterionとする。
+とする。
 
+したがってH1が検証するのは、decodability peakとcausal-displacement peakが単に異なるかではなく、Qwen Discoveryで観測された方向のspatial dissociationが、frozen directional hypothesisとして他model familiesでも再現されるかである。
+
+\color{black}
 
 % ----------------------------------------------------------------
-\subsection{Confirmatory H2：Sufficiency}
+\subsection{Replication H2：Sufficiency}
 
 Qwen RQ1からfreezeしたrelative depthを、各confirmatory modelのlayer数へ変換する。各foldのtraining Self representationsから、Reader Prediction V/Aをtargetとした
 \[
@@ -7743,7 +7875,7 @@ CI_{\mathrm{low}}(\gamma)>0.1
 
 
 % ----------------------------------------------------------------
-\subsection{Confirmatory H3：Endogenous Relevance}
+\subsection{Replication H3：Endogenous Relevance}
 
 Qwen RQ3でfreezeしたmediator relative depthを、各confirmatory modelへ移す。各foldのtraining representationsについて、Reader Prediction V/AをtargetとしたRidge \(\alpha=10\)から、
 \[
@@ -7777,7 +7909,7 @@ CI_{\mathrm{low}}(M)>0
 \[
 CI_{\mathrm{low}}(M_{\mathrm{net}})>0
 \]
-をconfirmatory criterionとする。natural shiftが、
+をprespecified replication criterionとする。natural shiftが、
 \[
 T_i>0.05
 \]
@@ -7785,7 +7917,7 @@ T_i>0.05
 
 
 % ----------------------------------------------------------------
-\subsection{Confirmatory H4：Temporal Emergence}
+\subsection{Replication H4：Temporal Emergence}
 
 RQ2 DiscoveryでfreezeしたValence / Arousalのrelative depthとgeneration stageを使用する。各confirmatory familyでは、各stageのhidden representationsからReader Predictionをtargetとするstage-local Ridge directionをtraining foldだけで再推定する。Valenceについて、frozen target stageでのabsolute causal displacementを、
 \[
@@ -7819,13 +7951,13 @@ CI_{\mathrm{low}}
 \Delta C^{\mathrm{temporal}}
 )>0
 \]
-をconfirmatory criterionとする。したがってH4が評価するのは、causal leverageがcandidate-generation sequence全体で一様なのではなく、Qwen Discoveryで選択されたstageにおいてcandidate startより大きくなるかである。
+をprespecified replication criterionとする。したがってH4が評価するのは、causal leverageがcandidate-generation sequence全体で一様なのではなく、Qwen Discoveryで選択されたstageにおいてcandidate startより大きくなるかである。
 
 
 % ----------------------------------------------------------------
 \subsection{Cross-family summaryの位置づけ}
 
-confirmatory familiesは、
+prespecified replication familiesは、
 \[
 N_{\mathrm{family}}=3
 \]
@@ -7892,7 +8024,7 @@ three-family aggregate summaries \\
 \subsection{V3から直接主張できる範囲}
 \label{app:v3-interpretation}
 
-V3では、Representationから，Causal Utilizationへの関係を、sufficiency、spatiotemporal mapping、subspace removal、cross-family confirmationという複数の介入的evidenceによって検証する。ただし以下の解釈上の境界を維持する。
+V3では、Representationから、Causal Utilizationへの関係を、sufficiency、spatiotemporal mapping、subspace removal、cross-family confirmationという複数の介入的evidenceによって検証する。ただし以下の解釈上の境界を維持する。
 
 \paragraph{First, decodability is not causal utilization.}
 \[
@@ -8007,31 +8139,31 @@ Behavioral、V1、V2と合わせると、本研究全体は、
 \input{tables/v3_causal_utilization_summary.tex}
 
 
-
-
 % ================================================================
 % 18. V3考察
 % ================================================================
 \section{V3考察}
 \label{sec:v3-discussion}
-
+\color{red}
+9/25 14:00修正
 V3で最も重要な結果は、事前定義されたState Induction GateがValenceおよびArousalの双方で\texttt{NO\_GO}となったことである。
 
-Sufficiency、Specificity、Endogenous Relevanceの各criterionはprespecified thresholdを満たさなかった一方、Topic Controlはpassした。したがって、今回同定したaffect-related directionについて、
+Sufficiency、Specificity、Endogenous Relevanceの各criterionはprespecified thresholdを満たさなかった一方、Topic Controlはpassした。したがって、今回同定したReader-grounded affect-related directionについて、
 \[
 \text{robust and specific causal control of Self-Report}
 \]
 が確認されたとは言えない。
 
-この結果は、V1でaffect-relevant informationがdecodableであり、hidden-state interventionに対するlayer-wise causal sensitivityが存在したことと矛盾しない。むしろ、
+この結果は、V1でaffect-relevant informationがdecodableであり、hidden-state interventionに対するlayer-wise causal sensitivityが観測されたことと矛盾しない。むしろ、
 \[
 \text{Decodable}
 \not\Rightarrow
-\text{robustly steerable}
+\text{Robustly Steerable}
 \]
-というrepresentation--use distinctionを示す。
+というrepresentation--use distinctionをさらに明確にする結果である。
 
-GateがNO\_GOであったため、RQ2以降は明示的overrideの下で実行されたexploratory / descriptive analysisとして解釈する。
+State Induction Gateが\texttt{NO\_GO}であったため、RQ2以降は明示的overrideの下で実行されたexploratory / descriptive analysisとして解釈する。Qwen Discovery analysisで選択されたsiteおよびgeneration stageは、その後のcross-family analysisにおいて事前に固定されているが、Gate failure後に得られた結果をconfirmatory evidenceとしては扱わない。
+
 Qwen Discovery analysisでは、ValenceとArousalの双方でdecodability peakはrelative depth
 \[
 d_D^{*}\simeq0.85
@@ -8042,31 +8174,47 @@ d_C^{*}\simeq0.74\text{--}0.78
 \]
 と、より前段に位置した。peak-levelでは、
 \[
-\Delta d^*
+\Delta d^{*}
 =
-d_C^*-d_D^*
+d_C^{*}-d_D^{*}
 <0
 \]
-であり、最もdecodeしやすいlayerと最大のinterventional effectを生じるlayerが一致しない可能性を示す。
+であり、最も高いdecodabilityを示すlayerと、最大のinterventional effectを生じるlayerが一致しない可能性が示された。
 
-ただし、このpatternを普遍的なspatiotemporal lawとして一般化することはできない。cross-family confirmatory analysisでは、
-H1のdissociation criterionはLlama、Gemma、OLMoのいずれでもValence / Arousal双方について成立しなかった。
+ただし、このQwen上のpatternをfamily-generalなspatiotemporal lawとして一般化することはできない。Gate failure後に探索的に解釈したprespecified cross-family replication analysisでは、Valence軸においてLlama 3.2およびOLMo 2がQwen Discoveryと同方向の空間的解離（因果ピークおよび重心がデコーディングより浅い層に位置する）を有意に再現した（表\ref{tab:v3_confirmatory_details}）。しかし、Gemma 3ではValenceの解離が支持されず、またArousal軸ではいずれのfamilyにおいても信頼区間が0を跨ぐか重心方向が一致しなかったため、prespecified directional replication criterionは3 families全体・Valence/Arousal双方に一貫して一般化するpatternとはならなかった。
 
-またH2のSufficiencyも、3 familyすべてでprespecified thresholdを大きく下回った。
+またH2のSufficiencyについても、3つのprespecified replication familiesすべてでeffectは事前定義されたthresholdを大きく下回った。したがって、Qwen上で同定されたaffect-related directionが、固定siteにおいてfamily-generalにrobustなSelf-Report controlを与えるというpatternはreplicateされなかった。
 
-H3のmediated attenuationについても、Qwen Discoveryではattenuation ratioが1\%未満と小さく、Valenceのconfidence intervalは0を含んだ。cross-family confirmationでも、absolute attenuationとrandom-subspace controlを差し引いたnet attenuationの双方を要求するcriterionはいずれのfamilyでも満たされなかった。
+H3のmediated attenuationについても、Qwen Discoveryではattenuation ratioが1\%未満と小さく、Valenceのconfidence intervalは0を含んだ。prespecified cross-family replicationにおいても、absolute attenuationとrandom-subspace controlを差し引いたnet attenuationの双方を要求するreplication criterionは、Llama、Gemma、OLMoのいずれでも満たされなかった。
 
-したがって、今回同定したaffect-related subspaceがnatural Self-Report shiftを主要に媒介するという主張は支持されない。
+したがって、今回同定したaffect-related subspaceがnatural stimulus-induced Self-Report shiftを主要に媒介するという主張は支持されない。とくに、本研究で用いたsubspace removalによるattenuationを、formal causal mediationの証拠として解釈することはできない。
 
-一方、H4のtemporal contrastについては、Llama、Gemma、OLMoの3 familyすべてでValence / Arousal双方のconfidence interval lower boundが0を上回った。
-これは、causal sensitivityがgeneration stageに対して完全に一様ではない可能性を示す再現性のあるexploratory signalである。
+一方、H4のgeneration-stage temporal contrastについては、Llama、Gemma、OLMoの3つのprespecified replication familiesすべてにおいて、Valence / Arousal双方のconfidence interval lower boundが0を上回った。すなわち、Qwen Discoveryで固定されたtarget generation stageにおけるcausal displacementは、candidate sequenceの開始stageにおけるeffectよりも大きいというpatternが3 familiesで共通して観測された。
 
-しかし、事前のState Induction GateがNO\_GOであり、H1--H3もconfirmされていないため、H4単独からprespecified causal mechanism全体が確認されたとは解釈しない。
+この結果は、interventional sensitivityがgeneration process全体で完全に一様ではなく、generation stageに応じて変化し得ることを示す再現性のあるexploratory signalである。
 
-以上からV3が支持するのは、より限定された結論となり、affect-relevant informationのdecodabilityとlocal causal leverageは一致するとは限らず、causal sensitivityにはgeneration-stage dependenceが存在し得るが、robustでfamily-generalな単一mechanismは確認されなかったというものである。
+ただし、このH4 patternの解釈には重要な制約がある。第一に、事前のState Induction GateはValence / Arousalの双方で\texttt{NO\_GO}であった。第二に、H1のdirectional spatial dissociationはValenceにおいて一部familyで再現されたものの双方の軸で一貫して成立したfamilyはなく、H2のSufficiencyおよびH3のmediated attenuationに対応するprespecified replication criteriaはいずれも満たされなかった。第三に、V3のgeneration-stage analysisは実際の自由生成trajectoryそのものではなく、固定したcanonical candidateをteacher forcingしたtrajectory上で行われている。
 
+したがって、H4のみから、特定のgeneration stageにfamily-generalなSelf-Report causal mechanismが局在すると結論することはできない。より限定的には、本研究で用いたinterventionに対するlocal sensitivityがgeneration stageによって変化し得ることを示すexploratory evidenceとして解釈する。
 
+また、V3で扱うtemporal localizationは、本研究で用いたinterventionによって測定されたrelative causal leverageを表すものであり、より早いgeneration stageにおいてaffect-related informationが利用されていないことを意味しない。同様に、あるstageでcausal displacementが大きいことは、そのstageが情報を最初に形成した時点であることや、唯一のcausal bottleneckであることを意味しない。
 
+以上から、V3が支持する結論は限定的である。第一に、
+\[
+\text{Affect-relevant Decodability}
+\not\Rightarrow
+\text{Robust Causal Control}
+\]
+であり、高いdecodabilityからrobustかつspecificなSelf-Report controlを直接推論することはできない。
+
+第二に、Qwen Discoveryではdecodability peakとcausal displacement peakの空間的乖離が観測され、このdirectional spatial dissociationはValence軸において一部のreplication families（Llama 3.2およびOLMo 2）で再現されたものの、Arousal軸やGemma 3を含む3 families全体には一貫して一般化されなかった。
+
+第三に、今回同定したaffect-related subspaceがnatural Self-Report shiftを主要に媒介するというevidenceも得られなかった。
+
+一方で、generation-stage temporal contrastについては3つのprespecified replication familiesで共通するexploratory patternが観測された。したがって、local interventional sensitivityにはgeneration-stage dependenceが存在し得る。
+
+総合すると、V3はrobustでfamily-generalな単一のSelf-Report causal mechanismを同定したものではない。むしろ、affect-relevant informationのdecodability、外部介入に対するlocal sensitivity、natural computationにおけるendogenous relevanceを区別する必要性を示し、Self-Reportに関係するcausal organizationが単一のlayerや単一のgeneration stageへ単純に局在するという説明を支持しない結果となった。
+\color{black}
 
 % ================================================================
 % 19. 全体の考察
@@ -8074,12 +8222,244 @@ H3のmediated attenuationについても、Qwen Discoveryではattenuation ratio
 \section{全体の考察}
 \label{sec:general-discussion}
 
+本研究では、LLMにおけるaffect-relevant internal representationとSelf-Reportの関係を、
+\[
+\text{Behavioral Covariation}
+\rightarrow
+\text{Internal Representation}
+\rightarrow
+\text{Post-training-Associated Reorganization}
+\rightarrow
+\text{Spatiotemporal Causal Utilization}
+\]
+という4段階のevidence hierarchyとして検証した。
+
+中心的な問いは、LLMの情動関連内部表現がSelf-Reportとどのように結びつき、その関係がtask、post-training-associated difference、およびgeneration processを通じてどのように変化するかであった。
+
+4 Stageを統合すると、最も重要な結果は、
+\[
+\text{Behavioral Coupling}
+\neq
+\text{Shared Representation}
+\neq
+\text{Shared Causal Code}
+\neq
+\text{Robust Causal Control}
+\]
+という段階的な分離である。
 
 
+\subsection{強いbehavioral couplingはmechanistic identityを意味しない}
+
+Behavioral Stageでは、controlled Clinical--Neutral manipulationに対するReader changeとSelf changeの間に、全Primary model conditionsで強い正のcouplingが観測された。
+
+一方、human VAD correspondence、Sensitivity、Dose-response、Specificityはmodel / task / axisによって大きく異なった。
+
+したがって、
+\[
+\text{Reader--Self behavioral coupling}
+\neq
+\text{human-affect correspondence}
+\]
+である。
+
+さらにV1では、ReaderとSelf双方からaffect-relevant informationがdecode可能であり、representation geometryやlayer-wise causal sensitivityにもpartial overlapが存在した。しかしdirect cross-decodingは弱く、linear alignmentが必要であり、Reader-derived representationをSelfへ移植するcross-task causal interchangeabilityもrobustには支持されなかった。
+
+したがって、
+\[
+\text{shared or alignable information}
+\neq
+\text{shared causal code}
+\]
+である。
+
+Behavioral outputだけを見るとReaderとSelfは非常に強くcoupleしているにもかかわらず、内部mechanismへ進むにつれて両taskは完全に同一ではないことが明らかになる。これは、
+\[
+\text{surface coupling is stronger than mechanistic equivalence}
+\]
+という本研究全体の中心的な結果である。
 
 
+\subsection{Post-training-associated differenceはerasureよりreorganizationとして現れた}
+
+V2では、比較軸をReader--SelfからBase--Instructへ変更した。
+Base--Instruct間では、Reader / Self双方について明瞭なrepresentation geometry differenceが観測された。一方、Instruct modelにおいてもaffect-relevant informationはdecode可能であった。
+
+したがって、
+\[
+\text{post-training}
+\rightarrow
+\text{affect information erased}
+\]
+という単純な説明よりも、
+\[
+\text{information remains decodable}
++
+\text{its internal organization differs}
+\]
+という説明が結果と整合する。
+
+ただし、decodability peakは一貫して後段へ移動せず、Reader--Self sharingのcross-familyな低下も支持されなかった。causal profileでは、
+ValenceのPost-training $\times$ Task interactionのみがPrimary FDR criterionを満たした一方、depth-dependent relocationは支持されなかった。さらにBase representationによるdistribution recoveryは強くfamily-dependentであり、Self--Reader recovery asymmetryも支持されなかった。
+
+したがって、
+\[
+\text{Base--Instruct difference}
+\neq
+\text{single downstream gate}
+\]
+である。
+
+V2の結果は、post-training-associated differenceを単一のerasure、一様なdepth relocation、または単一のoutput bottleneckとして説明するよりも、representation geometry、task-dependent causal sensitivity、およびmodel-specific recoverabilityにまたがるdistributed reorganizationという説明と整合する。
 
 
+\subsection{Decodabilityとcausal utilizationはさらに分離される}
+
+V3では、Instruct model内部に対象を限定し、affect-relevant informationがSelf-Report生成のいつ・どこでcausal leverageを持つかを検証した。最も重要な結果は、State Induction GateがValence / Arousalの双方で\texttt{NO\_GO}となったことである。
+
+すなわち、今回同定したReader-grounded affect directionについて、
+\[
+\text{Sufficiency},
+\qquad
+\text{Specificity},
+\qquad
+\text{Endogenous Relevance}
+\]
+を同時に満たすrobustなcausal controlは確認されなかった。これは、
+\[
+\text{information is decodable}
+\not\Rightarrow
+\text{information is robustly steerable}
+\]
+ことを示す。
+
+Gate failure後のexploratory analysisでは、Qwenにおいてdecodability peakとcausal peakのspatial dissociationが観測された。このdirectional spatial dissociationはValenceにおいてLlama 3.2およびOLMo 2で再現されたものの、Arousalでは再現されず、3 families全体で一貫したH1 criterionを満たすには至らなかった。さらにH2のSufficiencyおよびH3のmediated attenuationもcross-family criterionを満たさなかった。
+
+一方、generation-stage temporal contrastであるH4は、3 prespecified replication familiesすべてについてValence / Arousal双方でcriterionを満たした。これは、causal sensitivityがgeneration process全体で完全に一様ではない可能性を示す。
+
+ただしState Induction GateがNO\_GOであり、H1--H3のprespecified replication criteriaは満たされなかったため、このtemporal contrast単独から普遍的なcausal mechanismを同定したとは言えない。
+
+V3で扱うtemporal localizationは、本研究で用いたinterventionによって測定されるrelative causal leverageであり、それ以前のstageで情報が利用されていないことを意味しない。またmediated attenuationもformal causal mediationではない。
+
+
+\subsection{4 Stageから得られる統合的な計算像}
+
+以上を統合すると、Reader PredictionとSelf-Reportの関係は、
+\[
+\text{one shared emotion representation}
+\rightarrow
+\text{two output heads}
+\]
+のような単純な構造ではなく、本研究の結果とより整合するのは、
+\[
+\begin{array}{c}
+\text{共通stimulusからaffect-relevant informationが形成される}
+\\
+\downarrow
+\\
+\text{ReaderとSelfの内部表現には共有可能なinformationが存在する}
+\\
+\downarrow
+\\
+\text{しかしtaskごとにcoordinate systemとcausal organizationが異なり得る}
+\\
+\downarrow
+\\
+\text{Base--Instruct間ではgeometryとtask dependenceが再編される}
+\\
+\downarrow
+\\
+\text{Self-Reportに対するlocal interventional sensitivityは}
+\\
+\text{model、task、layer、generation stageによって異なり得る}
+\end{array}
+\]
+というものである。
+
+この結果は、最終outputの類似性やlinear probeの高いdecodabilityだけから、内部mechanismの同一性を推論することの危険性を示す。
+
+
+\subsection{心理的ガードレールへの含意}
+
+心理的ガードレールという観点から見ると、本研究の結果は、単一の``emotion representation''や単一の``Self-Report layer''を抑制すれば、
+他者理解能力を維持しながらself-directed affective responseだけを普遍的に制御できるという単純な設計を支持しない。
+
+ReaderとSelfはaffect-relevant informationを部分的に共有するため、粗いinterventionはReader Predictionに必要なinformationにも影響を与える可能性がある。
+
+一方、V1では完全なcausal interchangeabilityが支持されず、一部modelsではtask-specific specializationが観測された。
+
+したがって、ReaderとSelfは完全に同一mechanismでもなければ、完全に独立したmechanismでもない。
+
+このことから将来的なselective controlでは、
+\[
+\text{shared affect-relevant informationを保存しつつ、}
+\\
+\text{task-specific causal utilizationを選択的に制御する}
+\]
+という設計が重要になると考える。
+
+さらにV2とV3は、そのintervention targetを全model familyへ固定的に転用することにも慎重であるべきことを示す。
+
+実際、Base-to-Instruct recoveryはfamily-dependentであり、V3のspatial dissociationもcross-family全体で普遍的にconfirmされたわけではない（Valenceにおいて一部familyで同方向の解離が再現されたにとどまる）。
+
+したがって実用的なguardrailを構築する場合には、各modelについて、
+\[
+\text{representation geometry},
+\qquad
+\text{task specificity},
+\qquad
+\text{causal leverage},
+\qquad
+\text{generation stage}
+\]
+を個別にvalidationし、Reader能力への副作用とともにintervention effectを評価する必要がある。
+
+
+\subsection{解釈上の限界}
+
+本研究におけるSelf-Reportは、standardized promptに対して生成されるmodel-generated affective reportである。
+
+したがって、本研究の結果はLLMが人間と同様の主観的情動、affective empathy、consciousness、あるいはsentienceを持つことの証拠ではない。同様にReader Predictionも、人間心理学におけるcognitive empathyそのものではない。
+
+本研究が対象とするのは、これら二つのoperational taskを結ぶaffect-relevant information、representation geometry、およびcausal computationである。
+
+また、BaseとInstructは独立して得られたtrained artifactsであり、本研究ではpost-training procedureそのものをrandomized interventionしていない。したがってV2で観測された差はpost-trainingのcausal effectではなく、post-training-associated differenceとして解釈する。
+
+さらに、4-familyおよび3-familyのcross-family analysesは、任意のLLM populationへのpopulation-level generalizationではなく、prespecified model families間におけるconsistencyの評価として位置づける。
+
+最後に、Behavioral / V1の729-state VAD spaceと、V2 / V3の81-state VA spaceは異なるprobability spaceであるため、Stage間でabsolute expected V/Aを直接比較しない。本研究を横断して統合するのは、各Stage内部で定義したcontrast、geometry、causal effect、relative depth、およびdistributional changeである。
+
+
+\subsection{結論}
+
+以上から本研究は、Reader PredictionとSelf-Reportの関係を、behavioral covariation、internal representation、causal intervention、post-training-associated comparison、generation-stage analysisへと段階的に分解して評価した。
+
+ReaderとSelfはaffect-relevant informationを部分的に共有する一方、そのrepresentationは直接交換可能な同一coordinate systemではなく、causal organizationにもtask-dependentな差が存在し得る。Base--Instruct間ではrepresentation geometryおよびtask-dependent causal profileに差異が観測され、そのpatternは単純なinformation erasureや一様なdepth relocationだけでは説明できなかった。
+
+さらにV3では、decodabilityからrobustなcausal controlを直接推論できないことが示され、Gate failure後のexploratory analysisではgeneration-stage-dependentなinterventional sensitivityが観測された。ただし、robustでfamily-generalな単一のSelf-Report causal mechanismは確認されなかった。
+
+したがって、本研究が支持する中心的な結論は、
+\[
+\text{Behavioral Coupling}
+\neq
+\text{Shared Representation}
+\neq
+\text{Shared Causal Code}
+\neq
+\text{Robust Causal Control}
+\]
+という段階的な分離である。
+
+この知見は、LLMに主観的感情が存在することを示すものではない。むしろ、心理的支援に必要な他者理解能力を維持しながら、
+過度なself-directed affective responseを選択的に制御するためには、behavioral outputだけでなく、
+\[
+\text{representation}
+\neq
+\text{causal utilization}
+\]
+という区別を明示的に扱う必要があることを示す。
+
+したがって本研究は、心理的ガードレールそのものを完成させるものではなく、将来的なselective interventionを設計・検証するためのmechanistic foundationを提供する。
 
 \end{CJK*}
 \end{document}

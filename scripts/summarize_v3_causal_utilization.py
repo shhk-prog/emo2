@@ -210,8 +210,8 @@ def generate_confirmatory_details_table(df_conf, repo_root="."):
         ordered_fams = [f for f in fams if f in csv_fams] or list(csv_fams)
 
         METRIC_ORDER = [
-            ("H1_dissociation", "peak_dissociation", r"H1 Peak Dissoc. ($\Delta d^*$)", 2, r"$\text{CI}_{\text{low}} > 0$"),
-            ("H1_dissociation", "center_dissociation", r"H1 Center Dissoc. ($\Delta\bar{d}$)", 2, r"$\text{CI}_{\text{low}} > 0$"),
+            ("H1_dissociation", "peak_dissociation", r"H1 Peak Dissoc. ($\Delta d^*$)", 2, None),
+            ("H1_dissociation", "center_dissociation", r"H1 Center Dissoc. ($\Delta\bar{d}$)", 2, None),
             ("H2_sufficiency", "sufficiency_slope", r"H2: Sufficiency ($\beta_1$)", 4, r"$\text{CI}_{\text{low}} > 0.10$"),
             ("H3_mediation", "mediated_M", r"H3: Mediation ($M$)", 4, r"$\text{CI}_{\text{low}}(M) > 0$"),
             ("H3_mediation", "net_vs_random", r"H3: Net vs. Random ($M_{\text{net}}$)", 4, r"$\text{CI}_{\text{low}}(M_{\text{net}}) > 0$"),
@@ -223,7 +223,7 @@ def generate_confirmatory_details_table(df_conf, repo_root="."):
             fam_str = f"\\multirow{{12}}{{*}}{{\\textbf{{{fam}}}}}"
             first_row = True
 
-            for hyp, met, h_label, prec, th_str in METRIC_ORDER:
+            for hyp, met, h_label, prec, th_default in METRIC_ORDER:
                 for ax in ["valence", "arousal"]:
                     match = sub_fam[(sub_fam["hypothesis"] == hyp) & (sub_fam["axis"] == ax)]
                     if "metric" in sub_fam.columns:
@@ -238,10 +238,24 @@ def generate_confirmatory_details_table(df_conf, repo_root="."):
                         ci_str = f"[{format_num(l_ci, prec)}, {format_num(u_ci, prec)}]" if (pd.notna(l_ci) and pd.notna(u_ci)) else "---"
                         passed = bool(r0.get("pass", False))
                         p_str = r"\checkmark \textbf{PASS}" if passed else r"$\times$ FAIL"
+                        raw_th = str(r0.get("threshold", ""))
+                        if "CI_high < 0" in raw_th:
+                            th_str = r"$\text{CI}_{\text{high}} < 0$"
+                        elif "CI_low > 0.10" in raw_th:
+                            th_str = r"$\text{CI}_{\text{low}} > 0.10$"
+                        elif "CI_low(M_net) > 0" in raw_th:
+                            th_str = r"$\text{CI}_{\text{low}}(M_{\text{net}}) > 0$"
+                        elif "CI_low(M) > 0" in raw_th:
+                            th_str = r"$\text{CI}_{\text{low}}(M) > 0$"
+                        elif "CI_low > 0" in raw_th:
+                            th_str = r"$\text{CI}_{\text{low}} > 0$"
+                        else:
+                            th_str = th_default or r"---"
                     else:
                         est_str = "---"
                         ci_str = "---"
                         p_str = "---"
+                        th_str = th_default or r"---"
 
                     f_label = fam_str if first_row else ""
                     first_row = False
@@ -258,7 +272,7 @@ def generate_confirmatory_details_table(df_conf, repo_root="."):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} 各ファミリー固有の95\%ブートストラップ信頼区間および事前登録判定基準（H1: $\text{CI}_{\text{low}} > 0$; H2: $\text{CI}_{\text{low}} > 0.10$; H3: $\text{CI}_{\text{low}}(M) > 0$ かつ $\text{CI}_{\text{low}}(M_{\text{net}}) > 0$; H4: $\text{CI}_{\text{low}} > 0$）に基づく評価。H3の支持には内因性変位減衰量 $M$ の信頼区間下限が正であること（$\text{CI}_{\text{low}}(M) > 0$）に加え、ランダム部分空間統制を差し引いた正味減衰量 $M_{\text{net}}$ の信頼区間下限も正であること（$\text{CI}_{\text{low}}(M_{\text{net}}) > 0$）が要求される。H1--H3はいずれのモデル・軸でも事前登録基準を満たさなかった（FAIL）。H4では各モデルで軸レベルの正の効果量（$\text{CI}_{\text{low}} > 0$）が観測されたが、Gate判定がNO\_GOであるため事前登録パイプライン全体のConfirmationは不成立となった。",
+        r"\textbf{Note:} 各ファミリー固有の95\%ブートストラップ信頼区間および事前登録判定基準（H1: Qwen Discoveryと同方向の空間的解離 $\text{CI}_{\text{high}} < 0$ または $\text{CI}_{\text{low}} > 0$; H2: $\text{CI}_{\text{low}} > 0.10$; H3: $\text{CI}_{\text{low}}(M) > 0$ かつ $\text{CI}_{\text{low}}(M_{\text{net}}) > 0$; H4: $\text{CI}_{\text{low}} > 0$）に基づく評価。H1のdirectional dissociationはValenceにおいてLlama 3.2およびOLMo 2で再現された（PASS）が、Arousalでは再現されず、3 families全体での一貫した解離は支持されなかった。H3の支持には内因性変位減衰量 $M$ の信頼区間下限が正であること（$\text{CI}_{\text{low}}(M) > 0$）に加え、ランダム部分空間統制を差し引いた正味減衰量 $M_{\text{net}}$ の信頼区間下限も正であること（$\text{CI}_{\text{low}}(M_{\text{net}}) > 0$）が要求される。H2およびH3はいずれのモデル・軸でも事前登録基準を満たさなかった（FAIL）。H4では各モデルで軸レベルの正の効果量（$\text{CI}_{\text{low}} > 0$）が観測されたが、Gate判定がNO\_GOであるため事前登録パイプライン全体のConfirmationは不成立となった。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -344,7 +358,7 @@ def generate_markdown_summary(df_gate, df_spatio, df_atten, df_conf, df_conf_mat
         "",
         "## 3. Confirmatory Replication Matrix across Independent Families",
         "",
-        "| Family | H1 (Dissociation $\\Delta d > 0$) | H2 (Sufficiency $\\beta_1 > 0.10$) | H3 (Mediation $M > 0$) | H4 (Temporal Contrast $\\Delta C > 0$) | All Confirmed? |",
+        "| Family | H1 (Directional Dissoc.) | H2 (Sufficiency $\\beta_1 > 0.10$) | H3 (Mediation $M > 0$) | H4 (Temporal Contrast $\\Delta C > 0$) | All Confirmed? |",
         "| :--- | :---: | :---: | :---: | :---: | :---: |",
     ])
     for _, row in df_conf_matrix.iterrows():

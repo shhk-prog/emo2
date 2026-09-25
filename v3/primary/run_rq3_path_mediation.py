@@ -964,6 +964,26 @@ def main():
 
     med_rel_depth = float(confirmation_res.get("mediator_relative_depth", float(confirmation_res["mediator_layer"] / (num_layers - 1)) if num_layers > 1 else 0.65))
 
+    spatio_path = derived_dir / "v3_spatiotemporal_summary.json"
+    h1_rep_dir = {
+        "valence": {"peak": -1, "center_of_mass": -1},
+        "arousal": {"peak": -1, "center_of_mass": 1},
+    }
+    if spatio_path.exists():
+        try:
+            with open(spatio_path, "r", encoding="utf-8") as f:
+                spatio_data = json.load(f)
+            v_pk = spatio_data.get("valence", {}).get("delta_d_peak", -1)
+            v_cm = spatio_data.get("valence", {}).get("delta_d_center", -1)
+            a_pk = spatio_data.get("arousal", {}).get("delta_d_peak", -1)
+            a_cm = spatio_data.get("arousal", {}).get("delta_d_center", 1)
+            h1_rep_dir["valence"]["peak"] = int(np.sign(v_pk)) if v_pk != 0 else -1
+            h1_rep_dir["valence"]["center_of_mass"] = int(np.sign(v_cm)) if v_cm != 0 else -1
+            h1_rep_dir["arousal"]["peak"] = int(np.sign(a_pk)) if a_pk != 0 else -1
+            h1_rep_dir["arousal"]["center_of_mass"] = int(np.sign(a_cm)) if a_cm != 0 else 1
+        except Exception as e:
+            logger.warning(f"Could not load spatiotemporal summary for H1 replication direction: {e}")
+
     frozen_sites = {
         "discovery_model": target_model_id,
         "discovery_family": fam_key,
@@ -979,6 +999,7 @@ def main():
         "target_stages": target_stages,
         "causal_peak_stage_v": stage_v,
         "causal_peak_stage_a": stage_a,
+        "h1_replication_direction": h1_rep_dir,
     }
     frozen_sites_path = derived_dir / "frozen_confirmatory_sites.json"
     with open(frozen_sites_path, "w", encoding="utf-8") as f:

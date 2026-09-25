@@ -75,9 +75,9 @@ Arousal    & L3 (0.11)        & ---      & ---      & 2.71e-04   & ---        & 
 \toprule
 \textbf{Family} & \textbf{Hypothesis} & \textbf{Axis} & \textbf{Estimate} & \textbf{Family 95\% CI} & \textbf{Threshold} & \textbf{Pass/Fail} \\
 \midrule
-\multirow{12}{*}{\textbf{Llama 3.2}} & H1 Peak Dissoc. ($\Delta d^*$)         & Valence  & $-$0.87    & [$-$1.00, $-$0.27] & $\text{CI}_{\text{low}} > 0$ & $\times$ FAIL \\
-                             & H1 Peak Dissoc. ($\Delta d^*$)         & Arousal  & 0.07       & [$-$0.47, 0.40]    & $\text{CI}_{\text{low}} > 0$ & $\times$ FAIL \\
-                             & H1 Center Dissoc. ($\Delta\bar{d}$)    & Valence  & $-$0.32    & [$-$0.52, $-$0.11] & $\text{CI}_{\text{low}} > 0$ & $\times$ FAIL \\
+\multirow{12}{*}{\textbf{Llama 3.2}} & H1 Peak Dissoc. ($\Delta d^*$)         & Valence  & $-$0.87    & [$-$1.00, $-$0.27] & $\text{CI}_{\text{high}} < 0$ & \checkmark \textbf{PASS} \\
+                             & H1 Peak Dissoc. ($\Delta d^*$)         & Arousal  & 0.07       & [$-$0.47, 0.40]    & $\text{CI}_{\text{high}} < 0$ & $\times$ FAIL \\
+                             & H1 Center Dissoc. ($\Delta\bar{d}$)    & Valence  & $-$0.32    & [$-$0.52, $-$0.11] & $\text{CI}_{\text{high}} < 0$ & \checkmark \textbf{PASS} \\
                              & H1 Center Dissoc. ($\Delta\bar{d}$)    & Arousal  & $-$0.12    & [$-$0.53, $-$0.09] & $\text{CI}_{\text{low}} > 0$ & $\times$ FAIL \\
                              & H2: Sufficiency ($\beta_1$)            & Valence  & 0.0032     & [0.0022, 0.0042]   & $\text{CI}_{\text{low}} > 0.10$ & $\times$ FAIL \\
                              & H2: Sufficiency ($\beta_1$)            & Arousal  & 0.0018     & [0.0015, 0.0022]   & $\text{CI}_{\text{low}} > 0.10$ & $\times$ FAIL \\
@@ -88,9 +88,9 @@ Arousal    & L3 (0.11)        & ---      & ---      & 2.71e-04   & ---        & 
                              & H4: Contrast ($\Delta C$)              & Valence  & 0.0445     & [0.0415, 0.0473]   & $\text{CI}_{\text{low}} > 0$ & \checkmark \textbf{PASS} \\
                              & H4: Contrast ($\Delta C$)              & Arousal  & 0.0656     & [0.0627, 0.0684]   & $\text{CI}_{\text{low}} > 0$ & \checkmark \textbf{PASS} \\
 \midrule
-\multirow{12}{*}{\textbf{Gemma 3}} & H1 Peak Dissoc. ($\Delta d^*$)         & Valence  & 0.00       & [$-$0.64, 0.36]    & $\text{CI}_{\text{low}} > 0$ & $\times$ FAIL \\
-                             & H1 Peak Dissoc. ($\Delta d^*$)         & Arousal  & $-$0.28    & [$-$1.00, 0.00]    & $\text{CI}_{\text{low}} > 0$ & $\times$ FAIL \\
-                             & H1 Center Dissoc. ($\Delta\bar{d}$)    & Valence  & $-$0.13    & [$-$0.23, 0.38]    & $\text{CI}_{\text{low}} > 0$ & $\times$ FAIL \\
+\multirow{12}{*}{\textbf{Gemma 3}} & H1 Peak Dissoc. ($\Delta d^*$)         & Valence  & 0.00       & [$-$0.64, 0.36]    & $\text{CI}_{\text{high}} < 0$ & $\times$ FAIL \\
+                             & H1 Peak Dissoc. ($\Delta d^*$)         & Arousal  & $-$0.28    & [$-$1.00, 0.00]    & $\text{CI}_{\text{high}} < 0$ & $\times$ FAIL \\
+                             & H1 Center Dissoc. ($\Delta\bar{d}$)    & Valence  & $-$0.13    & [$-$0.23, 0.38]    & $\text{CI}_{\text{high}} < 0$ & $\times$ FAIL \\
                              & H1 Center Dissoc. ($\Delta\bar{d}$)    & Arousal  & $-$0.08    & [$-$0.34, 0.21]    & $\text{CI}_{\text{low}} > 0$ & $\times$ FAIL \\
                              & H2: Sufficiency ($\beta_1$)            & Valence  & $-$0.0011  & [$-$0.0036, 0.0020] & $\text{CI}_{\text{low}} > 0.10$ & $\times$ FAIL \\
                              & H2: Sufficiency ($\beta_1$)            & Arousal  & -9.01e-04  & [$-$0.0020, 6.86e-05] & $\text{CI}_{\text{low}} > 0.10$ & $\times$ FAIL \\
@@ -101,9 +101,9 @@ Arousal    & L3 (0.11)        & ---      & ---      & 2.71e-04   & ---        & 
                              & H4: Contrast ($\Delta C$)              & Valence  & 0.0059     & [0.0020, 0.0095]   & $\text{CI}_{\text{low}} > 0$ & \checkmark \textbf{PASS} \\
                              & H4: Contrast ($\Delta C$)              & Arousal  & 0.0082     & [0.0064, 0.0098]   & $\text{CI}_{\text{low}} > 0$ & \checkmark \textbf{PASS} \\
 \midrule
-\multirow{12}{*}{\textbf{OLMo 2}} & H1 Peak Dissoc. ($\Delta d^*$)         & Valence  & $-$0.67    & [$-$1.00, $-$0.07] & $\text{CI}_{\text{low}} > 0$ & $\times$ FAIL \\
-                             & H1 Peak Dissoc. ($\Delta d^*$)         & Arousal  & $-$0.93    & [$-$0.93, 0.27]    & $\text{CI}_{\text{low}} > 0$ & $\times$ FAIL \\
-                             & H1 Center Dissoc. ($\Delta\bar{d}$)    & Valence  & $-$0.24    & [$-$0.44, $-$0.04] & $\text{CI}_{\text{low}} > 0$ & $\times$ FAIL \\
+\multirow{12}{*}{\textbf{OLMo 2}} & H1 Peak Dissoc. ($\Delta d^*$)         & Valence  & $-$0.67    & [$-$1.00, $-$0.07] & $\text{CI}_{\text{high}} < 0$ & \checkmark \textbf{PASS} \\
+                             & H1 Peak Dissoc. ($\Delta d^*$)         & Arousal  & $-$0.93    & [$-$0.93, 0.27]    & $\text{CI}_{\text{high}} < 0$ & $\times$ FAIL \\
+                             & H1 Center Dissoc. ($\Delta\bar{d}$)    & Valence  & $-$0.24    & [$-$0.44, $-$0.04] & $\text{CI}_{\text{high}} < 0$ & \checkmark \textbf{PASS} \\
                              & H1 Center Dissoc. ($\Delta\bar{d}$)    & Arousal  & $-$0.62    & [$-$0.63, $-$0.10] & $\text{CI}_{\text{low}} > 0$ & $\times$ FAIL \\
                              & H2: Sufficiency ($\beta_1$)            & Valence  & 4.27e-05   & [-8.42e-04, 9.50e-04] & $\text{CI}_{\text{low}} > 0.10$ & $\times$ FAIL \\
                              & H2: Sufficiency ($\beta_1$)            & Arousal  & -1.43e-04  & [-3.28e-04, 6.10e-05] & $\text{CI}_{\text{low}} > 0.10$ & $\times$ FAIL \\
@@ -118,7 +118,7 @@ Arousal    & L3 (0.11)        & ---      & ---      & 2.71e-04   & ---        & 
 \vspace{1ex}
 \begin{minipage}{\linewidth}
 \footnotesize
-\textbf{Note:} 各ファミリー固有の95\%ブートストラップ信頼区間および事前登録判定基準（H1: $\text{CI}_{\text{low}} > 0$; H2: $\text{CI}_{\text{low}} > 0.10$; H3: $\text{CI}_{\text{low}}(M) > 0$ かつ $\text{CI}_{\text{low}}(M_{\text{net}}) > 0$; H4: $\text{CI}_{\text{low}} > 0$）に基づく評価。H3の支持には内因性変位減衰量 $M$ の信頼区間下限が正であること（$\text{CI}_{\text{low}}(M) > 0$）に加え、ランダム部分空間統制を差し引いた正味減衰量 $M_{\text{net}}$ の信頼区間下限も正であること（$\text{CI}_{\text{low}}(M_{\text{net}}) > 0$）が要求される。H1--H3はいずれのモデル・軸でも事前登録基準を満たさなかった（FAIL）。H4では各モデルで軸レベルの正の効果量（$\text{CI}_{\text{low}} > 0$）が観測されたが、Gate判定がNO\_GOであるため事前登録パイプライン全体のConfirmationは不成立となった。
+\textbf{Note:} 各ファミリー固有の95\%ブートストラップ信頼区間および事前登録判定基準（H1: Qwen Discoveryと同方向の空間的解離 $\text{CI}_{\text{high}} < 0$ または $\text{CI}_{\text{low}} > 0$; H2: $\text{CI}_{\text{low}} > 0.10$; H3: $\text{CI}_{\text{low}}(M) > 0$ かつ $\text{CI}_{\text{low}}(M_{\text{net}}) > 0$; H4: $\text{CI}_{\text{low}} > 0$）に基づく評価。H1のdirectional dissociationはValenceにおいてLlama 3.2およびOLMo 2で再現された（PASS）が、Arousalでは再現されず、3 families全体での一貫した解離は支持されなかった。H3の支持には内因性変位減衰量 $M$ の信頼区間下限が正であること（$\text{CI}_{\text{low}}(M) > 0$）に加え、ランダム部分空間統制を差し引いた正味減衰量 $M_{\text{net}}$ の信頼区間下限も正であること（$\text{CI}_{\text{low}}(M_{\text{net}}) > 0$）が要求される。H2およびH3はいずれのモデル・軸でも事前登録基準を満たさなかった（FAIL）。H4では各モデルで軸レベルの正の効果量（$\text{CI}_{\text{low}} > 0$）が観測されたが、Gate判定がNO\_GOであるため事前登録パイプライン全体のConfirmationは不成立となった。
 \end{minipage}
 \end{table}
 

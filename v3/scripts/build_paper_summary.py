@@ -13,6 +13,7 @@ v3/scripts/build_paper_summary.py
 """
 
 import argparse
+import json
 from pathlib import Path
 from typing import Any
 
@@ -397,6 +398,17 @@ def build_v3_summary(
 
             # H1: Dissociation
             h1 = f_res.get("h1_dissociation", {})
+            # Load frozen replication direction if available
+            frozen_dir_path = v3_dir / "results" / "derived" / "frozen_confirmatory_sites.json"
+            h1_rep_dir = {"valence": {"peak": -1, "center_of_mass": -1}, "arousal": {"peak": -1, "center_of_mass": 1}}
+            if frozen_dir_path.exists():
+                try:
+                    with open(frozen_dir_path, "r", encoding="utf-8") as f:
+                        fs_d = json.load(f)
+                    h1_rep_dir = fs_d.get("h1_replication_direction", h1_rep_dir)
+                except Exception:
+                    pass
+
             h1_passes = []
             for ax in ("valence", "arousal"):
                 ax_d = h1.get(ax, {})
@@ -404,8 +416,25 @@ def build_v3_summary(
                 pk_ci = ax_d.get("delta_d_peak_ci", [np.nan, np.nan])
                 ct_val = float(ax_d.get("delta_d_center", ax_d.get("delta_bar_d", np.nan)))
                 ct_ci = ax_d.get("delta_d_center_ci", [np.nan, np.nan])
-                pass_h1 = bool(pk_ci[0] > 0 and pk_val > 0 and ct_ci[0] > 0 and ct_val > 0)
+
+                s_pk = int(ax_d.get("qwen_sign_peak", h1_rep_dir.get(ax, {}).get("peak", -1)))
+                s_ct = int(ax_d.get("qwen_sign_com", ax_d.get("qwen_sign_center", h1_rep_dir.get(ax, {}).get("center_of_mass", -1 if ax == "valence" else 1))))
+
+                if "peak_replication_pass" in ax_d:
+                    pass_pk = bool(ax_d["peak_replication_pass"])
+                else:
+                    pass_pk = bool(pk_ci[1] < 0 if s_pk == -1 else pk_ci[0] > 0)
+
+                if "com_replication_pass" in ax_d:
+                    pass_ct = bool(ax_d["com_replication_pass"])
+                else:
+                    pass_ct = bool(ct_ci[1] < 0 if s_ct == -1 else ct_ci[0] > 0)
+
+                pass_h1 = bool(pass_pk and pass_ct)
                 h1_passes.append(pass_h1)
+
+                th_pk_str = "CI_high < 0" if s_pk == -1 else "CI_low > 0"
+                th_ct_str = "CI_high < 0" if s_ct == -1 else "CI_low > 0"
 
                 table_v3_4_rows.append(
                     {
@@ -416,8 +445,8 @@ def build_v3_summary(
                         "estimate": pk_val,
                         "ci_low": float(pk_ci[0]),
                         "ci_high": float(pk_ci[1]),
-                        "threshold": "CI_low > 0",
-                        "pass": bool(pk_ci[0] > 0),
+                        "threshold": th_pk_str,
+                        "pass": pass_pk,
                     }
                 )
                 table_v3_4_rows.append(
@@ -429,8 +458,8 @@ def build_v3_summary(
                         "estimate": ct_val,
                         "ci_low": float(ct_ci[0]),
                         "ci_high": float(ct_ci[1]),
-                        "threshold": "CI_low > 0",
-                        "pass": bool(ct_ci[0] > 0),
+                        "threshold": th_ct_str,
+                        "pass": pass_ct,
                     }
                 )
 

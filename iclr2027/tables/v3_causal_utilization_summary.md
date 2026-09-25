@@ -18,7 +18,7 @@
 
 ## 3. Confirmatory Replication Matrix across Independent Families
 
-| Family | H1 (Dissociation $\Delta d > 0$) | H2 (Sufficiency $\beta_1 > 0.10$) | H3 (Mediation $M > 0$) | H4 (Temporal Contrast $\Delta C > 0$) | All Confirmed? |
+| Family | H1 (Directional Dissoc.) | H2 (Sufficiency $\beta_1 > 0.10$) | H3 (Mediation $M > 0$) | H4 (Temporal Contrast $\Delta C > 0$) | All Confirmed? |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | Llama 3.2 | FAIL | FAIL | FAIL | PASS | **False** |
 | Gemma 3 | FAIL | FAIL | FAIL | PASS | **False** |

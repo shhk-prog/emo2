@@ -1900,9 +1900,9 @@ V1 Phase Cでは、AIPsy Clinical--Neutralの192 matched pairsをpair単位で�
 に分割する。
 
 Discovery subsetは、causal profileやcandidate siteの選択に使用し、選択後の主要なcross-task interventionおよびtask-specific specializationは独立したConfirmation subsetで評価する。
-V3でも同様に、探索的site selectionとconfirmatory evaluationを分離する。
-さらにV3のcross-family replicationでは、QwenをDiscovery modelとして使用し、Qwenで選択されたrelative depthやgeneration stageをLlama、Gemma、OLMoの結果を見る前に固定する。
-confirmatory model familiesでは、そのoutcomeを見てsiteを再選択しない。
+V3でも同様に、Qwen Discoveryによるsite / direction selectionと、prespecified cross-family replicationを分離する。prespecified replication familiesでは、そのoutcomeを見てsite / stage / directional targetを再選択しない。
+% さらにV3のcross-family replicationでは、QwenをDiscovery modelとして使用し、Qwenで選択されたrelative depthやgeneration stageをLlama、Gemma、OLMoの結果を見る前に固定する。
+% confirmatory model familiesでは、そのoutcomeを見てsiteを再選択しない。
 ただしhidden dimensionalityやrepresentation basisはmodel family間で異なるため、Qwenのhidden vectorそのものを他familyへ直接移植するわけではない。
 各family内部で、frozen site条件のもとaffect-related directionを再推定する。
 
@@ -6239,7 +6239,7 @@ V3の中心的なResearch Questionは、「情動関連情報は、Instructモ�
 &\quad\downarrow\\
 &\text{Mediated Attenuation}\\
 &\quad\downarrow\\
-&\text{Cross-family Confirmation}
+&\text{Cross-family Replication}
 \end{aligned}
 \]
 
@@ -6865,7 +6865,7 @@ RQ1では、事前固定したmid-depth prompt-end siteにおいてaffect-relate
 \times
 \text{multiple response-generation stages}
 \]
-へ拡張する。RQ2はQwen Discovery model上のexploratory spatiotemporal mapping analysisとして位置づける。最終的なcross-family confirmationでは、RQ2 Discoveryで得られたsite / stageをfreezeして使用する。
+へ拡張する。RQ2はQwen Discovery model上のexploratory spatiotemporal mapping analysisとして位置づける。最終的なCross-family Replicationでは、RQ2 Discoveryで得られたsite / stageをfreezeして使用する。
 
 
 % ----------------------------------------------------------------
@@ -7259,7 +7259,7 @@ Arousalについて、
 \[
 (d_{C,A}^{*},t_{C,A}^{*})
 \]
-をfreezeし、cross-family temporal confirmationへ引き継ぐ。
+をfreezeし、cross-family temporal replicationへ引き継ぐ。
 
 
 % ----------------------------------------------------------------
@@ -7684,7 +7684,7 @@ RQ3によって直接検証されるのは、Discoveryで定義されたaffect-r
 
 
 % ================================================================
-% Cross-family Confirmation
+% Cross-family Replication
 % ================================================================
 
 \subsection{Prespecified Cross-family Replication}
@@ -7698,7 +7698,7 @@ Qwen Discoveryだけで観測されたlayer / stage patternは、単一architect
 \quad
 \text{OLMo 2 Instruct}
 \]
-を用いてconfirmatory evaluationを行う。
+を用いてreplication analysisを行う。
 
 
 % ----------------------------------------------------------------
@@ -7822,17 +7822,18 @@ s_{a,m}
 \]
 と定義する。
 
-このsignはQwen Discovery終了後、Llama、Gemma、OLMoのoutcomeを評価する前にfreezeする。
+% このsignはQwen Discovery終了後、Llama、Gemma、OLMoのoutcomeを評価する前にfreezeする。
 
-各replication familyでは、対応するdissociation quantityを
-\[
-\widetilde{\Delta}_{a,m}
-=
-s_{a,m}\Delta_{a,m}
-\]
-とdirection-alignし、intervention sample setをjointly bootstrapして95\% confidence intervalを求める。
+% 各replication familyでは、対応するdissociation quantityを
+% \[
+% \widetilde{\Delta}_{a,m}
+% =
+% s_{a,m}\Delta_{a,m}
+% \]
+% とdirection-alignし、intervention sample setをjointly bootstrapして95\% confidence intervalを求める。
+このsignはQwen Discovery終了後、Llama、Gemma、OLMoのoutcomeを評価する前にfreezeする。したがって、これはQwen Discovery以前に事前指定されたdirectionではなく、Discoveryで観測されたdirectionを独立familiesへ固定して移送するdirectional replication designである。
 
-H1のprespecified replication criterionは、
+H1のfrozen directional replication criterionは、
 \[
 CI_{\mathrm{low}}
 \left(
@@ -7961,7 +7962,7 @@ prespecified replication familiesは、
 \[
 N_{\mathrm{family}}=3
 \]
-である。Llama、Gemma、OLMoのfamily-level quantitiesについてbootstrap summaryも計算するが、3 model familiesは無限のLLM populationからのrandom sampleではない。したがってcross-family aggregateは、prespecified three-family confirmatory consistencyとして解釈し、一般的なmodel populationに対する強いpopulation-level inferenceとは区別する。
+である。Llama、Gemma、OLMoのfamily-level quantitiesについてbootstrap summaryも計算するが、3 model familiesは無限のLLM populationからのrandom sampleではない。したがってcross-family aggregateは、three-family replication consistencyとして解釈し、一般的なmodel populationに対する強いpopulation-level inferenceとは区別する。
 
 
 % ----------------------------------------------------------------
@@ -8024,7 +8025,7 @@ three-family aggregate summaries \\
 \subsection{V3から直接主張できる範囲}
 \label{app:v3-interpretation}
 
-V3では、Representationから、Causal Utilizationへの関係を、sufficiency、spatiotemporal mapping、subspace removal、cross-family confirmationという複数の介入的evidenceによって検証する。ただし以下の解釈上の境界を維持する。
+V3では、Representationから、Causal Utilizationへの関係を、sufficiency、spatiotemporal mapping、subspace removal、Cross-family Replicationという複数の介入的evidenceによって検証する。ただし以下の解釈上の境界を維持する。
 
 \paragraph{First, decodability is not causal utilization.}
 \[
@@ -8110,7 +8111,7 @@ V3は、
 \\[5pt]
 \downarrow
 \\[5pt]
-\textbf{Cross-family Confirmation}
+\textbf{Cross-family Replication}
 \\
 \text{Qwenで選択したsite / stageのpatternは他familiesでも確認されるか}
 \end{array}
@@ -8145,7 +8146,7 @@ Behavioral、V1、V2と合わせると、本研究全体は、
 \section{V3考察}
 \label{sec:v3-discussion}
 \color{red}
-9/25 14:00修正
+9/25 14:00修正あり
 V3で最も重要な結果は、事前定義されたState Induction GateがValenceおよびArousalの双方で\texttt{NO\_GO}となったことである。
 
 Sufficiency、Specificity、Endogenous Relevanceの各criterionはprespecified thresholdを満たさなかった一方、Topic Controlはpassした。したがって、今回同定したReader-grounded affect-related directionについて、
@@ -8181,7 +8182,7 @@ d_C^{*}-d_D^{*}
 \]
 であり、最も高いdecodabilityを示すlayerと、最大のinterventional effectを生じるlayerが一致しない可能性が示された。
 
-ただし、このQwen上のpatternをfamily-generalなspatiotemporal lawとして一般化することはできない。Gate failure後に探索的に解釈したprespecified cross-family replication analysisでは、Valence軸においてLlama 3.2およびOLMo 2がQwen Discoveryと同方向の空間的解離（因果ピークおよび重心がデコーディングより浅い層に位置する）を有意に再現した（表\ref{tab:v3_confirmatory_details}）。しかし、Gemma 3ではValenceの解離が支持されず、またArousal軸ではいずれのfamilyにおいても信頼区間が0を跨ぐか重心方向が一致しなかったため、prespecified directional replication criterionは3 families全体・Valence/Arousal双方に一貫して一般化するpatternとはならなかった。
+ただし、このQwen上のpatternをfamily-generalなspatiotemporal lawとして一般化することはできない。Gate failure後に探索的に解釈したprespecified cross-family replication analysisでは、Valence軸においてLlama 3.2およびOLMo 2が、Qwen Discovery後にfreezeしたdirectional replication criterionを満たした（表\ref{tab:v3_confirmatory_details}）。ただし、この解析はGate failure後にoverrideによって実行されたため、confirmatory evidenceではなくexploratory replication signalとして解釈する。しかし、Gemma 3ではValenceの解離が支持されず、またArousal軸ではいずれのfamilyにおいても信頼区間が0を跨ぐか重心方向が一致しなかったため、Qwen Discovery後にfreezeしたdirectional replication criterionは3 families全体・Valence/Arousal双方に一貫して一般化するpatternとはならなかった。
 
 またH2のSufficiencyについても、3つのprespecified replication familiesすべてでeffectは事前定義されたthresholdを大きく下回った。したがって、Qwen上で同定されたaffect-related directionが、固定siteにおいてfamily-generalにrobustなSelf-Report controlを与えるというpatternはreplicateされなかった。
 
@@ -8337,7 +8338,7 @@ Gate failure後のexploratory analysisでは、Qwenにおいてdecodability peak
 
 一方、generation-stage temporal contrastであるH4は、3 prespecified replication familiesすべてについてValence / Arousal双方でcriterionを満たした。これは、causal sensitivityがgeneration process全体で完全に一様ではない可能性を示す。
 
-ただしState Induction GateがNO\_GOであり、H1--H3のprespecified replication criteriaは満たされなかったため、このtemporal contrast単独から普遍的なcausal mechanismを同定したとは言えない。
+ただしState Induction GateがNO\_GOであり、H1--H3のreplication criteriaが一貫して成立したわけではないため、このtemporal contrast単独から普遍的なcausal mechanismを同定したとは言えない。
 
 V3で扱うtemporal localizationは、本研究で用いたinterventionによって測定されるrelative causal leverageであり、それ以前のstageで情報が利用されていないことを意味しない。またmediated attenuationもformal causal mediationではない。
 

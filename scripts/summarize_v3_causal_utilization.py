@@ -53,7 +53,7 @@ def generate_gate_table(df_gate):
         r"\begin{table}[htbp]",
         r"\centering",
         r"\small",
-        r"\caption{V3 事前登録 Gate 判定結果：因果介入パイプライン継続可否の評価規約。各判定軸の信頼区間下限／上限が 1--9 raw scale 閾値（Sufficiency: 0.10, Specificity: 0.05, Endogenous: 0.05）および TVD 上限（0.15）を満たすかを判定。}",
+        r"\caption{V3 State-Induction Gate 判定結果：因果介入パイプライン継続可否の評価規約。各判定軸の信頼区間下限／上限が 1--9 raw scale 閾値（Sufficiency: 0.10, Specificity: 0.05, Endogenous: 0.05）および TVD 上限（0.15）を満たすかを判定。}",
         r"\label{tab:v3_gate_decision}",
         r"\begin{tabular}{l cccc cccc c}",
         r"\toprule",
@@ -85,7 +85,7 @@ def generate_gate_table(df_gate):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} 事前登録 Gate 判定基準（Sufficiency: $\text{CI}_{\text{low}} > 0.10$, Specificity: $\text{CI}_{\text{low}} > 0.05$, Endogenous Relevance: $\text{CI}_{\text{low}} > 0.05$, Topic TVD: $\text{CI}_{\text{high}} < 0.15$）。全軸でSufficiency / Specificity / Endogenousの事前定義thresholdを満たさなかったため、パイプライン判定は \textbf{NO\_GO}（\texttt{pipeline\_continues = False}）となり、以降の分析は探索的・定性的分析として位置づけられる。",
+        r"\textbf{Note:} State-Induction Gate 判定基準（Sufficiency: $\text{CI}_{\text{low}} > 0.10$, Specificity: $\text{CI}_{\text{low}} > 0.05$, Endogenous Relevance: $\text{CI}_{\text{low}} > 0.05$, Topic TVD: $\text{CI}_{\text{high}} < 0.15$）。全軸でSufficiency / Specificity / Endogenousの事前定義thresholdを満たさなかったため、パイプライン判定は \textbf{NO\_GO}（\texttt{pipeline\_continues = False}）となり、以降の分析は探索的・定性的分析として位置づけられる。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -195,7 +195,7 @@ def generate_confirmatory_details_table(df_conf, repo_root="."):
         r"\begin{table}[htbp]",
         r"\centering",
         r"\small",
-        r"\caption{V3 独立ファミリー検証詳細（Confirmatory Replication Details）：Llama 3.2、Gemma 3、OLMo 2 における事前登録仮説（H1--H4）のValenceおよびArousal双方の推定値、ファミリー固有95\%信頼区間、判定閾値、および事前登録CI基準に基づく合否判定（Pass/Fail）。}",
+        r"\caption{V3 cross-family replication details。Llama 3.2、Gemma 3、OLMo 2におけるH1--H4のValence / Arousal別推定値、family-specific 95\% confidence interval、replication criterion、およびPass / Failを示す。H1のdirectionはQwen Discovery終了後、replication-family outcomesを評価する前にfreezeした。}",
         r"\label{tab:v3_confirmatory_details}",
         r"\begin{tabular}{ll cccc c}",
         r"\toprule",
@@ -272,7 +272,7 @@ def generate_confirmatory_details_table(df_conf, repo_root="."):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} 各ファミリー固有の95\%ブートストラップ信頼区間および事前登録判定基準（H1: Qwen Discoveryと同方向の空間的解離 $\text{CI}_{\text{high}} < 0$ または $\text{CI}_{\text{low}} > 0$; H2: $\text{CI}_{\text{low}} > 0.10$; H3: $\text{CI}_{\text{low}}(M) > 0$ かつ $\text{CI}_{\text{low}}(M_{\text{net}}) > 0$; H4: $\text{CI}_{\text{low}} > 0$）に基づく評価。H1のdirectional dissociationはValenceにおいてLlama 3.2およびOLMo 2で再現された（PASS）が、Arousalでは再現されず、3 families全体での一貫した解離は支持されなかった。H3の支持には内因性変位減衰量 $M$ の信頼区間下限が正であること（$\text{CI}_{\text{low}}(M) > 0$）に加え、ランダム部分空間統制を差し引いた正味減衰量 $M_{\text{net}}$ の信頼区間下限も正であること（$\text{CI}_{\text{low}}(M_{\text{net}}) > 0$）が要求される。H2およびH3はいずれのモデル・軸でも事前登録基準を満たさなかった（FAIL）。H4では各モデルで軸レベルの正の効果量（$\text{CI}_{\text{low}} > 0$）が観測されたが、Gate判定がNO\_GOであるため事前登録パイプライン全体のConfirmationは不成立となった。",
+        r"\textbf{Note:} 各ファミリー固有の95\%ブートストラップ信頼区間および判定基準（H1: Qwen Discoveryと同方向の空間的解離 $\text{CI}_{\text{high}} < 0$ または $\text{CI}_{\text{low}} > 0$; H2: $\text{CI}_{\text{low}} > 0.10$; H3: $\text{CI}_{\text{low}}(M) > 0$ かつ $\text{CI}_{\text{low}}(M_{\text{net}}) > 0$; H4: $\text{CI}_{\text{low}} > 0$）に基づく評価。H1では、Qwen Discoveryで観測されたspatial dissociationのdirectionを、Llama、Gemma、OLMoのoutcomeを評価する前にfreezeし、同方向のeffectについてfamily-specific bootstrap CIが0を除外するかを評価した。H1のdirectional dissociationはValenceにおいてLlama 3.2およびOLMo 2で再現された（PASS）が、Arousalでは再現されず、3 families全体での一貫した解離は支持されなかった。H3の支持には内因性変位減衰量 $M$ の信頼区間下限が正であること（$\text{CI}_{\text{low}}(M) > 0$）に加え、ランダム部分空間統制を差し引いた正味減衰量 $M_{\text{net}}$ の信頼区間下限も正であること（$\text{CI}_{\text{low}}(M_{\text{net}}) > 0$）が要求される。H2およびH3はいずれのモデル・軸でもreplication基準を満たさなかった（FAIL）。H4では各モデルで軸レベルの正の効果量（$\text{CI}_{\text{low}} > 0$）が観測されたが、Gate判定がNO\_GOであるためパイプライン全体のConfirmationは不成立となり、探索的証拠として位置づけられる。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -339,7 +339,7 @@ def generate_markdown_summary(df_gate, df_spatio, df_atten, df_conf, df_conf_mat
         )
     md_lines.extend([
         "",
-        "> **Protocol Note:** CI low failed the raw scale thresholds (0.05/0.10). In accordance with the pre-registered protocol, the causal pipeline decision is **NO_GO** (`pipeline_continues = False`). All downstream analyses are interpreted as exploratory spatiotemporal discovery.",
+        "> **Protocol Note:** CI low failed the raw scale thresholds (0.05/0.10). In accordance with the evaluation protocol, the causal pipeline decision is **NO_GO** (`pipeline_continues = False`). All downstream analyses are interpreted as exploratory spatiotemporal discovery.",
         "",
         "## 2. Spatiotemporal Dissociation (Qwen 2.5 1.5B Discovery)",
         "",

@@ -36,3 +36,10 @@ V3のH1（Decodability--Causal Dissociation）において、現在の定義（$
   - [x] 5.1 `tests/test_confirmatory_pipeline.py` に directional H1 alignment のユニットテストを追加 <!-- id: 5.1 -->
   - [x] 5.2 全テスト（pytest, ruff 等）を実行して検証 <!-- id: 5.2 -->
   - [x] 5.3 `walkthrough.md` の作成 <!-- id: 5.3 -->
+
+- [x] 6. fail-fast バリデーションの厳格化と「事前登録」表記の適正化 <!-- id: 6 -->
+  - [x] 6.1 `v3/primary/run_rq3_path_mediation.py`: 本番（`not args.dry_run`）での default フォールバック禁止、Qwen spatiotemporal summary 必須化、符号バリデーション <!-- id: 6.1 -->
+  - [x] 6.2 `v3/primary/run_confirmatory_replication.py`: 本番（`not args.dry_run`）での `h1_replication_direction` 欠落時の default フォールバック禁止（KeyError 送出）と符号検証 <!-- id: 6.2 -->
+  - [x] 6.3 `scripts/summarize_v3_causal_utilization.py`: LaTeX 表 caption/Note から「事前登録」を削除し、推奨の cross-family replication 表現に更新 <!-- id: 6.3 -->
+  - [x] 6.4 `iclr2027/iclr2027_conference2.tex`: 本文中の「事前登録」「prespecified」表現の適正化と整合性確認 <!-- id: 6.4 -->
+  - [x] 6.5 テーブル再生成（`summarize_v3_causal_utilization.py`, `build_paper_summary.py`）と全テスト（`PYTHONPATH=src:. pytest -q`）実行 <!-- id: 6.5 -->

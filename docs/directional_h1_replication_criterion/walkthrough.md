@@ -116,3 +116,28 @@ Qwen Discovery終了時点での符号 $s \in \{-1, +1\}$ を明示的に freeze
   - `pytest -q tests/test_confirmatory_pipeline.py`: 全 6 テスト PASS
 - **コード品質**:
   - `v3/scripts/build_paper_summary.py` に `import json` を追加し、構文エラーのない正常実行（24 records 生成）を確認。
+
+---
+
+## 6. fail-fast バリデーションの厳格化と「事前登録」表記の適正化
+
+### 6.1 本番実行時の default フォールバック禁止と厳格な検証
+- [run_rq3_path_mediation.py](file:///mnt/nas/home/hiromi/src/emo2/v3/primary/run_rq3_path_mediation.py):
+  - 本番実行時（`not args.dry_run`）に `v3_spatiotemporal_summary.json` が見つからない場合は `FileNotFoundError` を送出。
+  - パース失敗・必須キー欠落時にも `RuntimeError` を送出。
+  - 各軸（Valence/Arousal）× 各指標（Peak/COM）の符号が厳密に `-1` または `1` であるかのバリデーションを追加。
+  - これにより、本番出力されるアーティファクトの H1 符号が**必ず Qwen Discovery の実測値から生成されたものであることをコードレベルで保証**。
+- [run_confirmatory_replication.py](file:///mnt/nas/home/hiromi/src/emo2/v3/primary/run_confirmatory_replication.py):
+  - `frozen_confirmatory_sites.json` 内に `h1_replication_direction` が欠落していた場合、本番実行時（`not args.dry_run`）は default 辞書へフォールバックせず直ちに `KeyError` を送出して停止するよう改修。
+
+### 6.2 表 Caption / Note および本文の「事前登録（prespecified / pre-registered）」表記の適正化
+- [summarize_v3_causal_utilization.py](file:///mnt/nas/home/hiromi/src/emo2/scripts/summarize_v3_causal_utilization.py):
+  - [v3_confirmatory_details.tex](file:///mnt/nas/home/hiromi/src/emo2/iclr2027/tables/v3_confirmatory_details.tex) の Caption を「`V3 cross-family replication details。Llama 3.2、Gemma 3、OLMo 2におけるH1--H4のValence / Arousal別推定値、family-specific 95% confidence interval、replication criterion、およびPass / Failを示す。H1のdirectionはQwen Discovery終了後、replication-family outcomesを評価する前にfreezeした。`」に修正。
+  - Note から「事前登録仮説」「事前登録CI基準」を削除し、「`各ファミリー固有の95%ブートストラップ信頼区間および判定基準...に基づく評価。H1では、Qwen Discoveryで観測されたspatial dissociationのdirectionを、Llama、Gemma、OLMoのoutcomeを評価する前にfreezeし、同方向のeffectについてfamily-specific bootstrap CIが0を除外するかを評価した。...`」と適正化。
+  - Gate 表（[v3_gate_decision.tex](file:///mnt/nas/home/hiromi/src/emo2/iclr2027/tables/v3_gate_decision.tex)）の Caption も「V3 State-Induction Gate 判定結果」に統一。
+- [iclr2027/iclr2027_conference2.tex](file:///mnt/nas/home/hiromi/src/emo2/iclr2027/iclr2027_conference2.tex):
+  - 本文における H1 の位置づけを「Qwen Discoveryで観測されたdirectionを他familyへfreezeして移送するdirectional replication design」として明確化し、過度な事前登録主張を排除。
+
+### 6.3 全テスト検証結果
+- `PYTHONPATH=src:. pytest -q` を実行し、**156 passed, 2 deselected** を確認。
+

@@ -1308,10 +1308,26 @@ def main():
         stage_v_val = str(frozen_sites.get("temporal_stage_v", "pre_V"))
         stage_a_val = str(frozen_sites.get("temporal_stage_a", "pre_A"))
         med_depth_val = float(frozen_sites["mediation_relative_depth"])
-        h1_rep_dir = frozen_sites.get("h1_replication_direction", {
-            "valence": {"peak": -1, "center_of_mass": -1},
-            "arousal": {"peak": -1, "center_of_mass": 1},
-        })
+        if "h1_replication_direction" not in frozen_sites:
+            if not args.dry_run:
+                raise KeyError(
+                    "frozen_confirmatory_sites.json is missing required key 'h1_replication_direction'. "
+                    "Fallback to default directions is strictly disabled for production paper replication."
+                )
+            h1_rep_dir = {
+                "valence": {"peak": -1, "center_of_mass": -1},
+                "arousal": {"peak": -1, "center_of_mass": 1},
+            }
+        else:
+            h1_rep_dir = frozen_sites["h1_replication_direction"]
+
+        for axis in ("valence", "arousal"):
+            for metric in ("peak", "center_of_mass"):
+                val = h1_rep_dir.get(axis, {}).get(metric)
+                if val not in (-1, 1):
+                    raise ValueError(
+                        f"Invalid H1 replication direction in frozen_confirmatory_sites.json for {axis}.{metric}: {val}"
+                    )
         v3_cfg["h1_replication_direction"] = h1_rep_dir
         frozen_sites_hash = compute_string_or_dict_hash(frozen_sites)
 

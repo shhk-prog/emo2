@@ -969,20 +969,42 @@ def main():
         "valence": {"peak": -1, "center_of_mass": -1},
         "arousal": {"peak": -1, "center_of_mass": 1},
     }
-    if spatio_path.exists():
+    if not spatio_path.exists():
+        if args.dry_run:
+            logger.warning(f"Dry-run: {spatio_path} not found, using default H1 replication direction.")
+        else:
+            raise FileNotFoundError(
+                f"Required spatiotemporal summary artifact not found at {spatio_path} "
+                "for canonical H1 replication direction freeze."
+            )
+    else:
         try:
             with open(spatio_path, "r", encoding="utf-8") as f:
                 spatio_data = json.load(f)
-            v_pk = spatio_data.get("valence", {}).get("delta_d_peak", -1)
-            v_cm = spatio_data.get("valence", {}).get("delta_d_center", -1)
-            a_pk = spatio_data.get("arousal", {}).get("delta_d_peak", -1)
-            a_cm = spatio_data.get("arousal", {}).get("delta_d_center", 1)
-            h1_rep_dir["valence"]["peak"] = int(np.sign(v_pk)) if v_pk != 0 else -1
-            h1_rep_dir["valence"]["center_of_mass"] = int(np.sign(v_cm)) if v_cm != 0 else -1
-            h1_rep_dir["arousal"]["peak"] = int(np.sign(a_pk)) if a_pk != 0 else -1
-            h1_rep_dir["arousal"]["center_of_mass"] = int(np.sign(a_cm)) if a_cm != 0 else 1
+            v_pk = spatio_data.get("valence", {}).get("delta_d_peak")
+            v_cm = spatio_data.get("valence", {}).get("delta_d_center")
+            a_pk = spatio_data.get("arousal", {}).get("delta_d_peak")
+            a_cm = spatio_data.get("arousal", {}).get("delta_d_center")
+            if any(x is None for x in (v_pk, v_cm, a_pk, a_cm)):
+                raise ValueError("spatiotemporal summary is missing required delta_d_peak or delta_d_center values.")
+            h1_rep_dir["valence"]["peak"] = int(np.sign(v_pk))
+            h1_rep_dir["valence"]["center_of_mass"] = int(np.sign(v_cm))
+            h1_rep_dir["arousal"]["peak"] = int(np.sign(a_pk))
+            h1_rep_dir["arousal"]["center_of_mass"] = int(np.sign(a_cm))
         except Exception as e:
-            logger.warning(f"Could not load spatiotemporal summary for H1 replication direction: {e}")
+            if args.dry_run:
+                logger.warning(f"Dry-run: Could not load spatiotemporal summary for H1 replication direction: {e}")
+            else:
+                raise RuntimeError(
+                    "Failed to freeze H1 replication direction from Qwen Discovery spatiotemporal summary."
+                ) from e
+
+    for axis in ("valence", "arousal"):
+        for metric in ("peak", "center_of_mass"):
+            if h1_rep_dir[axis][metric] not in (-1, 1):
+                raise ValueError(
+                    f"Invalid H1 replication direction sign for {axis}.{metric}: {h1_rep_dir[axis][metric]} (expected -1 or 1)"
+                )
 
     frozen_sites = {
         "discovery_model": target_model_id,

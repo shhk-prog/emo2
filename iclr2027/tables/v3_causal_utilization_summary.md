@@ -7,7 +7,7 @@
 | Valence | 4.34e-04 | False | $-$0.0025 | False | 0.0043 | True | **NO_GO** |
 | Arousal | -5.13e-05 | False | -4.18e-04 | False | 0.0045 | True | **NO_GO** |
 
-> **Protocol Note:** CI low failed the raw scale thresholds (0.05/0.10). In accordance with the pre-registered protocol, the causal pipeline decision is **NO_GO** (`pipeline_continues = False`). All downstream analyses are interpreted as exploratory spatiotemporal discovery.
+> **Protocol Note:** CI low failed the raw scale thresholds (0.05/0.10). In accordance with the evaluation protocol, the causal pipeline decision is **NO_GO** (`pipeline_continues = False`). All downstream analyses are interpreted as exploratory spatiotemporal discovery.
 
 ## 2. Spatiotemporal Dissociation (Qwen 2.5 1.5B Discovery)
 

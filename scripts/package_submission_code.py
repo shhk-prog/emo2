@@ -19,12 +19,15 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-# 匿名化で絶対に許容しない文字列パターン
+# 匿名化で絶対に許容しない文字列パターン (Double-blind 違反検出)
 PROHIBITED_PATTERNS = [
     "hiromi",
     "/mnt/nas",
     "/mnt/data",
     "iag-02",
+    "Nippon Telegraph and Telephone",
+    "@ntt.com",
+    "ntt-at",
 ]
 
 # ルートから明示的に同梱する単体ファイル
@@ -72,6 +75,7 @@ GLOBAL_EXCLUDE_DIR_NAMES = {
 }
 
 GLOBAL_EXCLUDE_FILE_PATTERNS = [
+    "package_submission_code.py",  # 提出ZIPからパッケージングスクリプト自身を除外
     "*.pyc",
     "*.pyo",
     "*.log",

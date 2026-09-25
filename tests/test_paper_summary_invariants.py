@@ -133,10 +133,15 @@ def test_invariant_3_v3_negative_control_gate_dependent(summary_data):
         v3_qc.get("tables", {}).get("table_v3_1", {}).get("pipeline_continues", False)
     )
 
-    if pipeline_continues or t3_2_qc.get("n_rows", 0) > 0:
-        # RQ2 が実行されたか結果が存在する場合は、response_end が記録されていること
+    if pipeline_continues:
+        # RQ2 が本流として実行された場合は response_end 必須
         assert t3_2_qc.get("negative_control_response_end_present", False) is True, (
             "V3 negative temporal control C(response_end) was not recorded despite RQ2 execution!"
+        )
+    elif t3_2_qc.get("n_rows", 0) > 0:
+        # Gate NO_GO 下でも exploratory RQ2 結果が存在する場合は response_end が確認されていること
+        assert t3_2_qc.get("negative_control_response_end_present", False) is True, (
+            "V3 negative temporal control C(response_end) was not recorded for exploratory RQ2!"
         )
     else:
         # 未実行の場合は非存在で正常

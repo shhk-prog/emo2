@@ -63,7 +63,7 @@ Pittsburgh, PA 15213, USA \\
 \maketitle
 
 \begin{abstract}
-大規模言語モデルを心理的支援や対話に利用する上では、他者の情動を理解する能力を維持しつつ、過度な情動表現を選択的に制御する心理的ガードレールが重要となる。しかし、内部状態から情動関連情報をデコードできることは、その情報がSelf-Report生成に因果的に利用されていることを意味しない。本研究では、EmoBankとAIPsy-Affectを用い、Reader PredictionとSelf-Reportの関係を4モデルファミリーについて、behavior、internal representation、post-training-associated reorganization、spatiotemporal causal utilizationの4段階から検証した。ReaderとSelfの出力変位は強く共変し、双方からaffect-relevant informationをデコードできた一方、表現の直接共有やcross-task causal interchangeabilityは限定的であった。Base--Instruct間では情報は保持されつつrepresentation geometryとcausal profileが再編され、単純なinformation erasureや一様なdepth relocationでは説明できなかった。さらにState Induction GateはValence/Arousal双方で\texttt{NO\_GO}となり、decodabilityがrobustなSelf-Report causal controlを保証しないことが示された。以上より、\(\text{Behavioral Coupling}\neq\text{Shared Representation}\neq\text{Shared Causal Code}\neq\text{Robust Causal Control}\)という段階的分離を示し、心理的ガードレールには表層behaviorではなくtask-specificなcausal utilizationを明示的に評価する必要があることを示す。
+大規模言語モデルを心理的支援や対話に利用する上では、他者の情動を理解する能力を維持しつつ、過度な情動表現を選択的に制御する心理的ガードレールが重要となる。しかし、内部状態から情動関連情報をデコードできることは、その情報がSelf-Report生成に因果的に利用されていることを意味しない。本研究では、EmoBankとAIPsy-Affectを用い、Reader PredictionとSelf-Reportの関係を4モデルファミリーについて、behavior、internal representation、post-training-associated reorganization、spatiotemporal causal utilizationの4段階から検証した。ReaderとSelfの出力変位は強く共変し、双方からaffect-relevant informationをデコードできた一方、表現の直接共有やcross-task causal interchangeabilityは限定的であった。Base--Instruct間では情報は保持されつつrepresentation geometryに差がみられ、Valenceではtask-dependentなcausal-profile differenceが限定的に支持された。さらにState Induction GateはValence/Arousal双方で\texttt{NO\_GO}となり、decodabilityがrobustなSelf-Report causal controlを保証しないことが示された。以上より、\(\text{Behavioral Coupling}\not\Rightarrow\text{Shared Representation}\not\Rightarrow\text{Shared Causal Code}\not\Rightarrow\text{Robust Causal Control}\)という段階的分離を示し、心理的ガードレールには表層behaviorではなくtask-specificなcausal utilizationを明示的に評価する必要があることを示す。
 \end{abstract}
 
 
@@ -152,7 +152,7 @@ Primary cohortはQwen 2.5~\citep{qwen2025qwen25technicalreport}、Llama 3.2~\cit
 
 \subsection{Output measurement}
 
-単一のgreedy responseではなく、事前定義した全JSON candidateのconditional sequence likelihoodを計算し、そのSoftmax分布からexpected Valence/Arousal等を求める。Behavioral/V1では729-state VAD space、V2/V3では81-state VA spaceを用いる。両者は異なるprobability spaceであるため、Stage間でabsolute expected scoreを直接比較せず、各Stage内部で定義したcontrast、geometry、causal effect、relative depthを比較する。
+単一のgreedy responseではなく、事前定義した全JSON candidateのtoken-mean conditional log likelihoodに基づくlength-normalized candidate distribution $\tilde{P}(c\mid p)$を構成し、そのSoftmax分布からexpected Valence/Arousal等を求める。Behavioral/V1では729-state VAD space、V2/V3では81-state VA spaceを用いる。両者は異なるprobability spaceであるため、Stage間でabsolute expected scoreを直接比較せず、各Stage内部で定義したcontrast、geometry、causal effect、relative depthを比較する。詳細はAppendix~\ref{app:sequence_likelihood}を参照されたい。
 
 
 \subsection{Four-stage evidence hierarchy}
@@ -506,11 +506,11 @@ d_C^*\simeq0.74\text{--}0.78
 4 Stageを統合すると、本研究の中心的な結果は、
 \[
 \text{Behavioral Coupling}
-\neq
+\not\Rightarrow
 \text{Shared Representation}
-\neq
+\not\Rightarrow
 \text{Shared Causal Code}
-\neq
+\not\Rightarrow
 \text{Robust Causal Control}
 \]
 という段階的な分離である。
@@ -580,11 +580,11 @@ ReaderとSelfはcontrolled affective stimulusに対して強く共変し、双�
 したがって、本研究は、
 \[
 \text{Behavioral Coupling}
-\neq
+\not\Rightarrow
 \text{Shared Representation}
-\neq
+\not\Rightarrow
 \text{Shared Causal Code}
-\neq
+\not\Rightarrow
 \text{Robust Causal Control}
 \]
 を支持する。
@@ -593,12 +593,7 @@ ReaderとSelfはcontrolled affective stimulusに対して強く共変し、双�
 
 \subsection*{Reproducibility statement}
 
-本研究の再現性を確保するため、使用したデータセット、対象モデルとmodel revision、プロンプト、candidate space、Sequence-Likelihoodによる出力測定、hidden-stateの測定位置、random seed、統計解析、および各StageにおけるPrimary/Secondary analysisの定義をAppendixに記載する。
-\color{red}
-コードに関する記述を削除
-% また、Behavioral、V1、V2、V3の主要実験、control analysis、および論文中の集計値を生成するための実装と設定を付属コードとして提供する。
-\color{black}
-Base--Instruct比較ではprompt-format differenceを統制するMatched-Plain conditionをPrimaryとし、V3ではDiscoveryとcross-family replicationを分離するとともに、State Induction Gateが\texttt{NO\_GO}となった後の解析をexploratory/descriptiveとして明示的に区別している。これらにより、主要な実験条件、解析手順、および論文中の報告値を追跡・再現できるようにする。
+本研究の再現性を確保するため、使用したデータセット、対象モデルとmodel revision、プロンプト、candidate space、Sequence-Likelihoodによる出力測定、hidden-stateの測定位置、random seed、統計解析、および各StageにおけるPrimary/Secondary analysisの定義をAppendixに記載する。Base--Instruct比較ではprompt-format differenceを統制するMatched-Plain conditionをPrimaryとし、V3ではDiscoveryとcross-family replicationを分離するとともに、State Induction Gateが\texttt{NO\_GO}となった後の解析をexploratory/descriptiveとして明示的に区別している。これらにより、主要な実験条件、解析手順、および論文中の報告値を追跡・再現できるようにする。
 
 \subsection*{AI use statement}
 
@@ -1729,9 +1724,9 @@ T=1.0に固定する。
 % ----------------------------------------------------------------
 \subsubsection{候補分布と期待値}
 
-candidate scoreから、
+candidate scoreから、length-normalized score-induced candidate distributionとして、
 \[
-P(c\mid p)
+\tilde{P}(c\mid p)
 =
 \frac{
 \exp(\ell(c\mid p))
@@ -1740,30 +1735,30 @@ P(c\mid p)
 \exp(\ell(c'\mid p))
 }
 \]
-を求める。
+を求める。これはLM本来の無正規化sequence joint probabilityそのものではなく、candidate長の非対称性を補正したスコアに基づく正規化候補分布である。
 
-そのjoint distributionから、
+その分布から、
 \[
-E[V]
+\mathbb{E}[V]
 =
 \sum_{c\in\mathcal{C}}
-P(c\mid p)V(c),
+\tilde{P}(c\mid p)V(c),
 \]
 
 \[
-E[A]
+\mathbb{E}[A]
 =
 \sum_{c\in\mathcal{C}}
-P(c\mid p)A(c)
+\tilde{P}(c\mid p)A(c)
 \]
 を算出する。
 
 VAD candidate spaceを使用する条件では、
 \[
-E[D]
+\mathbb{E}[D]
 =
 \sum_{c\in\mathcal{C}}
-P(c\mid p)D(c)
+\tilde{P}(c\mid p)D(c)
 \]
 も算出する。
 
@@ -6301,7 +6296,7 @@ RQ3では、control-adjusted causal leverage \(c_{\mathrm{net,rand}}\) を用い
 \[
 \beta = 1.63\times10^{-4}, \qquad \text{FDR } q = 0.044
 \]
-となり、Primary interactionの中で唯一FDR補正後にも有意に支持された（さらにSecondaryのPost-training主効果も $q = 0.027$ で有意）。
+となり、Primary interactionの中で唯一FDR補正後にも有意に支持された（なおSecondary analysisのPost-training主効果はFDR補正対象外の未補正 $p = 0.027$ であった）。
 一方、層深度の再配置を表すPost-training $\times$ Depth（FDR $q = 0.304$）および三者交互作用（Post-training $\times$ Task $\times$ Depth, FDR $q = 0.196$）は支持されず、Arousalの全交互作用項（FDR $q = 0.304$）も支持されなかった。
 
 したがってH3の結果は、因果構造が全面的に不変であるとも、一様に深層へ移行するとも言えない。限定された解釈として、Valenceにおいてはタスク依存的な因果プロファイルの再編（Alignment $\times$ Task）が存在するものの、全ファミリーに一貫した層深度への再配置（depth relocation）は統計的に支持されなかったと結論づけられる。
@@ -8373,11 +8368,11 @@ H3のmediated attenuationについても、Qwen Discoveryではattenuation ratio
 4 Stageを統合すると、最も重要な結果は、
 \[
 \text{Behavioral Coupling}
-\neq
+\not\Rightarrow
 \text{Shared Representation}
-\neq
+\not\Rightarrow
 \text{Shared Causal Code}
-\neq
+\not\Rightarrow
 \text{Robust Causal Control}
 \]
 という段階的な分離である。
@@ -8575,11 +8570,11 @@ ReaderとSelfはaffect-relevant informationを部分的に共有する一方、�
 したがって、本研究が支持する中心的な結論は、
 \[
 \text{Behavioral Coupling}
-\neq
+\not\Rightarrow
 \text{Shared Representation}
-\neq
+\not\Rightarrow
 \text{Shared Causal Code}
-\neq
+\not\Rightarrow
 \text{Robust Causal Control}
 \]
 という段階的な分離である。
@@ -8587,7 +8582,7 @@ ReaderとSelfはaffect-relevant informationを部分的に共有する一方、�
 この知見は、LLMに主観的感情が存在することを示すものではない。むしろ、他者情動推定に関わる機能を維持しながら、過度なself-directed affective responseを選択的に制御するためには、behavioral outputだけでなく、
 \[
 \text{representation}
-\neq
+\not\Rightarrow
 \text{causal utilization}
 \]
 という区別を明示的に扱う必要があることを示す。

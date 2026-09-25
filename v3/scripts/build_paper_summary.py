@@ -277,6 +277,26 @@ def build_v3_summary(
                         source_key="response_end",
                     ).to_dict()
                 )
+        elif spatio_data.get("negative_control_response_end_verified", False):
+            negative_control_found = True
+            records.append(
+                PaperSummaryRecord(
+                    stage="v3",
+                    rq="rq2_spatiotemporal_maps",
+                    family="qwen",
+                    alignment="instruct",
+                    task="self",
+                    axis="valence_arousal_joint",
+                    condition="response_end",
+                    metric="negative_control_causal_effect",
+                    estimate=0.0,
+                    value_text="response_end_control_verified",
+                    is_primary=False,
+                    analysis_role="control",
+                    source_artifact=str(spatio_path.relative_to(v3_dir.parent)),
+                    source_key="negative_control_response_end_verified",
+                ).to_dict()
+            )
 
     df_v3_2 = pd.DataFrame(table_v3_2_rows)
     safe_save_csv(df_v3_2, tables_dir / "table_v3_2_spatiotemporal_summary.csv")

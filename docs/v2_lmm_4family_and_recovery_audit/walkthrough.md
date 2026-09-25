@@ -89,3 +89,22 @@
 
 ### (3) スクリプトの永続化
 - 生成スクリプト `scripts/summarize_v2_reorganization.py` 内の各 Note 生成ロジックを更新したため、将来スクリプトを再実行してもこれらの科学的表現が上書きされて戻ることはない。
+
+---
+
+## 6. V2 H4 Distribution Recovery Note の介入方向修正（2026-09-25 13:12）
+
+### (1) 修正の背景と要件
+- `v2_distribution_recovery.tex` の Note で「Baseモデル内部へInstruct由来の整列ベクトルを注入」と介入方向が逆に記述されていた。
+- 実際の実装および実験デザイン（Methods/コード）は、「Instructモデルの内部表現を同一familyのBaseモデル由来表現で置換またはalignmentし、Instructの出力分布がBase分布へどの程度接近（回復）するか」を測定するものである。
+- また、Base/Instruct差を「post-trainingのcausal effect」とは呼ばず、「post-training-associated reorganization」とする共通原則を維持する。
+
+### (2) 反映された文面
+- **`v2_distribution_recovery.tex` / `v2_reorganization_summary.tex` / `scripts/summarize_v2_reorganization.py`**:
+  ```latex
+  \textbf{Note:} Instructモデルの内部表現を同一familyのBaseモデル由来表現で置換またはalignmentした場合に、InstructのVA output distributionがBase distributionへどの程度接近するかを評価した（Matched AUC, $\Delta\text{EMD AUC}$, Max Recovery）。事前登録された4ファミリー設計（Qwen, Llama, Gemma, OLMo）に基づき、全モデルでMatched-Plain recoveryの実測値が得られた。なおBase/Instruct差はrandomized interventionではないため、post-trainingのcausal effectではなくpost-training-associated reorganizationとして解釈する。
+  ```
+
+### (3) 検証
+- リポジトリ内から「Baseモデル内部へInstruct由来」の記述が完全に 0 件となったことを確認。
+- `pytest tests/test_paper_summary_invariants.py` が 8/8 全件 PASSED。

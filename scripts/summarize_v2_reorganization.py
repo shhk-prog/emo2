@@ -332,7 +332,7 @@ def generate_distribution_recovery_table(df_recov):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} Baseモデル内部へInstruct由来の整列ベクトルを注入した場合の出力感情分布の回復度（Matched AUC, $\Delta\text{EMD AUC}$, Max Recovery）。事前登録された4ファミリー設計（Qwen, Llama, Gemma, OLMo）に基づき、全モデルでMatched-Plain recoveryの実測値が得られた。",
+        r"\textbf{Note:} Instructモデルの内部表現を同一familyのBaseモデル由来表現で置換またはalignmentした場合に、InstructのVA output distributionがBase distributionへどの程度接近するかを評価した（Matched AUC, $\Delta\text{EMD AUC}$, Max Recovery）。事前登録された4ファミリー設計（Qwen, Llama, Gemma, OLMo）に基づき、全モデルでMatched-Plain recoveryの実測値が得られた。なおBase/Instruct差はrandomized interventionではないため、post-trainingのcausal effectではなくpost-training-associated reorganizationとして解釈する。",
         r"\end{minipage}",
         r"\end{table}",
     ])

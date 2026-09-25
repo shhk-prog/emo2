@@ -23,3 +23,5 @@ ICLR 2027論文の結果監査において、Behavioral、V1、V3、V2のPresent
   - `v2_confirmatory_summary.tex` / `v2_reorganization_summary.tex` / `v2_h3_causal_lmm.tex` の Note を修正：H3は全面的棄却ではなく、ValenceのAlignment $\times$ Task（$q = 0.044$）が部分的に支持され、層深度再配置は支持されなかった旨を明記。
   - `v2_causal_relocation.tex` / `v2_causal_controls.tex` の Note を修正：未評価（---）であり、H3の統計的結論は sample-level LMM を根拠とすることを明記。
   - Base/Instruct 差は randomized post-training intervention ではないため、「post-trainingのcausal effect」と呼ばず「post-training-associated reorganization」として扱う記述方針を統一。
+- [x] **7. V2 H4 Distribution Recovery Note の介入方向修正**
+  - `v2_distribution_recovery.tex` / `v2_reorganization_summary.tex` / `scripts/summarize_v2_reorganization.py` の Note を修正：逆になっていた介入方向を「Instructモデルの内部表現を同一familyのBaseモデル由来表現で置換またはalignmentした場合に、InstructのVA output distributionがBase distributionへどの程度接近するか」に正しく修正。Base/Instruct差をpost-trainingの因果効果とは呼ばない共通原則を維持。

@@ -58,3 +58,34 @@
 - `pytest tests/test_paper_summary_invariants.py`:
   - 8/8 全件 PASSED（直交性、NaN保持、負の対照、非フォールバック、Gate判定ロジック、層化カバレッジ、マニフェスト完全性、dry_run混入ゼロ）。
 - 全ての実験が問題なく完了し、全結果が欠損なく揃っていることを確認・凍結完了。
+
+---
+
+## 5. V2 H3 Note および科学的解釈方針の反映（2026-09-25 12:46）
+
+### (1) 修正の背景と要件
+- `v2_confirmatory_summary.tex` の Note で「H3のPrimary interaction termsも支持されなかった」となっていたが、実際には Valence の $\text{Post-training} \times \text{Task}$ が $q=0.044$ で FDR 補正後も Supported である。
+- したがって、「H3は全面的な negative result ではなく、Valence の task-dependent な変化のみ部分的に支持、depth relocation は支持されず」と明記する必要がある。
+- また、`v2_causal_relocation.tex` と `v2_causal_controls.tex` は未評価（`---`）であるため、そこから peak relocation 等の結論は出さず、H3 については sample-level LMM を根拠とする。
+- さらに、Base/Instruct 差は randomized post-training intervention ではないため、「post-trainingのcausal effect」と呼ばず、「post-training-associated reorganization」として扱う方針を統一する。
+
+### (2) 反映された文面
+- **`v2_confirmatory_summary.tex` / `v2_reorganization_summary.tex` (Confirmatory Note)**:
+  ```latex
+  \textbf{Note:} H1aではBase--Instruct間のgeometric distortionが確認された。一方、H1bのprespecified positive peak shiftおよびH2のReader--Self sharing reorganizationは、4-family bootstrap CIに基づく事前定義criterionを満たさなかった。H3（Causal Reorganization）は全面的な棄却ではなく、sample-level LMMにおいてValenceのtask-dependentな変化（Alignment $\times$ Task, FDR $q = 0.044$）のみ部分的に支持されたが、層深度の再配置（depth relocation; Alignment $\times$ Depth等）は支持されなかった（なおBase/Instruct差はrandomized interventionではないため、post-trainingのcausal effectではなくpost-training-associated reorganizationとして解釈する）。H4のRecovery Asymmetry（Self--Reader AUC差）も95\% CIがゼロを跨ぎ支持されなかった。
+  ```
+- **`v2_h3_causal_lmm.tex` / `v2_reorganization_summary.tex` (LMM Note)**:
+  ```latex
+  \textbf{Note:} Primary confirmatory inferenceは Alignment $\times$ Depth、Alignment $\times$ Task、Alignment $\times$ Task $\times$ Depth のprespecified interaction termsに基づく。Valenceにおいて $\text{Post-training} \times \text{Task}$ がFDR補正後も有意（$q = 0.044$）となり部分的に支持されたが、層深度の再配置（$\text{Post-training} \times \text{Depth}$等）およびArousalの全interactionはFDR補正後の基準を満たさなかった。なおBase/Instruct差はrandomized interventionではないため、post-trainingのcausal effectではなくpost-training-associated reorganizationとして解釈する。
+  ```
+- **`v2_causal_relocation.tex` / `v2_reorganization_summary.tex` (Relocation Note)**:
+  ```latex
+  \textbf{Note:} 因果介入におけるピークおよび重心深度変位 $\Delta d_C^* = d_{C,\text{Instruct}}^* - d_{C,\text{Base}}^*$ は、事後学習に伴う因果部位の後段移行量を示す。なお本集約表は未評価（---）であり、ピーク再配置等の結論の根拠とはせず、H3の統計的推論はsample-level LMM（Table~\ref{tab:v2_h3_causal_lmm}）に基づく。またBase/Instruct差はrandomized interventionではないため、post-trainingのcausal effectではなくpost-training-associated reorganizationとして扱う。
+  ```
+- **`v2_causal_controls.tex` / `v2_reorganization_summary.tex` (Controls Note)**:
+  ```latex
+  \textbf{Note:} $C_{\mathrm{net,rand}}>0$ は、affect-related directionの平均介入効果がrandom-direction controlより大きい方向にあることを示す。なお本集約表は未評価（---）であり、H3の統計的結論はsample-level LMM（Table~\ref{tab:v2_h3_causal_lmm}）を根拠とする。またBase/Instruct差はrandomized interventionではないため、post-trainingのcausal effectではなくpost-training-associated reorganizationとして解釈する。
+  ```
+
+### (3) スクリプトの永続化
+- 生成スクリプト `scripts/summarize_v2_reorganization.py` 内の各 Note 生成ロジックを更新したため、将来スクリプトを再実行してもこれらの科学的表現が上書きされて戻ることはない。

@@ -19,3 +19,7 @@ ICLR 2027論文の結果監査において、Behavioral、V1、V3、V2のPresent
   - `build_all_paper_summaries.py --strict` により全 4 ステージの 25 テーブル、9 図表データ、Primary (341行) / Secondary (515行) を完全生成。
   - `generate_paper_results_tables.py` により全 TeX テーブルを最新生成。
   - `pytest tests/test_paper_summary_invariants.py` が 8/8 全件 PASSED。全実験・全結果の完全揃いを確認。
+- [x] **6. V2 H3 Note および科学的解釈方針の反映**
+  - `v2_confirmatory_summary.tex` / `v2_reorganization_summary.tex` / `v2_h3_causal_lmm.tex` の Note を修正：H3は全面的棄却ではなく、ValenceのAlignment $\times$ Task（$q = 0.044$）が部分的に支持され、層深度再配置は支持されなかった旨を明記。
+  - `v2_causal_relocation.tex` / `v2_causal_controls.tex` の Note を修正：未評価（---）であり、H3の統計的結論は sample-level LMM を根拠とすることを明記。
+  - Base/Instruct 差は randomized post-training intervention ではないため、「post-trainingのcausal effect」と呼ばず「post-training-associated reorganization」として扱う記述方針を統一。

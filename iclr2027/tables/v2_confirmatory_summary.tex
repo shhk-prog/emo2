@@ -34,6 +34,6 @@ H4: Recovery Asymmetry         & Matched-Plain AUC (Descriptive)            & $-
 \vspace{1ex}
 \begin{minipage}{\linewidth}
 \footnotesize
-\textbf{Note:} H1aではBase--Instruct間のgeometric distortionが確認された。一方、H1bのprespecified positive peak shiftおよびH2のReader--Self sharing reorganizationは、4-family bootstrap CIに基づく事前定義criterionを満たさなかった。H3のPrimary interaction termsもFDR補正後には支持されず、H4のRecovery Asymmetry（Self--Reader AUC差）も95\% CIがゼロを跨ぎ支持されなかった。
+\textbf{Note:} H1aではBase--Instruct間のgeometric distortionが確認された。一方、H1bのprespecified positive peak shiftおよびH2のReader--Self sharing reorganizationは、4-family bootstrap CIに基づく事前定義criterionを満たさなかった。H3（Causal Reorganization）は全面的な棄却ではなく、sample-level LMMにおいてValenceのtask-dependentな変化（Alignment $\times$ Task, FDR $q = 0.044$）のみ部分的に支持されたが、層深度の再配置（depth relocation; Alignment $\times$ Depth等）は支持されなかった（なおBase/Instruct差はrandomized interventionではないため、post-trainingのcausal effectではなくpost-training-associated reorganizationとして解釈する）。H4のRecovery Asymmetry（Self--Reader AUC差）も95\% CIがゼロを跨ぎ支持されなかった。
 \end{minipage}
 \end{table}

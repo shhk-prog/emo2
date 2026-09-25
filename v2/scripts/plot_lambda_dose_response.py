@@ -11,7 +11,7 @@ def main():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--in-dir", type=str, default="v2/results/derived/phase9_advanced_patching")
-    parser.add_argument("--out-dir", type=str, default="/mnt/nas/home/hiromi/.gemini/antigravity-ide/brain/5af8c3f8-4701-4aeb-abff-f62a3997e299/plots")
+    parser.add_argument("--out-dir", type=str, default="v2/results/derived/plots")
     args = parser.parse_args()
     
     os.makedirs(args.out_dir, exist_ok=True)

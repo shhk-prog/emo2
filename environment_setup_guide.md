@@ -54,11 +54,11 @@ python -m pip install -e ".[dev]"
 
 | ファイル | 役割 |
 |---|---|
-| [`setup_env.sh`](file:///mnt/nas/home/hiromi/src/emo/setup_env.sh) | 仮想環境自動構築・検証シェルスクリプト |
-| [`pyproject.toml`](file:///mnt/nas/home/hiromi/src/emo/pyproject.toml) | プロジェクト仕様・全依存関係（POT含む）・パッケージ定義 |
-| [`requirements.txt`](file:///mnt/nas/home/hiromi/src/emo/requirements.txt) | pip 用依存関係一覧ファイル |
-| [`.python-version`](file:///mnt/nas/home/hiromi/src/emo/.python-version) | 指定 Python バージョン（`3.12`）固定ファイル |
-| [`pytest.ini`](file:///mnt/nas/home/hiromi/src/emo/pytest.ini) | pytest 設定（テスト探索パス・PYTHONPATH設定） |
+| [`setup_env.sh`](setup_env.sh) | 仮想環境自動構築・検証シェルスクリプト |
+| [`pyproject.toml`](pyproject.toml) | プロジェクト仕様・全依存関係（POT含む）・パッケージ定義 |
+| [`requirements.txt`](requirements.txt) | pip 用依存関係一覧ファイル |
+| [`.python-version`](.python-version) | 指定 Python バージョン（`3.12`）固定ファイル |
+| [`pytest.ini`](pytest.ini) | pytest 設定（テスト探索パス・PYTHONPATH設定） |
 
 ---
 

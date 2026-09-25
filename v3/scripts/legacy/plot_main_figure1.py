@@ -47,7 +47,7 @@ COLORS = {
 }
 
 def load_data():
-    base_dir = Path("/mnt/nas/home/hiromi/src/emo/v3/results")
+    base_dir = Path(__file__).resolve().parent.parent / "results"
     
     # Load 28-layer sweep data
     sweep_df = pd.read_csv(base_dir / "causal_localization_sweep_joint_ot.csv")
@@ -229,7 +229,7 @@ def plot_figure1():
               bbox=dict(boxstyle="round,pad=0.5", fc='#fff2f2', ec='#d95f02', lw=1.5, alpha=0.95))
 
     # Save high-res figures
-    out_dir = Path("/mnt/nas/home/hiromi/src/emo/v3/results")
+    out_dir = Path(__file__).resolve().parent.parent / "results"
     out_dir.mkdir(parents=True, exist_ok=True)
     
     png_path = out_dir / "figure1_four_panel_dissociation.png"

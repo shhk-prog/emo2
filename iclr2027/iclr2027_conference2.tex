@@ -15,7 +15,7 @@
 \usepackage{CJKutf8}
 
 
-\title{Formatting Instructions for ICLR 2027 \\ Conference Submissions}
+\title{How Do Internal Affective Representations Relate to What Large Language Models Say They Feel?}
 
 % Authors must not appear in the submitted version. They should be hidden
 % as long as the \iclrfinalcopy macro remains commented out below.
@@ -29,16 +29,20 @@ Cranberry-Lemon University\\
 Pittsburgh, PA 15213, USA \\
 \texttt{\{hippo,brain,jen\}@cs.cranberry-lemon.edu} \\
 \And
-Ji Q. Ren \& Yevgeny LeNet \\
-Department of Computational Neuroscience \\
-University of the Witwatersrand \\
-Joburg, South Africa \\
-\texttt{\{robot,net\}@wits.ac.za} \\
-\AND
-Coauthor \\
-Affiliation \\
-Address \\
-\texttt{email}
+  Saki Hiromi \\
+  NTT \\
+  Tokyo, Japan \\
+  \texttt{saki.hiromi@ntt.com}
+  \And
+  Hiroki Kinoshita \\
+  NTT \\
+  Tokyo, Japan \\
+  \texttt{hiroki.kinoshita@ntt.com}
+  \And
+  Akira Morikawa \\
+  NTT \\
+  Tokyo, Japan \\
+  \texttt{a.morikawa@ntt.com}
 }
 
 % The \author macro works with any number of authors. There are two commands
@@ -59,8 +63,550 @@ Address \\
 \maketitle
 
 \begin{abstract}
-大規模言語モデル（LLM）の内部状態から情動関連情報を線形デコードできることは、その情報が表現内にアクセス可能な形で存在することを示す。しかし、表層的な行動の共変（Behavioral Coupling）やデコード可能性（Decodability）が、モデル自身による自己報告生成において当該表現を直接・普遍的に因果的利用していること（Causal Leverage）を意味するわけではない。本研究では、人間アノテーションに基づく情動刺激（EmoBankおよび統制されたAIPsy-Affect）を用い、他者予測（Reader Prediction）と自己報告（Self-Report）の関係を4つのモデルファミリー（Qwen 2.5, Llama 3.2, Gemma 3, OLMo 2）にわたって4段階のエビデンス階層（Behavioral $\to$ Internal Representation $\to$ Post-training-Associated Reorganization $\to$ Spatiotemporal Causal Utilization）で体系的に検証した。実験の結果、(1) 出力レベルでの強固な変位共変（Behavioral Coupling）にもかかわらず、内部表現の直接共有や因果的交換可能性は限定的であること、(2) 事後学習（Post-training）に伴う変化は情報の完全な消去（Erasure）ではなく表現幾何（Geometry）とタスク依存的因果プロファイルの再編成（Reorganization）として現れること、(3) 状態誘導ゲート（State Induction Gate）はNO\_GOとなり、局所的デコード可能性が直接的かつ頑健な因果制御可能性を保証しないこと、(4) 追試検証において生成ステージ依存的な因果感度が確認されたものの、普遍的な単一因果メカニズムには至らないことを実証した。これらの知見は、心理的支援における他者理解能力を保持しつつ過度な自己感情表出を選択的に制御するガードレール設計に向け、表層出力・表現・因果利用の多重の解離（Separation）を明示的に扱う重要性を示す。
+大規模言語モデルを心理的支援や対話に利用する上では、他者の情動を理解する能力を維持しつつ、過度な情動表現を選択的に制御する心理的ガードレールが重要となる。しかし、内部状態から情動関連情報をデコードできることは、その情報がSelf-Report生成に因果的に利用されていることを意味しない。本研究では、EmoBankとAIPsy-Affectを用い、Reader PredictionとSelf-Reportの関係を4モデルファミリーについて、behavior、internal representation、post-training-associated reorganization、spatiotemporal causal utilizationの4段階から検証した。ReaderとSelfの出力変位は強く共変し、双方からaffect-relevant informationをデコードできた一方、表現の直接共有やcross-task causal interchangeabilityは限定的であった。Base--Instruct間では情報は保持されつつrepresentation geometryとcausal profileが再編され、単純なinformation erasureや一様なdepth relocationでは説明できなかった。さらにState Induction GateはValence/Arousal双方で\texttt{NO\_GO}となり、decodabilityがrobustなSelf-Report causal controlを保証しないことが示された。以上より、\(\text{Behavioral Coupling}\neq\text{Shared Representation}\neq\text{Shared Causal Code}\neq\text{Robust Causal Control}\)という段階的分離を示し、心理的ガードレールには表層behaviorではなくtask-specificなcausal utilizationを明示的に評価する必要があることを示す。
 \end{abstract}
+
+
+\section{はじめに}
+\label{sec:introduction}
+\color{red}
+参考文献は[]で文末に入れる場合~\citep{}，作者名などを文中に入れる場合~elみたいなやつ~\citet{}がICLRの決まり
+\color{black}
+
+大規模言語モデルは、質問応答や文章生成だけでなく、悩み相談、心理的支援、対人関係に関する助言など、人の情動状態に関わる用途へ利用されつつある~\citep{li2023systematic,luo2025seeking}。このような利用では、相手の感情を理解し、それに応じた応答を生成する能力が有用である一方、モデル自身にも感情が存在するかのような自己言及的応答や、過度な情動的同調がHuman--AI interactionへ与える影響も無視できない~\citep{weidinger2022taxonomy,laestadius2024too,fang2025ai}。
+
+ここで重要なのは、\textbf{他者の情動を推定すること}と、\textbf{同じ刺激についてモデル自身の状態を報告すること}が、LLM内部でどの程度同じ仕組みに依存しているかである。両者が完全に同一の内部機構に依存するなら、self-directedな情動表現を抑制する介入は、他者情動推定に関わる機能まで損なう可能性がある。一方、両者が部分的に分離されているなら、共有されるaffect-relevant informationを保持しながら、task-specificな利用経路を選択的に制御できる可能性がある。
+
+既存研究では、LLMが人間から共感的と評価される応答を生成できること~\citep{ayers2023comparing,elyoseph2023chatgpt,huang2023emotionally,yu2025can}、またsentimentやemotionに関係する情報をhidden stateからdecodeできることが示されている~\citep{di2025llamas,tak2025mechanistic,wu2026decoding}。しかし、
+\[
+\text{Behavioral similarity}
+\neq
+\text{Mechanistic identity},
+\]
+かつ、
+\[
+\text{Decodability}
+\neq
+\text{Causal utilization}
+\]
+である。内部状態から情報を読み出せることは、その情報がその位置から最終出力を因果的に制御していることを意味しない~\citep{hewitt2019designing}。同様に、モデルが自身について数値的な状態を報告することから、そのreportが内部representationを忠実に読み出しているとも限らない~\citep{burns2022discovering,turpin2023language}。
+
+本研究ではこの問題を、同一刺激に対する二つのtaskによって分離する。第一は、文章が平均的な人間読者にどのような情動反応を生じさせるかを推定する\textbf{Reader Prediction}である。第二は、同じ文章を読んだ後にモデル自身についてValence/Arousal等を報告させる\textbf{Self-Report}である。Self-Reportはstandardized promptに対して生成されるmodel-generated reportとして定義し、モデルに人間と同様の主観的感情、意識、sentienceが存在することを仮定しない。
+
+本研究の中心的なResearch Questionは以下である。
+
+\begin{quote}
+\textbf{LLMの情動関連内部表現は自己報告とどのように結びついており、その関係はタスク、post-training、計算過程を通じてどのように変化するのか。}
+\end{quote}
+
+この問いに対して、本研究は、
+\[
+\text{Behavioral}
+\rightarrow
+\text{Internal Representation}
+\rightarrow
+\text{Post-training-Associated Reorganization}
+\rightarrow
+\text{Spatiotemporal Causal Utilization}
+\]
+という4段階のevidence hierarchyを構成する。
+
+本研究の主な貢献は以下である。
+\begin{enumerate}
+    \item Reader PredictionとSelf-Reportを同一stimulus上で分離し、behavioral couplingとinternal mechanismの共有を区別して評価する。
+    \item linear probing、representation geometry、semantic controls、causal interventionを組み合わせ、\textbf{情報が存在すること}と\textbf{同じcausal codeとして利用されること}を分離する。
+    \item Base--Instruct比較ではMatched-Plain conditionをPrimaryとしてprompt-format differenceを統制し、representation geometry、Reader--Self sharing、causal profile、distribution recoveryを分解して評価する。
+    \item Instruct modelでは解析をlayer $\times$ generation stageへ拡張し、decodability、interventional sensitivity、endogenous relevanceを区別する。
+\end{enumerate}
+
+実験仕様、全control、統計手順、model-family別の完全な結果Appendix~\ref{app:overall_methods}--\ref{app:v3-methods}に示す。
+
+
+\section{関連研究}
+\label{sec:related-work-main}
+
+\paragraph{LLMの共感・情動行動評価.}
+LLMが共感的あるいは情動的に見える応答を生成できることは、多くのbehavioral evaluationで示されている。ChatGPTと医師回答の比較~\citep{ayers2023comparing}、emotional awareness評価~\citep{elyoseph2023chatgpt}、emotion-eliciting situationを用いたEmotionBench~\citep{huang2023emotionally}などは、LLMが高度な情動関連behaviorを示し得ることを報告している。一方、これらは主として最終出力を評価しており、Reader-likeな他者推定とSelf-directedなreportが内部で同一mechanismを利用するかは明らかではない。
+
+\paragraph{情動関連内部表現とcausal intervention.}
+LLMのhidden stateにはsentimentやemotionに関する情報が線形にdecode可能であり~\citep{di2025llamas}、emotion-related conceptへのactivation interventionによってoutputを変化させられることも報告されている~\citep{tak2025mechanistic,banayeeanzade2026psychological}。また、emotion representationのgeometryやlayer/token方向の構造も検討されている~\citep{zhang2025decoding,reichman2026emotions,wu2026decoding}。本研究では、同じaffect-relevant informationについて、\textit{decodability}、\textit{geometry sharing}、\textit{causal interchangeability}を別々に検証する。
+
+\paragraph{内部情報とSelf-Report.}
+internal representationとsurface reportが一致しない可能性は、latent knowledge~\citep{burns2022discovering}やfaithfulness~\citep{turpin2023language}の研究でも議論されている。近年は、モデル自身の内部状態や将来behaviorについてどの程度report可能かを扱うintrospection研究も進んでいる~\citep{binder2025looking,lindsey2026emergent,martorell2026quantitative,singh2026can}。本研究はgenuine introspectionの有無を判定するのではなく、affect-relevant representationとnumeric Self-Reportのmechanistic relationに分析対象を限定する。
+
+\paragraph{Post-trainingと内部mechanism.}
+post-trainingによるbehavioral changeは、内部情報の単純な獲得・消失だけでなく、既存representationの利用方法やoutput policyの変化によっても生じ得る~\citep{sharma2024towards,ferrando2025know}。そこで本研究ではBase--Instruct differenceをpost-trainingそのものの因果効果とは呼ばず、\textbf{post-training-associated difference}として、情報の保持、geometry、causal leverage、readoutの変化を評価する。
+
+
+\section{実験設定}
+\label{sec:main-methods}
+本研究の4段階について，表\ref{tab:main-stage-overview}に示す．各Stageはbehavioral coupling、internal representation、post-training-associated difference、spatiotemporal causal utilizationを段階的に検証する。
+\subsection{Tasks, datasets, and models}
+
+Reader Predictionでは、与えられた文章が平均的な人間読者に生じさせるaffective responseを推定させる。Self-Reportでは同一文章を提示し、モデル自身についてaffective stateを数値的に報告させる。両taskは独立したforward passとして実行し、一方の回答を他方への入力には用いない。
+
+datasetにはEmoBank~\citep{buechel2017emobank}とAIPsy-Affect~\citep{keeman2026aipsy,keido_labs_2026}を使用する。EmoBankはhuman Reader/Writer VAD annotationを持つため、モデル出力およびhidden representationのexternal groundingに用いる。AIPsy-AffectはClinical、Neutral、Moderate、Complex Neutralから構成され、Clinical--Neutralの192 matched pairsおよび48 matched tripletsによってcontrolled stimulus manipulationを評価する。AIPsy-Affectにはstimulus-levelのhuman continuous V/A labelが存在しないため、これをhuman ground truthとしては扱わない。
+
+Primary cohortはQwen 2.5~\citep{qwen2025qwen25technicalreport}、Llama 3.2~\citep{grattafiori2024llama}、Gemma 3~\citep{team2025gemma}、OLMo 2~\citep{olmo20242,olmo20242olmo2furious}の4 familiesである。Behavioral、V1、V2ではBase/Instructを含む8 modelsを用い、V3ではInstruct modelsのみを使用する。V3ではQwenをDiscovery model、Llama、Gemma、OLMoをprespecified replication familiesとする。詳細はAppendix~\ref{app:overall_methods}を参照されたい。
+
+
+\subsection{Output measurement}
+
+単一のgreedy responseではなく、事前定義した全JSON candidateのconditional sequence likelihoodを計算し、そのSoftmax分布からexpected Valence/Arousal等を求める。Behavioral/V1では729-state VAD space、V2/V3では81-state VA spaceを用いる。両者は異なるprobability spaceであるため、Stage間でabsolute expected scoreを直接比較せず、各Stage内部で定義したcontrast、geometry、causal effect、relative depthを比較する。
+
+
+\subsection{Four-stage evidence hierarchy}
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{3.5pt}
+\renewcommand{\arraystretch}{1.08}
+\caption{
+本研究の4段階の概要
+}
+\label{tab:main-stage-overview}
+
+\begin{tabularx}{\linewidth}{
+@{}
+>{\raggedright\arraybackslash}p{1.25cm}
+>{\raggedright\arraybackslash}p{1.75cm}
+>{\raggedright\arraybackslash}p{2.45cm}
+>{\raggedright\arraybackslash}X
+>{\centering\arraybackslash}p{1.15cm}
+@{}
+}
+\toprule
+\textbf{Stage} &
+\textbf{Data} &
+\textbf{Primary comparison} &
+\textbf{Evidence} &
+\textbf{Details} \\
+\midrule
+
+Behavioral &
+EmoBank,
+AIPsy &
+Reader $\leftrightarrow$ Self &
+Human correspondenceと
+controlled stimulusに対する
+Reader--Self change coupling &
+App.~\ref{app:behavioral-methods} \\
+
+V1 &
+EmoBank,
+AIPsy &
+Reader $\leftrightarrow$ Self
+within model &
+Decodability、geometry、
+semantic controls、
+causal interchangeability &
+App.~\ref{app:v1-methods} \\
+
+V2 &
+EmoBank &
+Base $\leftrightarrow$ Instruct
+(Matched-Plain) &
+Geometry、sharing、
+causal profile、
+distribution recovery &
+App.~\ref{app:v2-methods} \\
+
+V3 &
+AIPsy &
+Layer $\times$
+generation stage &
+State Induction Gate、
+spatiotemporal mapping、
+cross-family replication &
+App.~\ref{app:v3-methods} \\
+
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Behavioral Stageでは出力レベルのReader--Self couplingを検証する。V1では同一モデル内でaffect-relevant informationのdecodability、geometry、semantic validity、layer-wise causal sensitivity、cross-task interchangeabilityを評価する。V2では同一familyのBase--Instructへ比較軸を移し、Matched-Plain conditionによってprompt-format differenceを統制する。V3ではState Induction GateによってSufficiency、Specificity、Endogenous Relevanceを先に評価し、Gateが\texttt{GO}の場合にのみ後続解析をconfirmatoryに解釈する。実結果ではGateが\texttt{NO\_GO}となったため、RQ2以降はexploratory/descriptive evidenceとして扱う。
+
+
+\section{結果}
+\label{sec:main-results}
+
+4 Stageの主要結果を表~\ref{tab:main-key-results}に示す。表~\ref{tab:main-key-results}では本研究の中心的なmechanistic conclusionに直接関係する結果のみを示し，完全なmodel-family別結果およびcontrol analysesはAppendix~\ref{sec:behavioral-results}，~\ref{sec:v1-results}，~\ref{sec:v2-results}，~\ref{sec:v3-results}に示す。
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.10}
+\caption{
+4 Stageの主要結果
+}
+\label{tab:main-key-results}
+
+\begin{tabularx}{\linewidth}{
+@{}
+>{\raggedright\arraybackslash}p{1.25cm}
+>{\raggedright\arraybackslash}p{4.1cm}
+>{\raggedright\arraybackslash}X
+@{}
+}
+\toprule
+\textbf{Stage} &
+\textbf{Key observation} &
+\textbf{Implication} \\
+\midrule
+
+Behavioral &
+全Primary conditionsで
+Reader--Self change couplingが正
+（$r_{\Delta}=0.56$--$0.93$） &
+Behavioral couplingは強いが、
+human-affect correspondenceや
+mechanistic identityを意味しない \\
+
+V1 &
+Reader/Self双方からaffect informationをdecode可能。
+一方、direct cross-decodingは限定的で、
+Reader$\rightarrow$Self causal transferは
+random controlに対するrobust specificityを示さず &
+Shared / alignable information
+$\neq$
+shared causal code \\
+
+V2 &
+Base--Instruct geometryに差が観測された
+（Procrustes: Reader $1.455$,
+Self $2.872$）。
+ValenceのPost-training $\times$ Taskのみ
+FDR後に支持（$q=0.044$）し、
+Recoveryはfamily-dependent &
+単純なerasureやuniform relocationより
+distributed post-training-associated
+reorganizationと整合 \\
+
+V3 &
+State Induction GateはV/Aとも\texttt{NO\_GO};
+後続cross-family analysisはexploratory &
+Decodability
+$\not\Rightarrow$
+robust causal control
+（表~\ref{tab:main-v3-summary}） \\
+
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+\subsection{Behavioral: ReaderとSelfは強く共変する}
+
+まず、controlled stimulus manipulationに対してReader PredictionとSelf-Reportがbehavioral levelで連動するかを調べた。AIPsy-Affectの192 Clinical--Neutral matched pairsについて、
+\[
+\Delta R_i=R(x_i^C)-R(x_i^N),
+\qquad
+\Delta S_i=S(x_i^C)-S(x_i^N)
+\]
+を計算したところ、Valence/Arousalの全Primary model conditionsでPearson correlationは正となり、
+\[
+r_{\Delta}=0.56\text{--}0.93
+\]
+の範囲であった。
+
+したがって、Reader Predictionが大きく変化するstimulusほど、Self-Reportも大きく変化するというReader--Self behavioral couplingは、model familyおよびBase/Instructの別を超えて安定して観測された。
+
+一方、このcouplingはhuman-like affective accuracyを意味しなかった。EmoBank human VADとのcorrespondence、Clinical--Neutral Sensitivity、Neutral--Moderate--Clinicalのstrict dose-response、Clinical vs.\ Complex Neutral specificityはmodel/task/axisによって大きく異なり、strict dose-response criterionを満たすconditionsも限定的であった。
+
+したがってBehavioral Stageが最も安定して支持するのは、
+\[
+\text{controlled stimulus change}
+\rightarrow
+\text{coupled Reader--Self change},
+\]
+であり、
+\[
+\text{Reader--Self coupling}
+\neq
+\text{human-affect correspondence}
+\]
+である。強い出力共変だけから内部mechanismの共有を推論することはできない。詳細はAppendix~\ref{sec:behavioral-results}に示す。
+
+
+\subsection{V1: 共有される情報と共有されるcausal codeは異なる}
+
+V1では、Behavioral couplingの背後に同一の内部representationまたはcausal mechanismが存在するかを検証した。EmoBank human Reader Valence/Arousalをexternal targetとしてlayer-wise probingを行ったところ、4 model familiesのBase/Instruct双方について、ReaderおよびSelf hidden statesからaffect-relevant informationをheld-outでdecodeできた。多くのconditionsではReaderとSelfのpeak depthも近接した。
+
+しかし、\textbf{同じ情報をdecodeできることと、同じcoordinate systemを持つことは異なった}。ReaderとSelfのRepresentational Similarity Analysisは正のrelationを示す一方、direct cross-decodingは多くのconditionsで限定的であり、Procrustes alignmentによって改善した。したがって、ReaderとSelfはrelational geometryを部分的に共有していても、raw representationを直接交換可能な同一座標系ではない。
+
+AIPsy-Affectを用いたsemantic controlsでは、Word Shuffleによってdecoding performanceが一貫して低下したため、V1のdecodabilityを単純なbag-of-words lexical shortcutだけで説明することは困難であった。一方、ParaphraseおよびOutcome Reversalのnonfallback sampleは小さいため、これらは補助的evidenceとして扱う。
+
+さらにhidden-state interventionによってcausal relationを評価した。ReaderとSelfのlayer-wise causal profilesには正のrank correlationが観測され、多くのmodelでcausal peakも近接した。しかしintervention directionのcosine similarityはmodel-dependentであった。より重要に、Reader由来のClinical--Neutral hidden-state differenceをSelfへ移植するcross-task interventionは、random-direction controlに対してFDR補正後にrobustなspecificityを示さなかった。
+
+したがって、
+\[
+\text{shared / alignable information}
+\not\Rightarrow
+\text{causally interchangeable code}.
+\]
+
+一部modelsではTask $\times$ SiteType interactionも観測されたが、そのpatternは全familyには一般化しなかった。したがって、ReaderとSelfが完全に独立した二つの回路を持つとは結論しない。V1が支持するのは、\textbf{affect-relevant informationとlayer-level causal sensitivityは部分的に共有されるが、direct causal interchangeabilityは成立しない}という中間的な構造である。詳細はAppendix~\ref{app:v1-methods}および\ref{sec:v1-results}に示す。
+
+
+\subsection{V2: Post-training-associated differenceは単純なerasureではない}
+
+V2では比較軸をReader--SelfからBase--Instructへ変更した。BaseとInstructでは通常使用されるprompt formatが異なるため、Primary comparisonでは両方にplain promptを使用するMatched-Plain conditionを採用した。
+
+まずrepresentation geometryを比較したところ、Base--Instruct間の平均Procrustes distortionはReaderで
+\[
+1.455
+\qquad
+(95\%\,CI=[0.639,2.813]),
+\]
+Selfで
+\[
+2.872
+\qquad
+(95\%\,CI=[0.660,6.995])
+\]
+となり、両taskでrepresentation-geometric disparityが観測された。これらはcross-family descriptive summaryとして扱い、距離のCIが0を除外すること自体をnull-hypothesis testとは解釈しない。
+
+重要なのは、V1でInstruct modelsからもaffect-relevant informationがdecode可能であったことである。したがってBase--Instruct differenceは、
+\[
+\text{information erased}
+\]
+という説明より、
+\[
+\text{information remains decodable}
++
+\text{its organization differs}
+\]
+という説明と整合する。
+
+一方、このdifferenceは単純な``deeper relocation''ではなかった。Valence Readerのdecodability peakはむしろ前段方向へ移動し、
+\[
+\Delta d_D^*=-0.119,
+\qquad
+95\%\,CI=[-0.219,-0.033],
+\]
+他のtask/axisでは一貫したshiftは観測されなかった。Reader--Self sharingの変化もValence/Arousalともcross-family CIが0を跨ぎ、一様なtask separationは支持されなかった。
+
+causal profileについては、ValenceのPost-training $\times$ Task interactionのみがPrimary FDR correction後にも残った．
+\[
+\beta=1.63\times10^{-4},
+\qquad
+q=0.044,
+\]
+一方、Post-training $\times$ Depthおよび三者交互作用は支持されなかった。したがってcausal reorganizationのevidenceは、family-generalなdepth relocationではなく、Valenceにおけるtask-dependent componentに限定される。
+
+最後にBase-derived representationをInstructへpatchし、Base output distributionへのrecoveryを評価した。QwenではMatched-Plain recovery AUCがReader $0.189$、Self $0.181$であった一方、Llamaはほぼ0、GemmaはReaderで負・Selfでほぼ0、OLMoはReader/Selfとも負値となり、recoveryは強くfamily-dependentであった。Self--Reader recovery asymmetryも
+\[
+\Delta AUC=0.011,
+\qquad
+95\%\,CI=[-0.010,0.038]
+\]
+で支持されなかった。
+
+以上から、V2はBase--Instruct differenceを単純なErasure、Uniform Relocation、Uniform Reader--Self Separation、Single Recoverable Bottleneckのいずれか一つでの説明を支持しない。より限定的に、representation geometry、task-dependent causal sensitivity、model-specific recoverabilityにまたがる\textbf{distributed post-training-associated reorganization}と整合すると解釈する。なお、Base/Instructはrandomized interventionによって得られた条件ではないため、このdifferenceをpost-trainingそのものの因果効果とは解釈しない。詳細はAppendix~\ref{app:v2-methods}および\ref{sec:v2-results}に示す。
+
+
+\subsection{V3: Decodabilityはrobustなcausal controlを保証しない}
+
+V3ではInstruct modelsに対象を限定し、affect-relevant informationがSelf-Report生成に対して測定可能なcausal leverageを持つかを検証した。Qwen 2.5 InstructをDiscovery modelとし、まずReader-grounded affect directionsについて\textbf{State Induction Gate}を適用した。GateはSufficiency、Specificity、Endogenous Relevance、およびTopic Controlから構成される。
+
+重要な結果は、Valence、Arousalの双方でoverall Gateが
+\[
+\texttt{NO\_GO}
+\]
+となったことである。Topic Controlはpassしたが、Sufficiency、Specificity、Endogenous Relevanceはprespecified criterionを満たさなかった。したがって、
+\[
+\text{Decodable}
+\not\Rightarrow
+\text{Robustly Steerable}
+\]
+であり、今回同定したReader-grounded affect directionをrobustかつspecificなSelf-Report causal controllerとはみなせない。
+
+Gate failureのため、RQ2以降は明示的override下で実行した\textbf{exploratory/descriptive analysis}として扱う。V3の後続evidenceを表~\ref{tab:main-v3-summary}に示す。State Induction Gateが\texttt{NO\_GO}であったため、H1--H4はexploratory replication evidenceとして解釈する。
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.08}
+\caption{
+V3のevidence summary
+}
+\label{tab:main-v3-summary}
+
+\begin{tabularx}{\linewidth}{
+@{}
+>{\raggedright\arraybackslash}p{1.15cm}
+>{\raggedright\arraybackslash}p{3.6cm}
+>{\raggedright\arraybackslash}X
+@{}
+}
+\toprule
+\textbf{Test} &
+\textbf{Result} &
+\textbf{Interpretation} \\
+\midrule
+
+Gate &
+V/Aとも\texttt{NO\_GO} &
+RobustなSelf-Report causal controlは未確立 \\
+
+H1 &
+ValenceではLlama, OLMoが
+directional criterionを満たす。
+GemmaおよびArousalでは不成立 &
+Spatial dissociationは
+family-generalではない \\
+
+H2 &
+3 replication familiesで
+criterion不成立 &
+Family-generalなSufficiencyは
+支持されない \\
+
+H3 &
+3 replication familiesで
+criterion不成立 &
+主要なendogenous mediatorとは
+確認されない \\
+
+H4 &
+Llama, Gemma, OLMoの
+V/A双方でcriterion成立 &
+Generation-stage-dependent sensitivityの
+exploratory replication signal \\
+
+\bottomrule
+\end{tabularx}
+\end{table}
+
+固定canonical candidateをteacher forcingしたlayer $\times$ generation-stage mapでは、Qwenにおけるdecodability peakはrelative depth
+\[
+d_D^*\simeq0.85
+\]
+付近に位置した一方、causal-displacement peakは
+\[
+d_C^*\simeq0.74\text{--}0.78
+\]
+とより前段に位置した。このspatial dissociationのdirectionをQwen Discovery終了後、replication-family outcomesを見る前にfreezeしたところ、ValenceではLlama 3.2およびOLMo 2がdirectional criterionを満たしたが、Gemma 3およびArousalでは一貫しなかった。
+
+また、固定siteでのSufficiency replicationは3 familiesすべてでcriterionを満たさず、affect-related subspace removalによるmediated attenuationもcross-family criterionを満たさなかった。したがって、今回同定したsubspaceがnatural Self-Report shiftの主要なmediatorであるということはできない。
+
+一方、Qwenでfreezeしたtarget generation stageとcandidate startを比較するtemporal contrastは、Llama、Gemma、OLMoの3 replication familiesすべてについてValence/Arousal双方のcriterionを満たした。これはlocal interventional sensitivityがgeneration sequence全体で一様ではなく、stage-dependentに変化し得ることを示すexploratory replication signalである。
+
+ただし、このtemporal resultからfamily-generalな単一causal mechanismを推論することはできない。第一にState Induction Gateは\texttt{NO\_GO}であった。第二にH1--H3のreplication criteriaは一貫して成立しなかった。第三にgeneration-stage analysisはfree-generation trajectoryではなく、固定canonical candidateをteacher forcingしたtrajectory上の比較である。
+
+したがってV3が支持するのは、\textbf{decodability、外部介入に対するlocal sensitivity、natural computationにおけるendogenous relevanceを区別する必要がある}という結論である。詳細はAppendix~\ref{app:v3-methods}および\ref{sec:v3-results}に示す。
+
+
+\section{考察}
+\label{sec:main-discussion}
+
+4 Stageを統合すると、本研究の中心的な結果は、
+\[
+\text{Behavioral Coupling}
+\neq
+\text{Shared Representation}
+\neq
+\text{Shared Causal Code}
+\neq
+\text{Robust Causal Control}
+\]
+という段階的な分離である。
+
+Behavioral Stageでは、controlled affective manipulationに対するReaderとSelfの出力変位に強いcouplingが見られた。しかしV1では、両taskから同じaffect-relevant informationをdecodeでき、relational geometryやlayer-wise causal sensitivityにもpartial overlapが存在していても、raw coordinate systemは直接共有されず、Reader-derived representationのSelfへのcausal transferもrobustには成立しなかった。したがって、
+\[
+\text{behavioral coupling}
+\not\Rightarrow
+\text{mechanistic identity}.
+\]
+
+V2はさらに、Instruct modelにおけるdifferenceを単純なinformation erasureとして理解することの限界を示した。affect-relevant informationはInstructでもdecode可能である一方、Base--Instruct間にはrepresentation-geometric disparityが存在した。しかし、このdifferenceは全task/axisに共通するdepth relocation、Reader--Self separation、あるいは単一のrecoverable bottleneckとしては現れなかった。したがって、
+\[
+\text{post-training-associated difference}
+\not\Rightarrow
+\text{single downstream gate}.
+\]
+
+V3ではrepresentation--use distinctionがさらに明確になった。affect-relevant informationがdecode可能であっても、State Induction Gateはrobustかつspecificなcausal controllabilityを支持しなかった。Gate failure後のexploratory analysisではgeneration-stage-dependentなlocal interventional sensitivityが観測されたが、それ自体をnatural computationにおける単一causal mechanismとはみなせない。
+
+以上を合わせると、Reader PredictionとSelf-Reportの関係は、
+\[
+\text{one shared emotion representation}
+\rightarrow
+\text{two output heads}
+\]
+のような単純な構造では説明しにくい。より本結果と整合するのは、共通stimulusから形成されるaffect-relevant informationをReaderとSelfが部分的に共有しつつ、task-specificなcoordinate organizationとcausal utilizationが重なり合いながら異なり、さらにその関係がmodel family、Base/Instruct、layer、generation stageによって変化し得るという計算像である。詳細はAppendix~\ref{sec:behavioral-discussion}，~\ref{sec:v1-discussion}，~\ref{sec:v2-discussion}，~\ref{sec:v3-discussion}，~\ref{sec:general-discussion}に示す。
+
+
+\subsection{心理的ガードレールへの含意}
+
+本研究は、特定のemotion neuronや単一のSelf-Report layerを抑制すれば、他者理解能力を保持したままself-directedな情動表現だけを普遍的に制御できるという仮説を支持しない。ReaderとSelfはaffect-relevant informationを部分的に共有するため、粗いrepresentation-level interventionはReader Predictionに必要なinformationまで損なう可能性がある。
+
+一方、V1では完全なcross-task causal interchangeabilityは支持されず、task-specificなcausal sensitivityも一部modelsで見られた。したがって、将来的なselective controlでは、
+\[
+\text{shared affect-relevant informationを保存しつつ}
+\]
+\[
+\text{task-specific causal utilizationを制御する}
+\]
+という方針が重要になる。
+
+またV2/V3のfamily dependenceは、あるmodelで同定したsite、direction、patching ruleを別familyへそのまま転用することにも慎重であるべきことを示す。mechanistic interventionを心理的ガードレールとして利用する場合には、model-family-specific validation、specificity control、endogenous relevanceの確認が必要である。
+
+
+\section{限界}
+\label{sec:limitations}
+
+第一に、本研究のSelf-Reportはstandardized promptへのmodel-generated reportであり、人間と同様の主観的感情、consciousness、sentienceを測定するものではない。Reader Predictionもhuman cognitive empathyそのものではない。
+
+第二に、Primary cohortは1--1.5B規模の4 open-weight model familiesに限定される。cross-family analysisはこれらのprespecified families間のconsistencyを評価するものであり、任意のLLM populationへのpopulation-level generalizationを意味しない。
+
+第三に、BaseとInstructは独立して得られたtrained artifactsであり、post-training procedureそのものをrandomized interventionしたものではない。そのためV2はpost-training-associated differenceを示すが、post-trainingの因果効果を直接同定しない。
+
+第四に、Behavioral/V1とV2/V3ではcandidate spaceが異なるため、Stage間でabsolute expected V/Aを直接比較しない。またV3のgeneration-stage analysisはcanonical responseのteacher-forced trajectoryであり、free-generation trajectoryの完全なmechanistic descriptionではない。
+
+第五に、一部のsemantic controlsやmodel-specific causal effectsはsample sizeまたはfamily間heterogeneityによる制約を受ける。したがってnegative resultを、affect-relevant representationの完全な不存在やReader/Self mechanismの完全な独立性として解釈すべきではない。
+
+
+\section{結論}
+\label{sec:conclusion}
+
+本研究は、LLMにおけるReader PredictionとSelf-Reportの関係を、behavioral covariation、internal representation、causal interchangeability、post-training-associated reorganization、spatiotemporal causal utilizationへ段階的に分解した。
+
+ReaderとSelfはcontrolled affective stimulusに対して強く共変し、双方のhidden stateにはaffect-relevant informationが存在した。しかし、両taskのrepresentationは直接交換可能な同一coordinate systemではなく、Reader-derived representationのSelfへのcausal transferもrobustには支持されなかった。Base--Instruct間ではrepresentation geometryおよびtask-dependent causal profileに差が見られたが、それらは単純なinformation erasureや一様なdepth relocationには還元できなかった。さらにV3では、decodabilityがrobustなcausal controlを保証しないことが示され、Gate failure後の探索的解析ではgeneration-stage-dependentなinterventional sensitivityが見られた一方、family-generalな単一Self-Report causal mechanismは支持されなかった。
+
+したがって、本研究は、
+\[
+\text{Behavioral Coupling}
+\neq
+\text{Shared Representation}
+\neq
+\text{Shared Causal Code}
+\neq
+\text{Robust Causal Control}
+\]
+を支持する。
+
+この分離は、LLMが感情を持つことを主張するものではない。むしろ、他者情動推定に関わる機能を維持しながらself-directedな情動表現を選択的に制御するためには、表層behaviorだけでなく、内部representationとcausal utilizationを明示的に分けて評価する必要があることを示す。
+
+\subsection*{Reproducibility statement}
+
+本研究の再現性を確保するため、使用したデータセット、対象モデルとmodel revision、プロンプト、candidate space、Sequence-Likelihoodによる出力測定、hidden-stateの測定位置、random seed、統計解析、および各StageにおけるPrimary/Secondary analysisの定義をAppendixに記載する。
+\color{red}
+コードに関する記述を削除
+% また、Behavioral、V1、V2、V3の主要実験、control analysis、および論文中の集計値を生成するための実装と設定を付属コードとして提供する。
+\color{black}
+Base--Instruct比較ではprompt-format differenceを統制するMatched-Plain conditionをPrimaryとし、V3ではDiscoveryとcross-family replicationを分離するとともに、State Induction Gateが\texttt{NO\_GO}となった後の解析をexploratory/descriptiveとして明示的に区別している。これらにより、主要な実験条件、解析手順、および論文中の報告値を追跡・再現できるようにする。
+
+\subsection*{AI use statement}
+
+本研究では、生成AIツールを、原稿の構成整理、文章表現の推敲、関連研究の整理補助、ならびに実験コードのレビュー・デバッグ支援に使用した。また、研究上の議論や実験設計を検討する際の補助的なブレインストーミングにも使用した。
+
+一方、実験データの生成・改変、実験結果や統計解析結果の生成・決定、または著者による検証を伴わない研究上の主張の採用には、生成AIツールを使用していない。生成AIから得られた提案、文章、コード、および関連研究に関する情報については、著者が原著論文、実験結果、および実装を確認し、必要に応じて修正した。実験コードについても、実際の実行結果、テスト、および出力ファイルとの整合性を著者が確認した。
+
+生成AIによって補助された文章、研究上の主張、コード、その他の成果物を含め、本論文の最終的な内容については著者が全面的に責任を負う。
 
 \bibliography{iclr2027_conference}
 \bibliographystyle{iclr2027_conference}
@@ -88,7 +634,7 @@ Address \\
 心理学では、共感は単一の能力ではなく、複数のcomponentから構成される多次元的概念として扱われてきた\citep{davis1983measuring,decety2004functional,himichi2017development}。
 代表的には、他者の立場、意図、感情、心理状態を理解・推定する\textbf{認知的共感（cognitive empathy）}と、他者の情動状態に応じて情動的反応が生じる\textbf{情動的共感（affective empathy）}とを区別することができる\citep{singer2009social,shamay2011neural}。
 
-この区別は、心理的支援を行うAIを考える上でも重要である。相手の感情や状況を適切に理解し、その理解を応答へ反映する能力は、心理的支援に有用であり得る。一方で、利用者の感情へ過度に同調しているかのような応答や、AI自身にも同様の感情が生じているかのような応答は、利用者がAIとの関係をどのように捉えるかに影響し、過度な感情的巻き込みへ寄与する可能性がある\citep{laestadius2024too,zhang2025approach}。。
+この区別は、心理的支援を行うAIを考える上でも重要である。相手の感情や状況を適切に理解し、その理解を応答へ反映する能力は、心理的支援に有用であり得る。一方で、利用者の感情へ過度に同調しているかのような応答や、AI自身にも同様の感情が生じているかのような応答は、利用者がAIとの関係をどのように捉えるかに影響し、過度な感情的巻き込みへ寄与する可能性がある\citep{laestadius2024too,zhang2025approach}。
 したがって心理的ガードレールを設計するためには、他者の感情を理解・推定する処理と、同じ刺激に対してモデル自身についてaffective responseを報告する処理が、LLM内部でどの程度同じinformation、representation、およびcausal pathwayを利用しているのかを理解する必要がある。
 
 もし両者が異なる内部機構によって実現されているのであれば、他者理解に必要な能力を維持しながら、
@@ -175,7 +721,7 @@ Reader Predictionは、他者の情動状態を推定する処理を操作的に
 対話型AIは、mental healthやwell-beingを支援する技術として継続的に研究されている。AI-based conversational agentsを対象としたsystematic reviewおよびmeta-analysisでは、心理的健康やwell-beingへの応用可能性と限界が整理されている\citep{li2023systematic}。
 また生成AIの普及後には、利用者がChatGPT等へemotional and mental-health supportを求める実態も報告されており、その用途は心理教育や治療関連相談だけでなく、companionship、対人関係、well-being、意思決定等へ及ぶ\citep{luo2025seeking}。
 
-一方、AIとの継続的な関係形成にはリスクが存在する。Laestadius et al.はReplika利用者を対象として、利用者がAIへ感情や欲求を帰属し、AIとの関係維持へ心理的に巻き込まれるemotional dependenceを報告している\citep{laestadius2024too}。またFang et al.は、extended chatbot useを対象としたlongitudinal studyにおいて、利用行動やAIへのtrust等とpsychosocial outcomesとの関係を検討している\citep{fang2025ai}。
+一方、AIとの継続的な関係形成にはリスクが存在する。\citet{laestadius2024too}はReplika利用者を対象として、利用者がAIへ感情や欲求を帰属し、AIとの関係維持へ心理的に巻き込まれるemotional dependenceを報告している\citep{laestadius2024too}。また\citet{fang2025ai}.は、extended chatbot useを対象としたlongitudinal studyにおいて、利用行動やAIへのtrust等とpsychosocial outcomesとの関係を検討している\citep{fang2025ai}。
 
 これらの問題は、LLMの社会的risk taxonomyにおいても、単なる誤情報生成等のcontent harmだけではなく、Human--AI Interactionに由来するriskとして位置づけられている\citep{weidinger2022taxonomy}。
 
@@ -187,7 +733,7 @@ Reader Predictionは、他者の情動状態を推定する処理を操作的に
 
 心理学では、共感は単一の能力ではなく、複数のcomponentから構成されるmultidimensional constructとして扱われてきた。
 
-DavisはInterpersonal Reactivity Index（IRI）を通じて、perspective taking、empathic concern、personal distress等を含む多次元的な共感モデルを提示した\citep{davis1983measuring}。Decety and Jacksonも、human empathyをaffective sharing、self--other distinction、perspective taking等の相互作用する複数のprocessとして整理している\citep{decety2004functional}。
+\citet{davis1983measuring}はInterpersonal Reactivity Index（IRI）を通じて、perspective taking、empathic concern、personal distress等を含む多次元的な共感モデルを提示した\citep{davis1983measuring}。\citet{decety2004functional}も、human empathyをaffective sharing、self--other distinction、perspective taking等の相互作用する複数のprocessとして整理している\citep{decety2004functional}。
 
 神経認知研究では、他者の情動状態に対するaffective responseと、他者の心理状態や視点を理解するcognitive processが部分的に異なるsystemとして議論されている\citep{singer2009social,shamay2011neural}。
 また日本語圏においても、IRIの日本語版を通じて、共感を認知的側面と情動的側面を含む多次元的な構成概念として測定する枠組みが整備されている\citep{himichi2017development}。
@@ -200,17 +746,17 @@ DavisはInterpersonal Reactivity Index（IRI）を通じて、perspective taking
 
 AIが人間の共感と同等の状態を持ち得るかについては、行動評価とは別に概念的・哲学的な議論が存在する。
 
-Haladjian and Montemayorは、人工システムにおけるattention、consciousness、emotionの関係を論じ、AIによるemotionやempathyのsimulationと人間のphenomenal experienceを区別すべきであるという立場を提示している\citep{haladjian2016artificial}。
+\citet{haladjian2016artificial}は、人工システムにおけるattention、consciousness、emotionの関係を論じ、AIによるemotionやempathyのsimulationと人間のphenomenal experienceを区別すべきであるという立場を提示している\citep{haladjian2016artificial}。
 
-Montemayor, Halpern, and Fairweatherも、医療におけるempathic AIについて、患者の状態を推定し適切な応答を生成する能力と、人間によるexperienced empathyを同一視することには原理的な問題があると論じている\citep{montemayor2022principle}。
+\citet{montemayor2022principle}も、医療におけるempathic AIについて、患者の状態を推定し適切な応答を生成する能力と、人間によるexperienced empathyを同一視することには原理的な問題があると論じている\citep{montemayor2022principle}。
 
 これらはAIに主観的感情が存在しないことを実験的に確定する研究ではなく、empathy概念の適用範囲に関する理論的議論である。本研究はこの存在論的論争を解決することを目的とせず、観測可能なrepresentationとcausal computationへ分析対象を限定する。
 
-一方、LLMがcognitive / affective empathyに相当するbehaviorを示すかについては実証研究も進んでいる。Yu et al.は、Interpersonal Reactivity IndexおよびBasic Empathy Scaleを用いて、GPT-4およびLlama-3のcognitive / affective empathyに相当するbehavioral structureを評価した\citep{yu2025can}。
-Zhang et al.は、AI agentが示すcognitive empathyとaffective empathyが、利用者のapproach--avoidance responseへ異なる影響を及ぼし得ることを報告している\citep{zhang2025approach}。
+一方、LLMがcognitive / affective empathyに相当するbehaviorを示すかについては実証研究も進んでいる。\citet{yu2025can}は、Interpersonal Reactivity IndexおよびBasic Empathy Scaleを用いて、GPT-4およびLlama-3のcognitive / affective empathyに相当するbehavioral structureを評価した\citep{yu2025can}。
+\citet{zhang2025approach}は、AI agentが示すcognitive empathyとaffective empathyが、利用者のapproach--avoidance responseへ異なる影響を及ぼし得ることを報告している\citep{zhang2025approach}。
 
-さらにAyers et al.は、患者質問に対するChatGPTと医師の回答を比較し、ChatGPTの回答がqualityおよびempathyの観点で高く評価されることを報告した\citep{ayers2023comparing}。
-Elyoseph et al.は、Levels of Emotional Awareness Scaleを用いてChatGPTを評価し、高いemotional-awareness performanceを報告している\citep{elyoseph2023chatgpt}。
+さらに\citet{ayers2023comparing}は、患者質問に対するChatGPTと医師の回答を比較し、ChatGPTの回答がqualityおよびempathyの観点で高く評価されることを報告した\citep{ayers2023comparing}。
+\citet{elyoseph2023chatgpt}は、Levels of Emotional Awareness Scaleを用いてChatGPTを評価し、高いemotional-awareness performanceを報告している\citep{elyoseph2023chatgpt}。
 EmotionBenchは、多数のemotion-eliciting situationsを用いてLLMのstimulus-induced affective responseを評価し、human responsesとの一致と不一致の双方を分析している\citep{huang2023emotionally}。
 
 これらは、LLMが共感的・情動的に見える高度なbehaviorを生成できることを示している。
@@ -228,17 +774,16 @@ EmotionBenchは、多数のemotion-eliciting situationsを用いてLLMのstimulu
 
 hidden-state probing研究では、sentimentやemotionに関連する情報がLLM内部からlinearにdecode可能であることが示されている。
 
-Di Palma et al.は、LLaMA系列のhidden statesを解析し、sentimentおよびemotion informationのdecodabilityがlayerによって変化することを示した\citep{di2025llamas}。
+\citet{di2025llamas}は、LLaMA系列のhidden statesを解析し、sentimentおよびemotion informationのdecodabilityがlayerによって変化することを示した\citep{di2025llamas}。
 
-Tak et al.は、emotion inferenceに関係する内部representationを解析し、内部conceptへのcausal interventionによってemotion-related outputを変化させられることを示した\citep{tak2025mechanistic}。
+\citet{tak2025mechanistic}は、emotion inferenceに関係する内部representationを解析し、内部conceptへのcausal interventionによってemotion-related outputを変化させられることを示した\citep{tak2025mechanistic}。
 
-Zhang and Zhongは、emotion informationがlayer方向だけでなく、token sequence上にも構造を持つことを報告している\citep{zhang2025decoding}。
+\citet{zhang2025decoding}は、emotion informationがlayer方向だけでなく、token sequence上にも構造を持つことを報告している\citep{zhang2025decoding}。
 
-さらに、emotion-related representationが低次元のlatent structureを形成し得ることや、Valence--Arousalに対応するgeometryを持つ可能性も報告されている。Reichman et al.は
-LLM内部のemotional latent spaceを解析し\citep{reichman2026emotions}、
-Wu et al.はhuman-alignedなemotion representation geometryを抽出し、その方向を用いたemotion controlを検討している\citep{wu2026decoding}。
+さらに、emotion-related representationが低次元のlatent structureを形成し得ることや、Valence--Arousalに対応するgeometryを持つ可能性も報告されている。\citet{reichman2026emotions}はLLM内部のemotional latent spaceを解析し\citep{reichman2026emotions}、
+\citet{wu2026decoding}はhuman-alignedなemotion representation geometryを抽出し、その方向を用いたemotion controlを検討している\citep{wu2026decoding}。
 
-Banayeeanzade et al.は、emotionおよびpersonalityについて、prompting、fine-tuning、representation engineeringによるpsychological steeringを比較し、activation-space interventionによる制御性と他のmodel behaviorへの副作用を評価している\citep{banayeeanzade2026psychological}。
+\citet{banayeeanzade2026psychological}は、emotionおよびpersonalityについて、prompting、fine-tuning、representation engineeringによるpsychological steeringを比較し、activation-space interventionによる制御性と他のmodel behaviorへの副作用を評価している\citep{banayeeanzade2026psychological}。
 
 したがって、
 \[
@@ -272,9 +817,9 @@ Banayeeanzade et al.は、emotionおよびpersonalityについて、prompting、
 
 emotion domain以外でも、LLM内部に存在する情報と、最終的に生成されるreportが一致しない可能性が示されている。
 
-Burns et al.は、モデルの明示的回答とは独立してinternal activationからlatent knowledgeを抽出できる可能性を示し、``what the model knows''と``what the model says''を区別する必要性を示した\citep{burns2022discovering}。
+\citet{burns2022discovering}は、モデルの明示的回答とは独立してinternal activationからlatent knowledgeを抽出できる可能性を示し、``what the model knows''と``what the model says''を区別する必要性を示した\citep{burns2022discovering}。
 
-Turpin et al.は、Chain-of-Thought explanationが実際にpredictionを生じさせた内部要因を必ずしも忠実に反映しないことを示した\citep{turpin2023language}。
+\citet{turpin2023language}は、Chain-of-Thought explanationが実際にpredictionを生じさせた内部要因を必ずしも忠実に反映しないことを示した\citep{turpin2023language}。
 
 また、truthfulness-related internal representationへ直接介入することで最終outputを変化させる研究も存在する。Inference-Time Interventionはtruth-related activation directionへの介入を用いてmodel outputを変化させ\citep{li2023inference}、
 TruthXはtruthful representation spaceを利用したactivation editingを検討している\citep{zhang2024truthx}。
@@ -292,13 +837,13 @@ TruthXはtruthful representation spaceを利用したactivation editingを検討
 
 モデル自身について生成されるreportとinternal stateとの関係は、近年のLLM introspection研究でも直接検討され始めている。
 
-Binder et al.は、モデル自身のfuture behaviorを予測する課題を通じて、self-specific informationへのprivileged accessの可能性を検討した\citep{binder2025looking}。
+\citet{binder2025looking}は、モデル自身のfuture behaviorを予測する課題を通じて、self-specific informationへのprivileged accessの可能性を検討した\citep{binder2025looking}。
 
-Lindseyは、既知conceptに対応するrepresentationをactivationへ直接注入し、モデルがその内部操作についてreportできるかを検討した\citep{lindsey2026emergent}。
+\citet{lindsey2026emergent}は、既知conceptに対応するrepresentationをactivationへ直接注入し、モデルがその内部操作についてreportできるかを検討した\citep{lindsey2026emergent}。
 
-Martorellは、probe-defined internal statesとnumeric Self-Reportとの関係を解析し、greedy-decoded reportが少数の値へcollapseする場合でも、distributionalまたはlogit-based measurementではinternal statesとの対応が得られる可能性を検討している\citep{martorell2026quantitative}。
+\citet{martorell2026quantitative}は、probe-defined internal statesとnumeric Self-Reportとの関係を解析し、greedy-decoded reportが少数の値へcollapseする場合でも、distributionalまたはlogit-based measurementではinternal statesとの対応が得られる可能性を検討している\citep{martorell2026quantitative}。
 
-一方、Singh, Linzen, and Ravfogelは、こうした現象をgenuine introspectionと解釈するには、surface informationだけでは説明できないprivileged accessと、internal representationについてのsecond-order computationをより厳密に区別する必要があると論じている\citep{singh2026can}。
+一方、\citet{singh2026can}は、こうした現象をgenuine introspectionと解釈するには、surface informationだけでは説明できないprivileged accessと、internal representationについてのsecond-order computationをより厳密に区別する必要があると論じている\citep{singh2026can}。
 
 本研究はこの論争に対して、LLMがgenuine introspectionを行っているあるいは、LLMが主観的感情を経験していると結論することを目的としない。
 
@@ -310,9 +855,9 @@ Self-Reportは、\textit{model-generated affective report about itself}という
 
 post-trainingによるbehavioral changeは、内部情報そのものの獲得・消失だけではなく、既存representationの利用方法やoutput policyの変更によっても生じ得る。
 
-Sharma et al.は、human-feedback-based trainingを受けたassistantにおけるsycophancyを分析し、model behaviorがhuman preferenceに合わせて変化し得ることを示している\citep{sharma2024towards}。
+\citet{sharma2024towards}は、human-feedback-based trainingを受けたassistantにおけるsycophancyを分析し、model behaviorがhuman preferenceに合わせて変化し得ることを示している\citep{sharma2024towards}。
 
-Ferrando et al.は、base model上で同定されたentity-recognition-related representation directionsがchat modelのrefusal behaviorにも因果的影響を持つことを示し、chat fine-tuningによってpre-existing mechanismが別のoutput policyへrepurposeされる可能性を報告している\citep{ferrando2025know}。
+\citet{ferrando2025know}は、base model上で同定されたentity-recognition-related representation directionsがchat modelのrefusal behaviorにも因果的影響を持つことを示し、chat fine-tuningによってpre-existing mechanismが別のoutput policyへrepurposeされる可能性を報告している\citep{ferrando2025know}。
 
 したがってBase--Instruct差を、
 \[
@@ -360,7 +905,7 @@ post-training後にもaffect-relevant informationが保持されながら、
 \label{app:overall_methods}
 \subsection{研究全体の目的と構造}
 
-本研究の中心的なResearch Question（RQ）は、「LLMの情動関連内部表現はSelf-reportとどのように結びついており、その関係はタスク、post-training、計算過程を通じてどのように変化するのか」である。
+本研究の中心的なResearch Question（RQ）は、「LLMの情動関連内部表現はSelf-Reportとどのように結びついており、その関係はタスク、post-training、計算過程を通じてどのように変化するのか」である。
 
 この問いに対して、以下の4つの段階に分け実験を構成する。
 \[
@@ -376,7 +921,7 @@ post-training後にもaffect-relevant informationが保持されながら、
 Behavioral Stageでは、同一刺激に対するReader PredictionとSelf-Reportの出力レベルの共変動を調査する。V1では、そのbehavioral covariationの背後に、ReaderとSelfの間で共有または整列可能な内部表現と、共通あるいはtask-specificなcausal sensitivityが存在するかを調べる。
 V2では比較軸を同一モデル内部のReader--Selfから同一model familyのBase--Instructへ変更し、
 post-trainingに伴ってrepresentation geometry、Reader--Self sharing、causal leverage、およびoutput distributionへのreadoutがどのように再編されているかを調べる。
-V3ではInstruct model内部へ再び対象を絞り、情動関連情報が単にdecode可能である位置と、実際にSelf-reportへcausal leverageを持つ位置をlayer方向およびgeneration-stage方向に分離して解析する。
+V3ではInstruct model内部へ再び対象を絞り、情動関連情報が単にdecode可能である位置と、実際にSelf-Reportへcausal leverageを持つ位置をlayer方向およびgeneration-stage方向に分離して解析する。
 表~\ref{tab:four_stage_overview}に、4 Stageの関係をまとめる。
 
 \begin{table}[htbp]
@@ -418,7 +963,7 @@ representation--report relationはpost-trainingに伴ってどのように再編
 V3 &
 Spatiotemporal causal utilization &
 Layer $\times$ generation stage &
-情動関連情報は計算過程のいつ・どこでSelf-reportへのcausal leverageを持つか \\
+情動関連情報は計算過程のいつ・どこでSelf-Reportへのcausal leverageを持つか \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -608,7 +1153,7 @@ W_{\mathrm{human}}
 \]
 という直接比較が可能である。
 
-一方、EmoBankにはモデルSelf-Reportに対応する``human self-report of the model''のようなground truthは存在しない。
+一方、EmoBankにはモデルSelf-Reportに対応する``human Self-Report of the model''のようなground truthは存在しない。
 
 したがってSelfについては、human Reader ratingをstimulus-wise correspondence referenceとして、
 \[
@@ -871,13 +1416,13 @@ State induction、spatiotemporal mapping、endogenous relevance \\
 Primary experimentsでは、model sizeを概ね1--1.5B parameter regimeに揃えた4つの独立したmodel familyを用いる。
 
 具体的には、
-Qwen 2.5~\citep{team2025qwen3}、
+Qwen 2.5~\citep{qwen2025qwen25technicalreport}、
 Llama 3.2~\citep{grattafiori2024llama}、
 Gemma 3~\citep{team2025gemma}、
 OLMo 2~\citep{olmo20242,olmo20242olmo2furious}
 を使用する。
 
-各familyについて、可能な限り対応するBase modelとInstruct modelを組にして評価する。(表~\ref{tab:primary_models}）
+各familyについて、可能な限り対応するBase modelとInstruct modelを組にして評価する(表~\ref{tab:primary_models}）。
 
 \begin{table}[htbp]
 \centering
@@ -901,7 +1446,7 @@ Behavioral、V1、V2ではBase / Instructの8 modelsを使用し、V3ではInstr
 \textbf{Instruct} \\
 \midrule
 
-Qwen 2.5~\citep{team2025qwen3} &
+Qwen 2.5~\citep{qwen2025qwen25technicalreport} &
 1.5B &
 \texttt{Qwen/Qwen2.5-1.5B} &
 \texttt{Qwen/Qwen2.5-1.5B-Instruct} \\
@@ -4221,7 +4766,6 @@ V2では、
 単純な「情報が残った／消えた」という二値的説明ではなく、
 
 \[
-\boxed{
 \text{Representation}
 +
 \text{Geometry}
@@ -4231,7 +4775,6 @@ V2では、
 \text{Causal Localization}
 +
 \text{Recoverability}
-}
 \]
 
 へ分解してpost-training-associated changeを評価する。
@@ -5926,9 +6469,9 @@ AIPsy-Affectには、EmoBankのようなhuman continuous Valence / Arousal annot
 \[
 Y_V = R_V(x), \qquad Y_A = R_A(x)
 \]
-である。これはhuman affective ground truthではなく、モデルの他者情動予測（model Reader Prediction）に基づくグラウンディングである。V3ではSelf hidden representationにどの程度Reader-grounded affective informationが存在し、その情報を操作した際にSelf-reportがどのように変化するかを測定する。したがって、V3の検証軸は、
+である。これはhuman affective ground truthではなく、モデルの他者情動予測（model Reader Prediction）に基づくグラウンディングである。V3ではSelf hidden representationにどの程度Reader-grounded affective informationが存在し、その情報を操作した際にSelf-Reportがどのように変化するかを測定する。したがって、V3の検証軸は、
 \[
-\text{Reader-grounded representation} \rightarrow \text{Self-report causal utilization}
+\text{Reader-grounded representation} \rightarrow \text{Self-Report causal utilization}
 \]
 である。一方、Self-Report自身をtargetとして抽出した方向はSecondary characterizationとして扱う。
 
@@ -6077,7 +6620,7 @@ d_V = \frac{\beta_V}{\|\beta_V\|_2},
 \qquad
 d_A = \frac{\beta_A}{\|\beta_A\|_2}
 \]
-と定義する。同じtraining representationsに対し、Self-report V/Aをtargetとして抽出した方向もSecondaryとして求め、
+と定義する。同じtraining representationsに対し、Self-Report V/Aをtargetとして抽出した方向もSecondaryとして求め、
 \[
 \cos(d_V^{R},d_V^{S}),
 \qquad
@@ -6218,7 +6761,7 @@ E_{\mathrm{aff}}-\overline{E}_{\perp}
 % ----------------------------------------------------------------
 \subsection{RQ1 Endogenous Relevance}
 
-direction injectionによってSelf-reportを動かせることはsufficiencyを示すが、自然なClinical stimulus processingにおいてそのrepresentationが利用されているとは限らない。そこでReader-grounded Valence / Arousal directionsからaffect-related subspaceを構成する。
+direction injectionによってSelf-Reportを動かせることはsufficiencyを示すが、自然なClinical stimulus processingにおいてそのrepresentationが利用されているとは限らない。そこでReader-grounded Valence / Arousal directionsからaffect-related subspaceを構成する。
 \[
 B
 =
@@ -6454,7 +6997,7 @@ overall Gate decisionが\texttt{GO}でない場合、通常のproduction pipelin
 \subsection{RQ2：Spatiotemporal 4-Maps}
 \label{app:v3-rq2}
 
-RQ1では、事前固定したmid-depth prompt-end siteにおいてaffect-related interventionがSelf-reportへ十分なcausal effectを持つかを検証する。RQ2ではこの解析を、
+RQ1では、事前固定したmid-depth prompt-end siteにおいてaffect-related interventionがSelf-Reportへ十分なcausal effectを持つかを検証する。RQ2ではこの解析を、
 \[
 \text{all layers}
 \times
@@ -6605,17 +7148,17 @@ D_A(l,t)
 =
 R_A^2(l,t)
 \]
-を算出する。これは、Reader-grounded affect informationがSelf computationの各layer / stageからどの程度linearにdecode可能かを表す。同じprocedureをSelf-report V/A targetにも適用し、Secondary decodability mapsとして保持する。
+を算出する。これは、Reader-grounded affect informationがSelf computationの各layer / stageからどの程度linearにdecode可能かを表す。同じprocedureをSelf-Report V/A targetにも適用し、Secondary decodability mapsとして保持する。
 
 
 % ----------------------------------------------------------------
 \subsection{Map 2：Partial Association \(\beta(l,t)\)}
 
-Decodabilityが高いことだけでは、そのinternal scoreがSelf-reportと関係するかは分からない。そこでMap 1のout-of-fold decoded Reader scoreを用いて、Self-reportとのpartial associationを評価する。Valenceについて、
+Decodabilityが高いことだけでは、そのinternal scoreがSelf-Reportと関係するかは分からない。そこでMap 1のout-of-fold decoded Reader scoreを用いて、Self-Reportとのpartial associationを評価する。Valenceについて、
 \[
 \hat Y_{V,i}^{R}
 \]
-をout-of-fold decoded Reader-grounded Valence scoreとする。Self-report Valenceを、
+をout-of-fold decoded Reader-grounded Valence scoreとする。Self-Report Valenceを、
 \[
 Y_{V,i}^{S}
 \]
@@ -6676,7 +7219,7 @@ B=100
 % ----------------------------------------------------------------
 \subsection{Map 3：Interventional Slope \(\gamma(l,t)\)}
 
-Map 3では、各layer × stageにおけるrepresentationへaffect-related directionを直接注入し、doseに対するSelf-report shiftの傾きを測定する。Map 1と同じ3-fold GroupKFoldを使用する。各foldのtraining samplesだけで、
+Map 3では、各layer × stageにおけるrepresentationへaffect-related directionを直接注入し、doseに対するSelf-Report shiftの傾きを測定する。Map 1と同じ3-fold GroupKFoldを使用する。各foldのtraining samplesだけで、
 \[
 Y_V
 =
@@ -6882,7 +7425,7 @@ C(l,t)
 \subsection{RQ3：Mediated Attenuation}
 \label{app:v3-rq3}
 
-RQ1のdirection injectionは、affect-related representationを人工的に増加させればSelf-reportを動かせるという\textbf{sufficiency}を評価する。RQ2は、そのcausal leverageがlayer × generation stageのどこに局在するかを探索する。しかしこれらだけでは、自然なClinical stimulusによって形成されたaffect-related representationが、Self-report shiftの生成に実際に利用されているかは十分に示されない。そこでRQ3では、自然なaffective representationからDiscoveryで定義したaffect-related subspaceを除去し、「Clinical--Neutral Self-report shiftがどの程度減衰するか」を独立Confirmation pairsで評価する。
+RQ1のdirection injectionは、affect-related representationを人工的に増加させればSelf-Reportを動かせるという\textbf{sufficiency}を評価する。RQ2は、そのcausal leverageがlayer × generation stageのどこに局在するかを探索する。しかしこれらだけでは、自然なClinical stimulusによって形成されたaffect-related representationが、Self-Report shiftの生成に実際に利用されているかは十分に示されない。そこでRQ3では、自然なaffective representationからDiscoveryで定義したaffect-related subspaceを除去し、「Clinical--Neutral Self-Report shiftがどの程度減衰するか」を独立Confirmation pairsで評価する。
 
 
 % ----------------------------------------------------------------
@@ -7221,7 +7764,7 @@ T_i
 % ----------------------------------------------------------------
 \subsection{Random 2D subspace control}
 
-任意のlow-dimensional subspaceを除去するだけでSelf-report shiftが減少する可能性を評価するため、random orthogonal subspace controlを使用する。現行Qwen RQ3では、hidden dimensionality \(D\) に対しGaussian random matrix、
+任意のlow-dimensional subspaceを除去するだけでSelf-Report shiftが減少する可能性を評価するため、random orthogonal subspace controlを使用する。現行Qwen RQ3では、hidden dimensionality \(D\) に対しGaussian random matrix、
 \[
 G
 \in
@@ -7269,7 +7812,7 @@ B=1000
 % ----------------------------------------------------------------
 \subsection{RQ3の解釈上の境界}
 
-RQ3によって直接検証されるのは、Discoveryで定義されたaffect-related subspaceを独立Confirmation pairsの自然なClinical processingから除去すると、Clinical--Neutral Self-report shiftが減衰するかである。本研究ではこれを、\textit{mediated attenuation}または、\textit{endogenous relevance}と呼ぶ。これはPearl型causal mediation frameworkにおける、
+RQ3によって直接検証されるのは、Discoveryで定義されたaffect-related subspaceを独立Confirmation pairsの自然なClinical processingから除去すると、Clinical--Neutral Self-Report shiftが減衰するかである。本研究ではこれを、\textit{mediated attenuation}または、\textit{endogenous relevance}と呼ぶ。これはPearl型causal mediation frameworkにおける、
 \[
 \text{Natural Direct Effect},
 \quad
@@ -7459,7 +8002,7 @@ Qwen RQ1からfreezeしたrelative depthを、各replication modelのlayer数へ
 -1,-0.5,0,0.5,1
 \}
 \]
-でdirection injectionを行い、Self-report shiftのslopeを評価する。sample-level slopesをbootstrapし、Valence / Arousalそれぞれについて、
+でdirection injectionを行い、Self-Report shiftのslopeを評価する。sample-level slopesをbootstrapし、Valence / Arousalそれぞれについて、
 \[
 CI_{\mathrm{low}}(\gamma)>0.1
 \]
@@ -7624,12 +8167,12 @@ V3では、Representationから、Causal Utilizationへの関係を、sufficienc
 \[
 D(l,t)
 \]
-が高いことだけから、その位置のrepresentationがSelf-report生成を制御しているとは結論しない。
+が高いことだけから、その位置のrepresentationがSelf-Report生成を制御しているとは結論しない。
 
 
 \paragraph{Second, sufficiency is not endogenous use.}
 
-direction injectionによってSelf-reportを変化させられても、自然刺激処理でその方向が実際に利用されているとは限らない。この区別のためにRQ1 / RQ3でsubspace removalを併用する。
+direction injectionによってSelf-Reportを変化させられても、自然刺激処理でその方向が実際に利用されているとは限らない。この区別のためにRQ1 / RQ3でsubspace removalを併用する。
 
 
 \paragraph{Third, temporal localization is intervention-specific.}
@@ -7651,14 +8194,14 @@ AIPsyにはhuman continuous V/Aがないため、V3のPrimary groundingはmodel 
 \[
 \text{model-derived Reader representation}
 \rightarrow
-\text{Self-report causal utilization}
+\text{Self-Report causal utilization}
 \]
 を検証する。
 
 
 \paragraph{Sixth, V3 does not identify subjective emotion or consciousness.}
 
-V3で扱うSelf-reportは標準化されたpromptに対して生成される数値的affective outputである。
+V3で扱うSelf-Reportは標準化されたpromptに対して生成される数値的affective outputである。
 得られたcausal effectsを、
 \begin{itemize}
     \item 主観的感情経験,
@@ -7682,7 +8225,7 @@ V3は、
 \begin{array}{c}
 \textbf{State Induction}
 \\
-\text{Reader-grounded affect directionはSelf-reportを動かせるか}
+\text{Reader-grounded affect directionはSelf-Reportを動かせるか}
 \\[5pt]
 \downarrow
 \\[5pt]
@@ -8041,8 +8584,7 @@ ReaderとSelfはaffect-relevant informationを部分的に共有する一方、�
 \]
 という段階的な分離である。
 
-この知見は、LLMに主観的感情が存在することを示すものではない。むしろ、心理的支援に必要な他者理解能力を維持しながら、
-過度なself-directed affective responseを選択的に制御するためには、behavioral outputだけでなく、
+この知見は、LLMに主観的感情が存在することを示すものではない。むしろ、他者情動推定に関わる機能を維持しながら、過度なself-directed affective responseを選択的に制御するためには、behavioral outputだけでなく、
 \[
 \text{representation}
 \neq

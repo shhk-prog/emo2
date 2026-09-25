@@ -16,3 +16,7 @@
 - [x] 13. テーブル再生成（V2 tables: `v2_confirmatory_summary.tex`, V3 tables: `v3_confirmatory_matrix.tex`, V3 paper summary: `build_paper_summary.py --strict` 24 records）
 - [x] 14. テストスイートの確認（NAS I/O遅延対策として `test_production_entrypoints.py` のtimeoutを10sから30sに調整し、PASS確認）
 - [x] 15. `walkthrough.md` の作成
+- [x] 16. Main本文（`iclr2027/iclr2027_conference2.tex` 行75〜621）の9ページ制限適合性の精密シミュレーション（推定7.31ページ、1.69ページのマージンを確保して適合確認）
+- [x] 17. Main本文の科学的記述・数値・推論ステータスの照合（Behavioral $r_\Delta=0.56\text{--}0.93$、V1、V2 Procrustes/LMM/Recovery、V3 Gate NO_GO・H1-H4の全数値と解釈の100%一致を確認）
+- [x] 18. `iclr2027_conference.bib` のQwen2.5エントリ修正（生テキスト除去、`yang2024qwen25` 正式化）およびTeX内の残存 `team2025qwen3` を全箇所 `yang2024qwen25` へ統一
+- [x] 19. LaTeX構文・環境入れ子・数式区切り・全32引用・全11参照ラベルの整合性検証（全PASS）

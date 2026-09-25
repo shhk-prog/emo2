@@ -48,7 +48,7 @@ COLORS = {
     'accent': '#e7298a',   # Magenta
 }
 
-RESULTS_DIR = Path("/mnt/nas/home/hiromi/src/emo/v3/results")
+RESULTS_DIR = Path(__file__).resolve().parent.parent / "results"
 
 def plot_all_appendix_figures():
     sweep_df = pd.read_csv(RESULTS_DIR / "causal_localization_sweep_joint_ot.csv")

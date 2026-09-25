@@ -78,11 +78,27 @@ def test_invariant_1_primary_orthogonality(summary_data):
     found_prohibited = set(df_pri["analysis_role"].unique()) & prohibited_roles
     assert not found_prohibited, f"Prohibited analysis roles in primary file: {found_prohibited}"
 
-    # V3 RQ2 Discovery が正しく primary_results.csv に存在すること
-    v3_discovery = df_pri[(df_pri["stage"] == "v3") & (df_pri["analysis_role"] == "discovery")]
-    assert len(v3_discovery) > 0, (
-        "V3 RQ2 discovery results were incorrectly filtered out of primary_results.csv"
+    # V3 RQ2 Discovery の配置検証 (Gate 判定連動: NO_GO 時は secondary, GO 時は primary)
+    qc = summary_data["qc"]
+    pipeline_continues = (
+        qc.get("stages", {}).get("v3", {}).get("tables", {}).get("table_v3_1", {}).get("pipeline_continues", False)
     )
+    v3_discovery_pri = df_pri[(df_pri["stage"] == "v3") & (df_pri["analysis_role"] == "discovery")]
+    df_sec = summary_data["secondary"]
+    v3_discovery_sec = df_sec[(df_sec["stage"] == "v3") & (df_sec["analysis_role"] == "discovery")]
+
+    if pipeline_continues:
+        assert len(v3_discovery_pri) > 0, (
+            "V3 RQ2 discovery results were incorrectly filtered out of primary_results.csv when pipeline continues"
+        )
+    else:
+        assert len(v3_discovery_pri) == 0, (
+            "V3 RQ2 discovery results should NOT be in primary_results.csv when Gate is NO_GO"
+        )
+        assert len(v3_discovery_sec) > 0, (
+            "V3 RQ2 discovery results must be preserved in secondary_results.csv as exploratory under NO_GO"
+        )
+
 
 
 def test_invariant_2_v2_nan_preservation():

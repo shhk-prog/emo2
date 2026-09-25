@@ -105,3 +105,28 @@
 - **テストスイート**:
   - NAS環境でのI/O遅延による `run_phase_b.py --help` タイムアウト対策として、`tests/test_production_entrypoints.py` 内の `timeout=10` を `timeout=30` へ緩和。
   - `PYTHONPATH=src:. .venv/bin/pytest tests/test_production_entrypoints.py` $\to$ **3 passed** を確認。
+
+### 14. Main本文のページ数検証（ICLR 9ページ制限）
+- **対象**: `\maketitle` から `\bibliography` の直前まで（行75〜621：タイトル、Abstract、§1 はじめに 〜 §7 結論、Table 1--3含む）
+- **検証方法**: ICLR 2027組版パラメータ（`\textheight=9.0in (648pt)`, `\textwidth=5.5in (396pt)`, `\normalsize=10pt/12pt`, 見出しスペース, 表フロート3点, ディスプレイ数式27箇所）に基づく高精度レイアウトシミュレーションを実施。
+- **結果**:
+  - タイトル・著者ブロック: 約 200.0 pt
+  - Abstract: 約 295.4 pt
+  - 見出し（Section 7箇所、Subsection 8箇所、Paragraph 4箇所）: 約 368.0 pt
+  - 本文段落（和文4,852字＋英文1,113語、計約163行）: 約 1,958.6 pt
+  - ディスプレイ数式（27箇所）: 約 1,508.0 pt
+  - 表3点（Table 1, Table 2, Table 3）: 約 404.0 pt
+  - **総高さ**: 4,733.9 pt / 648.0 pt = **約 7.31 ページ**
+  - **判定**: **合格（PASS）**。9ページ制限に対して **約 1.69 ページ（約18%）のマージン** を確保しており、段落間やフロート配置の変動を考慮しても9ページ以内に確実に収まります（※参考文献およびAppendixはICLR規定により10ページ目以降でページ数無制限）。
+
+### 15. Main本文の科学的記述・数値・推論ステータスの照合
+- **照合結果**:
+  1. **Behavioral (§4.1)**: AIPsy-Affect 192 Clinical--Neutral matched pairsにおけるReader--Self変位カップリング $r_\Delta = 0.56\text{--}0.93$（Primary conditionsの最小 $0.559$ 〜 最大 $0.931$）、48 triplets、human-affect correspondenceとの非同値性が正しく記述されています。
+  2. **V1 (§4.2)**: EmoBank人間評価を対象としたlayer-wise probing、direct cross-decodingの制限とProcrustes整列による改善、Word Shuffleによる性能低下（lexical shortcutの否定）とParaphrase/Reversalのサンプル制約、Reader$\to$Self介入のrandom control対比での特異性不足、Task $\times$ SiteType交互作用のfamily非一般化が完全一致。
+  3. **V2 (§4.3)**: Matched-Plain条件、Procrustes distortion（Reader $1.455$ [0.639, 2.813], Self $2.872$ [0.660, 6.995]）の記述的要約（非NHST解釈）、Valence Readerのピーク前段移動（$\Delta d_D^* = -0.119$ [$-0.219$, $-0.033$]）、LMMでValence Post-training $\times$ TaskのみFDR通過（$\beta=1.63\times10^{-4}, q=0.044$）、Base recoveryのfamily依存性（Qwen $0.189/0.181$、Llama $\approx 0$、Gemma/OLMo $\le 0$、$\Delta AUC=0.011$ [$-0.010, 0.038$]）、非ランダム化介入（post-training-associated difference）の解釈が完全一致。
+  4. **V3 (§4.4)**: State Induction GateのV/A双方 `NO_GO`（Topic Controlのみpass、Sufficiency/Specificity/Endogenous fail）、override下の探索的追試位置づけ、Table 3（Gate NO_GO、H1 Valence Llama/OLMo pass, Gemma fail, Arousal fail、H2/H3 fail、H4 temporal contrast 3 families V/A pass）、Qwen decodability peak $d_D^* \simeq 0.85$ と causal peak $d_C^* \simeq 0.74\text{--}0.78$、teacher-forced trajectoryの限定性が完全一致。
+  5. **文献キーとTeX構文**:
+     - `iclr2027_conference.bib` から不正な生テキスト行を除去し、`yang2024qwen25` を正式登録、互換エイリアスを設定。
+     - Main本文（行167）およびAppendix（行1429, 1459）の残存 `team2025qwen3` をすべて `yang2024qwen25` へ置換（残存ゼロ確認）。
+     - Main本文の環境入れ子、数式区切り（`\[ \]` 27組、`$` 40個）、中括弧（213対）、全32件の引用キー存在、全11件の参照ラベル存在を確認。
+

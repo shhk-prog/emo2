@@ -2,7 +2,6 @@
 #SBATCH --job-name=v1_phase_c
 #SBATCH --partition=h100
 #SBATCH --gres=gpu:1
-#SBATCH --nodelist=iag-02
 #SBATCH --cpus-per-task=1
 #SBATCH --array=1-16
 #SBATCH --output=v1/results/logs/slurm/phase_c_%A_%a.out
@@ -17,8 +16,6 @@
 # Resolve project root robustly under Slurm
 if [ -n "$SLURM_SUBMIT_DIR" ] && [ -d "$SLURM_SUBMIT_DIR/.venv" ]; then
     PROJECT_ROOT="$SLURM_SUBMIT_DIR"
-elif [ -d "/mnt/nas/home/hiromi/src/emo/.venv" ]; then
-    PROJECT_ROOT="/mnt/nas/home/hiromi/src/emo"
 else
     PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 fi

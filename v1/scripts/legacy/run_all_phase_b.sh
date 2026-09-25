@@ -11,8 +11,6 @@ set -e
 # Resolve project root robustly
 if [ -n "$SLURM_SUBMIT_DIR" ] && [ -d "$SLURM_SUBMIT_DIR/.venv" ]; then
     PROJECT_ROOT="$SLURM_SUBMIT_DIR"
-elif [ -d "/mnt/nas/home/hiromi/src/emo/.venv" ]; then
-    PROJECT_ROOT="/mnt/nas/home/hiromi/src/emo"
 else
     PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 fi

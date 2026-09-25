@@ -2,7 +2,7 @@
 
 人間評定済みの感情刺激（EmoBank VAD、AIPsy 4-split）に対して、大規模言語モデルの **操作的な認識出力** と **操作的な自己報告出力** を測り、その内部表現と因果利用を一続きの証拠階層として段階的に解明する実験基盤である。
 
-本研究は、モデルが主観的な感情を経験すること、あるいは認知的共感 / 情動的共感を持つことを検証しない。論文構成の正本は現行 README 群であり、旧 `iclr2027/iclr2027_conference2.tex` は旧稿である。構成メモは [`docs/v3_prerun_five_fixes/paper_outline.md`](docs/v3_prerun_five_fixes/paper_outline.md)。
+本研究は、モデルが主観的な感情を経験すること、あるいは認知的共感 / 情動的共感を持つことを検証しない。
 
 ---
 
@@ -391,6 +391,17 @@ python scripts/generate_paper_results_tables.py --out-dir iclr2027/tables
 ```
 
 `--strict` は必須成果物の欠落、または 19 列検証の失敗で落とす。不変条件の自動検査は `tests/test_paper_summary_invariants.py`。
+
+### 論文サマリーの完全再現 (Reproduction)
+本コードパッケージには、各 Stage（Behavioral, V1, V2, V3）の中間集約成果物（`results/derived/` 計 49 件）が同梱されています。
+以下のコマンドを実行することで、上流 artifact の整合性を検証しつつ論文の全結果テーブル（Primary / Secondary / Tables / Manifest）を厳密に再構築できます：
+```bash
+python scripts/build_all_paper_summaries.py --strict
+```
+また、提出用コードパッケージの自己検証（二重盲検匿名性、上流 artifact 網羅性、全件 pytest）を実行するには：
+```bash
+python scripts/package_submission_code.py
+```
 
 LaTeX 側が読む CSV と生成スクリプト:
 

@@ -155,6 +155,10 @@ def build_v3_summary(
         "pipeline_continues": pipeline_continues,
     }
 
+    # If State Induction Gate is NO_GO, subsequent analyses are exploratory / non-primary
+    post_gate_primary = bool(pipeline_continues)
+    post_gate_role = "confirmatory" if pipeline_continues else "exploratory"
+
     # =========================================================================
     # 2. Table V3-2: Spatiotemporal 4-Maps Summary (RQ2 Discovery)
     # =========================================================================
@@ -201,7 +205,7 @@ def build_v3_summary(
                 }
             )
 
-            # Primary result in paper (is_primary=True) but analysis_role="discovery"!
+            # Primary result in paper conditional on Gate; analysis_role="discovery"!
             records.append(
                 PaperSummaryRecord(
                     stage="v3",
@@ -213,7 +217,7 @@ def build_v3_summary(
                     condition=pri_stage,
                     metric="delta_d_peak",
                     estimate=delta_d_peak,
-                    is_primary=True,
+                    is_primary=post_gate_primary,
                     analysis_role="discovery",  # Discovery role!
                     source_artifact=str(spatio_path.relative_to(v3_dir.parent)),
                     source_key="delta_d_peak",
@@ -231,7 +235,7 @@ def build_v3_summary(
                     condition=pri_stage,
                     metric="delta_d_center",
                     estimate=delta_d_center,
-                    is_primary=True,
+                    is_primary=post_gate_primary,
                     analysis_role="discovery",
                     source_artifact=str(spatio_path.relative_to(v3_dir.parent)),
                     source_key="delta_d_center",
@@ -314,7 +318,7 @@ def build_v3_summary(
                 }
             )
 
-            # Confirmatory Primary Record!
+            # Record for RQ3: analysis_role and is_primary conditional on Gate
             records.append(
                 PaperSummaryRecord(
                     stage="v3",
@@ -329,8 +333,8 @@ def build_v3_summary(
                     ci_low=float(att_ci[0]),
                     ci_high=float(att_ci[1]),
                     n=n_tot,
-                    is_primary=True,
-                    analysis_role="confirmatory",
+                    is_primary=post_gate_primary,
+                    analysis_role=post_gate_role,
                     source_artifact=str(med_path.relative_to(v3_dir.parent)),
                     source_key=f"{axis}_mediated_attenuation",
                 ).to_dict()
@@ -398,24 +402,21 @@ def build_v3_summary(
 
             # H1: Dissociation
             h1 = f_res.get("h1_dissociation", {})
-            # Load frozen replication direction
-            frozen_dir_path = v3_dir / "results" / "derived" / "frozen_confirmatory_sites.json"
+            # Load frozen replication direction (strict requirement without fallback)
+            frozen_dir_path = (
+                v3_dir / "results" / "derived" / "frozen_confirmatory_sites.json"
+            )
             if not frozen_dir_path.exists():
-                if strict:
-                    raise FileNotFoundError(f"Missing frozen H1 artifact: {frozen_dir_path}")
-                h1_rep_dir = {"valence": {"peak": -1, "center_of_mass": -1}, "arousal": {"peak": -1, "center_of_mass": 1}}
-            else:
-                try:
-                    with open(frozen_dir_path, "r", encoding="utf-8") as f:
-                        fs_d = json.load(f)
-                    if "h1_replication_direction" not in fs_d:
-                        if strict:
-                            raise KeyError("Missing required key 'h1_replication_direction' in frozen_confirmatory_sites.json")
-                    h1_rep_dir = fs_d.get("h1_replication_direction", {"valence": {"peak": -1, "center_of_mass": -1}, "arousal": {"peak": -1, "center_of_mass": 1}})
-                except Exception as e:
-                    if strict:
-                        raise RuntimeError(f"Failed to load Qwen-frozen H1 directions: {e}") from e
-                    h1_rep_dir = {"valence": {"peak": -1, "center_of_mass": -1}, "arousal": {"peak": -1, "center_of_mass": 1}}
+                raise FileNotFoundError(
+                    f"Missing frozen H1 artifact: {frozen_dir_path}"
+                )
+            with open(frozen_dir_path, "r", encoding="utf-8") as f:
+                fs_d = json.load(f)
+            if "h1_replication_direction" not in fs_d:
+                raise KeyError(
+                    "Missing h1_replication_direction in frozen_confirmatory_sites.json"
+                )
+            h1_rep_dir = fs_d["h1_replication_direction"]
 
             h1_passes = []
             for ax in ("valence", "arousal"):
@@ -576,7 +577,7 @@ def build_v3_summary(
                 }
             )
 
-            # Confirmatory primary records
+            # Cross-family replication records (conditional on Gate)
             for hyp, pass_bool in [
                 ("H1_dissociation", h1_both),
                 ("H2_sufficiency", h2_both),
@@ -595,8 +596,8 @@ def build_v3_summary(
                         metric=hyp,
                         estimate=1.0 if pass_bool else 0.0,
                         value_text="PASS" if pass_bool else "FAIL",
-                        is_primary=True,
-                        analysis_role="confirmatory",
+                        is_primary=post_gate_primary,
+                        analysis_role=post_gate_role,
                         source_artifact=str(rep_path.relative_to(v3_dir.parent)),
                         source_key=hyp,
                     ).to_dict()

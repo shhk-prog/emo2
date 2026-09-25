@@ -4,8 +4,8 @@
 
 | Hypothesis | Key Pre-registered Metric | Estimate | 95% CI | p / FDR q | Supported? |
 |:---|:---|:---:|:---:|:---:|:---:|
-| H1a: Geometry Reorganization | Reader Procrustes Distortion | 1.4553 | [0.6387, 2.8126] | --- | Supported |
-| H1a: Geometry Reorganization | Self Procrustes Distortion | 2.8716 | [0.6603, 6.9954] | --- | Supported |
+| H1a: Geometry Reorganization | Reader Procrustes Distortion | 1.4553 | [0.6387, 2.8126] | --- | Descriptive |
+| H1a: Geometry Reorganization | Self Procrustes Distortion | 2.8716 | [0.6603, 6.9954] | --- | Descriptive |
 | H1b: Decodability Peak Shift | Valence Reader Peak Shift Delta d* | $-$0.1185 | [$-$0.2185, $-$0.0333] | --- | Not Supported |
 | H1b: Decodability Peak Shift | Valence Self Peak Shift Delta d* | 0.0067 | [$-$0.0533, 0.1000] | --- | Not Supported |
 | H1b: Decodability Peak Shift | Arousal Reader Peak Shift Delta d* | 0.1996 | [$-$0.0267, 0.4259] | --- | Not Supported |

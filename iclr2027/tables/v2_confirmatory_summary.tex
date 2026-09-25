@@ -1,14 +1,14 @@
 \begin{table}[htbp]
 \centering
 \small
-\caption{V2 事前登録仮説（Confirmatory Hypotheses H1--H4）の検証結果総括：各主要指標における推定値、統合ブートストラップ95\%信頼区間、および事前登録判定。}
+\caption{V2 Cross-family Hypothesis Summary（Hypotheses H1--H4）の検証結果総括：各主要指標における推定値、統合ブートストラップ95\%信頼区間、および判定／解釈（Criterion / Interpretation）。}
 \label{tab:v2_confirmatory_summary}
 \begin{tabular}{ll ccc c}
 \toprule
-\textbf{Hypothesis} & \textbf{Key Pre-registered Metric} & \textbf{Estimate} & \textbf{95\% CI} & $p$ / FDR $q$ & \textbf{Supported?} \\
+\textbf{Hypothesis} & \textbf{Key Analysis Metric} & \textbf{Estimate} & \textbf{95\% CI} & $p$ / FDR $q$ & \textbf{Criterion / Interpretation} \\
 \midrule
-H1a: Geometry Reorganization   & Reader Procrustes Distortion               & 1.455    & [0.639, 2.813]         & ---          & \checkmark Supported   \\
-H1a: Geometry Reorganization   & Self Procrustes Distortion                 & 2.872    & [0.660, 6.995]         & ---          & \checkmark Supported   \\
+H1a: Geometry Reorganization   & Reader Procrustes Distortion               & 1.455    & [0.639, 2.813]         & ---          & Descriptive            \\
+H1a: Geometry Reorganization   & Self Procrustes Distortion                 & 2.872    & [0.660, 6.995]         & ---          & Descriptive            \\
 \midrule
 H1b: Decodability Peak Shift   & Valence Reader Peak Shift Delta d*         & $-$0.119 & [$-$0.219, $-$0.033]   & ---          & Not Supported          \\
 H1b: Decodability Peak Shift   & Valence Self Peak Shift Delta d*           & 0.007    & [$-$0.053, 0.100]      & ---          & Not Supported          \\
@@ -34,6 +34,6 @@ H4: Recovery Asymmetry         & Matched-Plain AUC (Descriptive)            & $-
 \vspace{1ex}
 \begin{minipage}{\linewidth}
 \footnotesize
-\textbf{Note:} H1aではBase--Instruct間のgeometric distortionが確認された。一方、H1bのprespecified positive peak shiftおよびH2のReader--Self sharing reorganizationは、4-family bootstrap CIに基づく事前定義criterionを満たさなかった。H3（Causal Reorganization）は全面的な棄却ではなく、sample-level LMMにおいてValenceのtask-dependentな変化（Alignment $\times$ Task, FDR $q = 0.044$）のみ部分的に支持されたが、層深度の再配置（depth relocation; Alignment $\times$ Depth等）は支持されなかった（なおBase/Instruct差はrandomized interventionではないため、post-trainingのcausal effectではなくpost-training-associated reorganizationとして解釈する）。H4のRecovery Asymmetry（Self--Reader AUC差）も95\% CIがゼロを跨ぎ支持されなかった。
+\textbf{Note:} H1aはcross-family descriptive summaryとして扱う。Base--Instruct間にはReader / Self双方でrepresentation-geometric disparityが観測されたが、Procrustes distortionのCIが0を除外すること自体をnull-hypothesis testとは解釈しない。一方、H1bのprespecified positive peak shiftおよびH2のReader--Self sharing reorganizationは、4-family bootstrap CIに基づく事前定義criterionを満たさなかった。H3（Causal Reorganization）は全面的な棄却ではなく、sample-level LMMにおいてValenceのtask-dependentな変化（Alignment $\times$ Task, FDR $q = 0.044$）のみ部分的に支持されたが、層深度の再配置（depth relocation; Alignment $\times$ Depth等）は支持されなかった（なおBase/Instruct差はrandomized interventionではないため、post-trainingのcausal effectではなくpost-training-associated reorganizationとして解釈する）。H4のRecovery Asymmetry（Self--Reader AUC差）も95\% CIがゼロを跨ぎ支持されなかった。
 \end{minipage}
 \end{table}

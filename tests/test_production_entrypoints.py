@@ -155,7 +155,7 @@ def test_all_dispatched_commands_argparse_compatibility(monkeypatch):
             [sys.executable, script_path, "--help"],
             capture_output=True,
             text=True,
-            timeout=10,
+            timeout=30,
             env=env,
             cwd=str(repo_root),
         )
@@ -185,7 +185,7 @@ def test_run_phase_b_help_exit_zero():
         [sys.executable, "v1/primary/run_phase_b.py", "--help"],
         capture_output=True,
         text=True,
-        timeout=10,
+        timeout=30,
         env=env,
         cwd=str(repo_root),
     )

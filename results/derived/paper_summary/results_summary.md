@@ -1,8 +1,8 @@
 # 論文結果章（Results）統合サマリーレポート
 
-- **生成日時 (UTC)**: 2026-09-25T04:13:34.743812+00:00
-- **総 Primary レコード数**: 341
-- **総 Secondary/Control レコード数**: 515
+- **生成日時 (UTC)**: 2026-09-25T07:08:07.247094+00:00
+- **総 Primary レコード数**: 323
+- **総 Secondary/Control レコード数**: 533
 
 ---
 
@@ -55,7 +55,7 @@
   - [Table V2-3C: LMM Results](file:///results/derived/paper_summary/tables/table_v2_3c_lmm.csv)
   - [Table V2-4: Distribution Recovery](file:///results/derived/paper_summary/tables/table_v2_4_recovery.csv)
   - [Table V2 Confirmatory Summary](file:///results/derived/paper_summary/tables/table_v2_confirmatory.csv)
-- **核心的知見**: 単なる表現の消去（Erasure）ではなく、幾何変換・共有度再編・因果配置の深層への移行（Relocation）および介入による回復可能性が確認された。
+- **核心的知見**: Base--Instruct間ではrepresentation-geometric disparityとValenceのtask-dependent causal-profile differenceが観測された。一方、一様なdepth relocation、Reader--Self sharingの低下、およびfamily-generalなrecovery asymmetryは支持されなかった。
 
 ---
 
@@ -64,7 +64,7 @@
 - **主要成果物**:
   - [Table V3-1: State-Induction Gate](file:///results/derived/paper_summary/tables/table_v3_1_gate.csv)
   - [Table V3-2: Spatiotemporal 4-Maps (Discovery)](file:///results/derived/paper_summary/tables/table_v3_2_spatiotemporal_summary.csv)
-  - [Table V3-3: Mediated Attenuation (Confirmatory)](file:///results/derived/paper_summary/tables/table_v3_3_mediated_attenuation.csv)
-  - [Table V3-4: Confirmatory Replication](file:///results/derived/paper_summary/tables/table_v3_4_confirmatory.csv)
+  - [Table V3-3: Mediated Attenuation](file:///results/derived/paper_summary/tables/table_v3_3_mediated_attenuation.csv)
+  - [Table V3-4: Cross-family Replication](file:///results/derived/paper_summary/tables/table_v3_4_confirmatory.csv)
   - [Table V3 Confirmatory Matrix](file:///results/derived/paper_summary/tables/table_v3_confirmatory_matrix.csv)
-- **厳格な科学的境界**: RQ2 full 4-map は `discovery` として報告し、独立 Confirmation set による attenuation および cross-model replication は `confirmatory` として厳密に直交分離。
+- **厳格な科学的境界**: State Induction GateはValence / Arousal双方でNO_GOとなった。したがってRQ2以降はoverride下のexploratory / descriptive analysisとして扱う。Qwen Discoveryで選択されたsite / stage / directionはreplication-family outcomesを見る前にfreezeされた。

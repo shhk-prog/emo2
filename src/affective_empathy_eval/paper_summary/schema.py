@@ -41,6 +41,7 @@ VALID_ANALYSIS_ROLES = {
     "primary",
     "confirmatory",
     "discovery",
+    "exploratory",
     "secondary",
     "control",
     "diagnostic",
@@ -176,20 +177,20 @@ def filter_primary_results(df: pd.DataFrame) -> pd.DataFrame:
     if len(df) == 0:
         return pd.DataFrame(columns=PAPER_SUMMARY_COLUMNS)
     mask = df["is_primary"].astype(bool) & ~df["analysis_role"].isin(
-        ["secondary", "control", "diagnostic"]
+        ["secondary", "control", "diagnostic", "exploratory"]
     )
     return df[mask].copy().reset_index(drop=True)
 
 
 def filter_secondary_results(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Secondary / Control / Diagnostic 結果を抽出する。
-    is_primary == False または analysis_role in ('secondary', 'control', 'diagnostic')。
+    Secondary / Control / Diagnostic / Exploratory 結果を抽出する。
+    is_primary == False または analysis_role in ('secondary', 'control', 'diagnostic', 'exploratory')。
     """
     if len(df) == 0:
         return pd.DataFrame(columns=PAPER_SUMMARY_COLUMNS)
     mask = (~df["is_primary"].astype(bool)) | df["analysis_role"].isin(
-        ["secondary", "control", "diagnostic"]
+        ["secondary", "control", "diagnostic", "exploratory"]
     )
     return df[mask].copy().reset_index(drop=True)
 

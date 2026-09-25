@@ -187,8 +187,11 @@ def generate_results_summary_markdown(
         "(file:///results/derived/paper_summary/tables/table_v2_confirmatory.csv)"
     )
     lines.append(
-        "- **核心的知見**: 単なる表現の消去（Erasure）ではなく、幾何変換・共有度再編・"
-        "因果配置の深層への移行（Relocation）および介入による回復可能性が確認された。\n"
+        "- **核心的知見**: Base--Instruct間では"
+        "representation-geometric disparityと"
+        "Valenceのtask-dependent causal-profile differenceが観測された。"
+        "一方、一様なdepth relocation、Reader--Self sharingの低下、"
+        "およびfamily-generalなrecovery asymmetryは支持されなかった。\n"
     )
 
     lines.append("---\n")
@@ -207,11 +210,11 @@ def generate_results_summary_markdown(
         "(file:///results/derived/paper_summary/tables/table_v3_2_spatiotemporal_summary.csv)"
     )
     lines.append(
-        "  - [Table V3-3: Mediated Attenuation (Confirmatory)]"
+        "  - [Table V3-3: Mediated Attenuation]"
         "(file:///results/derived/paper_summary/tables/table_v3_3_mediated_attenuation.csv)"
     )
     lines.append(
-        "  - [Table V3-4: Confirmatory Replication]"
+        "  - [Table V3-4: Cross-family Replication]"
         "(file:///results/derived/paper_summary/tables/table_v3_4_confirmatory.csv)"
     )
     lines.append(
@@ -219,9 +222,10 @@ def generate_results_summary_markdown(
         "(file:///results/derived/paper_summary/tables/table_v3_confirmatory_matrix.csv)"
     )
     lines.append(
-        "- **厳格な科学的境界**: RQ2 full 4-map は `discovery` として報告し、"
-        "独立 Confirmation set による attenuation および cross-model replication は "
-        "`confirmatory` として厳密に直交分離。\n"
+        "- **厳格な科学的境界**: State Induction GateはValence / Arousal双方でNO_GOとなった。"
+        "したがってRQ2以降はoverride下のexploratory / descriptive analysisとして扱う。"
+        "Qwen Discoveryで選択されたsite / stage / directionは"
+        "replication-family outcomesを見る前にfreezeされた。\n"
     )
 
     out_path.write_text("\n".join(lines), encoding="utf-8")

@@ -332,7 +332,7 @@ def generate_distribution_recovery_table(df_recov):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} Instructモデルの内部表現を同一familyのBaseモデル由来表現で置換またはalignmentした場合に、InstructのVA output distributionがBase distributionへどの程度接近するかを評価した（Matched AUC, $\Delta\text{EMD AUC}$, Max Recovery）。事前登録された4ファミリー設計（Qwen, Llama, Gemma, OLMo）に基づき、全モデルでMatched-Plain recoveryの実測値が得られた。なおBase/Instruct差はrandomized interventionではないため、post-trainingのcausal effectではなくpost-training-associated reorganizationとして解釈する。",
+        r"\textbf{Note:} Instructモデルの内部表現を同一familyのBaseモデル由来表現で置換またはalignmentした場合に、InstructのVA output distributionがBase distributionへどの程度接近するかを評価した（Matched AUC, $\Delta\text{EMD AUC}$, Max Recovery）。事前定義された4ファミリー設計（Qwen, Llama, Gemma, OLMo）に基づき、全モデルでMatched-Plain recoveryの実測値が得られた。なおBase/Instruct差はrandomized interventionではないため、post-trainingのcausal effectではなくpost-training-associated reorganizationとして解釈する。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -346,11 +346,11 @@ def generate_confirmatory_summary_table(df_conf, df_lmm=None, df_recov=None):
         r"\begin{table}[htbp]",
         r"\centering",
         r"\small",
-        r"\caption{V2 事前登録仮説（Confirmatory Hypotheses H1--H4）の検証結果総括：各主要指標における推定値、統合ブートストラップ95\%信頼区間、および事前登録判定。}",
+        r"\caption{V2 Cross-family Hypothesis Summary（Hypotheses H1--H4）の検証結果総括：各主要指標における推定値、統合ブートストラップ95\%信頼区間、および判定／解釈（Criterion / Interpretation）。}",
         r"\label{tab:v2_confirmatory_summary}",
         r"\begin{tabular}{ll ccc c}",
         r"\toprule",
-        r"\textbf{Hypothesis} & \textbf{Key Pre-registered Metric} & \textbf{Estimate} & \textbf{95\% CI} & $p$ / FDR $q$ & \textbf{Supported?} \\",
+        r"\textbf{Hypothesis} & \textbf{Key Analysis Metric} & \textbf{Estimate} & \textbf{95\% CI} & $p$ / FDR $q$ & \textbf{Criterion / Interpretation} \\",
         r"\midrule",
     ]
 
@@ -397,7 +397,9 @@ def generate_confirmatory_summary_table(df_conf, df_lmm=None, df_recov=None):
                     pq_str = "---"
 
                 supp_str = str(r.get("supported", "---"))
-                if supp_str == "Supported":
+                if h_name.startswith("H1a"):
+                    supp_str = "Descriptive"
+                elif supp_str == "Supported":
                     supp_str = r"\checkmark Supported"
 
                 # Add midrule between hypothesis blocks
@@ -418,8 +420,11 @@ def generate_confirmatory_summary_table(df_conf, df_lmm=None, df_recov=None):
                     l_ci = r0.get("ci_low", np.nan)
                     u_ci = r0.get("ci_high", np.nan)
                     ci_str = f"[{format_num(l_ci)}, {format_num(u_ci)}]" if (pd.notna(l_ci) and pd.notna(u_ci)) else "---"
-                    supported = (l_ci > 0 or u_ci < 0) if (pd.notna(l_ci) and pd.notna(u_ci)) else False
-                    supp_str = r"\checkmark Supported" if supported else "Not Supported"
+                    if h_name.startswith("H1a") or h_label.startswith("H1a"):
+                        supp_str = "Descriptive"
+                    else:
+                        supported = (l_ci > 0 or u_ci < 0) if (pd.notna(l_ci) and pd.notna(u_ci)) else False
+                        supp_str = r"\checkmark Supported" if supported else "Not Supported"
                     tex_lines.append(f"{h_label:<30} & {m_label:<42} & {est_str:<8} & {ci_str:<22} & {'---':<12} & {supp_str:<22} \\\\")
 
             # H3 from df_lmm
@@ -455,7 +460,7 @@ def generate_confirmatory_summary_table(df_conf, df_lmm=None, df_recov=None):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} H1aではBase--Instruct間のgeometric distortionが確認された。一方、H1bのprespecified positive peak shiftおよびH2のReader--Self sharing reorganizationは、4-family bootstrap CIに基づく事前定義criterionを満たさなかった。H3（Causal Reorganization）は全面的な棄却ではなく、sample-level LMMにおいてValenceのtask-dependentな変化（Alignment $\times$ Task, FDR $q = 0.044$）のみ部分的に支持されたが、層深度の再配置（depth relocation; Alignment $\times$ Depth等）は支持されなかった（なおBase/Instruct差はrandomized interventionではないため、post-trainingのcausal effectではなくpost-training-associated reorganizationとして解釈する）。H4のRecovery Asymmetry（Self--Reader AUC差）も95\% CIがゼロを跨ぎ支持されなかった。",
+        r"\textbf{Note:} H1aはcross-family descriptive summaryとして扱う。Base--Instruct間にはReader / Self双方でrepresentation-geometric disparityが観測されたが、Procrustes distortionのCIが0を除外すること自体をnull-hypothesis testとは解釈しない。一方、H1bのprespecified positive peak shiftおよびH2のReader--Self sharing reorganizationは、4-family bootstrap CIに基づく事前定義criterionを満たさなかった。H3（Causal Reorganization）は全面的な棄却ではなく、sample-level LMMにおいてValenceのtask-dependentな変化（Alignment $\times$ Task, FDR $q = 0.044$）のみ部分的に支持されたが、層深度の再配置（depth relocation; Alignment $\times$ Depth等）は支持されなかった（なおBase/Instruct差はrandomized interventionではないため、post-trainingのcausal effectではなくpost-training-associated reorganizationとして解釈する）。H4のRecovery Asymmetry（Self--Reader AUC差）も95\% CIがゼロを跨ぎ支持されなかった。",
         r"\end{minipage}",
         r"\end{table}",
     ])

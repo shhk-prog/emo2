@@ -398,16 +398,24 @@ def build_v3_summary(
 
             # H1: Dissociation
             h1 = f_res.get("h1_dissociation", {})
-            # Load frozen replication direction if available
+            # Load frozen replication direction
             frozen_dir_path = v3_dir / "results" / "derived" / "frozen_confirmatory_sites.json"
-            h1_rep_dir = {"valence": {"peak": -1, "center_of_mass": -1}, "arousal": {"peak": -1, "center_of_mass": 1}}
-            if frozen_dir_path.exists():
+            if not frozen_dir_path.exists():
+                if strict:
+                    raise FileNotFoundError(f"Missing frozen H1 artifact: {frozen_dir_path}")
+                h1_rep_dir = {"valence": {"peak": -1, "center_of_mass": -1}, "arousal": {"peak": -1, "center_of_mass": 1}}
+            else:
                 try:
                     with open(frozen_dir_path, "r", encoding="utf-8") as f:
                         fs_d = json.load(f)
-                    h1_rep_dir = fs_d.get("h1_replication_direction", h1_rep_dir)
-                except Exception:
-                    pass
+                    if "h1_replication_direction" not in fs_d:
+                        if strict:
+                            raise KeyError("Missing required key 'h1_replication_direction' in frozen_confirmatory_sites.json")
+                    h1_rep_dir = fs_d.get("h1_replication_direction", {"valence": {"peak": -1, "center_of_mass": -1}, "arousal": {"peak": -1, "center_of_mass": 1}})
+                except Exception as e:
+                    if strict:
+                        raise RuntimeError(f"Failed to load Qwen-frozen H1 directions: {e}") from e
+                    h1_rep_dir = {"valence": {"peak": -1, "center_of_mass": -1}, "arousal": {"peak": -1, "center_of_mass": 1}}
 
             h1_passes = []
             for ax in ("valence", "arousal"):

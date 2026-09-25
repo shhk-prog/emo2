@@ -43,3 +43,15 @@ V3のH1（Decodability--Causal Dissociation）において、現在の定義（$
   - [x] 6.3 `scripts/summarize_v3_causal_utilization.py`: LaTeX 表 caption/Note から「事前登録」を削除し、推奨の cross-family replication 表現に更新 <!-- id: 6.3 -->
   - [x] 6.4 `iclr2027/iclr2027_conference2.tex`: 本文中の「事前登録」「prespecified」表現の適正化と整合性確認 <!-- id: 6.4 -->
   - [x] 6.5 テーブル再生成（`summarize_v3_causal_utilization.py`, `build_paper_summary.py`）と全テスト（`PYTHONPATH=src:. pytest -q`）実行 <!-- id: 6.5 -->
+
+- [ ] 7. 論文投稿前の残件解消（V2 H1a判定、TeX master正常化、用語・コードの厳格化） <!-- id: 7 -->
+  - [ ] 7.1 V2 H1aの「Supported」判定を「Descriptive」へ修正（`v2/scripts/build_paper_summary.py`）＆ `table_v2_confirmatory.csv` 再生成 <!-- id: 7.1 -->
+  - [ ] 7.2 V3 H1 Methods の $\widetilde{\Delta}$ 定義の数式・文章の完全復元・整頓 <!-- id: 7.2 -->
+  - [ ] 7.3 `run_confirmatory_replication.py` の `run_real_model_confirmatory` における silent fallback 削除 <!-- id: 7.3 -->
+  - [ ] 7.4 `v3/scripts/build_paper_summary.py` の silent fallback 削除（strict化） <!-- id: 7.4 -->
+  - [ ] 7.5 `scripts/summarize_v3_causal_utilization.py` の V3 Matrix 表における confirmatory 語彙および Note の修正＆表再生成 <!-- id: 7.5 -->
+  - [ ] 7.6 V3 Methods 内の旧語（confirmatory model/family等）の置換 <!-- id: 7.6 -->
+  - [ ] 7.7 LaTeX 原稿の赤字メモ（`\color{red}` 等）全削除 <!-- id: 7.7 -->
+  - [ ] 7.8 Qwen 2.5 の BibTeX citation 修正（`team2025qwen3` → 正式引用キー） <!-- id: 7.8 -->
+  - [ ] 7.9 TeX master の構文エラー修正と ICLR サンプル重複の解消 <!-- id: 7.9 -->
+

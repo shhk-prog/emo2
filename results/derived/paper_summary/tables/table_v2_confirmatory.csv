@@ -1,6 +1,6 @@
 hypothesis,metric,estimate,ci_low,ci_high,p,q,supported
-H1a: Geometry Reorganization,Reader Procrustes Distortion,1.4552528510627512,0.6387456352157252,2.8125523110994926,,,Supported
-H1a: Geometry Reorganization,Self Procrustes Distortion,2.8715983786630432,0.6603241244863186,6.995424955008694,,,Supported
+H1a: Geometry Reorganization,Reader Procrustes Distortion,1.4552528510627512,0.6387456352157252,2.8125523110994926,,,Descriptive
+H1a: Geometry Reorganization,Self Procrustes Distortion,2.8715983786630432,0.6603241244863186,6.995424955008694,,,Descriptive
 H1b: Decodability Peak Shift,Valence Reader Peak Shift Delta d*,-0.11851851851851852,-0.21851851851851856,-0.033333333333333326,,,Not Supported
 H1b: Decodability Peak Shift,Valence Self Peak Shift Delta d*,0.006666666666666661,-0.05333333333333333,0.09999999999999998,,,Not Supported
 H1b: Decodability Peak Shift,Arousal Reader Peak Shift Delta d*,0.19962962962962963,-0.02666666666666665,0.42592592592592593,,,Not Supported

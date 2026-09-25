@@ -878,14 +878,13 @@ def run_real_model_confirmatory(
     dissoc_v["d_profile_full_n"] = d_profile_v
     dissoc_a["d_profile_full_n"] = d_profile_a
 
-    h1_rep_dir = v3_cfg.get("frozen_sites", {}).get("h1_replication_direction") or v3_cfg.get("h1_replication_direction", {
-        "valence": {"peak": -1, "center_of_mass": -1},
-        "arousal": {"peak": -1, "center_of_mass": 1},
-    })
-    sign_pk_v = int(h1_rep_dir.get("valence", {}).get("peak", -1))
-    sign_ct_v = int(h1_rep_dir.get("valence", {}).get("center_of_mass", -1))
-    sign_pk_a = int(h1_rep_dir.get("arousal", {}).get("peak", -1))
-    sign_ct_a = int(h1_rep_dir.get("arousal", {}).get("center_of_mass", 1))
+    if "h1_replication_direction" not in v3_cfg:
+        raise KeyError("Validated Qwen-frozen h1_replication_direction is required.")
+    h1_rep_dir = v3_cfg["h1_replication_direction"]
+    sign_pk_v = int(h1_rep_dir["valence"]["peak"])
+    sign_ct_v = int(h1_rep_dir["valence"]["center_of_mass"])
+    sign_pk_a = int(h1_rep_dir["arousal"]["peak"])
+    sign_ct_a = int(h1_rep_dir["arousal"]["center_of_mass"])
 
     if n_h1 >= 2:
         rng_boot_v = np.random.default_rng(44)

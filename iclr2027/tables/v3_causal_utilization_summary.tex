@@ -129,7 +129,7 @@ Arousal    & L3 (0.11)        & ---      & ---      & 2.71e-04   & ---        & 
 \label{tab:v3_confirmatory_matrix}
 \begin{tabular}{l cccc c}
 \toprule
-\textbf{Family} & \textbf{H1 (Dissociation)} & \textbf{H2 (Sufficiency)} & \textbf{H3 (Mediation)} & \textbf{H4 (Temporal Contrast)} & \textbf{All Confirmed?} \\
+\textbf{Family} & \textbf{H1 (Dissociation)} & \textbf{H2 (Sufficiency)} & \textbf{H3 (Mediation)} & \textbf{H4 (Temporal Contrast)} & \textbf{All H1--H4 Criteria?} \\
 \midrule
 Llama 3.2      & $\times$     & $\times$     & $\times$     & \checkmark   & \textbf{NO} \\
 Gemma 3        & $\times$     & $\times$     & $\times$     & \checkmark   & \textbf{NO} \\
@@ -139,6 +139,6 @@ OLMo 2         & $\times$     & $\times$     & $\times$     & \checkmark   & \te
 \vspace{1ex}
 \begin{minipage}{\linewidth}
 \footnotesize
-\textbf{Note:} 全4仮説の判定マトリックス。各セルは該当仮説についてValenceおよびArousalの双方が事前定義された95\% CI criterionを満たした場合に$\checkmark$ とする。H1--H3はいずれのconfirmatory familyでも支持されなかった。H4のtemporal contrastは3 familyすべてでValence / Arousal双方がaxis-level criterionを満たした。ただし、事前のState Induction GateがNO\_GOであったため、V3全体としてprespecified confirmatory causal mechanismが確立されたとは解釈しない（All Confirmed = NO）。
+\textbf{Note:} 全4仮説の判定マトリックス。各セルは該当仮説についてValenceおよびArousalの双方が事前定義された95\% CI criterionを満たした場合に$\checkmark$ とする。H1のfamily-level criterionはValence / Arousal双方のaxis-level criterionを要求するため、いずれのfamilyでも成立しなかった。ただしValenceのdirectional criterionはLlama 3.2およびOLMo 2で満たされた。H2およびH3は、いずれのfamilyでもfamily-level criterionを満たさなかった。H4のtemporal contrastは3 familyすべてでValence / Arousal双方がaxis-level criterionを満たした。ただし、事前のState Induction GateがNO\_GOであったため、V3全体としてfamily-general causal mechanismが確立されたとは解釈しない（All Criteria = NO）。
 \end{minipage}
 \end{table}

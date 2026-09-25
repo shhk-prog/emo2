@@ -6101,7 +6101,12 @@ Selfで
 \qquad
 95\%\,CI=[0.660,6.995]
 \]
-となり、prespecified 4-family summaryにおいてgeometric reorganization criterionが支持された。
+となる。
+\color{red}
+9/25 15:00修正
+Matched-Plain conditionでは、Base--Instruct間にReader / Self双方について一貫したrepresentation-geometric disparityが観測された。Readerの平均Procrustes distortionは1.455（95\% CI = [0.639, 2.813]）、Selfでは2.872（95\% CI = [0.660, 6.995]）であった。これらはPrimary cohort内におけるcross-family descriptive summaryとして扱う。
+
+\color{black}
 V1においてBase / Instructの双方からhuman Reader V/Aに関係するinformationがheld-outでdecode可能であったことが重要である。
 したがってBase--Instruct differenceを、
 \[
@@ -7726,13 +7731,13 @@ prespecified replication familiesの結果を見てsiteを再選択しない。Q
 \[
 \text{relative site / semantic stage}
 \]
-であり、affect-related directions自体は各confirmatory familyのtraining foldから再推定する。
+であり、affect-related directions自体は各replication familyのtraining foldから再推定する。
 
 
 % ----------------------------------------------------------------
 \subsection{Replication sample-level cross-fitting}
 
-各confirmatory familyでは、AIPsyの192 matched pairsをすべて使用する。pair identityをgroupとしたGroupKFoldを使用し、
+各replication familyでは、AIPsyの192 matched pairsをすべて使用する。pair identityをgroupとしたGroupKFoldを使用し、
 \[
 K\le5
 \]
@@ -7822,16 +7827,17 @@ s_{a,m}
 \]
 と定義する。
 
-% このsignはQwen Discovery終了後、Llama、Gemma、OLMoのoutcomeを評価する前にfreezeする。
-
-% 各replication familyでは、対応するdissociation quantityを
-% \[
-% \widetilde{\Delta}_{a,m}
-% =
-% s_{a,m}\Delta_{a,m}
-% \]
-% とdirection-alignし、intervention sample setをjointly bootstrapして95\% confidence intervalを求める。
 このsignはQwen Discovery終了後、Llama、Gemma、OLMoのoutcomeを評価する前にfreezeする。したがって、これはQwen Discovery以前に事前指定されたdirectionではなく、Discoveryで観測されたdirectionを独立familiesへ固定して移送するdirectional replication designである。
+
+各replication familyでは、対応するdissociation quantityを
+\[
+\widetilde{\Delta}_{a,m}
+=
+s_{a,m}\Delta_{a,m}
+\]
+とdirection-alignする。
+
+intervention sample setをjointly bootstrapし、direction-aligned quantityについて95\% confidence intervalを求める。
 
 H1のfrozen directional replication criterionは、
 \[
@@ -7856,7 +7862,7 @@ CI_{\mathrm{low}}
 % ----------------------------------------------------------------
 \subsection{Replication H2：Sufficiency}
 
-Qwen RQ1からfreezeしたrelative depthを、各confirmatory modelのlayer数へ変換する。各foldのtraining Self representationsから、Reader Prediction V/Aをtargetとした
+Qwen RQ1からfreezeしたrelative depthを、各replication modelのlayer数へ変換する。各foldのtraining Self representationsから、Reader Prediction V/Aをtargetとした
 \[
 \text{Ridge}(\alpha=10)
 \]
@@ -7872,13 +7878,13 @@ Qwen RQ1からfreezeしたrelative depthを、各confirmatory modelのlayer数�
 \[
 CI_{\mathrm{low}}(\gamma)>0.1
 \]
-をconfirmation criterionとする。
+をprespecified replication criterionとする。
 
 
 % ----------------------------------------------------------------
 \subsection{Replication H3：Endogenous Relevance}
 
-Qwen RQ3でfreezeしたmediator relative depthを、各confirmatory modelへ移す。各foldのtraining representationsについて、Reader Prediction V/AをtargetとしたRidge \(\alpha=10\)から、
+Qwen RQ3でfreezeしたmediator relative depthを、各replication modelへ移す。各foldのtraining representationsについて、Reader Prediction V/AをtargetとしたRidge \(\alpha=10\)から、
 \[
 d_V,
 \qquad
@@ -7920,7 +7926,7 @@ T_i>0.05
 % ----------------------------------------------------------------
 \subsection{Replication H4：Temporal Emergence}
 
-RQ2 DiscoveryでfreezeしたValence / Arousalのrelative depthとgeneration stageを使用する。各confirmatory familyでは、各stageのhidden representationsからReader Predictionをtargetとするstage-local Ridge directionをtraining foldだけで再推定する。Valenceについて、frozen target stageでのabsolute causal displacementを、
+RQ2 DiscoveryでfreezeしたValence / Arousalのrelative depthとgeneration stageを使用する。各replication familyでは、各stageのhidden representationsからReader Predictionをtargetとするstage-local Ridge directionをtraining foldだけで再推定する。Valenceについて、frozen target stageでのabsolute causal displacementを、
 \[
 C_V(t_V^{*})
 \]

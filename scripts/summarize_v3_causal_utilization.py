@@ -290,7 +290,7 @@ def generate_confirmatory_table(df_conf, df_conf_matrix, repo_root="."):
         r"\label{tab:v3_confirmatory_matrix}",
         r"\begin{tabular}{l cccc c}",
         r"\toprule",
-        r"\textbf{Family} & \textbf{H1 (Dissociation)} & \textbf{H2 (Sufficiency)} & \textbf{H3 (Mediation)} & \textbf{H4 (Temporal Contrast)} & \textbf{All Confirmed?} \\",
+        r"\textbf{Family} & \textbf{H1 (Dissociation)} & \textbf{H2 (Sufficiency)} & \textbf{H3 (Mediation)} & \textbf{H4 (Temporal Contrast)} & \textbf{All H1--H4 Criteria?} \\",
         r"\midrule",
     ]
 
@@ -312,7 +312,7 @@ def generate_confirmatory_table(df_conf, df_conf_matrix, repo_root="."):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} 全4仮説の判定マトリックス。各セルは該当仮説についてValenceおよびArousalの双方が事前定義された95\% CI criterionを満たした場合に$\checkmark$ とする。H1--H3はいずれのconfirmatory familyでも支持されなかった。H4のtemporal contrastは3 familyすべてでValence / Arousal双方がaxis-level criterionを満たした。ただし、事前のState Induction GateがNO\_GOであったため、V3全体としてprespecified confirmatory causal mechanismが確立されたとは解釈しない（All Confirmed = NO）。",
+        r"\textbf{Note:} 全4仮説の判定マトリックス。各セルは該当仮説についてValenceおよびArousalの双方が事前定義された95\% CI criterionを満たした場合に$\checkmark$ とする。H1のfamily-level criterionはValence / Arousal双方のaxis-level criterionを要求するため、いずれのfamilyでも成立しなかった。ただしValenceのdirectional criterionはLlama 3.2およびOLMo 2で満たされた。H2およびH3は、いずれのfamilyでもfamily-level criterionを満たさなかった。H4のtemporal contrastは3 familyすべてでValence / Arousal双方がaxis-level criterionを満たした。ただし、事前のState Induction GateがNO\_GOであったため、V3全体としてfamily-general causal mechanismが確立されたとは解釈しない（All Criteria = NO）。",
         r"\end{minipage}",
         r"\end{table}",
     ])

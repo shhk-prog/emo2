@@ -592,7 +592,6 @@ def build_v2_summary(
         eff = effects.get(mk, {})
         est = eff.get("mean", np.nan)
         ci = eff.get("bootstrap_ci_95", [np.nan, np.nan])
-        supp = bool(ci[0] > 0.0) if not np.isnan(ci[0]) else False
         conf_rows.append({
             "hypothesis": "H1a: Geometry Reorganization",
             "metric": label,
@@ -601,7 +600,7 @@ def build_v2_summary(
             "ci_high": ci[1],
             "p": np.nan,
             "q": np.nan,
-            "supported": "Supported" if supp else "Not Supported",
+            "supported": "Descriptive",
         })
 
     # H1b: Decodability Peak Shift (Both Reader and Self across Valence and Arousal)

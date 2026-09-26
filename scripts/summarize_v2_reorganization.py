@@ -169,7 +169,7 @@ def generate_causal_relocation_table(df_reloc):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} 因果介入におけるピークおよび重心深度変位 $\Delta d_C^* = d_{C,\text{Instruct}}^* - d_{C,\text{Base}}^*$ は、事後学習に伴う因果部位の後段移行量を示す。なお本集約表は未評価（---）であり、ピーク再配置等の結論の根拠とはせず、H3の統計的推論はsample-level LMM（Table~\ref{tab:v2_h3_causal_lmm}）に基づく。またBase/Instruct差はrandomized interventionではないため、post-trainingのcausal effectではなくpost-training-associated reorganizationとして扱う。",
+        r"\textbf{Note:} 因果介入におけるピークおよび重心深度変位 $\Delta d_C^* = d_{C,\text{Instruct}}^* - d_{C,\text{Base}}^*$ は、事後学習に伴う因果部位の後段移行量を示す。なお本集約表は記述的集約値であり、ピーク再配置等の仮説検証の根拠とはせず、H3の統計的推論はsample-level LMM（Table~\ref{tab:v2_h3_causal_lmm}）に基づく。またBase/Instruct差はrandomized interventionではないため、post-trainingのcausal effectではなくpost-training-associated reorganizationとして扱う。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -214,7 +214,7 @@ def generate_causal_controls_table(df_ctrl):
         r"\vspace{1ex}",
         r"\begin{minipage}{\linewidth}",
         r"\footnotesize",
-        r"\textbf{Note:} $C_{\mathrm{net,rand}}>0$ は、affect-related directionの平均介入効果がrandom-direction controlより大きい方向にあることを示す。なお本集約表は未評価（---）であり、H3の統計的結論はsample-level LMM（Table~\ref{tab:v2_h3_causal_lmm}）を根拠とする。またBase/Instruct差はrandomized interventionではないため、post-trainingのcausal effectではなくpost-training-associated reorganizationとして解釈する。",
+        r"\textbf{Note:} $C_{\mathrm{net,rand}}>0$ は、affect-related directionの平均介入効果がrandom-direction controlより大きい方向にあることを示す。なお本集約表は記述的集約値であり、H3の統計的結論はsample-level LMM（Table~\ref{tab:v2_h3_causal_lmm}）を根拠とする。またBase/Instruct差はrandomized interventionではないため、post-trainingのcausal effectではなくpost-training-associated reorganizationとして解釈する。",
         r"\end{minipage}",
         r"\end{table}",
     ])
@@ -469,13 +469,208 @@ def generate_confirmatory_summary_table(df_conf, df_lmm=None, df_recov=None):
 # =========================================================================
 # Markdown Summary
 # =========================================================================
-def generate_markdown_summary(df_conf, df_lmm):
+def generate_markdown_summary(df_conf, df_reloc, df_ctrl, df_lmm, df_recov):
     md_lines = [
         "# V2 Stage: Post-training-Associated Reorganization (H1-H4) Complete Summary Report\n",
-        "## 1. Confirmatory Hypotheses Testing Summary\n",
-        "| Hypothesis | Key Pre-registered Metric | Estimate | 95% CI | p / FDR q | Supported? |",
-        "|:---|:---|:---:|:---:|:---:|:---:|",
     ]
+
+    # -------------------------------------------------------------------------
+    # 1. H1-H2 Table: Representation Geometry and Sharing Reorganization
+    # -------------------------------------------------------------------------
+    md_lines.append("## 1. Representation Geometry and Sharing Reorganization (H1--H2)\n")
+    md_lines.append("| Hypothesis | Metric | Estimate | 95% CI | Condition |")
+    md_lines.append("|:---|:---|:---:|:---:|:---:|")
+
+    metric_labels = [
+        ("H1a: Geometric Distortion", [
+            ("H1a: Geometry Reorganization", "Reader Procrustes Distortion", "Reader Procrustes Distortion"),
+            ("H1a: Geometry Reorganization", "Self Procrustes Distortion", "Self Procrustes Distortion"),
+        ]),
+        ("H1b: Decodability Peak Shift", [
+            ("H1b: Decodability Peak Shift", "Valence Reader Peak Shift Delta d*", r"Valence Reader $\Delta d^*$"),
+            ("H1b: Decodability Peak Shift", "Valence Self Peak Shift Delta d*", r"Valence Self $\Delta d^*$"),
+            ("H1b: Decodability Peak Shift", "Arousal Reader Peak Shift Delta d*", r"Arousal Reader $\Delta d^*$"),
+            ("H1b: Decodability Peak Shift", "Arousal Self Peak Shift Delta d*", r"Arousal Self $\Delta d^*$"),
+        ]),
+        ("H2: Sharing Reorganization", [
+            ("H2: Sharing Reorganization", "Valence Delta Sharing", r"$\Delta\text{Sharing}$ (Valence)"),
+            ("H2: Sharing Reorganization", "Arousal Delta Sharing", r"$\Delta\text{Sharing}$ (Arousal)"),
+        ]),
+    ]
+
+    if df_conf is not None and len(df_conf) > 0:
+        for h_name, items in metric_labels:
+            for h_query, m_query, m_label in items:
+                row = df_conf[
+                    (df_conf["hypothesis"] == h_query)
+                    & (df_conf["metric"] == m_query)
+                ]
+                if len(row) > 0:
+                    est_val = row["estimate"].iloc[0]
+                    l_val = row["ci_low"].iloc[0]
+                    u_val = row["ci_high"].iloc[0]
+                    est = format_num(est_val, decimals=4) if pd.notna(est_val) else "---"
+                    ci_str = f"[{format_num(l_val, decimals=4)}, {format_num(u_val, decimals=4)}]" if (pd.notna(l_val) and pd.notna(u_val)) else "---"
+                else:
+                    est = "---"
+                    ci_str = "---"
+                md_lines.append(f"| {h_name} | {m_label} | {est} | {ci_str} | Matched-Plain |")
+    else:
+        md_lines.append("| --- | --- | --- | --- | --- |")
+
+    md_lines.append("\n> **Note:** $\\Delta d^* = d^*_{\\text{instruct}} - d^*_{\\text{base}} > 0$ は、事後学習によって表現デコードピークが後段側（deeper側）へシフトしたことを示す。また、$\\Delta\\text{Sharing} < 0$ はReaderとSelfの表現共有度合いが事後学習によってタスク分離方向に再編されたことを示す。\n")
+
+    # -------------------------------------------------------------------------
+    # 2. H3a Table: Causal Relocation
+    # -------------------------------------------------------------------------
+    md_lines.append("## 2. Causal Peak Relocation (H3a)\n")
+    md_lines.append("| Family | Task | Axis | Base Peak ($d^*$) | Instruct Peak ($d^*$) | $\\Delta d_C^*$ | $\\Delta d_{\\text{center}}$ |")
+    md_lines.append("|:---|:---|:---|:---:|:---:|:---:|:---:|")
+
+    if df_reloc is not None and len(df_reloc) > 0:
+        primary_conditions = {
+            "base_plain_reader",
+            "base_plain_self",
+            "inst_matched_plain_reader",
+            "inst_matched_plain_self",
+        }
+        sub_reloc = df_reloc[df_reloc["condition"].isin(primary_conditions)]
+        grouped = sub_reloc.groupby(["family", "task", "axis"])
+        for (fam, task, ax), grp in grouped:
+            base_row = grp[grp["alignment"] == "base"]
+            inst_row = grp[grp["alignment"] == "instruct"]
+            b_pk_val = base_row["positive_causal_peak"].iloc[0] if len(base_row) > 0 else np.nan
+            i_pk_val = inst_row["positive_causal_peak"].iloc[0] if len(inst_row) > 0 else np.nan
+            b_ct_val = base_row["causal_center"].iloc[0] if len(base_row) > 0 else np.nan
+            i_ct_val = inst_row["causal_center"].iloc[0] if len(inst_row) > 0 else np.nan
+
+            b_pk = format_num(b_pk_val)
+            i_pk = format_num(i_pk_val)
+            d_pk = format_num(i_pk_val - b_pk_val) if (pd.notna(i_pk_val) and pd.notna(b_pk_val)) else "---"
+            d_ct = format_num(i_ct_val - b_ct_val) if (pd.notna(i_ct_val) and pd.notna(b_ct_val)) else "---"
+            md_lines.append(f"| {fam.upper()} | {task.capitalize()} | {ax.capitalize()} | {b_pk} | {i_pk} | {d_pk} | {d_ct} |")
+    else:
+        md_lines.append("| --- | --- | --- | --- | --- | --- | --- |")
+
+    md_lines.append("\n> **Note:** 因果介入におけるピークおよび重心深度変位 $\\Delta d_C^* = d_{C,\\text{Instruct}}^* - d_{C,\\text{Base}}^*$ は、事後学習に伴う因果部位の後段移行量を示す。なお本集約表は記述的集約値であり、ピーク再配置等の仮説検証の根拠とはせず、H3の統計的推論はsample-level LMMに基づく。またBase/Instruct差はrandomized interventionではないため、post-trainingのcausal effectではなくpost-training-associated reorganizationとして扱う。\n")
+
+    # -------------------------------------------------------------------------
+    # 3. H3b Table: Causal Specificity Controls
+    # -------------------------------------------------------------------------
+    md_lines.append("## 3. Causal Specificity Controls (H3b)\n")
+    md_lines.append("| Family | Task | Condition | Axis | $C_{\\text{raw}}$ | $C_{\\text{rand}}$ | $C_{\\text{perp}}$ | $C_{\\text{net,rand}}$ (Primary) | Zero-Ablation |")
+    md_lines.append("|:---|:---|:---|:---|:---:|:---:|:---:|:---:|:---:|")
+
+    if df_ctrl is not None and len(df_ctrl) > 0:
+        sub = df_ctrl[df_ctrl["condition"].str.contains("plain", na=False)]
+        for _, r in sub.iterrows():
+            fam = str(r["family"]).upper()
+            task = str(r.get("task", "---")).capitalize()
+            cond = "Matched-Plain" if "matched" in str(r["condition"]) else "Base-Plain"
+            ax = str(r["axis"]).capitalize()
+            c_raw = format_num(r["mean_c_raw"])
+            c_rand = format_num(r["mean_c_rand"])
+            c_perp = format_num(r["mean_c_perp"])
+            c_net = format_num(r["mean_c_net_rand"])
+            c_zero = format_num(r["mean_c_zero"])
+            md_lines.append(f"| {fam} | {task} | {cond} | {ax} | {c_raw} | {c_rand} | {c_perp} | {c_net} | {c_zero} |")
+    else:
+        md_lines.append("| --- | --- | --- | --- | --- | --- | --- | --- | --- |")
+
+    md_lines.append("\n> **Note:** $C_{\\mathrm{net,rand}}>0$ は、affect-related directionの平均介入効果がrandom-direction controlより大きい方向にあることを示す。なお本集約表は記述的集約値であり、H3の統計的結論はsample-level LMMを根拠とする。またBase/Instruct差はrandomized interventionではないため、post-trainingのcausal effectではなくpost-training-associated reorganizationとして解釈する。\n")
+
+    # -------------------------------------------------------------------------
+    # 4. H3c Table: Causal Relocation Linear Mixed-Effects Model (LMM)
+    # -------------------------------------------------------------------------
+    md_lines.append("## 4. Causal Relocation Mixed-Effects Model (H3c LMM)\n")
+    md_lines.append("### 4.1 Primary Interventions and Post-training Effects\n")
+    md_lines.append("| Axis | Predictor / Parameter | Estimate ($\\beta$) | 95% CI | $p$-value | FDR $q$ |")
+    md_lines.append("|:---|:---|:---:|:---:|:---:|:---:|")
+
+    TERMS_TO_DISPLAY = [
+        ("C(alignment)[T.inst]:relative_depth", r"Post-training $\times$ Depth (Primary)"),
+        ("C(alignment)[T.inst]:C(task)[T.self]", r"Post-training $\times$ Task (Primary)"),
+        ("C(alignment)[T.inst]:C(task)[T.self]:relative_depth", r"Post-training $\times$ Task $\times$ Depth (Primary)"),
+        ("C(alignment)[T.inst]", r"Post-training (Instruct = 1) (Secondary)"),
+    ]
+
+    if df_lmm is not None and len(df_lmm) > 0:
+        for axis in ["valence", "arousal"]:
+            axis_label = axis.capitalize()
+            for source_term, term_label in TERMS_TO_DISPLAY:
+                row = df_lmm[
+                    (df_lmm["axis"] == axis)
+                    & (df_lmm["term"] == source_term)
+                ]
+                if len(row) > 0:
+                    r0 = row.iloc[0]
+                    b_val = r0.get("beta", r0.get("estimate", np.nan))
+                    b_str = format_num(b_val, decimals=6) if pd.notna(b_val) else "---"
+                    l_ci = r0.get("ci_low", np.nan)
+                    u_ci = r0.get("ci_high", np.nan)
+                    ci_str = f"[{format_num(l_ci, decimals=6)}, {format_num(u_ci, decimals=6)}]" if (pd.notna(l_ci) and pd.notna(u_ci)) else "---"
+                    p_val = r0.get("p", r0.get("p_value", np.nan))
+                    p_str = "< 0.001" if (pd.notna(p_val) and p_val < 0.001) else (f"{p_val:.3f}" if pd.notna(p_val) else "---")
+                    q_val = r0.get("q", np.nan)
+                    q_str = "< 0.001" if (pd.notna(q_val) and q_val < 0.001) else (f"{q_val:.3f}" if pd.notna(q_val) else "---")
+                else:
+                    b_str, ci_str, p_str, q_str = "---", "---", "---", "---"
+                md_lines.append(f"| {axis_label} | {term_label} | {b_str} | {ci_str} | {p_str} | {q_str} |")
+    else:
+        md_lines.append("| --- | --- | --- | --- | --- | --- |")
+
+    md_lines.append("\n> **Note:** Primary confirmatory inferenceは Alignment $\\times$ Depth、Alignment $\\times$ Task、Alignment $\\times$ Task $\\times$ Depth のprespecified interaction termsに基づく。Valenceにおいて $\\text{Post-training} \\times \\text{Task}$ がFDR補正後も有意（$q = 0.044$）となり部分的に支持されたが、層深度の再配置（$\\text{Post-training} \\times \\text{Depth}$等）およびArousalの全interactionはFDR補正後の基準を満たさなかった。なおBase/Instruct差はrandomized interventionではないため、post-trainingのcausal effectではなくpost-training-associated reorganizationとして解釈する。\n")
+
+    md_lines.append("### 4.2 Full LMM Parameter Estimates\n")
+    md_lines.append("| Axis | Term | Estimate ($\\beta$) | 95% CI | $p$-value | FDR $q$ |")
+    md_lines.append("|:---|:---|:---:|:---:|:---:|:---:|")
+    if df_lmm is not None and len(df_lmm) > 0:
+        for _, r0 in df_lmm.iterrows():
+            ax = str(r0.get("axis", "---")).capitalize()
+            tm = str(r0.get("term", "---"))
+            b_val = r0.get("beta", np.nan)
+            b_str = format_num(b_val, decimals=6) if pd.notna(b_val) else "---"
+            l_ci = r0.get("ci_low", np.nan)
+            u_ci = r0.get("ci_high", np.nan)
+            ci_str = f"[{format_num(l_ci, decimals=6)}, {format_num(u_ci, decimals=6)}]" if (pd.notna(l_ci) and pd.notna(u_ci)) else "---"
+            p_val = r0.get("p", np.nan)
+            p_str = "< 0.001" if (pd.notna(p_val) and p_val < 0.001) else (f"{p_val:.3f}" if pd.notna(p_val) else "---")
+            q_val = r0.get("q", np.nan)
+            q_str = "< 0.001" if (pd.notna(q_val) and q_val < 0.001) else (f"{q_val:.3f}" if pd.notna(q_val) else "---")
+            md_lines.append(f"| {ax} | {tm} | {b_str} | {ci_str} | {p_str} | {q_str} |")
+    else:
+        md_lines.append("| --- | --- | --- | --- | --- | --- |")
+
+    # -------------------------------------------------------------------------
+    # 5. H4 Table: Distribution Recovery
+    # -------------------------------------------------------------------------
+    md_lines.append("\n## 5. Output Distribution Recovery (H4)\n")
+    md_lines.append("| Family | Task | Matched AUC | $\\Delta\\text{EMD AUC}$ | Max Recovery | Best Depth ($d^*$) | Native AUC | Aligned AUC |")
+    md_lines.append("|:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|")
+
+    if df_recov is not None and len(df_recov) > 0:
+        for _, r in df_recov.iterrows():
+            fam = str(r["family"]).upper()
+            task = str(r["task"]).capitalize()
+            m_auc = format_num(r.get("matched_auc", np.nan))
+            d_emd = format_num(r.get("matched_delta_emd_auc", np.nan))
+            m_rec = format_num(r.get("matched_max_recovery", np.nan))
+            b_dep = format_num(r.get("matched_best_depth", np.nan))
+            n_auc = format_num(r.get("native_auc", np.nan))
+            a_auc = format_num(r.get("aligned_auc", np.nan))
+            md_lines.append(f"| {fam} | {task} | {m_auc} | {d_emd} | {m_rec} | {b_dep} | {n_auc} | {a_auc} |")
+    else:
+        md_lines.append("| --- | --- | --- | --- | --- | --- | --- | --- |")
+
+    md_lines.append("\n> **Note:** Instructモデルの内部表現を同一familyのBaseモデル由来表現で置換またはalignmentした場合に、InstructのVA output distributionがBase distributionへどの程度接近するかを評価した（Matched AUC, $\\Delta\\text{EMD AUC}$, Max Recovery）。事前定義された4ファミリー設計（Qwen, Llama, Gemma, OLMo）に基づき、全モデルでMatched-Plain recoveryの実測値が得られた。なおBase/Instruct差はrandomized interventionではないため、post-trainingのcausal effectではなくpost-training-associated reorganizationとして解釈する。\n")
+
+    # -------------------------------------------------------------------------
+    # 6. Pre-registered Hypotheses Testing Summary Table
+    # -------------------------------------------------------------------------
+    md_lines.append("## 6. Pre-registered Hypotheses Testing Summary (H1--H4)\n")
+    md_lines.append("| Hypothesis | Key Pre-registered Metric | Estimate | 95% CI | $p$ / FDR $q$ | Supported? |")
+    md_lines.append("|:---|:---|:---:|:---:|:---:|:---:|")
+
     if df_conf is not None and len(df_conf) > 0:
         for _, r in df_conf.iterrows():
             h_name = str(r.get("hypothesis", "---"))
@@ -498,25 +693,7 @@ def generate_markdown_summary(df_conf, df_lmm):
     else:
         md_lines.append("| --- | --- | --- | --- | --- | --- |")
 
-    md_lines.append("\n## 2. Causal Relocation LMM (H3)\n")
-    md_lines.append("| Axis | Term | Estimate (beta) | 95% CI | p-value | FDR q |")
-    md_lines.append("|:---|:---|:---:|:---:|:---:|:---:|")
-    if df_lmm is not None and len(df_lmm) > 0:
-        for _, r0 in df_lmm.iterrows():
-            ax = str(r0.get("axis", "---")).capitalize()
-            tm = str(r0.get("term", "---"))
-            b_val = r0.get("beta", np.nan)
-            b_str = format_num(b_val, decimals=6) if pd.notna(b_val) else "---"
-            l_ci = r0.get("ci_low", np.nan)
-            u_ci = r0.get("ci_high", np.nan)
-            ci_str = f"[{format_num(l_ci, decimals=6)}, {format_num(u_ci, decimals=6)}]" if (pd.notna(l_ci) and pd.notna(u_ci)) else "---"
-            p_val = r0.get("p", np.nan)
-            p_str = "< 0.001" if (pd.notna(p_val) and p_val < 0.001) else (f"{p_val:.3f}" if pd.notna(p_val) else "---")
-            q_val = r0.get("q", np.nan)
-            q_str = "< 0.001" if (pd.notna(q_val) and q_val < 0.001) else (f"{q_val:.3f}" if pd.notna(q_val) else "---")
-            md_lines.append(f"| {ax} | {tm} | {b_str} | {ci_str} | {p_str} | {q_str} |")
-    else:
-        md_lines.append("| --- | --- | --- | --- | --- | --- |")
+    md_lines.append("\n> **Note:** H1aはcross-family descriptive summaryとして扱う。Base--Instruct間にはReader / Self双方でrepresentation-geometric disparityが観測されたが、Procrustes distortionのCIが0を除外すること自体をnull-hypothesis testとは解釈しない。一方、H1bのprespecified positive peak shiftおよびH2のReader--Self sharing reorganizationは、4-family bootstrap CIに基づく事前定義criterionを満たさなかった。H3（Causal Reorganization）は全面的な棄却ではなく、sample-level LMMにおいてValenceのtask-dependentな変化（Alignment $\\times$ Task, FDR $q = 0.044$）のみ部分的に支持されたが、層深度の再配置（depth relocation; Alignment $\\times$ Depth等）は支持されなかった（なおBase/Instruct差はrandomized interventionではないため、post-trainingのcausal effectではなくpost-training-associated reorganizationとして解釈する）。H4のRecovery Asymmetry（Self--Reader AUC差）も95% CIがゼロを跨ぎ支持されなかった。\n")
 
     return "\n".join(md_lines) + "\n"
 
@@ -570,19 +747,19 @@ def main():
         f.write(tex_summary)
 
     # 8. Markdown summary
-    md_summary = generate_markdown_summary(df_conf, df_lmm)
+    md_summary = generate_markdown_summary(df_conf, df_reloc, df_ctrl, df_lmm, df_recov)
     with open(os.path.join(out_dir, "v2_reorganization_summary.md"), "w", encoding="utf-8") as f:
         f.write(md_summary)
 
     print(f"[+] Successfully generated all V2 tables in {out_dir}:")
-    print(f"    - v2_h1_h2_reorganization.tex")
-    print(f"    - v2_causal_relocation.tex")
-    print(f"    - v2_causal_controls.tex")
-    print(f"    - v2_h3_causal_lmm.tex")
-    print(f"    - v2_distribution_recovery.tex")
-    print(f"    - v2_confirmatory_summary.tex")
-    print(f"    - v2_reorganization_summary.tex")
-    print(f"    - v2_reorganization_summary.md")
+    print("    - v2_h1_h2_reorganization.tex")
+    print("    - v2_causal_relocation.tex")
+    print("    - v2_causal_controls.tex")
+    print("    - v2_h3_causal_lmm.tex")
+    print("    - v2_distribution_recovery.tex")
+    print("    - v2_confirmatory_summary.tex")
+    print("    - v2_reorganization_summary.tex")
+    print("    - v2_reorganization_summary.md")
 
 if __name__ == "__main__":
     main()

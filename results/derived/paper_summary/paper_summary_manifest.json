@@ -1,6 +1,6 @@
 {
   "summary_schema_version": "1.0.0",
-  "generated_at_utc": "2026-09-25T14:19:45.377673+00:00",
+  "generated_at_utc": "2026-09-26T02:10:32.992711+00:00",
   "provenance_map": {
     "behavioral.table_b1.gemma_base_writer_valence_r": {
       "sources": [
@@ -3969,6 +3969,1126 @@
       ],
       "derivation": "direct_copy",
       "notes": "Procrustes alignment distortion between Base and Instruct"
+    },
+    "v2.table_v2_3b.olmo_base_plain_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_base_plain_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_base_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_base_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_base_plain_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_base_plain_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_base_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_base_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_inst_matched_plain_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_inst_matched_plain_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_inst_matched_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_inst_matched_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_inst_matched_plain_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_inst_matched_plain_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_inst_matched_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_inst_matched_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_inst_native_chat_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_inst_native_chat_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_inst_native_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_inst_native_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_deprecated_inst_reader_native_alias_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_deprecated_inst_reader_native_alias_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_inst_native_chat_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_inst_native_chat_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_inst_native_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_inst_native_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_deprecated_inst_self_native_alias_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.olmo_deprecated_inst_self_native_alias_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_base_plain_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_base_plain_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_base_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_base_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_base_plain_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_base_plain_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_base_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_base_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_inst_matched_plain_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_inst_matched_plain_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_inst_matched_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_inst_matched_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_inst_matched_plain_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_inst_matched_plain_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_inst_matched_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_inst_matched_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_inst_native_chat_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_inst_native_chat_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_inst_native_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_inst_native_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_deprecated_inst_reader_native_alias_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_deprecated_inst_reader_native_alias_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_inst_native_chat_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_inst_native_chat_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_inst_native_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_inst_native_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_deprecated_inst_self_native_alias_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.llama_deprecated_inst_self_native_alias_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_base_plain_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_base_plain_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_base_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_base_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_base_plain_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_base_plain_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_base_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_base_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_matched_plain_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_matched_plain_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_matched_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_matched_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_matched_plain_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_matched_plain_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_matched_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_matched_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_native_chat_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_native_chat_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_native_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_native_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_deprecated_inst_reader_native_alias_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_deprecated_inst_reader_native_alias_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_native_chat_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_native_chat_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_native_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_inst_native_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_deprecated_inst_self_native_alias_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.gemma_deprecated_inst_self_native_alias_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_base_plain_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_base_plain_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_base_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_base_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_base_plain_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_base_plain_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_base_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_base_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_matched_plain_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_matched_plain_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_matched_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_matched_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_matched_plain_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_matched_plain_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_matched_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_matched_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_native_chat_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_native_chat_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_native_reader_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_native_reader_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_deprecated_inst_reader_native_alias_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_deprecated_inst_reader_native_alias_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_native_chat_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_native_chat_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_native_self_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_inst_native_self_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_deprecated_inst_self_native_alias_valence_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_v_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
+    },
+    "v2.table_v2_3b.qwen_deprecated_inst_self_native_alias_arousal_c_net_rand": {
+      "sources": [
+        {
+          "artifact": "v2/results/derived/v2_causal_dissociation_summary.json",
+          "key": "c_a_net_rand"
+        }
+      ],
+      "derivation": "direct_copy",
+      "notes": "Direct copy of canonical control-adjusted net causal leverage"
     },
     "v2.table_v2_3c.valence_Intercept": {
       "sources": [

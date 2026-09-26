@@ -268,8 +268,9 @@ def build_v2_summary(
 
     for fam in cd_families:
         fam_entry = per_fam_cd.get(fam, {})
-        cmaps = fam_entry.get("causal_maps", {})
-        rel_depths = fam_entry.get("relative_depths", [0.0, 0.33, 0.67, 1.0])
+        results_entry = fam_entry.get("results", fam_entry) if isinstance(fam_entry, dict) else {}
+        cmaps = results_entry.get("causal_maps", fam_entry.get("causal_maps", {}))
+        rel_depths = results_entry.get("relative_depths", fam_entry.get("relative_depths", [0.0, 0.33, 0.67, 1.0]))
 
         if not cmaps:
             for cond_sub in ("base_plain", "inst_matched_plain"):

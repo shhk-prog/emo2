@@ -7,27 +7,27 @@
 \toprule
 \textbf{Family} & \textbf{Task} & \textbf{Axis} & \textbf{Base Peak ($d^*$)} & \textbf{Instruct Peak ($d^*$)} & $\Delta d_C^*$ & $\Delta d_{\text{center}}$ \\
 \midrule
-GEMMA      & Reader   & Arousal  & ---            & ---              & ---        & ---        \\
-GEMMA      & Reader   & Valence  & ---            & ---              & ---        & ---        \\
-GEMMA      & Self     & Arousal  & ---            & ---              & ---        & ---        \\
-GEMMA      & Self     & Valence  & ---            & ---              & ---        & ---        \\
-LLAMA      & Reader   & Arousal  & ---            & ---              & ---        & ---        \\
-LLAMA      & Reader   & Valence  & ---            & ---              & ---        & ---        \\
-LLAMA      & Self     & Arousal  & ---            & ---              & ---        & ---        \\
-LLAMA      & Self     & Valence  & ---            & ---              & ---        & ---        \\
-OLMO       & Reader   & Arousal  & ---            & ---              & ---        & ---        \\
-OLMO       & Reader   & Valence  & ---            & ---              & ---        & ---        \\
-OLMO       & Self     & Arousal  & ---            & ---              & ---        & ---        \\
-OLMO       & Self     & Valence  & ---            & ---              & ---        & ---        \\
-QWEN       & Reader   & Arousal  & ---            & ---              & ---        & ---        \\
-QWEN       & Reader   & Valence  & ---            & ---              & ---        & ---        \\
-QWEN       & Self     & Arousal  & ---            & ---              & ---        & ---        \\
-QWEN       & Self     & Valence  & ---            & ---              & ---        & ---        \\
+GEMMA      & Reader   & Arousal  & 0.760          & 0.560            & $-$0.200   & $-$0.106   \\
+GEMMA      & Reader   & Valence  & 0.520          & 0.080            & $-$0.440   & 0.098      \\
+GEMMA      & Self     & Arousal  & 0.560          & 0.240            & $-$0.320   & 0.010      \\
+GEMMA      & Self     & Valence  & 0.000          & 0.520            & 0.520      & 0.044      \\
+LLAMA      & Reader   & Arousal  & 0.467          & 0.467            & 0.000      & 0.013      \\
+LLAMA      & Reader   & Valence  & 0.533          & 0.000            & $-$0.533   & $-$0.089   \\
+LLAMA      & Self     & Arousal  & 0.067          & 0.800            & 0.733      & 0.254      \\
+LLAMA      & Self     & Valence  & 0.467          & 0.933            & 0.467      & 0.341      \\
+OLMO       & Reader   & Arousal  & 0.200          & 0.600            & 0.400      & 0.043      \\
+OLMO       & Reader   & Valence  & 0.600          & 0.267            & $-$0.333   & $-$0.170   \\
+OLMO       & Self     & Arousal  & 0.067          & 0.333            & 0.267      & $-$0.087   \\
+OLMO       & Self     & Valence  & 0.600          & 0.133            & $-$0.467   & $-$0.296   \\
+QWEN       & Reader   & Arousal  & 0.037          & 0.000            & $-$0.037   & $-$0.144   \\
+QWEN       & Reader   & Valence  & 0.778          & 0.111            & $-$0.667   & $-$0.042   \\
+QWEN       & Self     & Arousal  & 0.296          & 0.852            & 0.556      & 0.027      \\
+QWEN       & Self     & Valence  & 0.593          & 0.259            & $-$0.333   & $-$0.178   \\
 \bottomrule
 \end{tabular}
 \vspace{1ex}
 \begin{minipage}{\linewidth}
 \footnotesize
-\textbf{Note:} 因果介入におけるピークおよび重心深度変位 $\Delta d_C^* = d_{C,\text{Instruct}}^* - d_{C,\text{Base}}^*$ は、事後学習に伴う因果部位の後段移行量を示す。なお本集約表は未評価（---）であり、ピーク再配置等の結論の根拠とはせず、H3の統計的推論はsample-level LMM（Table~\ref{tab:v2_h3_causal_lmm}）に基づく。またBase/Instruct差はrandomized interventionではないため、post-trainingのcausal effectではなくpost-training-associated reorganizationとして扱う。
+\textbf{Note:} 因果介入におけるピークおよび重心深度変位 $\Delta d_C^* = d_{C,\text{Instruct}}^* - d_{C,\text{Base}}^*$ は、事後学習に伴う因果部位の後段移行量を示す。なお本集約表は記述的集約値であり、ピーク再配置等の仮説検証の根拠とはせず、H3の統計的推論はsample-level LMM（Table~\ref{tab:v2_h3_causal_lmm}）に基づく。またBase/Instruct差はrandomized interventionではないため、post-trainingのcausal effectではなくpost-training-associated reorganizationとして扱う。
 \end{minipage}
 \end{table}
